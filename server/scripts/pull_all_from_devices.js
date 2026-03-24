@@ -20,6 +20,9 @@ async function pullAll() {
             
             // 3. Pull Faces (BIODATA Type 9)
             await db.query(`INSERT INTO device_commands (device_serial, command, status, sequence) VALUES ($1, 'DATA QUERY FACE', 'pending', 3)`, [SN]);
+
+            // 4. Pull ALL historical attendance logs (up to 50k-100k records)
+            await db.query(`INSERT INTO device_commands (device_serial, command, status, sequence) VALUES ($1, 'DATA QUERY ATTLOG', 'pending', 4)`, [SN]);
             
             console.log(`  ✅ Commands queued for ${SN}`);
         }
