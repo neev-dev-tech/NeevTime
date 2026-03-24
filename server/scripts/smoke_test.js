@@ -6,7 +6,7 @@
 const axios = require('axios');
 require('dotenv').config();
 
-const BASE_URL = process.env.VITE_API_URL || 'http://localhost:5000';
+const BASE_URL = process.env.VITE_API_URL || 'http://localhost:3001';
 const TESTS = [
   { name: 'API Health Check', path: '/api/health', method: 'GET' },
   { name: 'Auth Check (Login Page)', path: '/api/login', method: 'GET' },
