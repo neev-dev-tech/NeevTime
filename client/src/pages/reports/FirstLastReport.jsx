@@ -1,11 +1,9 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import axios from 'axios';
-import { Search, Calculator, ArrowLeft, Printer, FileSpreadsheet, RefreshCw, Filter, Calendar, Loader } from 'lucide-react';
+import { Search, Calculator, ArrowLeft, Printer, FileSpreadsheet, RefreshCw, Loader } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { exportToPDF } from '../../utils/pdfExport';
-import { exportToExcel } from '../../utils/excelExport';
-import ReportErrorBoundary from '../../components/ReportErrorBoundary';
-import * as XLSX from 'xlsx';
+import { exportToExcel as exportToExcelUtil } from '../../utils/excelExport';
 
 function FirstLastReport() {
     const navigate = useNavigate();
@@ -76,7 +74,7 @@ function FirstLastReport() {
         setExportProgress(0);
 
         try {
-            await exportToExcel({
+            await exportToExcelUtil({
                 data: data.map(r => ({
                     'Employee Id': r.employee_code,
                     'First Name': r.first_name,
