@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Search, Calculator, ArrowLeft, Printer, FileSpreadsheet, RefreshCw, Filter, Calendar } from 'lucide-react';
+import { Search, Calculator, ArrowLeft, Printer, FileSpreadsheet, RefreshCw, Filter, Calendar, Loader } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { exportToPDF } from '../../utils/pdfExport';
+import { exportToExcel } from '../../utils/excelExport';
+import ReportErrorBoundary from '../../components/ReportErrorBoundary';
 import * as XLSX from 'xlsx';
 
-export default function FirstLastReport() {
+function FirstLastReport() {
     const navigate = useNavigate();
     const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0].substring(0, 8) + '01'); // First of month
     const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
@@ -14,6 +16,8 @@ export default function FirstLastReport() {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [calculated, setCalculated] = useState(false);
+    const [exporting, setExporting] = useState(false);
+    const [exportProgress, setExportProgress] = useState(0);
 
     const calculate = async () => {
         setLoading(true);
@@ -62,26 +66,55 @@ export default function FirstLastReport() {
         });
     };
 
+    const handleExportExcel = async () => {
+        if (data.length === 0) {
+            alert('No data to export. Please generate the report first.');
+            return;
+        }
+
+        setExporting(true);
+        setExportProgress(0);
+
+        try {
+            await exportToExcel({
+                data: data.map(r => ({
+                    'Employee Id': r.employee_code,
+                    'First Name': r.first_name,
+                    'Last Name': r.last_name || '',
+                    'Department': r.department,
+                    'Date': r.date,
+                    'Weekday': r.weekday,
+                    'First Punch': r.first_punch || '-',
+                    'Last Punch': r.last_punch || '-',
+                    'Total Time': r.total_time
+                })),
+                filename: `First_Last_Report_${startDate}_${endDate}.xlsx`,
+                sheetName: 'First & Last Punch',
+                metadata: {
+                    'Report Type': 'First & Last Punch Report',
+                    'Date Range': `${startDate} to ${endDate}`,
+                    'Total Records': data.length,
+                    'Generated At': new Date().toLocaleString()
+                },
+                onProgress: (progress) => setExportProgress(progress),
+                onSuccess: ({ filename, recordCount }) => {
+                    console.log(`✅ Export successful: ${filename} (${recordCount} records)`);
+                },
+                onError: (err) => {
+                    alert(`❌ Export failed: ${err.message}`);
+                }
+            });
+        } catch (err) {
+            console.error('Excel export error:', err);
+            alert(`Failed to export Excel: ${err.message}`);
+        } finally {
+            setExporting(false);
+            setExportProgress(0);
+        }
+    };
+
     const exportToExcel = () => {
-        if (data.length === 0) return;
-
-        // Prepare Data
-        const excelData = data.map(r => ({
-            "Employee Id": r.employee_code,
-            "First Name": r.first_name,
-            "Last Name": r.last_name || '',
-            "Department": r.department,
-            "Date": r.date,
-            "Weekday": r.weekday,
-            "First Punch": r.first_punch || '-',
-            "Last Punch": r.last_punch || '-',
-            "Total Time": r.total_time
-        }));
-
-        const ws = XLSX.utils.json_to_sheet(excelData);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Report");
-        XLSX.writeFile(wb, `First_Last_Report_${startDate}_${endDate}.xlsx`);
+        handleExportExcel();
     };
 
     return (
@@ -226,15 +259,26 @@ export default function FirstLastReport() {
                     <div className="flex gap-2">
                         <button
                             onClick={handleExportPDF}
-                            className="flex items-center gap-2 px-4 py-2 bg-white border border-rose-200 text-rose-700 rounded-lg hover:bg-rose-50 font-semibold transition-colors shadow-sm"
+                            disabled={exporting || data.length === 0}
+                            className="flex items-center gap-2 px-4 py-2 bg-white border border-rose-200 text-rose-700 rounded-lg hover:bg-rose-50 font-semibold transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            <Printer size={16} /> PDF Export
+                            {exporting ? <Loader size={16} className="animate-spin" /> : <Printer size={16} />}
+                            {exporting ? 'Exporting...' : 'PDF Export'}
                         </button>
                         <button
                             onClick={exportToExcel}
-                            className="flex items-center gap-2 px-4 py-2 bg-white border border-emerald-200 text-emerald-700 rounded-lg hover:bg-emerald-50 font-semibold transition-colors shadow-sm"
+                            disabled={exporting || data.length === 0}
+                            className="flex items-center gap-2 px-4 py-2 bg-white border border-emerald-200 text-emerald-700 rounded-lg hover:bg-emerald-50 font-semibold transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            <FileSpreadsheet size={16} /> Excel Export
+                            {exporting ? (
+                                <>
+                                    <Loader size={16} className="animate-spin" />
+                                    {exportProgress > 0 && `${exportProgress}%`}
+                                </>
+                            ) : (
+                                <FileSpreadsheet size={16} />
+                            )}
+                            {exporting ? 'Exporting...' : 'Excel Export'}
                         </button>
                     </div>
                 </div>

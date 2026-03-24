@@ -14,13 +14,20 @@
 const express = require('express');
 const router = express.Router();
 const reports = require('../services/reports');
+const { authenticateToken } = require('./auth');
+const { validateDateRange } = require('../middleware/validation');
+
+// ==========================================
+// AUTHENTICATION - PROTECT ALL ROUTES
+// ==========================================
+router.use(authenticateToken);
 
 // ==========================================
 // ATTENDANCE REPORTS
 // ==========================================
 
 // Daily Attendance Report
-router.get('/daily-attendance', async (req, res) => {
+router.get('/daily-attendance', validateDateRange, async (req, res) => {
     try {
         const { date, department_id, area_id } = req.query;
         const reportDate = date || new Date().toISOString().split('T')[0];
@@ -39,7 +46,7 @@ router.get('/daily-attendance', async (req, res) => {
 });
 
 // Monthly Summary Report
-router.get('/monthly-summary', async (req, res) => {
+router.get('/monthly-summary', validateDateRange, async (req, res) => {
     try {
         const now = new Date();
         const { year, month, department_id } = req.query;
@@ -58,7 +65,7 @@ router.get('/monthly-summary', async (req, res) => {
 });
 
 // Late/Early Report
-router.get('/late-early', async (req, res) => {
+router.get('/late-early', validateDateRange, async (req, res) => {
     try {
         const {
             start_date,
@@ -89,7 +96,7 @@ router.get('/late-early', async (req, res) => {
 });
 
 // Absent Report
-router.get('/absent', async (req, res) => {
+router.get('/absent', validateDateRange, async (req, res) => {
     try {
         const { start_date, end_date, department_id } = req.query;
 
@@ -112,7 +119,7 @@ router.get('/absent', async (req, res) => {
 });
 
 // Overtime Report
-router.get('/overtime', async (req, res) => {
+router.get('/overtime', validateDateRange, async (req, res) => {
     try {
         const { start_date, end_date, regular_hours = 8 } = req.query;
 

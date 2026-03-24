@@ -33,6 +33,7 @@ import {
 import { reportsAPI, departmentsAPI, areasAPI } from '../api';
 import { exportToPDF as exportPDF } from '../utils/pdfExport';
 import { exportToExcel } from '../utils/excelExport';
+import ReportErrorBoundary from '../components/ReportErrorBoundary';
 import * as XLSX from 'xlsx';
 
 const REPORT_CONFIGS = [
@@ -264,8 +265,19 @@ const AdvancedReports = () => {
                 signatureLabels: ['Prepared By', 'Verified By', 'HR Manager']
             });
         } catch (err) {
-            setError('Failed to export PDF: ' + err.message);
+            const errorMsg = `Failed to export PDF: ${err.message}`;
+            setError(errorMsg);
             console.error('PDF Export Error:', err);
+            
+            // Show user-friendly error dialog
+            alert(
+                '❌ PDF Export Failed\n\n' +
+                'This could be due to:\n' +
+                '• Dataset too large (try filtering or use Excel export)\n' +
+                '• Browser memory limit reached\n' +
+                '• Invalid data format\n\n' +
+                'Recommendation: Use Excel or CSV export for large datasets.'
+            );
         }
     };
 
@@ -1032,4 +1044,13 @@ const AdvancedReports = () => {
     );
 };
 
-export default AdvancedReports;
+const AdvancedReportsWithErrorBoundary = () => {
+    return (
+        <ReportErrorBoundary>
+            <AdvancedReports />
+        </ReportErrorBoundary>
+    );
+};
+
+export default AdvancedReportsWithErrorBoundary;
+

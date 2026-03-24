@@ -63,9 +63,9 @@ const processBiodataLine = async (line, SN, table) => {
                 // Handle case where first part contains table prefix like "BIODATA Pin=OMN005"
                 // Extract the actual key=value pairs, skipping table prefixes
                 let keyValuePart = part;
-                if (part.startsWith('BIODATA ') || part.startsWith('FACE ') || part.startsWith('FP ')) {
+                if (part.startsWith('BIODATA ') || part.startsWith('FACE ') || part.startsWith('FP ') || part.startsWith('USER ')) {
                     // Remove table prefix: "BIODATA Pin=OMN005" -> "Pin=OMN005"
-                    keyValuePart = part.replace(/^(BIODATA|FACE|FP)\s+/, '');
+                    keyValuePart = part.replace(/^(BIODATA|FACE|FP|USER)\s+/, '');
                 }
 
                 const eqIdx = keyValuePart.indexOf('=');
@@ -96,7 +96,10 @@ const processBiodataLine = async (line, SN, table) => {
             return;
         }
 
-        if (line.startsWith('USER')) return;
+        if (line.startsWith('USER PIN=')) {
+            // This is a USERINFO line, we'll process it for name/card update
+            // but it won't have a template (Temp)
+        }
 
         const No = fields['No'] || fields['FID'] || fields['Index'] || fields['FaceID'] || '0';
         let Type = fields['Type'];
@@ -110,6 +113,25 @@ const processBiodataLine = async (line, SN, table) => {
         }
 
         const Temp = fields['Temp'] || fields['TMP'] || fields['Tmp'] || fields['v'] || fields['Data'];
+
+        // If it's a USER record without a template, update employee then finish
+        if (line.startsWith('USER') && !Temp) {
+            const name = fields['Name'] || fields['NAME'];
+            const card = fields['Card'] || fields['CARD'];
+            const password = fields['Passwd'] || fields['PASSWORD'];
+
+            if (name) {
+                await db.query(`UPDATE employees SET name = $1 WHERE employee_code = $2`, [name, PIN]);
+            }
+            if (card) {
+                await db.query(`UPDATE employees SET card_number = $1 WHERE employee_code = $2`, [card, PIN]);
+            }
+            if (password) {
+                await db.query(`UPDATE employees SET password = $1 WHERE employee_code = $2`, [password, PIN]);
+            }
+            return;
+        }
+
         const Valid = fields['Valid'] || fields['VALID'] || '1';
         const Duress = fields['Duress'] || '0';
 
@@ -513,7 +535,7 @@ const handleAttendanceLogs = async (req, res, io) => {
     }
 
     // Handle BIODATA - Biometric Templates (Fingerprint, Face)
-    if (table === 'BIODATA' || table === 'FINGERTMP' || table === 'FACE' || table === 'USERVF' || table === 'USERPIC' || table === 'facev7' || table === 'templatev10') {
+    if (table === 'BIODATA' || table === 'FINGERTMP' || table === 'FACE' || table === 'USERVF' || table === 'USERPIC' || table === 'facev7' || table === 'templatev10' || table === 'USERINFO') {
         console.log(`[ADMS] ${table} from ${SN}`);
         const fs = require('fs');
         fs.appendFileSync('adms_debug.log', `[ADMS DEBUG] Entered BIODATA block for ${table} from ${SN}\n`);

@@ -543,25 +543,33 @@ function getFrequentOffenders(data, statusField, statusValue, minCount) {
 // ==========================================
 
 /**
- * Convert report data to CSV
+ * Convert report data to CSV with proper escaping
  */
 const toCSV = (reportData) => {
     if (!reportData.data || reportData.data.length === 0) {
         return '';
     }
 
+    const BOM = '\uFEFF';  // UTF-8 BOM for Excel compatibility
     const headers = Object.keys(reportData.data[0]);
-    const rows = reportData.data.map(row =>
-        headers.map(h => {
-            let val = row[h];
-            if (val === null || val === undefined) return '';
-            if (typeof val === 'object') val = JSON.stringify(val);
-            if (typeof val === 'string' && val.includes(',')) return `"${val}"`;
-            return val;
-        }).join(',')
+    
+    // Proper CSV escaping
+    const escapeCSV = (value) => {
+        if (value === null || value === undefined) return '';
+        const str = String(value);
+        // Escape quotes and wrap if contains comma, newline, or quote
+        if (str.includes(',') || str.includes('\n') || str.includes('"')) {
+            return `"${str.replace(/"/g, '""')}"`;
+        }
+        return str;
+    };
+    
+    const headerRow = headers.map(escapeCSV).join(',');
+    const dataRows = reportData.data.map(row =>
+        headers.map(h => escapeCSV(row[h])).join(',')
     );
-
-    return [headers.join(','), ...rows].join('\n');
+    
+    return BOM + [headerRow, ...dataRows].join('\n');
 };
 
 /**

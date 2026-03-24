@@ -1,5 +1,24 @@
+/**
+ * Enhanced PDF Export Utility
+ * 
+ * Professional PDF generation with:
+ * - Company branding & logo
+ * - Customizable headers/footers
+ * - Smart column width handling
+ * - Page break optimization
+ * - Signature placeholders
+ * - Watermarks
+ * - Row limit protection
+ * 
+ * @author DevTeam
+ * @version 2.1.0
+ */
+
 import jsPDF from 'jspdf';
 import { autoTable } from 'jspdf-autotable';
+
+// Maximum rows for PDF export (browser memory limit)
+const MAX_PDF_ROWS = 1000;
 
 /**
  * Enhanced PDF Export Utility
@@ -72,6 +91,30 @@ export const exportToPDF = (options) => {
     if (!data || data.length === 0) {
         alert('No data to export');
         return;
+    }
+
+    // ✅ ROW LIMIT CHECK - Prevent browser crashes
+    if (data.length > MAX_PDF_ROWS) {
+        const proceed = window.confirm(
+            `⚠️ Large Dataset Warning\n\n` +
+            `This report contains ${data.length.toLocaleString()} rows.\n` +
+            `PDF export is limited to ${MAX_PDF_ROWS.toLocaleString()} rows for performance.\n\n` +
+            `Recommendations:\n` +
+            `• Use Excel export for full dataset (no row limit)\n` +
+            `• Use CSV export for maximum compatibility\n` +
+            `• Apply filters to reduce row count\n\n` +
+            `Continue with first ${MAX_PDF_ROWS.toLocaleString()} rows?`
+        );
+        
+        if (!proceed) {
+            return;
+        }
+        
+        // Truncate data and add warning
+        options.data = data.slice(0, MAX_PDF_ROWS);
+        if (!watermark) {
+            options.watermark = `TRUNCATED: Showing ${MAX_PDF_ROWS.toLocaleString()} of ${data.length.toLocaleString()} rows`;
+        }
     }
 
     // Create PDF document
