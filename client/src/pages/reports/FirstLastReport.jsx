@@ -286,3 +286,5 @@ function FirstLastReport() {
         </div>
     );
 }
+
+export default FirstLastReport;
