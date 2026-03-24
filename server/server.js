@@ -1,9 +1,10 @@
+process.env.TZ = 'Asia/Kolkata';
 const express = require('express');
 const cors = require('cors');
-const fs = require('fs');
-const http = require('http');
+const fs = require('node:fs');
+const http = require('node:http');
 const { Server } = require("socket.io");
-const path = require('path');
+const path = require('node:path');
 const bodyParser = require('body-parser');
 require('dotenv').config();
 
@@ -17,15 +18,24 @@ process.on('uncaughtException', (err) => {
     logger.error(`CRASH: ${err.message}\n${err.stack}`);
     process.exit(1);
 });
-process.on('unhandledRejection', (reason, promise) => {
-    logger.error(`UNHANDLED REJECTION: ${reason}`);
+process.on('unhandledRejection', (reason) => {
+    logger.error(`UNHANDLED REJECTION: ${JSON.stringify(reason)}`);
 });
 
 const app = express();
 const server = http.createServer(app);
+const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['http://localhost:5173', 'http://localhost:3000'];
 const io = new Server(server, {
     cors: {
-        origin: "*", // Allow all for dev
+        origin: (origin, callback) => {
+            // Allow requests with no origin (like mobile apps or curl)
+            if (!origin) return callback(null, true);
+            if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+                callback(null, true);
+            } else {
+                callback(new Error('Not allowed by CORS'));
+            }
+        },
         methods: ["GET", "POST"],
         credentials: true
     },
@@ -74,7 +84,7 @@ app.use(async (req, res, next) => {
                 await adms.handleDeviceCmd(req, res);
             } else {
                 // Unknown endpoint, but respond with OK to keep device happy
-                console.log(`[ADMS DISPATCH] Unknown endpoint: ${req.url}, responding with OK`);
+                logger.adms(`[ADMS DISPATCH] Unknown endpoint: ${req.url}, responding with OK`);
                 res.send('OK');
             }
             // STOP chain here
@@ -381,10 +391,7 @@ app.get('/api/health', async (req, res) => {
 // Get Dashboard Stats
 app.get('/api/stats', async (req, res) => {
     try {
-        const today = new Date().toISOString().split('T')[0];
-
-        // Parallel queries
-        const [totalEmp, devicesOnline, recentLogs, todayStats] = await Promise.all([
+                const [totalEmp, devicesOnline, recentLogs, todayStats] = await Promise.all([
             db.query('SELECT COUNT(*) FROM employees'),
             db.query("SELECT COUNT(*) FROM devices WHERE status = 'online'"),
             db.query(`
@@ -403,9 +410,9 @@ app.get('/api/stats', async (req, res) => {
         ]);
 
         res.json({
-            employees: parseInt(totalEmp.rows[0].count),
-            devices_online: parseInt(devicesOnline.rows[0].count),
-            present_today: parseInt(todayStats.rows[0].present_count),
+            employees: Number.parseInt(totalEmp.rows[0].count),
+            devices_online: Number.parseInt(devicesOnline.rows[0].count),
+            present_today: Number.parseInt(todayStats.rows[0].present_count),
             recent_logs: recentLogs.rows
         });
     } catch (err) {
@@ -426,11 +433,11 @@ app.get('/api/stats/database', async (req, res) => {
         ]);
 
         res.json({
-            total_employees: parseInt(employees.rows[0].count),
-            total_departments: parseInt(departments.rows[0].count),
-            total_devices: parseInt(devices.rows[0].count),
-            total_attendance_logs: parseInt(logs.rows[0].count),
-            total_holidays: parseInt(holidays.rows[0].count),
+            total_employees: Number.parseInt(employees.rows[0].count),
+            total_departments: Number.parseInt(departments.rows[0].count),
+            total_devices: Number.parseInt(devices.rows[0].count),
+            total_attendance_logs: Number.parseInt(logs.rows[0].count),
+            total_holidays: Number.parseInt(holidays.rows[0].count),
             database_size: 'N/A',
             last_backup: null
         });

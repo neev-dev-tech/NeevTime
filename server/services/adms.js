@@ -1,7 +1,8 @@
 const db = require('../db');
 const attendanceEngine = require('./attendance_engine');
-const fs = require('fs');
+const fs = require('node:fs');
 const deviceCapabilities = require('./device-capabilities');
+const moment = require('moment-timezone');
 
 /**
  * ADMS Protocol Handler
@@ -47,6 +48,150 @@ const logAttendanceLogs = async (SN, pin, time, status, verify, workcode) => {
             ON CONFLICT (employee_code, punch_time) DO NOTHING
         `, [SN, pin, formatTime(time), status, verify, workcode]);
     } catch (e) { console.error('logAttendanceLogs error:', e); }
+};
+
+/**
+ * Syncs a biometric template to all other registered devices
+ */
+const syncTemplateToOtherDevices = async (SN, PIN, templateType, templateNo, Temp, Valid, isNewTemplate, templateChanged, shouldForceSync) => {
+    // CRITICAL: Always sync when templates are received from devices to ensure all devices have latest data
+    const shouldAutoSync = isNewTemplate || templateChanged || shouldForceSync || true; 
+
+    if (!shouldAutoSync) return;
+
+    try {
+        const otherDevices = await db.query(
+            'SELECT serial_number FROM devices WHERE serial_number != $1',
+            [SN]
+        );
+
+        if (otherDevices.rows.length === 0) return;
+
+        const empResult = await db.query(
+            'SELECT name, privilege, password, card_number FROM employees WHERE employee_code = $1',
+            [PIN]
+        );
+        const emp = empResult.rows[0];
+        const empName = (emp?.name || 'Unknown').replaceAll('\t', ' ');
+        const empPri = emp?.privilege || 0;
+        const empPasswd = emp?.password || '';
+        const empCard = emp?.card_number || '';
+        const validFlag = Number.parseInt(Valid || 1);
+
+        for (const dev of otherDevices.rows) {
+            const recentUserInfo = await db.query(`
+                SELECT id FROM device_commands 
+                WHERE device_serial = $1 AND command LIKE $2 
+                AND status IN ('pending', 'sent')
+                AND created_at > NOW() - INTERVAL '2 minutes'
+                LIMIT 1
+            `, [dev.serial_number, `DATA UPDATE USERINFO PIN=${PIN}%`]);
+
+            if (recentUserInfo.rows.length === 0) {
+                const cmdUser = `DATA UPDATE USERINFO PIN=${PIN}\tName=${empName}\tPri=${empPri}\tPasswd=${empPasswd}\tCard=${empCard}\tGrp=1\tTZ=1\tVerify=0\tFace=1\tFPCount=1`;
+                await db.query(`INSERT INTO device_commands (device_serial, command, status, sequence) VALUES ($1, $2, 'pending', 1)`,
+                    [dev.serial_number, cmdUser]);
+            }
+
+            if (templateType === 9) {
+                await db.query(`INSERT INTO device_commands (device_serial, command, status, sequence) VALUES ($1, $2, 'pending', 2)`,
+                    [dev.serial_number, `DATA DELETE FACE PIN=${PIN}`]);
+            }
+
+            const freshTemplate = await db.query(`
+                SELECT template_data, template_type, template_no, major_ver, minor_ver, format, index_no, valid, duress
+                FROM biometric_templates 
+                WHERE employee_code = $1 AND template_type = $2 AND template_no = $3
+                ORDER BY updated_at DESC LIMIT 1
+            `, [PIN, templateType, Number.parseInt(templateNo)]);
+
+            if (freshTemplate.rows.length === 0) continue;
+
+            const tmplRow = freshTemplate.rows[0];
+            const freshTemplateData = tmplRow.template_data;
+            if (!freshTemplateData || freshTemplateData.length < 100) continue;
+
+            const normalizedFreshTemp = freshTemplateData.trim().replaceAll(/[\r\n]/g, '');
+            const freshPadding = (normalizedFreshTemp.match(/=/g) || []).length;
+            const freshSize = Math.floor((normalizedFreshTemp.length * 3) / 4) - freshPadding;
+
+            if (templateType === 9) {
+                const targetCaps = await deviceCapabilities.getCapabilities(dev.serial_number);
+                const majorVer = targetCaps?.face_major_ver || tmplRow.major_ver || 40;
+                const minorVer = targetCaps?.face_minor_ver || tmplRow.minor_ver || 1;
+                const biodataCmd = `DATA UPDATE BIODATA Pin=${PIN}\tNo=${templateNo || '0'}\tIndex=${tmplRow.index_no || 0}\tValid=${tmplRow.valid || 1}\tDuress=${tmplRow.duress || 0}\tType=9\tMajorVer=${majorVer}\tMinorVer=${minorVer}\tFormat=${tmplRow.format || 0}\tTmp=${normalizedFreshTemp}`;
+                await db.query(`INSERT INTO device_commands (device_serial, command, status, sequence) VALUES ($1, $2, 'pending', 3)`,
+                    [dev.serial_number, biodataCmd]);
+            } else {
+                const fingerFID = templateNo || '0';
+                await db.query(`INSERT INTO device_commands (device_serial, command, status, sequence) VALUES ($1, $2, 'pending', 3)`,
+                    [dev.serial_number, `DATA UPDATE FINGERTMP PIN=${PIN}\tFID=${fingerFID}\tSize=${freshSize}\tValid=${validFlag}\tTMP=${normalizedFreshTemp}`]);
+            }
+        }
+    } catch (error) {
+        console.error(`[ADMS] Auto-sync error for PIN=${PIN}:`, error);
+        fs.appendFileSync('adms_debug.log', `[ADMS AUTO-SYNC ERROR] PIN=${PIN}: ${error.message}\n`);
+    }
+};
+
+/**
+ * Processes a single attendance log line
+ */
+const processAttendanceLogLine = async (line, SN, deviceDirection, io) => {
+    let parts = line.split('\t');
+    if (parts.length < 2) {
+        const match = line.match(/^(\S+)\s+([\d-]+\s[\d:]+)\s+(\d+)\s+(\d+)\s+(\d+)/);
+        if (match) {
+            parts = [match[1], match[2], match[3], match[4], match[5]];
+        } else {
+            parts = line.split(/\s+/);
+            if (parts.length >= 6) {
+                parts = [parts[0], parts[1] + ' ' + parts[2], parts[3], parts[4], parts[5]];
+            }
+        }
+    }
+
+    if (parts.length < 2) return false;
+
+    const [userId, timestamp, state, verifyMode] = parts;
+    let finalState = state;
+    if (deviceDirection === 'in') finalState = '0';
+    else if (deviceDirection === 'out') finalState = '1';
+
+    try {
+        await db.query(`INSERT INTO employees (employee_code, name) VALUES ($1, 'Unknown') ON CONFLICT DO NOTHING`, [userId]);
+        const istTimestamp = moment.tz(timestamp, 'Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
+
+        await db.query(`
+            INSERT INTO attendance_logs 
+            (employee_code, device_serial, punch_time, punch_state, verification_mode, raw_data, source, is_attendance, upload_time)
+            VALUES ($1, $2, $3, $4, $5, $6, 1, 1, NOW())
+            ON CONFLICT (employee_code, punch_time) DO UPDATE 
+            SET upload_time = NOW(), punch_state = EXCLUDED.punch_state
+        `, [userId, SN, istTimestamp, finalState, Number.parseInt(verifyMode || 0), line]);
+
+        io.emit('new_punch', { employee_code: userId, device_serial: SN, timestamp: istTimestamp, state: finalState });
+        await attendanceEngine.processDailyAttendance(userId, istTimestamp.substring(0, 10));
+
+        // Background HRMS Sync
+        (async () => {
+            try {
+                const hrmsIntegration = require('./hrms-integration');
+                const integrations = await hrmsIntegration.getActiveIntegrations();
+                for (const integration of integrations) {
+                    if (integration.sync_attendance) {
+                        const instance = await hrmsIntegration.getIntegrationInstance(integration.id);
+                        await instance.pushAttendance([{ employee_code: userId, punch_time: timestamp, punch_state: finalState, device_serial: SN }]);
+                    }
+                }
+            } catch (err) { console.log(`[ADMS] ERPNext push skipped: ${err.message}`); }
+        })();
+
+        return true;
+    } catch (e) {
+        console.error('Log Insert Error:', e.message);
+        return false;
+    }
 };
 
 // Helper to process Key=Value lines (BIODATA/FP/FACE)
@@ -137,15 +282,15 @@ const processBiodataLine = async (line, SN, table) => {
 
         // CRITICAL: Parse BIODATA version fields for cross-device face sync compatibility
         // These fields are essential for face templates to work across devices
-        const MajorVer = parseInt(fields['MajorVer'] || fields['MAJORVER'] || '0');
-        const MinorVer = parseInt(fields['MinorVer'] || fields['MINORVER'] || '0');
-        const Format = parseInt(fields['Format'] || fields['FORMAT'] || '0');
-        const IndexNo = parseInt(fields['Index'] || fields['INDEX'] || '0');
+        const MajorVer = Number.parseInt(fields['MajorVer'] || fields['MAJORVER'] || '0');
+        const MinorVer = Number.parseInt(fields['MinorVer'] || fields['MINORVER'] || '0');
+        const Format = Number.parseInt(fields['Format'] || fields['FORMAT'] || '0');
+        const IndexNo = Number.parseInt(fields['Index'] || fields['INDEX'] || '0');
 
         if (!Type || !Temp || Temp.startsWith('AAAAA') || Temp.length < 100) return;
 
         const templateNo = No || '0';
-        const templateType = parseInt(Type || '1');
+        const templateType = Number.parseInt(Type || '1');
 
         // Log version info for debugging face sync issues
         const versionInfo = templateType === 9 ? ` MajorVer=${MajorVer} MinorVer=${MinorVer} Format=${Format}` : '';
@@ -171,15 +316,14 @@ const processBiodataLine = async (line, SN, table) => {
         const existingTemplate = await db.query(`
             SELECT template_data, updated_at FROM biometric_templates 
             WHERE employee_code = $1 AND template_type = $2 AND template_no = $3
-        `, [PIN, templateType, parseInt(templateNo)]);
+        `, [PIN, templateType, Number.parseInt(templateNo)]);
 
         const isNewTemplate = existingTemplate.rows.length === 0;
         // Improved change detection: compare normalized template data and check updated_at
         const existingData = existingTemplate.rows.length > 0 ? existingTemplate.rows[0].template_data : null;
-        const existingUpdatedAt = existingTemplate.rows.length > 0 ? existingTemplate.rows[0].updated_at : null;
         // Normalize both strings (trim whitespace) for comparison
-        const normalizedExisting = existingData ? existingData.trim().replace(/[\r\n]/g, '') : '';
-        const normalizedNew = Temp ? Temp.trim().replace(/[\r\n]/g, '') : '';
+        const normalizedExisting = existingData ? existingData.trim().replaceAll(/[\r\n]/g, '') : '';
+        const normalizedNew = Temp ? Temp.trim().replaceAll(/[\r\n]/g, '') : '';
         const templateChanged = !isNewTemplate && normalizedExisting !== normalizedNew;
 
         // For face templates (type 9), always force sync to ensure latest data is pushed
@@ -203,9 +347,10 @@ const processBiodataLine = async (line, SN, table) => {
                 format = EXCLUDED.format,
                 index_no = EXCLUDED.index_no,
                 updated_at = NOW()
-        `, [PIN, templateType, parseInt(templateNo), parseInt(Valid || 1), parseInt(Duress || 0), Temp, SN, MajorVer, MinorVer, Format, IndexNo]);
+        `, [PIN, templateType, Number.parseInt(templateNo), Number.parseInt(Valid || 1), Number.parseInt(Duress || 0), Temp, SN, MajorVer, MinorVer, Format, IndexNo]);
 
         console.log(`[ADMS] Saved template for PIN=${PIN} Type=${templateType} No=${templateNo} from ${SN} (New: ${isNewTemplate}, Changed: ${templateChanged}, ForceSync: ${shouldForceSync})`);
+        logger.adms(`[ADMS] Saved template for PIN=${PIN} Type=${templateType} No=${templateNo} from ${SN}`);
 
         if (templateType === 1 || templateType === 2) {
             await db.query('UPDATE employees SET has_fingerprint = true WHERE employee_code = $1', [PIN]);
@@ -213,156 +358,7 @@ const processBiodataLine = async (line, SN, table) => {
             await db.query('UPDATE employees SET has_face = true WHERE employee_code = $1', [PIN]);
         }
 
-        // Auto-sync biometric template to all other devices
-        // CRITICAL: Always sync when templates are received from devices to ensure all devices have latest data
-        // This ensures real-time sync when templates are pulled from devices or updated
-        const shouldAutoSync = isNewTemplate || templateChanged || shouldForceSync || true; // Always sync to ensure consistency
-
-        if (shouldAutoSync) {
-            try {
-                // Get all other devices (excluding the source device)
-                const otherDevices = await db.query(
-                    'SELECT serial_number FROM devices WHERE serial_number != $1',
-                    [SN]
-                );
-
-                if (otherDevices.rows.length > 0) {
-                    // Get employee details for USERINFO command (matching device display format)
-                    const empResult = await db.query(
-                        'SELECT name, privilege, password, card_number FROM employees WHERE employee_code = $1',
-                        [PIN]
-                    );
-                    const emp = empResult.rows[0];
-                    const empName = (emp?.name || 'Unknown').replace(/\t/g, ' ');
-                    const empPri = emp?.privilege || 0;
-                    const empPasswd = emp?.password || '';
-                    const empCard = emp?.card_number || '';
-
-                    // Calculate template size
-                    const b64 = Temp || '';
-                    const padding = (b64.match(/=/g) || []).length;
-                    const size = Math.floor((b64.length * 3) / 4) - padding;
-                    const validFlag = parseInt(Valid || 1);
-
-                    // Queue commands for each other device
-                    // CRITICAL: Use sequence numbers to ensure correct command order
-                    // Sequence: 1=USERINFO, 2=DELETE FACE, 3=UPDATE FACE/FINGERTMP
-                    for (const dev of otherDevices.rows) {
-                        // CRITICAL: USERINFO must come FIRST - user must exist before we can delete/update face
-                        // Check if USERINFO was already queued for this user on this device recently
-                        // This prevents duplicate USERINFO commands when syncing multiple templates
-                        const recentUserInfo = await db.query(`
-                            SELECT id FROM device_commands 
-                            WHERE device_serial = $1 
-                            AND command LIKE $2 
-                            AND status IN ('pending', 'sent')
-                            AND created_at > NOW() - INTERVAL '2 minutes'
-                            LIMIT 1
-                        `, [dev.serial_number, `DATA UPDATE USERINFO PIN=${PIN}%`]);
-
-                        // Only send USERINFO if not already queued recently
-                        if (recentUserInfo.rows.length === 0) {
-                            // First, ensure user exists on device with complete USERINFO
-                            // Format matches device display: PIN Name (e.g., "INT001 suresh")
-                            // Include Face=1 and FPCount=1 to enable biometric recognition
-                            const cmdUser = `DATA UPDATE USERINFO PIN=${PIN}\tName=${empName}\tPri=${empPri}\tPasswd=${empPasswd}\tCard=${empCard}\tGrp=1\tTZ=1\tVerify=0\tFace=1\tFPCount=1`;
-                            // Use sequence=1 to ensure USERINFO is always first
-                            await db.query(
-                                `INSERT INTO device_commands (device_serial, command, status, sequence) VALUES ($1, $2, 'pending', 1)`,
-                                [dev.serial_number, cmdUser]
-                            );
-                            console.log(`[ADMS AUTO-SYNC] Queued USERINFO for PIN=${PIN} on device ${dev.serial_number} (sequence=1, must be first)`);
-                        }
-
-                        // For face templates, delete old face AFTER USERINFO to ensure user exists
-                        // This is critical because devices may have old face data that conflicts
-                        if (templateType === 9) {
-                            // Delete existing face template on target device before adding new one
-                            // Always delete regardless of template_no to ensure clean update
-                            // But do this AFTER USERINFO so user exists on device
-                            // Use sequence=2 to ensure DELETE comes after USERINFO
-                            const deleteFaceCmd = `DATA DELETE FACE PIN=${PIN}`;
-                            await db.query(
-                                `INSERT INTO device_commands (device_serial, command, status, sequence) VALUES ($1, $2, 'pending', 2)`,
-                                [dev.serial_number, deleteFaceCmd]
-                            );
-                            console.log(`[ADMS AUTO-SYNC] Queued face deletion for PIN=${PIN} on device ${dev.serial_number} (sequence=2, after USERINFO)`);
-                        }
-
-                        // CRITICAL: Send biometric commands AFTER USERINFO
-                        // IMPORTANT: Re-fetch template data from database to ensure we use the absolute latest data
-                        // This prevents using stale data that might have been parsed incorrectly
-                        const freshTemplate = await db.query(`
-                            SELECT template_data, template_type, template_no, major_ver, minor_ver, format, index_no, valid, duress
-                            FROM biometric_templates 
-                            WHERE employee_code = $1 AND template_type = $2 AND template_no = $3
-                            ORDER BY updated_at DESC
-                            LIMIT 1
-                        `, [PIN, templateType, parseInt(templateNo)]);
-
-                        if (freshTemplate.rows.length === 0) {
-                            console.log(`[ADMS AUTO-SYNC] No template found in DB for PIN=${PIN} Type=${templateType} No=${templateNo}, skipping`);
-                            continue;
-                        }
-
-                        const tmplRow = freshTemplate.rows[0];
-                        const freshTemplateData = tmplRow.template_data;
-                        if (!freshTemplateData || freshTemplateData.length < 100) {
-                            console.log(`[ADMS AUTO-SYNC] Invalid template data for PIN=${PIN} Type=${templateType} (len=${freshTemplateData?.length || 0}), skipping`);
-                            continue;
-                        }
-
-                        // Normalize template data (remove whitespace/newlines)
-                        const normalizedFreshTemp = freshTemplateData.trim().replace(/[\r\n]/g, '');
-
-                        // Recalculate size from fresh template data
-                        const freshPadding = (normalizedFreshTemp.match(/=/g) || []).length;
-                        const freshSize = Math.floor((normalizedFreshTemp.length * 3) / 4) - freshPadding;
-
-                        if (templateType === 9) {
-                            // FACE templates - Use BIODATA format with version fields for cross-device compatibility
-                            // CRITICAL: The device uses BIODATA format internally, not FACE format
-                            // We MUST include MajorVer, MinorVer, Format for face templates to work across devices
-
-                            // Get target device's face algorithm version (if known)
-                            // This allows adapting to different device models with different algorithms
-                            const targetCaps = await deviceCapabilities.getCapabilities(dev.serial_number);
-
-                            // Use target device's version if known, otherwise use source template's version
-                            const majorVer = (targetCaps?.face_major_ver > 0 ? targetCaps.face_major_ver : null) || tmplRow.major_ver || 40;
-                            const minorVer = (targetCaps?.face_minor_ver > 0 ? targetCaps.face_minor_ver : null) || tmplRow.minor_ver || 1;
-                            const formatVal = tmplRow.format || 0;
-                            const indexNo = tmplRow.index_no || 0;
-                            const validVal = tmplRow.valid || 1;
-                            const duressVal = tmplRow.duress || 0;
-                            const faceNo = templateNo || '0';
-
-                            // Use BIODATA command format (this is what the device expects for cross-device sync)
-                            // Format: DATA UPDATE BIODATA Pin=XXX No=0 Index=0 Valid=1 Duress=0 Type=9 MajorVer=40 MinorVer=1 Format=0 Tmp=...
-                            const biodataCmd = `DATA UPDATE BIODATA Pin=${PIN}\tNo=${faceNo}\tIndex=${indexNo}\tValid=${validVal}\tDuress=${duressVal}\tType=9\tMajorVer=${majorVer}\tMinorVer=${minorVer}\tFormat=${formatVal}\tTmp=${normalizedFreshTemp}`;
-
-                            await db.query(`INSERT INTO device_commands (device_serial, command, status, sequence) VALUES ($1, $2, 'pending', 3)`,
-                                [dev.serial_number, biodataCmd]);
-                            console.log(`[ADMS AUTO-SYNC] Queued BIODATA face template for PIN=${PIN} No=${faceNo} on device ${dev.serial_number} (sequence=3, MajorVer=${majorVer}, MinorVer=${minorVer}, Size=${freshSize})`);
-                        } else {
-                            // FINGERPRINT templates - Use FINGERTMP (confirmed working)
-                            // Use sequence=3 (same as face, but fingerprints don't need DELETE)
-                            const fingerFID = templateNo || '0';
-                            await db.query(`INSERT INTO device_commands (device_serial, command, status, sequence) VALUES ($1, $2, 'pending', 3)`,
-                                [dev.serial_number, `DATA UPDATE FINGERTMP PIN=${PIN}\tFID=${fingerFID}\tSize=${freshSize}\tValid=${validFlag}\tTMP=${normalizedFreshTemp}`]);
-                            console.log(`[ADMS AUTO-SYNC] Queued FINGERTMP template for PIN=${PIN} FID=${fingerFID} on device ${dev.serial_number} (sequence=3, Size=${freshSize})`);
-                        }
-                    }
-
-                    console.log(`[ADMS] Auto-synced template PIN=${PIN} Type=${templateType} No=${templateNo} to ${otherDevices.rows.length} other devices`);
-                    fs.appendFileSync('adms_debug.log', `[ADMS AUTO-SYNC] Synced PIN=${PIN} Type=${templateType} to ${otherDevices.rows.length} devices\n`);
-                }
-            } catch (syncErr) {
-                // Log error but don't fail the template save
-                console.error(`[ADMS] Auto-sync error for PIN=${PIN}:`, syncErr);
-                fs.appendFileSync('adms_debug.log', `[ADMS AUTO-SYNC ERROR] PIN=${PIN}: ${syncErr.message}\n`);
-            }
-        }
+        await syncTemplateToOtherDevices(SN, PIN, templateType, templateNo, Temp, Valid, isNewTemplate, templateChanged, shouldForceSync);
     } catch (e) {
         fs.appendFileSync('adms_debug.log', `[ADMS ERROR] ${e.message}\n`);
     }
@@ -423,7 +419,7 @@ const handleHandshake = async (req, res, io) => {
 
 // 2. Receive Logs
 const handleAttendanceLogs = async (req, res, io) => {
-    const { SN, OpStamp } = req.query;
+    const { SN } = req.query;
     let { table } = req.query;
     if (table) table = table.trim();
     console.log(`[ADMS DEBUG] Received POST for ${SN} table=${table}`);
@@ -431,7 +427,6 @@ const handleAttendanceLogs = async (req, res, io) => {
     console.log(`[ADMS DEBUG] Body Type:`, typeof req.body);
     console.log(`[ADMS DEBUG] Body Length:`, req.body ? req.body.length : 0);
 
-    const fs = require('fs');
     fs.appendFileSync('adms_debug.log', `[${new Date().toISOString()}] POST ${SN} Table=${table} Len=${req.body ? req.body.length : 0}\n`);
 
     if (table !== 'OPERLOG' && table !== 'ATTLOG') {
@@ -507,7 +502,7 @@ const handleAttendanceLogs = async (req, res, io) => {
 
                 if (isError) {
                     const errCode = parts[1];
-                    const opWho = parts[2]; // Might be user ID or 0
+                    // parts[2] is opWho - unused here
                     const timeStr = `${parts[3]} ${parts[4]}`;
                     const details = parts.slice(5).join(' ');
 
@@ -537,7 +532,6 @@ const handleAttendanceLogs = async (req, res, io) => {
     // Handle BIODATA - Biometric Templates (Fingerprint, Face)
     if (table === 'BIODATA' || table === 'FINGERTMP' || table === 'FACE' || table === 'USERVF' || table === 'USERPIC' || table === 'facev7' || table === 'templatev10' || table === 'USERINFO') {
         console.log(`[ADMS] ${table} from ${SN}`);
-        const fs = require('fs');
         fs.appendFileSync('adms_debug.log', `[ADMS DEBUG] Entered BIODATA block for ${table} from ${SN}\n`);
         let rawData = req.body;
         console.log(`[ADMS DEBUG] RawData Type: ${typeof rawData}, Length: ${rawData ? rawData.length : 0}`);
@@ -592,7 +586,6 @@ const handleAttendanceLogs = async (req, res, io) => {
             return res.send('OK');
         }
 
-        const fs = require('fs');
         const debugLog = (msg) => fs.appendFile('adms_debug.log', `${new Date().toISOString()} ${msg}\n`, () => { });
 
         debugLog(`Processing logs from ${SN}. Body length: ${rawData.length}`);
@@ -601,117 +594,13 @@ const handleAttendanceLogs = async (req, res, io) => {
         let insertedCount = 0;
 
         for (const line of lines) {
-            // Format: ID \t Time \t State \t VerifyMode ...
-            // Example: 1	2023-10-25 09:00:00	0	1	0	0
-            // Some devices use spaces: 1 2023-10-25 09:00:00 0 1 0 0
-
-            let parts = line.split('\t');
-            // If tab split failed (single part), try space split
-            if (parts.length < 2) {
-                // Careful not to split timestamp spaces "2023-10-25 09:00:00"
-                // Match standard ADMS log format: ID Time State Verify WorkCode
-                // Regex matches: ID, Date Time, State, Verify, WorkCode
-                const match = line.match(/^(\S+)\s+([\d-]+\s[\d:]+)\s+(\d+)\s+(\d+)\s+(\d+)/);
-                if (match) {
-                    parts = [match[1], match[2], match[3], match[4], match[5]];
-                } else {
-                    // Fallback to simple space split (risky for timestamps)
-                    parts = line.split(/\s+/);
-                    // Join date and time if separated
-                    if (parts.length >= 6) {
-                        // ID Date Time Status Verify ...
-                        // Make parts: ID, "Date Time", Status, Verify ...
-                        parts = [parts[0], parts[1] + ' ' + parts[2], parts[3], parts[4], parts[5]];
-                    }
-                }
-            }
-
-            debugLog(`Line: ${line} | Parts: ${parts.length} | Raw: ${JSON.stringify(parts)}`);
-
-            if (parts.length >= 2) {
-                const [userId, timestamp, state, verifyMode, workCode] = parts;
-
-                let finalState = state;
-                if (deviceDirection === 'in') finalState = '0'; // Check In
-                else if (deviceDirection === 'out') finalState = '1'; // Check Out
-
-                try {
-                    // Check if employee exists, if not, create placeholder
-                    await db.query(`
-                        INSERT INTO employees (employee_code, name, department_id)
-                        VALUES ($1, 'Unknown', NULL)
-                        ON CONFLICT (employee_code) DO NOTHING
-                    `, [userId]);
-
-                    // Insert Log with Extended Fields
-                    await db.query(`
-                        INSERT INTO attendance_logs 
-                        (employee_code, device_serial, punch_time, punch_state, verification_mode, raw_data, 
-                         source, is_attendance, upload_time, mask_flag, temperature)
-                        VALUES ($1, $2, $3, $4, $5, $6, $7, 1, NOW(), 0, 0.0)
-                        ON CONFLICT (employee_code, punch_time) DO UPDATE 
-                        SET raw_data = EXCLUDED.raw_data,
-                            upload_time = NOW(),
-                            punch_state = EXCLUDED.punch_state
-                    `, [userId, SN, timestamp, finalState, verifyMode || 0, line, 1]);  // Source 1 = Device
-
-                    insertedCount++;
-                    debugLog(`Inserted log for ${userId} at ${timestamp}`);
-
-                    // Real-time emit
-                    io.emit('new_punch', {
-                        employee_code: userId,
-                        device_serial: SN,
-                        timestamp,
-                        state
-                    });
-
-                    // Trigger Engine to update Dashboard Stats
-                    const dateStr = timestamp.substring(0, 10);
-                    // We don't await this to keep ADMS response fast, or do we?
-                    // Better to await to ensure consistency, ADMS has high timeout.
-                    await attendanceEngine.processDailyAttendance(userId, dateStr);
-
-                    // Real-time push to ERPNext (if configured)
-                    // This runs async in background to not delay ADMS response
-                    (async () => {
-                        try {
-                            const hrmsIntegration = require('./hrms-integration');
-                            const integrations = await hrmsIntegration.getActiveIntegrations();
-
-                            for (const integration of integrations) {
-                                if (integration.sync_attendance) {
-                                    const instance = await hrmsIntegration.getIntegrationInstance(integration.id);
-
-                                    // Push just this single record
-                                    const logRecord = {
-                                        id: null, // Will be fetched fresh
-                                        employee_code: userId,
-                                        punch_time: timestamp,
-                                        punch_state: finalState,
-                                        device_serial: SN
-                                    };
-
-                                    await instance.pushAttendance([logRecord]);
-                                    console.log(`[ADMS] Real-time push to ${integration.name} for ${userId}`);
-                                }
-                            }
-                        } catch (pushErr) {
-                            // Don't fail the log insertion if push fails
-                            console.log(`[ADMS] Real-time ERPNext push skipped: ${pushErr.message}`);
-                        }
-                    })();
-
-                } catch (e) {
-                    console.error('Log Insert Error:', e.message);
-                    debugLog(`ERROR inserting log: ${e.message}`);
-                }
-            } else {
-                debugLog('Skipping invalid line');
+            if (await processAttendanceLogLine(line, SN, deviceDirection, io)) {
+                insertedCount++;
             }
         }
 
         console.log(`[ADMS] Processed ${insertedCount} logs from ${SN}`);
+        logger.adms(`[ADMS] Processed ${insertedCount} logs from ${SN}`);
         debugLog(`Processed ${insertedCount} lines`);
     }
 
@@ -740,7 +629,7 @@ const handleGetRequest = async (req, res, io) => {
                 if (verMatch) {
                     firmwareVersion = verMatch[1];
                 }
-                const verIndex = modelPart.search(/-[Vv]er/i);
+                const verIndex = modelPart.search(/-ver/i);
                 if (verIndex > 0) {
                     deviceModel = modelPart.substring(0, verIndex);
                 }
@@ -826,7 +715,6 @@ const handleDeviceCmd = async (req, res) => {
     const body = req.body; // usually contains ID=123&Return=0&CMD=...
 
     console.log(`[ADMS CMD RESULT] From ${SN}. Body:`, body);
-    const fs = require('fs');
     fs.appendFileSync('adms_debug.log', `[ADMS CMD RESULT] From ${SN} Body=${JSON.stringify(body)}\n`);
 
     // Parse body parameters
@@ -837,13 +725,13 @@ const handleDeviceCmd = async (req, res) => {
     if (body) {
         // ADMS sends: ID=1&Return=0&CMD=DATA QUERY...
         // Sometimes separated by & or newline
-        const params = new URLSearchParams(body.replace(/\n/g, '&'));
+        const params = new URLSearchParams(body.replaceAll('\n', '&'));
         id = params.get('ID');
         ret = params.get('Return');
     }
 
     if (id && ret !== undefined) {
-        const returnCode = parseInt(ret);
+        const returnCode = Number.parseInt(ret);
         const status = (returnCode >= 0) ? 'success' : 'failed';
 
         try {
@@ -861,17 +749,17 @@ const handleDeviceCmd = async (req, res) => {
                 if (status === 'success') {
                     // Import command queue for retry handling
                     const commandQueue = require('./command-queue');
-                    await commandQueue.markSuccess(parseInt(id));
+                    await commandQueue.markSuccess(Number.parseInt(id));
                 } else {
                     // Use retry mechanism for failed commands
                     const commandQueue = require('./command-queue');
-                    await commandQueue.handleFailure(parseInt(id), returnCode, cmd.command.substring(0, 50));
+                    await commandQueue.handleFailure(Number.parseInt(id), returnCode, cmd.command.substring(0, 50));
                 }
 
                 // If USERINFO succeeded, we can now send biometric commands for that user
                 if (isUserInfo && status === 'success') {
                     // Extract PIN from USERINFO command: DATA UPDATE USERINFO PIN=INT001\tName=...
-                    const pinMatch = cmd.command.match(/PIN=([^\t]+)/);
+                    const pinMatch = cmd.command?.match(/PIN=([^\t]+)/);
                     if (pinMatch) {
                         const employeeCode = pinMatch[1];
 

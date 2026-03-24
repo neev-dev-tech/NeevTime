@@ -2,11 +2,16 @@ const { Pool } = require('pg');
 require('dotenv').config();
 
 const pool = new Pool({
-  user: process.env.DB_USER || 'postgres',
-  host: process.env.DB_HOST || process.env.DB_SERVER || 'localhost',
-  database: process.env.DB_NAME || 'attendance_db',
-  password: process.env.DB_PASSWORD || process.env.DB_PASS || 'postgres',
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST || process.env.DB_SERVER,
+  database: process.env.DB_NAME,
+  password: process.env.DB_PASSWORD || process.env.DB_PASS,
   port: process.env.DB_PORT || 5432,
+});
+
+// Set session timezone for all new connections
+pool.on('connect', (client) => {
+  client.query("SET TIMEZONE = 'Asia/Kolkata'");
 });
 
 pool.on('error', (err) => {

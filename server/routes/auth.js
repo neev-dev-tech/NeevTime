@@ -5,7 +5,11 @@ const jwt = require('jsonwebtoken');
 const db = require('../db');
 const { logLogin, logLogout } = require('../utils/systemLogger');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_key_123';
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+    console.error('FATAL ERROR: JWT_SECRET is not defined.');
+    process.exit(1);
+}
 
 // Helper: Get User by Username
 const getUserByUsername = async (username) => {
@@ -20,25 +24,7 @@ router.post('/login', async (req, res) => {
     try {
         const user = await getUserByUsername(username);
 
-        // For initial setup, if no user exists, create admin:admin
-        if (!user && username === 'admin' && password === 'admin') {
-            const hashedPassword = await bcrypt.hash('admin', 10);
-            const newUser = await db.query(
-                'INSERT INTO users (username, password_hash, role) VALUES ($1, $2, $3) RETURNING *',
-                ['admin', hashedPassword, 'admin']
-            );
-            const token = jwt.sign({ id: newUser.rows[0].id, role: 'admin' }, JWT_SECRET);
-
-            // Log login event for first-time admin
-            const ipAddress = req.ip || req.connection.remoteAddress || req.headers['x-forwarded-for'];
-            const userAgent = req.get('user-agent');
-            logLogin('admin', ipAddress, userAgent, newUser.rows[0].id).catch(err => {
-                console.error('Failed to log login:', err);
-            });
-
-            return res.json({ token, user: { username: 'admin', role: 'admin' } });
-        }
-
+        // For initial setup, if no user exists, please use reset_admin_password.js script
         if (!user) {
             console.log(`[LOGIN FAILED] User not found: ${username}`);
             return res.status(400).json({ error: 'User not found' });
@@ -46,8 +32,7 @@ router.post('/login', async (req, res) => {
 
         const validPass = await bcrypt.compare(password, user.password_hash);
         console.log(`[LOGIN DEBUG] Request for: ${username}`);
-        console.log(`[LOGIN DEBUG] Input password: ${password}`);
-        console.log(`[LOGIN DEBUG] Stored hash: ${user.password_hash}`);
+        // Match result logging
         console.log(`[LOGIN DEBUG] Match result: ${validPass}`);
 
         if (!validPass) return res.status(400).json({ error: 'Invalid password' });
@@ -55,7 +40,7 @@ router.post('/login', async (req, res) => {
         const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET);
 
         // Log login event
-        const ipAddress = req.ip || req.connection.remoteAddress || req.headers['x-forwarded-for'];
+        const ipAddress = req.ip || req.connection?.remoteAddress || req.headers?.['x-forwarded-for'];
         const userAgent = req.get('user-agent');
         logLogin(user.username, ipAddress, userAgent, user.id).catch(err => {
             console.error('Failed to log login:', err);
