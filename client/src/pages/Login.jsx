@@ -87,7 +87,7 @@ export default function Login({ setAuth }) {
                         <div className="mb-4 flex justify-center">
                             <img
                                 src="/vayutime_logo.png?v=5"
-                                alt="VayuTime"
+                                alt="NeevTime"
                                 className="mx-auto object-contain"
                                 style={{
                                     height: '160px',
@@ -101,7 +101,7 @@ export default function Login({ setAuth }) {
                                     // Show text fallback if image fails
                                     const fallback = document.createElement('div');
                                     fallback.className = 'flex items-center justify-center gap-2';
-                                    fallback.innerHTML = '<span class="text-5xl font-bold" style="color: #1E293B">Vayu</span><span class="text-5xl font-bold" style="color: #059669">Time</span>';
+                                    fallback.innerHTML = '<span class="text-5xl font-bold" style="color: #1E293B">Neev</span><span class="text-5xl font-bold" style="color: #F97316">Time</span>';
                                     e.target.parentElement?.appendChild(fallback);
                                 }}
                             />

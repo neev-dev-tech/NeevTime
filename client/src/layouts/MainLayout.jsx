@@ -75,7 +75,7 @@ export default function MainLayout({ children }) {
         <div className="px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-10">
             <div className="flex items-center gap-2.5">
-               <span className="text-2xl font-bold" style={{ color: '#1E293B' }}>Vayu</span>
+               <span className="text-2xl font-bold" style={{ color: '#1E293B' }}>Neev</span>
                <span className="text-2xl font-bold" style={{ color: '#F97316' }}>Time</span>
             </div>
 
