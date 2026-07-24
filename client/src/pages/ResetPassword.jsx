@@ -1,0 +1,83 @@
+import React, { useState } from 'react';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { LockKeyhole, Check } from 'lucide-react';
+import axios from 'axios';
+import { Button } from '../components';
+
+export default function ResetPassword() {
+    const [searchParams] = useSearchParams();
+    const navigate = useNavigate();
+    const uid = searchParams.get('uid');
+    const token = searchParams.get('token');
+
+    const [password, setPassword] = useState('');
+    const [confirm, setConfirm] = useState('');
+    const [message, setMessage] = useState(null);
+    const [loading, setLoading] = useState(false);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setMessage(null);
+        if (password !== confirm) {
+            setMessage({ type: 'error', text: 'Passwords do not match' });
+            return;
+        }
+        setLoading(true);
+        try {
+            await axios.post('/api/reset-password', { uid, token, password });
+            setMessage({ type: 'success', text: 'Password updated — redirecting to sign in...' });
+            setTimeout(() => navigate('/login'), 1500);
+        } catch (err) {
+            setMessage({ type: 'error', text: err.response?.data?.error || 'Reset failed' });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (!uid || !token) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+                <div className="text-center">
+                    <p className="text-slate-600 mb-3">Invalid reset link.</p>
+                    <Link to="/forgot-password" className="text-orange-600 font-semibold hover:underline">Request a new one</Link>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 via-white to-amber-50 p-4">
+            <div className="w-full max-w-sm bg-white rounded-2xl shadow-xl border border-orange-100 p-8">
+                <div className="flex flex-col items-center mb-6">
+                    <div className="p-3 bg-orange-100 rounded-2xl text-orange-600 mb-3">
+                        <LockKeyhole size={28} />
+                    </div>
+                    <h1 className="text-xl font-bold text-slate-800">Set New Password</h1>
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">New Password</label>
+                        <input type="password" value={password} onChange={e => setPassword(e.target.value)} minLength={6}
+                            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400 outline-none" required />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Confirm Password</label>
+                        <input type="password" value={confirm} onChange={e => setConfirm(e.target.value)} minLength={6}
+                            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400 outline-none" required />
+                    </div>
+
+                    {message && (
+                        <div className={`text-sm rounded-lg px-3 py-2 border ${message.type === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'}`}>
+                            {message.text}
+                        </div>
+                    )}
+
+                    <Button type="submit" variant="primary" size="lg" icon={Check} className="w-full" disabled={loading}>
+                        {loading ? 'Saving...' : 'Update Password'}
+                    </Button>
+                </form>
+            </div>
+        </div>
+    );
+}

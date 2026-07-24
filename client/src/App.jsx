@@ -45,6 +45,8 @@ import HolidayLocation from './pages/HolidayLocation';
 import LeaveTypes from './pages/LeaveTypes';
 import LeaveBalances from './pages/LeaveBalances';
 import DeviceMessages from './pages/DeviceMessages';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import DeviceCommands from './pages/DeviceCommands';
 import SystemLogs from './pages/SystemLogs';
 import DatabaseTools from './pages/DatabaseTools';
@@ -137,6 +139,8 @@ export default function App() {
               <Routes>
                 <Route path="/login" element={<Login setAuth={setAuth} />} />
                 <Route path="/portal/login" element={<PortalLogin />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/portal" element={<EmployeeRoute><EmployeePortal /></EmployeeRoute>} />
                 <Route path="*" element={
                   <PrivateRoute>

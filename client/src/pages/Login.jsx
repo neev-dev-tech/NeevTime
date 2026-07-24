@@ -150,7 +150,7 @@ export default function Login({ setAuth }) {
                                 <input type="checkbox" className="rounded border-slate-300 text-saffron focus:ring-saffron" />
                                 <span className="text-slate-grey">Remember me</span>
                             </label>
-                            <a href="#" className="text-saffron hover:underline font-medium">Forgot password?</a>
+                            <a href="/forgot-password" className="text-saffron hover:underline font-medium">Forgot password?</a>
                         </div>
 
                         <button className="w-full btn-primary py-3.5 rounded-xl shadow-lg shadow-orange-200 transition-all hover:scale-[1.02] hover:shadow-xl text-base font-semibold">

@@ -50,6 +50,75 @@ router.post('/login', async (req, res) => {
     }
 });
 
+// ================= PASSWORD RESET =================
+
+// Request a reset link. Always responds success to avoid user enumeration.
+router.post('/forgot-password', async (req, res) => {
+    const { username } = req.body;
+    const genericOk = { success: true, message: 'If the account exists, a reset link has been emailed.' };
+    if (!username) return res.status(400).json({ error: 'Username required' });
+
+    try {
+        const user = await getUserByUsername(username);
+        if (!user || !user.email) return res.json(genericOk);
+
+        // Sign with secret + current hash: changing the password invalidates the link
+        const token = jwt.sign(
+            { id: user.id, purpose: 'pwreset' },
+            JWT_SECRET + user.password_hash,
+            { expiresIn: '30m' }
+        );
+
+        const baseUrl = process.env.SERVER_URL || `${req.protocol}://${req.get('host')}`;
+        const resetUrl = `${baseUrl}/reset-password?uid=${user.id}&token=${token}`;
+
+        const emailService = require('../services/email');
+        await emailService.sendEmail({
+            to: user.email,
+            subject: 'NeevTime password reset',
+            html: `
+                <div style="font-family: Arial, sans-serif; padding: 20px;">
+                    <h2>Password Reset</h2>
+                    <p>A password reset was requested for user <b>${user.username}</b>.</p>
+                    <p><a href="${resetUrl}" style="background:#EA580C;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;">Reset Password</a></p>
+                    <p style="color:#666;font-size:12px;">The link expires in 30 minutes. If you did not request this, ignore this email.</p>
+                </div>`,
+            text: `Reset your NeevTime password: ${resetUrl} (expires in 30 minutes)`
+        });
+
+        res.json(genericOk);
+    } catch (err) {
+        console.error('Forgot password error:', err.message);
+        // Email failure surfaces clearly; nothing sensitive leaked
+        res.status(500).json({ error: 'Could not send reset email. Check SMTP settings or contact your administrator.' });
+    }
+});
+
+router.post('/reset-password', async (req, res) => {
+    const { uid, token, password } = req.body;
+    if (!uid || !token || !password) return res.status(400).json({ error: 'uid, token and password required' });
+    if (password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
+
+    try {
+        const result = await db.query('SELECT * FROM users WHERE id = $1', [uid]);
+        const user = result.rows[0];
+        if (!user) return res.status(400).json({ error: 'Invalid reset link' });
+
+        try {
+            const payload = jwt.verify(token, JWT_SECRET + user.password_hash);
+            if (payload.purpose !== 'pwreset' || payload.id !== user.id) throw new Error('bad token');
+        } catch {
+            return res.status(400).json({ error: 'Reset link is invalid or has expired' });
+        }
+
+        const hash = await bcrypt.hash(password, 10);
+        await db.query('UPDATE users SET password_hash = $1 WHERE id = $2', [hash, user.id]);
+        res.json({ success: true, message: 'Password updated. You can now sign in.' });
+    } catch (err) {
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 // Middleware
 const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
