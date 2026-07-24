@@ -235,7 +235,7 @@ const Geofences = () => {
                                     </div>
                                 </div>
 
-                                <Button variant="secondary" size="sm" icon={Navigation} onClick={getCurrentLocation}>
+                                <Button variant="secondary" icon={Navigation} onClick={getCurrentLocation}>
                                     Get Current Location
                                 </Button>
 

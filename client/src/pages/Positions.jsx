@@ -201,10 +201,10 @@ export default function Positions() {
 
             {/* Toolbar */}
             <div className="flex items-center gap-2 p-2 border-b border-slate-200 bg-slate-50 text-sm flex-wrap">
-                <Button variant="danger" size="sm" icon={Trash2} onClick={handleBulkDelete}>
+                <Button variant="danger" icon={Trash2} onClick={handleBulkDelete}>
                     Delete
                 </Button>
-                <Button variant="secondary" size="sm" icon={RefreshCw} onClick={fetchPositions}>
+                <Button variant="secondary" icon={RefreshCw} onClick={fetchPositions}>
                     Refresh
                 </Button>
 
@@ -225,7 +225,7 @@ export default function Positions() {
                 />
 
                 {/* Import Button */}
-                <Button variant="secondary" size="sm" icon={Upload} onClick={() => setShowImportModal(true)}>
+                <Button variant="secondary" icon={Upload} onClick={() => setShowImportModal(true)}>
                     Import
                 </Button>
 

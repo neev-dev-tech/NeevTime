@@ -407,7 +407,7 @@ export default function Area() {
                             <div className="bg-orange-50/50 p-4 rounded-xl border border-orange-100 text-sm text-slate-grey">
                                 <p className="font-bold text-saffron mb-1">CSV Format:</p>
                                 <code className="block bg-white p-2 rounded border border-orange-100 mb-2">Area Name, Area Code</code>
-                                <Button variant="secondary" size="sm" icon={Download} type="button" onClick={downloadTemplate}>
+                                <Button variant="secondary" icon={Download} type="button" onClick={downloadTemplate}>
                                     Download Template
                                 </Button>
                             </div>

@@ -121,8 +121,8 @@ export default function AttendanceRegister() {
                                     className="input-premium py-1.5 px-3 bg-white/50 border-slate-200 text-sm"
                                 />
                                 <Button variant="secondary" icon={Filter}>Filters</Button>
-                                <Button variant="danger" size="sm" icon={FileDown} onClick={handleExportPDF} title="Export PDF">PDF</Button>
-                                <Button variant="success" size="sm" icon={FileSpreadsheet} onClick={handleExportXLSX} title="Export Excel">XLSX</Button>
+                                <Button variant="danger" icon={FileDown} onClick={handleExportPDF} title="Export PDF">PDF</Button>
+                                <Button variant="success" icon={FileSpreadsheet} onClick={handleExportXLSX} title="Export Excel">XLSX</Button>
                             </>
                         }
                     />

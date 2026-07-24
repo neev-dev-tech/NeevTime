@@ -14,7 +14,7 @@ import { exportToExcel } from '../utils/excelExport';
  * `columns` maps row fields to export headers; omit it to export raw rows.
  * Optional `mapRow` runs per row before export (e.g. formatting dates).
  */
-export default function ExportMenu({ rows, columns, filename, title, mapRow, size = 'sm' }) {
+export default function ExportMenu({ rows, columns, filename, title, mapRow, size = "md" }) {
     const buildRows = () => {
         const source = mapRow ? rows.map(mapRow) : rows;
         if (!columns || columns.length === 0) return source;

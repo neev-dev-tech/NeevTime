@@ -83,7 +83,7 @@ export default function DeviceData() {
                         </p>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Button variant="secondary" size="sm" icon={RefreshCw} onClick={fetchData}>Refresh</Button>
+                        <Button variant="secondary" icon={RefreshCw} onClick={fetchData}>Refresh</Button>
                         <ExportMenu
                             rows={data}
                             filename={`device_${activeSection}`}
