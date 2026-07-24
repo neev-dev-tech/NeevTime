@@ -141,6 +141,24 @@ router.get('/overtime', validateDateRange, async (req, res) => {
     }
 });
 
+// Monthly Payroll Report
+router.get('/payroll', async (req, res) => {
+    try {
+        const now = new Date();
+        const { year, month, department_id, regular_hours } = req.query;
+        const report = await reports.generatePayrollReport(
+            parseInt(year) || now.getFullYear(),
+            parseInt(month) || now.getMonth() + 1,
+            department_id ? parseInt(department_id) : null,
+            parseInt(regular_hours) || 8
+        );
+        res.json(report);
+    } catch (err) {
+        console.error('Payroll Report Error:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // ==========================================
 // DEVICE & BIOMETRIC REPORTS
 // ==========================================

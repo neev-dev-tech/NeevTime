@@ -110,7 +110,8 @@ export default function ReportsDashboard() {
                 { id: 'work_detailed', name: "Work Detailed", icon: ClipboardList, path: "/reports/work-detailed", description: "Detailed work hours breakdown", tier: 'secondary' },
                 { id: 'att_sheet', name: "ATT Sheet Summary", icon: FileSpreadsheet, path: "/reports/att-sheet", description: "Attendance sheet summary", tier: 'secondary' },
                 { id: 'att_status', name: "Attendance Status", icon: CheckSquare, path: "/reports/att-status", description: "Monthly attendance status", tier: 'secondary' },
-                { id: 'att_summary', name: "Attendance Summary", icon: Calendar, path: "/reports/att-summary", description: "Complete attendance summary", tier: 'primary' }
+                { id: 'att_summary', name: "Attendance Summary", icon: Calendar, path: "/reports/att-summary", description: "Complete attendance summary", tier: 'primary' },
+                { id: 'payroll', name: "Payroll Export", icon: FileSpreadsheet, path: "/reports/payroll", description: "Monthly attendance inputs for payroll", tier: 'primary' }
             ]
         },
         {

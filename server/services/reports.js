@@ -27,7 +27,8 @@ const REPORT_TYPE = {
     ABSENT: 'absent',
     OVERTIME: 'overtime',
     DEVICE_HEALTH: 'device_health',
-    BIOMETRIC_SUMMARY: 'biometric_summary'
+    BIOMETRIC_SUMMARY: 'biometric_summary',
+    PAYROLL: 'payroll'
 };
 
 /**
@@ -114,7 +115,8 @@ const generateDailyAttendance = async (date, departmentId = null, areaId = null)
  */
 const generateMonthlySummary = async (year, month, departmentId = null) => {
     const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
-    const endDate = new Date(year, month, 0).toISOString().split('T')[0];
+    // build as string — toISOString() shifts a day back in TZs ahead of UTC
+    const endDate = `${year}-${String(month).padStart(2, '0')}-${String(new Date(year, month, 0).getDate()).padStart(2, '0')}`;
 
     let whereClause = 'DATE(al.punch_time) BETWEEN $1 AND $2';
     const params = [startDate, endDate];
@@ -624,6 +626,79 @@ const toHTML = (reportData) => {
     `;
 };
 
+/**
+ * Generate Monthly Payroll Report
+ * Per-employee attendance inputs for payroll processing:
+ * days present/absent, approved leave days, late stats, worked + OT hours.
+ */
+const generatePayrollReport = async (year, month, departmentId = null, regularHours = 8) => {
+    const daysInMonth = new Date(year, month, 0).getDate();
+    const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
+    // build as string — toISOString() shifts a day back in TZs ahead of UTC
+    const endDate = `${year}-${String(month).padStart(2, '0')}-${String(daysInMonth).padStart(2, '0')}`;
+
+    const params = [startDate, endDate];
+    let deptFilter = '';
+    if (departmentId) {
+        params.push(departmentId);
+        deptFilter = `AND e.department_id = $${params.length}`;
+    }
+
+    const result = await db.query(`
+        WITH summary AS (
+            SELECT employee_code,
+                   COUNT(*) FILTER (WHERE status = 'Present') AS present_days,
+                   COUNT(*) FILTER (WHERE status = 'Absent') AS absent_days,
+                   COUNT(*) FILTER (WHERE COALESCE(late_minutes, 0) > 0) AS late_count,
+                   COALESCE(SUM(late_minutes), 0) AS late_minutes_total,
+                   COALESCE(SUM(duration_minutes), 0) AS total_minutes
+            FROM attendance_daily_summary
+            WHERE date BETWEEN $1 AND $2
+            GROUP BY employee_code
+        ),
+        leave_days AS (
+            SELECT employee_code, COALESCE(SUM(total_days), 0) AS leave_days
+            FROM leave_applications
+            WHERE LOWER(status) = 'approved'
+              AND from_date <= $2::date AND to_date >= $1::date
+            GROUP BY employee_code
+        )
+        SELECT
+            e.employee_code,
+            e.name AS employee_name,
+            d.name AS department_name,
+            e.designation,
+            COALESCE(s.present_days, 0)::int AS present_days,
+            COALESCE(s.absent_days, 0)::int AS absent_days,
+            COALESCE(l.leave_days, 0)::numeric AS leave_days,
+            COALESCE(s.late_count, 0)::int AS late_count,
+            COALESCE(s.late_minutes_total, 0)::int AS late_minutes,
+            ROUND(COALESCE(s.total_minutes, 0) / 60.0, 1) AS total_hours,
+            ROUND(GREATEST(0, COALESCE(s.total_minutes, 0) / 60.0
+                - COALESCE(s.present_days, 0) * ${Number(regularHours)}), 1) AS overtime_hours
+        FROM employees e
+        LEFT JOIN departments d ON e.department_id = d.id
+        LEFT JOIN summary s ON s.employee_code = e.employee_code
+        LEFT JOIN leave_days l ON l.employee_code = e.employee_code
+        WHERE (e.status IS DISTINCT FROM 'resigned') ${deptFilter}
+        ORDER BY d.name NULLS LAST, e.name
+    `, params);
+
+    return {
+        report_type: REPORT_TYPE.PAYROLL,
+        period: `${startDate} to ${endDate}`,
+        days_in_month: daysInMonth,
+        regular_hours: regularHours,
+        generated_at: new Date(),
+        summary: {
+            employees: result.rows.length,
+            total_present_days: result.rows.reduce((s, r) => s + r.present_days, 0),
+            total_overtime_hours: result.rows.reduce((s, r) => s + Number(r.overtime_hours), 0)
+        },
+        data: result.rows
+    };
+};
+
 module.exports = {
     REPORT_TYPE,
     generateDailyAttendance,
@@ -633,6 +708,7 @@ module.exports = {
     generateOvertimeReport,
     generateDeviceHealthReport,
     generateBiometricSummary,
+    generatePayrollReport,
     toCSV,
     toHTML
 };

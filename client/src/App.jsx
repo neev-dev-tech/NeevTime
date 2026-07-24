@@ -196,6 +196,7 @@ export default function App() {
                             '/reports/att-status': 'att_status',
                             '/reports/att-summary': 'att_summary',
                             '/reports/device-health': 'device_health',
+                            '/reports/payroll': 'payroll',
                             '/reports/biometric-summary': 'biometric_summary',
                         }).map(([path, type]) => (
                             <Route key={path} path={path} element={<ReportsLegacy type={type} />} />

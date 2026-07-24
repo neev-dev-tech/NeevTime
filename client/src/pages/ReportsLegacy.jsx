@@ -278,6 +278,19 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                     { key: 'overtime_hours', label: 'OT Hrs' }
                 ];
 
+            case 'payroll':
+                return [
+                    ...commonEmployeeCols,
+                    { key: 'designation', label: 'Designation' },
+                    { key: 'present_days', label: 'Present', type: 'number', className: 'text-emerald-600 font-bold' },
+                    { key: 'absent_days', label: 'Absent', type: 'number', className: 'text-rose-600 font-bold' },
+                    { key: 'leave_days', label: 'Leave', type: 'number' },
+                    { key: 'late_count', label: 'Late', type: 'number', className: 'text-amber-600' },
+                    { key: 'late_minutes', label: 'Late (Min)', type: 'number' },
+                    { key: 'total_hours', label: 'Hours', type: 'number' },
+                    { key: 'overtime_hours', label: 'OT Hrs', type: 'number', className: 'text-emerald-600 font-bold' }
+                ];
+
             case 'device_health':
                 return [
                     { key: 'device_name', label: 'Device' },
@@ -398,6 +411,16 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                     avg_check_in_time: toHHMM(row.avg_check_in_time),
                     avg_check_out_time: toHHMM(row.avg_check_out_time)
                 }));
+            } else if (reportType === 'payroll') {
+                const from = new Date(dateFrom);
+                const res = await api.get('/api/reports/payroll', {
+                    params: {
+                        year: from.getFullYear(),
+                        month: from.getMonth() + 1,
+                        department_id: department || undefined
+                    }
+                });
+                data = rowsOf(res).map(row => ({ ...row, department: row.department_name }));
             } else if (reportType === 'device_health') {
                 const res = await api.get('/api/reports/device-health');
                 data = rowsOf(res);
@@ -460,7 +483,8 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
         daily_status: 'Daily Status', basic_status: 'Basic Status', status_summary: 'Status Summary',
         ot_summary: 'OT Summary', work_duration: 'Work Duration', work_detailed: 'Work Detailed',
         att_sheet: 'ATT Sheet Summary', att_status: 'Attendance Status', att_summary: 'Attendance Summary',
-        device_health: 'Device Health Report', biometric_summary: 'Biometric Summary'
+        device_health: 'Device Health Report', biometric_summary: 'Biometric Summary',
+        payroll: 'Monthly Payroll Report'
     };
 
     const getReportTitle = () => {
