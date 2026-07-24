@@ -87,10 +87,10 @@ export default function DeviceData() {
             <main className="flex-1 card-base p-6 overflow-auto">
                 <div className="mb-6 flex items-center justify-between flex-wrap gap-3">
                     <div>
-                        <h2 className="text-2xl font-bold text-charcoal mb-2">
+                        <h2 className="text-2xl font-bold text-charcoal dark:text-slate-100 mb-2">
                             {dataSections.find(s => s.id === activeSection)?.label}
                         </h2>
-                        <p className="text-slate-grey text-sm">
+                        <p className="text-slate-grey dark:text-slate-400 text-sm">
                             View and manage {dataSections.find(s => s.id === activeSection)?.label.toLowerCase()} records
                         </p>
                     </div>
@@ -113,35 +113,35 @@ export default function DeviceData() {
                     <div className="flex items-center justify-center py-20">
                         <div className="text-center">
                             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-saffron mx-auto mb-4"></div>
-                            <p className="text-slate-grey">Loading data...</p>
+                            <p className="text-slate-grey dark:text-slate-400">Loading data...</p>
                         </div>
                     </div>
                 ) : data.length === 0 ? (
-                    <div className="text-center py-20 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
+                    <div className="text-center py-20 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700">
                         <Database size={48} className="mx-auto mb-4 text-slate-300" />
-                        <h3 className="text-lg font-bold text-charcoal mb-2">No Data Available</h3>
-                        <p className="text-slate-grey text-sm">
+                        <h3 className="text-lg font-bold text-charcoal dark:text-slate-100 mb-2">No Data Available</h3>
+                        <p className="text-slate-grey dark:text-slate-400 text-sm">
                             There are no {dataSections.find(s => s.id === activeSection)?.label.toLowerCase()} records to display.
                         </p>
                     </div>
                 ) : (
-                    <div className="overflow-x-auto rounded-xl border border-slate-100">
+                    <div className="overflow-x-auto rounded-xl border border-slate-100 dark:border-slate-700">
                         <table className="w-full text-sm">
-                            <thead className="bg-orange-50/50 text-charcoal font-semibold">
+                            <thead className="bg-orange-50/50 dark:bg-orange-900/30 text-charcoal dark:text-slate-100 font-semibold">
                                 <tr>
-                                    <th className="px-4 py-3 text-left border-b border-slate-100">#</th>
-                                    <th className="px-4 py-3 text-left border-b border-slate-100">ID</th>
-                                    <th className="px-4 py-3 text-left border-b border-slate-100">Details</th>
-                                    <th className="px-4 py-3 text-left border-b border-slate-100">Timestamp</th>
+                                    <th className="px-4 py-3 text-left border-b border-slate-100 dark:border-slate-700">#</th>
+                                    <th className="px-4 py-3 text-left border-b border-slate-100 dark:border-slate-700">ID</th>
+                                    <th className="px-4 py-3 text-left border-b border-slate-100 dark:border-slate-700">Details</th>
+                                    <th className="px-4 py-3 text-left border-b border-slate-100 dark:border-slate-700">Timestamp</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-50">
+                            <tbody className="divide-y divide-slate-50 dark:divide-slate-700">
                                 {data.map((item, idx) => (
-                                    <tr key={idx} className="hover:bg-cream-50 transition-colors">
-                                        <td className="px-4 py-3 text-slate-grey">{idx + 1}</td>
+                                    <tr key={idx} className="hover:bg-cream-50 dark:hover:bg-slate-700/50 transition-colors">
+                                        <td className="px-4 py-3 text-slate-grey dark:text-slate-400">{idx + 1}</td>
                                         <td className="px-4 py-3 font-mono text-saffron font-medium">{item.id || '-'}</td>
-                                        <td className="px-4 py-3 text-slate-grey">{item.details || item.description || '-'}</td>
-                                        <td className="px-4 py-3 text-slate-grey font-mono text-xs">
+                                        <td className="px-4 py-3 text-slate-grey dark:text-slate-400">{item.details || item.description || '-'}</td>
+                                        <td className="px-4 py-3 text-slate-grey dark:text-slate-400 font-mono text-xs">
                                             {item.timestamp ? new Date(item.timestamp).toLocaleString() : '-'}
                                         </td>
                                     </tr>

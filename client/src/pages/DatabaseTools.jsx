@@ -176,35 +176,35 @@ export default function DatabaseTools() {
             />
             <div className="report-container">
                 {/* Database Stats Cards */}
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 p-6 border-b border-slate-100 bg-slate-50/30">
-                    <div className="bg-white border border-blue-100 rounded-xl p-4 shadow-sm relative overflow-hidden group">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 p-6 border-b border-slate-100 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900/50">
+                    <div className="bg-white dark:bg-slate-800 border border-blue-100 dark:border-slate-700 rounded-xl p-4 shadow-sm relative overflow-hidden group">
                         <div className="text-blue-600 text-xs font-bold uppercase tracking-wider mb-1">DB Size</div>
-                        <div className="text-2xl font-bold text-slate-800 break-all">{dbStats?.database_size || '-'}</div>
+                        <div className="text-2xl font-bold text-slate-800 dark:text-slate-100 break-all">{dbStats?.database_size || '-'}</div>
                         <Database className="absolute bottom-2 right-2 text-blue-50 opacity-50 -z-0" size={40} />
                     </div>
-                    <div className="bg-white border border-emerald-100 rounded-xl p-4 shadow-sm relative overflow-hidden group">
+                    <div className="bg-white dark:bg-slate-800 border border-emerald-100 dark:border-slate-700 rounded-xl p-4 shadow-sm relative overflow-hidden group">
                         <div className="text-emerald-600 text-xs font-bold uppercase tracking-wider mb-1">Employees</div>
-                        <div className="text-2xl font-bold text-slate-800">{dbStats?.total_employees || 0}</div>
+                        <div className="text-2xl font-bold text-slate-800 dark:text-slate-100">{dbStats?.total_employees || 0}</div>
                         <FileText className="absolute bottom-2 right-2 text-emerald-50 opacity-50 -z-0" size={40} />
                     </div>
-                    <div className="bg-white border border-purple-100 rounded-xl p-4 shadow-sm relative overflow-hidden group">
+                    <div className="bg-white dark:bg-slate-800 border border-purple-100 dark:border-slate-700 rounded-xl p-4 shadow-sm relative overflow-hidden group">
                         <div className="text-purple-600 text-xs font-bold uppercase tracking-wider mb-1">Departments</div>
-                        <div className="text-2xl font-bold text-slate-800">{dbStats?.total_departments || 0}</div>
+                        <div className="text-2xl font-bold text-slate-800 dark:text-slate-100">{dbStats?.total_departments || 0}</div>
                         <HardDrive className="absolute bottom-2 right-2 text-purple-50 opacity-50 -z-0" size={40} />
                     </div>
-                    <div className="bg-white border border-amber-100 rounded-xl p-4 shadow-sm relative overflow-hidden group">
+                    <div className="bg-white dark:bg-slate-800 border border-amber-100 dark:border-slate-700 rounded-xl p-4 shadow-sm relative overflow-hidden group">
                         <div className="text-amber-600 text-xs font-bold uppercase tracking-wider mb-1">Logs</div>
-                        <div className="text-2xl font-bold text-slate-800">{dbStats?.total_attendance_logs || 0}</div>
+                        <div className="text-2xl font-bold text-slate-800 dark:text-slate-100">{dbStats?.total_attendance_logs || 0}</div>
                         <Clock className="absolute bottom-2 right-2 text-amber-50 opacity-50 -z-0" size={40} />
                     </div>
-                    <div className="bg-white border border-rose-100 rounded-xl p-4 shadow-sm relative overflow-hidden group">
+                    <div className="bg-white dark:bg-slate-800 border border-rose-100 dark:border-slate-700 rounded-xl p-4 shadow-sm relative overflow-hidden group">
                         <div className="text-rose-600 text-xs font-bold uppercase tracking-wider mb-1">Holidays</div>
-                        <div className="text-2xl font-bold text-slate-800">{dbStats?.total_holidays || 0}</div>
+                        <div className="text-2xl font-bold text-slate-800 dark:text-slate-100">{dbStats?.total_holidays || 0}</div>
                         <Calendar className="absolute bottom-2 right-2 text-rose-50 opacity-50 -z-0" size={40} />
                     </div>
-                    <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm relative overflow-hidden group bg-gradient-to-br from-slate-50 to-white">
-                        <div className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Last Backup</div>
-                        <div className="text-sm font-semibold text-slate-700">
+                    <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 shadow-sm relative overflow-hidden group bg-gradient-to-br from-slate-50 to-white dark:from-slate-800 dark:to-slate-800">
+                        <div className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Last Backup</div>
+                        <div className="text-sm font-semibold text-slate-700 dark:text-slate-300">
                             {dbStats?.last_backup ? new Date(dbStats.last_backup).toLocaleDateString() : 'Never'}
                         </div>
                         <CheckCircle className="absolute bottom-2 right-2 text-slate-200 opacity-50 -z-0" size={40} />
@@ -212,13 +212,13 @@ export default function DatabaseTools() {
                 </div>
 
                 {/* Warning */}
-                <div className="mx-6 mt-6 p-4 rounded-xl bg-amber-50 border border-amber-200 flex items-start gap-3">
-                    <div className="p-2 bg-amber-100 rounded-lg text-amber-600 flex-shrink-0">
+                <div className="mx-6 mt-6 p-4 rounded-xl bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 flex items-start gap-3">
+                    <div className="p-2 bg-amber-100 dark:bg-amber-900/50 rounded-lg text-amber-600 dark:text-amber-400 flex-shrink-0">
                         <AlertTriangle size={20} />
                     </div>
                     <div>
-                        <h4 className="text-sm font-bold text-amber-800">Important Safety Notice</h4>
-                        <p className="text-sm text-amber-700 mt-1 leading-relaxed">
+                        <h4 className="text-sm font-bold text-amber-800 dark:text-amber-200">Important Safety Notice</h4>
+                        <p className="text-sm text-amber-700 dark:text-amber-300 mt-1 leading-relaxed">
                             Always create a comprehensive backup before performing any restore operation. Restoring a backup is a destructive action that will replace all current data.
                         </p>
                     </div>
@@ -226,11 +226,11 @@ export default function DatabaseTools() {
 
                 {/* Backups Table */}
                 <div className="p-6">
-                    <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center gap-2">
                         <Clock size={20} className="text-slate-400" />
                         Backup History
                     </h3>
-                    <div className="table-premium-wrapper border rounded-xl overflow-hidden">
+                    <div className="table-premium-wrapper border dark:border-slate-700 rounded-xl overflow-hidden">
                         <table className="table-premium">
                             <thead>
                                 <tr>
@@ -259,24 +259,24 @@ export default function DatabaseTools() {
                                         <tr key={backup.id}>
                                             <td>
                                                 <div className="flex items-center gap-3">
-                                                    <div className="p-2 rounded bg-orange-50 text-orange-600">
+                                                    <div className="p-2 rounded bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400">
                                                         <Database size={16} />
                                                     </div>
-                                                    <span className="font-semibold text-slate-700 text-sm">{backup.name}</span>
+                                                    <span className="font-semibold text-slate-700 dark:text-slate-300 text-sm">{backup.name}</span>
                                                 </div>
                                             </td>
                                             <td>
                                                 <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${backup.type === 'auto'
-                                                    ? 'bg-purple-50 text-purple-700 border-purple-200'
-                                                    : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                                    ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800'
+                                                    : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800'
                                                     }`}>
                                                     {backup.type === 'auto' ? 'Automatic' : 'Manual'}
                                                 </span>
                                             </td>
-                                            <td><span className="font-mono text-sm text-slate-600">{backup.size}</span></td>
+                                            <td><span className="font-mono text-sm text-slate-600 dark:text-slate-400">{backup.size}</span></td>
                                             <td>
                                                 <div className="flex flex-col">
-                                                    <span className="text-sm font-semibold text-slate-700">{new Date(backup.created_at).toLocaleDateString()}</span>
+                                                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">{new Date(backup.created_at).toLocaleDateString()}</span>
                                                     <span className="text-xs text-slate-400">{new Date(backup.created_at).toLocaleTimeString()}</span>
                                                 </div>
                                             </td>
@@ -318,9 +318,9 @@ export default function DatabaseTools() {
             </div>
 
             {/* Auto Backup Settings */}
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
-                    <h3 className="font-bold text-slate-800 flex items-center gap-2">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+                <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50 flex items-center justify-between">
+                    <h3 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
                         <RefreshCw size={18} className="text-orange-500" />
                         Automatic Backup Settings
                     </h3>
@@ -328,20 +328,20 @@ export default function DatabaseTools() {
                 <div className="p-6">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div className="space-y-2">
-                            <label className="text-xs font-bold text-slate-500 uppercase">Frequency</label>
-                            <select className="input-premium w-full bg-slate-50">
+                            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Frequency</label>
+                            <select className="input-premium w-full bg-slate-50 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100">
                                 <option value="daily">Daily</option>
                                 <option value="weekly">Weekly</option>
                                 <option value="monthly">Monthly</option>
                             </select>
                         </div>
                         <div className="space-y-2">
-                            <label className="text-xs font-bold text-slate-500 uppercase">Preferred Time</label>
-                            <input type="time" defaultValue="02:00" className="input-premium w-full bg-slate-50" />
+                            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Preferred Time</label>
+                            <input type="time" defaultValue="02:00" className="input-premium w-full bg-slate-50 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100" />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-xs font-bold text-slate-500 uppercase">Retention (Count)</label>
-                            <input type="number" defaultValue="7" className="input-premium w-full bg-slate-50" />
+                            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Retention (Count)</label>
+                            <input type="number" defaultValue="7" className="input-premium w-full bg-slate-50 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100" />
                         </div>
                     </div>
                     <div className="mt-6 flex justify-end">

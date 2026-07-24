@@ -62,23 +62,22 @@ export default function MainLayout({ children }) {
   }, [location.pathname, location.search, currentSidebar]);
 
   return (
-    <div className="flex flex-col min-h-screen font-sans" style={{ backgroundColor: '#FAFBFC' }}>
+    <div className="flex flex-col min-h-screen font-sans bg-[#FAFBFC] dark:bg-slate-900">
       <GlobalSearch />
       {/* Top Navigation */}
-      <motion.header 
+      <motion.header
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="sticky top-0 z-50 border-b bg-white/80 backdrop-blur-md"
+        className="sticky top-0 z-50 border-b border-orange-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md"
         style={{
-          borderColor: '#FED7AA',
           boxShadow: '0 2px 8px rgba(249, 115, 22, 0.08)'
         }}
       >
         <div className="px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-10">
             <div className="flex items-center gap-2.5">
-               <span className="text-2xl font-bold" style={{ color: '#1E293B' }}>Neev</span>
-               <span className="text-2xl font-bold" style={{ color: '#F97316' }}>Time</span>
+               <span className="text-2xl font-bold text-slate-800 dark:text-slate-100">Neev</span>
+               <span className="text-2xl font-bold text-orange-500">Time</span>
             </div>
 
             <nav className="hidden md:flex items-center gap-1 p-1 rounded-full border border-orange-100 bg-orange-50/30">
@@ -166,12 +165,12 @@ export default function MainLayout({ children }) {
 
       <div className="flex flex-1 overflow-hidden">
         {activeModule !== 'Dashboard' && currentSidebar.length > 0 && (
-          <aside className="w-64 border-r flex-shrink-0 overflow-y-auto pb-10 bg-white" style={{ borderColor: '#FED7AA' }}>
+          <aside className="w-64 border-r border-orange-200 dark:border-slate-700 flex-shrink-0 overflow-y-auto pb-10 bg-white dark:bg-slate-800">
             {currentSidebar.map((group, i) => (
               <div key={i} className="mb-2">
                 <button
                   onClick={() => toggleGroup(group.group)}
-                  className="w-full px-5 py-3 flex items-center justify-between hover:bg-orange-50/50"
+                  className="w-full px-5 py-3 flex items-center justify-between hover:bg-orange-50/50 dark:hover:bg-slate-700/50"
                 >
                   <div className="flex items-center gap-3 uppercase text-[10px] tracking-widest font-bold text-slate-400">
                     <group.icon size={16} style={{ color: group.iconColor || '#64748B' }} />
@@ -195,7 +194,7 @@ export default function MainLayout({ children }) {
                           <Link
                             key={j}
                             to={item.path}
-                            className={`flex items-center gap-3 px-4 py-2 rounded-xl text-sm transition-all font-medium ${isActive ? 'bg-orange-500 text-white shadow-md shadow-orange-200' : 'text-slate-600 hover:bg-orange-50 hover:text-orange-600'}`}
+                            className={`flex items-center gap-3 px-4 py-2 rounded-xl text-sm transition-all font-medium ${isActive ? 'bg-orange-500 text-white shadow-md shadow-orange-200 dark:shadow-none' : 'text-slate-600 dark:text-slate-300 hover:bg-orange-50 dark:hover:bg-slate-700 hover:text-orange-600 dark:hover:text-orange-400'}`}
                           >
                             <item.icon size={18} />
                             {item.label}
@@ -209,7 +208,7 @@ export default function MainLayout({ children }) {
             ))}
           </aside>
         )}
-        <main className="flex-1 overflow-auto bg-slate-50/50">
+        <main className="flex-1 overflow-auto bg-slate-50/50 dark:bg-slate-900">
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}

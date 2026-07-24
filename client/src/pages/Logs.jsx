@@ -103,7 +103,7 @@ export default function Logs() {
         const dir = getDirection(log);
         const isOut = dir === 'OUT';
         return (
-            <span className={`badge-premium ${isOut ? 'bg-red-50 text-red-700 border-red-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'} inline-flex items-center gap-1.5 border px-2.5 py-1 rounded-full text-xs font-semibold`}>
+            <span className={`badge-premium ${isOut ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800' : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800'} inline-flex items-center gap-1.5 border px-2.5 py-1 rounded-full text-xs font-semibold`}>
                 {isOut ? <LogOut size={12} /> : <LogIn size={12} />}
                 {dir}
             </span>
@@ -179,7 +179,7 @@ export default function Logs() {
                                         <tr key={i}>
                                             <td>
                                                 <div className="flex flex-col">
-                                                    <span className="font-semibold text-slate-800">{log.emp_name || 'Unknown'}</span>
+                                                    <span className="font-semibold text-slate-800 dark:text-slate-100">{log.emp_name || 'Unknown'}</span>
                                                     <span className="cell-code mt-1 w-fit">{log.employee_code}</span>
                                                 </div>
                                             </td>
@@ -202,10 +202,10 @@ export default function Logs() {
                                             </td>
                                             <td>
                                                 <div className="flex items-center gap-2">
-                                                    <div className="p-1.5 bg-purple-50 rounded-md">
+                                                    <div className="p-1.5 bg-purple-50 dark:bg-purple-900/30 rounded-md">
                                                         <Fingerprint size={14} className="text-purple-600" />
                                                     </div>
-                                                    <span className="text-sm text-slate-600 uppercase font-medium text-xs tracking-wider">{log.verification_mode || 'Unknown'}</span>
+                                                    <span className="text-sm text-slate-600 dark:text-slate-400 uppercase font-medium text-xs tracking-wider">{log.verification_mode || 'Unknown'}</span>
                                                 </div>
                                             </td>
                                         </tr>

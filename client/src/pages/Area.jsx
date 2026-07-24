@@ -16,7 +16,7 @@ const AreaTreeItem = ({ area, areas, onSelect, selectedId, level = 0 }) => {
     return (
         <div className="">
             <div
-                className={`flex items-center gap-2 py-2 px-3 cursor-pointer rounded-lg transition-colors mb-0.5 ${isSelected ? 'bg-orange-50 text-saffron' : 'text-slate-grey hover:bg-slate-50'}`}
+                className={`flex items-center gap-2 py-2 px-3 cursor-pointer rounded-lg transition-colors mb-0.5 ${isSelected ? 'bg-orange-50 dark:bg-orange-900/30 text-saffron' : 'text-slate-grey dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}
                 style={{ paddingLeft: `${level * 16 + 12}px` }}
                 onClick={() => onSelect(area)}
             >
@@ -230,12 +230,12 @@ export default function Area() {
             <div className="flex gap-6 h-[calc(100vh-12rem)]">
                 {/* Tree View Sidebar */}
                 <div className="w-64 card-base p-0 flex flex-col overflow-hidden shrink-0">
-                    <div className="p-4 border-b border-slate-100 bg-slate-50/50">
-                        <h3 className="font-bold text-charcoal text-sm uppercase tracking-wide">Area Structure</h3>
+                    <div className="p-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50">
+                        <h3 className="font-bold text-charcoal dark:text-slate-100 text-sm uppercase tracking-wide">Area Structure</h3>
                     </div>
                     <div className="p-2 flex-1 overflow-y-auto custom-scrollbar">
                         <div
-                            className={`flex items-center gap-2 py-2 px-3 cursor-pointer rounded-lg mb-0.5 transition-colors ${!selectedArea ? 'bg-orange-50 text-saffron' : 'text-slate-grey hover:bg-slate-50'}`}
+                            className={`flex items-center gap-2 py-2 px-3 cursor-pointer rounded-lg mb-0.5 transition-colors ${!selectedArea ? 'bg-orange-50 dark:bg-orange-900/30 text-saffron' : 'text-slate-grey dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}
                             onClick={() => setSelectedArea(null)}
                         >
                             <Folder size={16} className={!selectedArea ? 'text-saffron fill-saffron/20' : 'text-yellow-400 fill-yellow-100'} />
@@ -256,7 +256,7 @@ export default function Area() {
                 {/* Main Table Section */}
                 <div className="flex-1 flex flex-col card-base overflow-hidden p-0">
                     {/* Toolbar */}
-                    <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-white flex-wrap gap-3">
+                    <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between bg-white dark:bg-slate-800 flex-wrap gap-3">
                         <div className="flex items-center gap-2">
                             <Button variant="successSolid" icon={Plus} onClick={() => { setFormData({}); setShowModal(true); }}>
                                 Add
@@ -264,7 +264,7 @@ export default function Area() {
                             <Button variant="danger" icon={Trash2} onClick={handleBulkDelete}>
                                 Delete
                             </Button>
-                            <div className="h-6 w-px bg-slate-200 mx-2"></div>
+                            <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-2"></div>
                             <Button variant="secondary" icon={Upload} onClick={() => setShowImportModal(true)}>
                                 Import
                             </Button>
@@ -280,50 +280,50 @@ export default function Area() {
                                 onChange={e => setSearchQuery(e.target.value)}
                                 className="input-base pl-10 py-2"
                             />
-                            <Search size={18} className="absolute left-3 top-2.5 text-slate-grey" />
+                            <Search size={18} className="absolute left-3 top-2.5 text-slate-grey dark:text-slate-400" />
                         </div>
                     </div>
 
                     {/* Table */}
                     <div className="flex-1 overflow-auto custom-scrollbar">
                         <table className="w-full text-left">
-                            <thead className="bg-orange-50 border-b border-orange-100 sticky top-0 z-10">
+                            <thead className="bg-orange-50 dark:bg-slate-900/50 border-b border-orange-100 dark:border-slate-700 sticky top-0 z-10">
                                 <tr>
                                     <th className="px-6 py-4 w-16">
                                         <input type="checkbox" checked={selectedRows.length === tableData.length && tableData.length > 0} onChange={toggleAllRows} className="rounded text-saffron focus:ring-saffron" />
                                     </th>
-                                    <th className="px-6 py-4 font-semibold text-charcoal text-sm">Area Code</th>
-                                    <th className="px-6 py-4 font-semibold text-charcoal text-sm">Area Name</th>
-                                    <th className="px-6 py-4 font-semibold text-charcoal text-sm">Parent</th>
-                                    <th className="px-6 py-4 font-semibold text-charcoal text-sm">Device Count</th>
-                                    <th className="px-6 py-4 font-semibold text-charcoal text-sm">Employee Count</th>
-                                    <th className="px-6 py-4 font-semibold text-charcoal text-sm">Resigned Count</th>
-                                    <th className="px-6 py-4 font-semibold text-charcoal text-sm">FP Count</th>
-                                    <th className="px-6 py-4 font-semibold text-charcoal text-sm">Face Count</th>
-                                    <th className="px-6 py-4 font-semibold text-charcoal text-sm">Card Count</th>
-                                    <th className="px-6 py-4 font-semibold text-charcoal text-sm w-20">Actions</th>
+                                    <th className="px-6 py-4 font-semibold text-charcoal dark:text-slate-100 text-sm">Area Code</th>
+                                    <th className="px-6 py-4 font-semibold text-charcoal dark:text-slate-100 text-sm">Area Name</th>
+                                    <th className="px-6 py-4 font-semibold text-charcoal dark:text-slate-100 text-sm">Parent</th>
+                                    <th className="px-6 py-4 font-semibold text-charcoal dark:text-slate-100 text-sm">Device Count</th>
+                                    <th className="px-6 py-4 font-semibold text-charcoal dark:text-slate-100 text-sm">Employee Count</th>
+                                    <th className="px-6 py-4 font-semibold text-charcoal dark:text-slate-100 text-sm">Resigned Count</th>
+                                    <th className="px-6 py-4 font-semibold text-charcoal dark:text-slate-100 text-sm">FP Count</th>
+                                    <th className="px-6 py-4 font-semibold text-charcoal dark:text-slate-100 text-sm">Face Count</th>
+                                    <th className="px-6 py-4 font-semibold text-charcoal dark:text-slate-100 text-sm">Card Count</th>
+                                    <th className="px-6 py-4 font-semibold text-charcoal dark:text-slate-100 text-sm w-20">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-50">
+                            <tbody className="divide-y divide-slate-50 dark:divide-slate-700">
                                 {tableData.length === 0 ? (
                                     <tr>
-                                        <td colSpan="11" className="p-8 text-center text-slate-grey">No areas found</td>
+                                        <td colSpan="11" className="p-8 text-center text-slate-grey dark:text-slate-400">No areas found</td>
                                     </tr>
                                 ) : (
                                     tableData.map(area => (
-                                        <tr key={area.id} className={`bg-white hover:bg-cream-50 transition-colors ${selectedRows.includes(area.id) ? 'bg-orange-50/30' : ''}`}>
+                                        <tr key={area.id} className={`bg-white dark:bg-slate-800 hover:bg-cream-50 dark:hover:bg-slate-700/50 transition-colors ${selectedRows.includes(area.id) ? 'bg-orange-50/30 dark:bg-orange-900/20' : ''}`}>
                                             <td className="px-6 py-4">
                                                 <input type="checkbox" checked={selectedRows.includes(area.id)} onChange={() => toggleRowSelection(area.id)} className="rounded text-saffron focus:ring-saffron" />
                                             </td>
                                             <td className="px-6 py-4 text-saffron font-medium">{area.code || '-'}</td>
-                                            <td className="px-6 py-4 text-slate-grey font-medium">{area.name}</td>
+                                            <td className="px-6 py-4 text-slate-grey dark:text-slate-400 font-medium">{area.name}</td>
                                             <td className="px-6 py-4 text-slate-grey/70">{area.parent_area_name || '-'}</td>
-                                            <td className="px-6 py-4 text-slate-grey">{area.device_count || 0}</td>
-                                            <td className="px-6 py-4 text-slate-grey">{area.employee_count || 0}</td>
-                                            <td className="px-6 py-4 text-slate-grey">{area.resigned_count || 0}</td>
-                                            <td className="px-6 py-4 text-slate-grey">{area.fp_count || 0}</td>
-                                            <td className="px-6 py-4 text-slate-grey">{area.face_count || 0}</td>
-                                            <td className="px-6 py-4 text-slate-grey">{area.card_count || 0}</td>
+                                            <td className="px-6 py-4 text-slate-grey dark:text-slate-400">{area.device_count || 0}</td>
+                                            <td className="px-6 py-4 text-slate-grey dark:text-slate-400">{area.employee_count || 0}</td>
+                                            <td className="px-6 py-4 text-slate-grey dark:text-slate-400">{area.resigned_count || 0}</td>
+                                            <td className="px-6 py-4 text-slate-grey dark:text-slate-400">{area.fp_count || 0}</td>
+                                            <td className="px-6 py-4 text-slate-grey dark:text-slate-400">{area.face_count || 0}</td>
+                                            <td className="px-6 py-4 text-slate-grey dark:text-slate-400">{area.card_count || 0}</td>
                                             <td className="px-6 py-4">
                                                 <Button
                                                     variant="danger"
@@ -347,20 +347,20 @@ export default function Area() {
             {/* Add Modal */}
             {showModal && (
                 <div className="fixed inset-0 bg-charcoal/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm border border-white/50">
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-sm border border-white/50 dark:border-slate-700">
                         <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-lg font-bold text-charcoal">Add Area</h3>
+                            <h3 className="text-lg font-bold text-charcoal dark:text-slate-100">Add Area</h3>
                             <Button variant="ghost" size="sm" icon={X} aria-label="Close" onClick={() => setShowModal(false)} />
                         </div>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-slate-grey mb-1">Parent Area</label>
-                                <div className="input-base bg-slate-50 flex items-center">
+                                <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1">Parent Area</label>
+                                <div className="input-base bg-slate-50 dark:bg-slate-900/50 flex items-center">
                                     {selectedArea ? selectedArea.name : 'Root (None)'}
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-slate-grey mb-1">Area Name <span className="text-red-500">*</span></label>
+                                <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1">Area Name <span className="text-red-500 dark:text-red-400">*</span></label>
                                 <input
                                     className="input-base"
                                     value={formData.name || ''}
@@ -369,7 +369,7 @@ export default function Area() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-slate-grey mb-1">Area Code</label>
+                                <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1">Area Code</label>
                                 <input
                                     className="input-base"
                                     value={formData.code || ''}
@@ -388,14 +388,14 @@ export default function Area() {
             {/* Import Modal */}
             {showImportModal && (
                 <div className="fixed inset-0 bg-charcoal/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md border border-white/50">
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-md border border-white/50 dark:border-slate-700">
                         <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-lg font-bold text-charcoal">Import Areas</h3>
+                            <h3 className="text-lg font-bold text-charcoal dark:text-slate-100">Import Areas</h3>
                             <Button variant="ghost" size="sm" icon={X} aria-label="Close" onClick={() => setShowImportModal(false)} />
                         </div>
                         <form onSubmit={handleImport} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-slate-grey mb-2">Select CSV File</label>
+                                <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-2">Select CSV File</label>
                                 <input
                                     type="file"
                                     accept=".csv"
@@ -404,9 +404,9 @@ export default function Area() {
                                     className="input-base p-2"
                                 />
                             </div>
-                            <div className="bg-orange-50/50 p-4 rounded-xl border border-orange-100 text-sm text-slate-grey">
+                            <div className="bg-orange-50/50 dark:bg-orange-900/20 p-4 rounded-xl border border-orange-100 dark:border-orange-800 text-sm text-slate-grey dark:text-slate-400">
                                 <p className="font-bold text-saffron mb-1">CSV Format:</p>
-                                <code className="block bg-white p-2 rounded border border-orange-100 mb-2">Area Name, Area Code</code>
+                                <code className="block bg-white dark:bg-slate-800 p-2 rounded border border-orange-100 dark:border-orange-800 mb-2">Area Name, Area Code</code>
                                 <Button variant="secondary" icon={Download} type="button" onClick={downloadTemplate}>
                                     Download Template
                                 </Button>
@@ -423,14 +423,14 @@ export default function Area() {
             {/* Personnel Transfer Modal */}
             {showTransferModal && (
                 <div className="fixed inset-0 bg-charcoal/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md border border-white/50">
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-md border border-white/50 dark:border-slate-700">
                         <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-lg font-bold text-charcoal">Personnel Transfer</h3>
+                            <h3 className="text-lg font-bold text-charcoal dark:text-slate-100">Personnel Transfer</h3>
                             <Button variant="ghost" size="sm" icon={X} aria-label="Close" onClick={() => setShowTransferModal(false)} />
                         </div>
                         <form onSubmit={handleTransfer} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-slate-grey mb-1">From Area</label>
+                                <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1">From Area</label>
                                 <select
                                     value={transferData.fromArea}
                                     onChange={(e) => setTransferData({ ...transferData, fromArea: e.target.value })}
@@ -442,7 +442,7 @@ export default function Area() {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-slate-grey mb-1">To Area</label>
+                                <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1">To Area</label>
                                 <select
                                     value={transferData.toArea}
                                     onChange={(e) => setTransferData({ ...transferData, toArea: e.target.value })}
@@ -453,7 +453,7 @@ export default function Area() {
                                     {areas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                                 </select>
                             </div>
-                            <div className="bg-yellow-50 border border-yellow-100 p-4 rounded-xl text-sm text-yellow-800">
+                            <div className="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-100 dark:border-yellow-800 p-4 rounded-xl text-sm text-yellow-800 dark:text-yellow-300">
                                 <strong>Note:</strong> This will transfer personnel from the source area to the destination area.
                             </div>
                             <div className="flex justify-end gap-3 pt-4">
@@ -468,13 +468,13 @@ export default function Area() {
             {/* Delete Confirmation Modal */}
             {showDeleteModal && (
                 <div className="fixed inset-0 bg-charcoal/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm border border-white/50 text-center">
-                        <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500">
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-sm border border-white/50 dark:border-slate-700 text-center">
+                        <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500 dark:text-red-400">
                             <Trash2 size={24} />
                         </div>
-                        <h3 className="text-lg font-bold text-charcoal mb-2">Delete Area?</h3>
-                        <p className="text-slate-grey mb-6">
-                            Are you sure you want to delete <span className="font-bold text-charcoal">{areaToDelete?.name || 'these items'}</span>? This action cannot be undone.
+                        <h3 className="text-lg font-bold text-charcoal dark:text-slate-100 mb-2">Delete Area?</h3>
+                        <p className="text-slate-grey dark:text-slate-400 mb-6">
+                            Are you sure you want to delete <span className="font-bold text-charcoal dark:text-slate-100">{areaToDelete?.name || 'these items'}</span>? This action cannot be undone.
                         </p>
                         <div className="flex justify-center gap-3">
                             <Button variant="secondary" onClick={() => { setShowDeleteModal(false); setAreaToDelete(null); }}>

@@ -150,38 +150,38 @@ export default function UsersPage() {
             />
 
             {/* Users Table */}
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
                 <table className="w-full">
-                    <thead className="bg-slate-50 border-b border-slate-200">
+                    <thead className="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700">
                         <tr>
-                            <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase">ID</th>
-                            <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase">Username</th>
-                            <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase">Email</th>
-                            <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase">Role</th>
-                            <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase">Created</th>
-                            <th className="text-right px-6 py-3 text-xs font-medium text-slate-500 uppercase">Actions</th>
+                            <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">ID</th>
+                            <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">Username</th>
+                            <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">Email</th>
+                            <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">Role</th>
+                            <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">Created</th>
+                            <th className="text-right px-6 py-3 text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">Actions</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-200">
+                    <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
                         {users.map(user => (
-                            <tr key={user.id} className="hover:bg-slate-50">
-                                <td className="px-6 py-4 text-sm text-slate-600">{user.id}</td>
+                            <tr key={user.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
+                                <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{user.id}</td>
                                 <td className="px-6 py-4">
-                                    <span className="font-medium text-slate-900">{user.username}</span>
+                                    <span className="font-medium text-slate-900 dark:text-slate-100">{user.username}</span>
                                 </td>
-                                <td className="px-6 py-4 text-sm text-slate-600">{user.email || '-'}</td>
+                                <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{user.email || '-'}</td>
                                 <td className="px-6 py-4">
                                     <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${user.role === 'admin'
-                                            ? 'bg-red-100 text-red-700'
+                                            ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
                                             : user.role === 'hr'
-                                                ? 'bg-blue-100 text-blue-700'
-                                                : 'bg-slate-100 text-slate-700'
+                                                ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                                                : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
                                         }`}>
                                         <Shield size={12} />
                                         {user.role}
                                     </span>
                                 </td>
-                                <td className="px-6 py-4 text-sm text-slate-600">
+                                <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">
                                     {user.created_at ? new Date(user.created_at).toLocaleDateString() : '-'}
                                 </td>
                                 <td className="px-6 py-4 text-right">
@@ -206,7 +206,7 @@ export default function UsersPage() {
                         ))}
                         {users.length === 0 && (
                             <tr>
-                                <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
+                                <td colSpan={6} className="px-6 py-8 text-center text-slate-500 dark:text-slate-400">
                                     No users found
                                 </td>
                             </tr>
@@ -218,8 +218,8 @@ export default function UsersPage() {
             {/* Modal */}
             {showModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-xl w-full max-w-md shadow-2xl">
-                        <div className="flex items-center justify-between p-4 border-b">
+                    <div className="bg-white dark:bg-slate-800 rounded-xl w-full max-w-md shadow-2xl">
+                        <div className="flex items-center justify-between p-4 border-b dark:border-slate-700">
                             <h2 className="text-lg font-semibold">
                                 {editUser ? 'Edit User' : 'Add New User'}
                             </h2>
@@ -227,51 +227,51 @@ export default function UsersPage() {
                         </div>
                         <form onSubmit={handleSubmit} className="p-4 space-y-4">
                             {error && (
-                                <div className="p-3 bg-red-100 text-red-700 rounded-lg text-sm">
+                                <div className="p-3 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 rounded-lg text-sm">
                                     {error}
                                 </div>
                             )}
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Username *</label>
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Username *</label>
                                 <input
                                     type="text"
                                     value={formData.username}
                                     onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
+                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                     required
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                                     Password {editUser ? '(leave blank to keep current)' : '*'}
                                 </label>
                                 <input
                                     type="password"
                                     value={formData.password}
                                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
+                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                     {...(!editUser && { required: true })}
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Email</label>
                                 <input
                                     type="email"
                                     value={formData.email}
                                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
+                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Role</label>
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Role</label>
                                 <select
                                     value={formData.role}
                                     onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
+                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                 >
                                     {ROLES.map(role => (
                                         <option key={role} value={role}>{role}</option>

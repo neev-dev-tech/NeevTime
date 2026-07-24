@@ -135,10 +135,10 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
 
     const getHolidayTypeColor = (type) => {
         switch (type) {
-            case 'national': return 'bg-blue-100 text-blue-800';
-            case 'regional': return 'bg-green-100 text-green-800';
-            case 'company': return 'bg-purple-100 text-purple-800';
-            default: return 'bg-slate-100 text-slate-800';
+            case 'national': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
+            case 'regional': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
+            case 'company': return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300';
+            default: return 'bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-100';
         }
     };
 
@@ -200,7 +200,7 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
                     onClick={() => setActiveTab('locations')}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${activeTab === 'locations'
                             ? 'bg-red-600 text-white'
-                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                            : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'
                         }`}
                 >
                     <MapPin size={16} />
@@ -210,7 +210,7 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
                     onClick={() => setActiveTab('holidays')}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${activeTab === 'holidays'
                             ? 'bg-orange-600 text-white'
-                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                            : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'
                         }`}
                 >
                     <Calendar size={16} />
@@ -226,9 +226,9 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
                     </h3>
                     <div className="flex flex-wrap gap-3">
                         {upcomingHolidays.map(h => (
-                            <div key={h.id} className="bg-white rounded-lg px-3 py-2 shadow-sm">
+                            <div key={h.id} className="bg-white dark:bg-slate-800 rounded-lg px-3 py-2 shadow-sm">
                                 <div className="font-medium text-sm">{h.name}</div>
-                                <div className="text-xs text-slate-500">
+                                <div className="text-xs text-slate-500 dark:text-slate-400">
                                     {new Date(h.date).toLocaleDateString('en-US', {
                                         month: 'short', day: 'numeric', year: 'numeric'
                                     })}
@@ -241,24 +241,24 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
 
             {/* Content */}
             {loading ? (
-                <div className="text-center py-8 text-slate-500">Loading...</div>
+                <div className="text-center py-8 text-slate-500 dark:text-slate-400">Loading...</div>
             ) : activeTab === 'locations' ? (
                 /* Locations Grid */
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {locations.length === 0 ? (
-                        <div className="col-span-full text-center py-8 text-slate-500">
+                        <div className="col-span-full text-center py-8 text-slate-500 dark:text-slate-400">
                             No locations defined. Locations help assign region-specific holidays.
                         </div>
                     ) : locations.map(loc => (
-                        <div key={loc.id} className="bg-white rounded-xl shadow-sm border p-5 hover:shadow-md transition-shadow">
+                        <div key={loc.id} className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border dark:border-slate-700 p-5 hover:shadow-md transition-shadow">
                             <div className="flex items-start justify-between mb-3">
                                 <div className="flex items-center gap-2">
-                                    <div className="p-2 bg-red-100 text-red-600 rounded-lg">
+                                    <div className="p-2 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg">
                                         <MapPin size={20} />
                                     </div>
                                     <div>
                                         <h3 className="font-semibold">{loc.name}</h3>
-                                        <div className="text-xs text-slate-500">
+                                        <div className="text-xs text-slate-500 dark:text-slate-400">
                                             {loc.description || 'No description'}
                                         </div>
                                     </div>
@@ -285,30 +285,30 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
                 </div>
             ) : (
                 /* Holidays Table */
-                <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+                <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border dark:border-slate-700 overflow-hidden">
                     <table className="w-full">
-                        <thead className="bg-slate-50">
+                        <thead className="bg-slate-50 dark:bg-slate-900/50">
                             <tr>
-                                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Holiday Name</th>
-                                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Date</th>
-                                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Type</th>
-                                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Optional</th>
-                                <th className="px-4 py-3 text-center text-sm font-semibold text-slate-600">Actions</th>
+                                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600 dark:text-slate-400">Holiday Name</th>
+                                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600 dark:text-slate-400">Date</th>
+                                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600 dark:text-slate-400">Type</th>
+                                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600 dark:text-slate-400">Optional</th>
+                                <th className="px-4 py-3 text-center text-sm font-semibold text-slate-600 dark:text-slate-400">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y">
+                        <tbody className="divide-y dark:divide-slate-700">
                             {holidays.length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} className="px-4 py-8 text-center text-slate-500">
+                                    <td colSpan={5} className="px-4 py-8 text-center text-slate-500 dark:text-slate-400">
                                         No holidays defined. Click "Add Holiday" to create one.
                                     </td>
                                 </tr>
                             ) : holidays.map(h => (
-                                <tr key={h.id} className="hover:bg-slate-50">
+                                <tr key={h.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
                                     <td className="px-4 py-3">
                                         <div className="font-medium">{h.name}</div>
                                         {h.description && (
-                                            <div className="text-xs text-slate-500">{h.description}</div>
+                                            <div className="text-xs text-slate-500 dark:text-slate-400">{h.description}</div>
                                         )}
                                     </td>
                                     <td className="px-4 py-3 text-sm">
@@ -323,9 +323,9 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
                                     </td>
                                     <td className="px-4 py-3">
                                         {h.is_optional ? (
-                                            <span className="px-2 py-1 bg-amber-100 text-amber-700 rounded text-xs">Optional</span>
+                                            <span className="px-2 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded text-xs">Optional</span>
                                         ) : (
-                                            <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">Mandatory</span>
+                                            <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded text-xs">Mandatory</span>
                                         )}
                                     </td>
                                     <td className="px-4 py-3">
@@ -356,8 +356,8 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
             {/* Location Modal */}
             {showModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-xl shadow-lg w-full max-w-md">
-                        <div className="flex items-center justify-between p-4 border-b">
+                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg w-full max-w-md">
+                        <div className="flex items-center justify-between p-4 border-b dark:border-slate-700">
                             <h2 className="text-lg font-semibold">
                                 {editingId ? 'Edit Location' : 'Add Location'}
                             </h2>
@@ -370,7 +370,7 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
                                     type="text"
                                     value={form.name}
                                     onChange={e => setForm({ ...form, name: e.target.value })}
-                                    className="w-full px-3 py-2 border rounded-lg"
+                                    className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                     placeholder="e.g., Head Office, Branch A"
                                     required
                                 />
@@ -380,12 +380,12 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
                                 <textarea
                                     value={form.description}
                                     onChange={e => setForm({ ...form, description: e.target.value })}
-                                    className="w-full px-3 py-2 border rounded-lg"
+                                    className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                     rows={3}
                                     placeholder="Location details..."
                                 />
                             </div>
-                            <div className="flex justify-end gap-3 pt-4 border-t">
+                            <div className="flex justify-end gap-3 pt-4 border-t dark:border-slate-700">
                                 <Button variant="secondary" onClick={closeModal}>Cancel</Button>
                                 <Button type="submit" icon={Save}>
                                     {editingId ? 'Update' : 'Create'}
@@ -399,8 +399,8 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
             {/* Holiday Modal */}
             {showHolidayModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-xl shadow-lg w-full max-w-md">
-                        <div className="flex items-center justify-between p-4 border-b">
+                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg w-full max-w-md">
+                        <div className="flex items-center justify-between p-4 border-b dark:border-slate-700">
                             <h2 className="text-lg font-semibold">
                                 {editingHolidayId ? 'Edit Holiday' : 'Add Holiday'}
                             </h2>
@@ -413,7 +413,7 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
                                     type="text"
                                     value={holidayForm.name}
                                     onChange={e => setHolidayForm({ ...holidayForm, name: e.target.value })}
-                                    className="w-full px-3 py-2 border rounded-lg"
+                                    className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                     required
                                 />
                             </div>
@@ -424,7 +424,7 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
                                         type="date"
                                         value={holidayForm.date}
                                         onChange={e => setHolidayForm({ ...holidayForm, date: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded-lg"
+                                        className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                         required
                                     />
                                 </div>
@@ -433,7 +433,7 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
                                     <select
                                         value={holidayForm.holiday_type}
                                         onChange={e => setHolidayForm({ ...holidayForm, holiday_type: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded-lg"
+                                        className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                     >
                                         <option value="national">National</option>
                                         <option value="regional">Regional</option>
@@ -447,7 +447,7 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
                                     type="text"
                                     value={holidayForm.description}
                                     onChange={e => setHolidayForm({ ...holidayForm, description: e.target.value })}
-                                    className="w-full px-3 py-2 border rounded-lg"
+                                    className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                 />
                             </div>
                             <label className="flex items-center gap-2 cursor-pointer">
@@ -459,7 +459,7 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
                                 />
                                 <span className="text-sm">Optional Holiday (Restricted)</span>
                             </label>
-                            <div className="flex justify-end gap-3 pt-4 border-t">
+                            <div className="flex justify-end gap-3 pt-4 border-t dark:border-slate-700">
                                 <Button variant="secondary" onClick={closeHolidayModal}>Cancel</Button>
                                 <Button type="submit" icon={Save}>
                                     {editingHolidayId ? 'Update' : 'Create'}

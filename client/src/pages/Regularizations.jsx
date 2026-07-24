@@ -38,10 +38,10 @@ export default function Regularizations() {
     };
 
     const badge = (status) => ({
-        pending: 'bg-amber-50 text-amber-700 border-amber-200',
-        approved: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-        rejected: 'bg-rose-50 text-rose-700 border-rose-200'
-    }[status] || 'bg-slate-50 text-slate-600 border-slate-200');
+        pending: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800',
+        approved: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800',
+        rejected: 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-900/30 dark:text-rose-300 dark:border-rose-800'
+    }[status] || 'bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-900/50 dark:text-slate-400 dark:border-slate-700');
 
     return (
         <div className="p-6 space-y-4">
@@ -52,9 +52,9 @@ export default function Regularizations() {
                 className="mb-0"
                 actions={
                     <>
-                        <div className="flex items-center gap-1.5 bg-white border rounded-lg px-2 py-1.5">
+                        <div className="flex items-center gap-1.5 bg-white dark:bg-slate-800 border dark:border-slate-700 rounded-lg px-2 py-1.5">
                             <Filter size={14} className="text-slate-400" />
-                            <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="text-sm border-none focus:ring-0">
+                            <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="text-sm border-none focus:ring-0 dark:bg-slate-800 dark:text-slate-100">
                                 <option value="pending">Pending</option>
                                 <option value="approved">Approved</option>
                                 <option value="rejected">Rejected</option>
@@ -68,7 +68,7 @@ export default function Regularizations() {
                 }
             />
 
-            <div className="bg-white border rounded-xl divide-y">
+            <div className="bg-white dark:bg-slate-800 border dark:border-slate-700 rounded-xl divide-y dark:divide-slate-700">
                 {requests.length === 0 ? (
                     <p className="px-4 py-12 text-center text-slate-400 text-sm">
                         {loading ? 'Loading...' : 'No requests'}
@@ -77,19 +77,19 @@ export default function Regularizations() {
                     <div key={req.id} className="p-4 flex flex-col md:flex-row md:items-center gap-3">
                         <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                                <span className="font-semibold text-slate-800">{req.employee_name}</span>
+                                <span className="font-semibold text-slate-800 dark:text-slate-100">{req.employee_name}</span>
                                 <span className="text-xs font-mono text-slate-400">{req.employee_code}</span>
-                                {req.department && <span className="text-xs text-slate-500">· {req.department}</span>}
+                                {req.department && <span className="text-xs text-slate-500 dark:text-slate-400">· {req.department}</span>}
                                 <span className={`text-xs font-bold px-2 py-0.5 rounded-full border capitalize ${badge(req.status)}`}>{req.status}</span>
                             </div>
-                            <p className="text-sm text-slate-600 mt-1">
+                            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
                                 <span className="font-medium">{req.date}</span>
                                 {' · Current: '}
                                 <span className="font-mono text-xs">{req.current_in_time || '--:--'} → {req.current_out_time || '--:--'}</span>
                                 {' · Requested: '}
-                                <span className="font-mono text-xs font-bold text-orange-600">{req.requested_in_time || '(keep)'} → {req.requested_out_time || '(keep)'}</span>
+                                <span className="font-mono text-xs font-bold text-orange-600 dark:text-orange-400">{req.requested_in_time || '(keep)'} → {req.requested_out_time || '(keep)'}</span>
                             </p>
-                            <p className="text-xs text-slate-500 italic mt-0.5">"{req.reason}"</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 italic mt-0.5">"{req.reason}"</p>
                             {req.review_comment && <p className="text-xs text-slate-400 mt-0.5">Review note: {req.review_comment}</p>}
                         </div>
                         {req.status === 'pending' && (
@@ -99,7 +99,7 @@ export default function Regularizations() {
                                     placeholder="Comment (optional)"
                                     value={comment[req.id] || ''}
                                     onChange={e => setComment(c => ({ ...c, [req.id]: e.target.value }))}
-                                    className="text-xs border rounded-lg px-2 py-1.5 w-40"
+                                    className="text-xs border dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 rounded-lg px-2 py-1.5 w-40"
                                 />
                                 <Button variant="success" size="sm" icon={CheckCircle} onClick={() => review(req.id, 'approved')}>
                                     Approve

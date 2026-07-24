@@ -52,7 +52,7 @@ export default function AttendanceCalendar() {
         // Header
         for (let d of weekDays) {
             days.push(
-                <div key={d} className="text-center text-xs font-bold text-slate-400 uppercase tracking-wider py-3 border-b border-slate-100 bg-slate-50/50">
+                <div key={d} className="text-center text-xs font-bold text-slate-400 uppercase tracking-wider py-3 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50">
                     {d}
                 </div>
             );
@@ -60,7 +60,7 @@ export default function AttendanceCalendar() {
 
         // Empty cells
         for (let i = 0; i < firstDayOfMonth; i++) {
-            days.push(<div key={`empty-${i}`} className="bg-slate-50/30 min-h-[120px] border-b border-r border-slate-100"></div>);
+            days.push(<div key={`empty-${i}`} className="bg-slate-50/30 dark:bg-slate-900/50 min-h-[120px] border-b border-r border-slate-100 dark:border-slate-700"></div>);
         }
 
         // Calendar Days
@@ -70,13 +70,13 @@ export default function AttendanceCalendar() {
             const isToday = new Date().toISOString().split('T')[0] === dateStr;
 
             days.push(
-                <div key={day} className={`relative min-h-[120px] p-2 transition-all hover:bg-slate-50 border-b border-r border-slate-100 group ${isToday ? 'bg-orange-50/30' : 'bg-white'}`}>
+                <div key={day} className={`relative min-h-[120px] p-2 transition-all hover:bg-slate-50 dark:hover:bg-slate-700/50 border-b border-r border-slate-100 dark:border-slate-700 group ${isToday ? 'bg-orange-50/30 dark:bg-orange-900/30' : 'bg-white dark:bg-slate-800'}`}>
                     <div className="flex justify-between items-start mb-2">
-                        <span className={`text-sm font-semibold w-7 h-7 flex items-center justify-center rounded-full ${isToday ? 'bg-orange-600 text-white shadow-md' : 'text-slate-700 bg-slate-100 group-hover:bg-white border border-transparent group-hover:border-slate-200'}`}>
+                        <span className={`text-sm font-semibold w-7 h-7 flex items-center justify-center rounded-full ${isToday ? 'bg-orange-600 text-white shadow-md' : 'text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 group-hover:bg-white dark:group-hover:bg-slate-800 border border-transparent group-hover:border-slate-200 dark:group-hover:border-slate-700'}`}>
                             {day}
                         </span>
                         {dayData && (
-                            <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-500 font-medium">
+                            <span className="text-[10px] bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded text-slate-500 dark:text-slate-400 font-medium">
                                 {dayData.total} Staff
                             </span>
                         )}
@@ -85,26 +85,26 @@ export default function AttendanceCalendar() {
                     {dayData ? (
                         <div className="space-y-1.5 mt-2">
                             {dayData.present > 0 && (
-                                <div className="flex items-center justify-between text-xs px-2 py-1 rounded bg-emerald-50 text-emerald-700 border border-emerald-100">
+                                <div className="flex items-center justify-between text-xs px-2 py-1 rounded bg-emerald-50 text-emerald-700 border border-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800">
                                     <span className="flex items-center gap-1.5"><CheckCircle size={10} /> Present</span>
                                     <span className="font-bold">{dayData.present}</span>
                                 </div>
                             )}
                             {dayData.absent > 0 && (
-                                <div className="flex items-center justify-between text-xs px-2 py-1 rounded bg-rose-50 text-rose-700 border border-rose-100">
+                                <div className="flex items-center justify-between text-xs px-2 py-1 rounded bg-rose-50 text-rose-700 border border-rose-100 dark:bg-rose-900/30 dark:text-rose-300 dark:border-rose-800">
                                     <span className="flex items-center gap-1.5"><XCircle size={10} /> Absent</span>
                                     <span className="font-bold">{dayData.absent}</span>
                                 </div>
                             )}
                             {dayData.late > 0 && (
-                                <div className="flex items-center justify-between text-xs px-2 py-1 rounded bg-amber-50 text-amber-700 border border-amber-100">
+                                <div className="flex items-center justify-between text-xs px-2 py-1 rounded bg-amber-50 text-amber-700 border border-amber-100 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800">
                                     <span className="flex items-center gap-1.5"><Clock size={10} /> Late</span>
                                     <span className="font-bold">{dayData.late}</span>
                                 </div>
                             )}
                         </div>
                     ) : (
-                        loading ? <div className="animate-pulse space-y-2 mt-4"><div className="h-4 bg-slate-100 rounded w-3/4"></div></div> : null
+                        loading ? <div className="animate-pulse space-y-2 mt-4"><div className="h-4 bg-slate-100 dark:bg-slate-700 rounded w-3/4"></div></div> : null
                     )}
                 </div>
             );
@@ -117,15 +117,15 @@ export default function AttendanceCalendar() {
         <div className="space-y-6">
             <div className="report-container">
                 {/* Header */}
-                <div className="px-6 pt-6 border-b border-slate-100">
+                <div className="px-6 pt-6 border-b border-slate-100 dark:border-slate-700">
                     <PageHeader
                         icon={Calendar}
                         title="Attendance Calendar"
                         subtitle="Monthly attendance overview"
                         actions={
-                            <div className="flex items-center bg-white border border-slate-200 rounded-lg p-1 shadow-sm">
+                            <div className="flex items-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-1 shadow-sm">
                                 <Button variant="ghost" size="sm" icon={ChevronLeft} iconSize={20} aria-label="Previous month" onClick={prevMonth} />
-                                <span className="w-48 text-center font-bold text-slate-800 text-sm py-1">
+                                <span className="w-48 text-center font-bold text-slate-800 dark:text-slate-100 text-sm py-1">
                                     {monthNames[month]} {year}
                                 </span>
                                 <Button variant="ghost" size="sm" icon={ChevronRight} iconSize={20} aria-label="Next month" onClick={nextMonth} />
@@ -135,7 +135,7 @@ export default function AttendanceCalendar() {
                 </div>
 
                 {/* Legend */}
-                <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex gap-6 text-xs font-medium text-slate-600">
+                <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50 flex gap-6 text-xs font-medium text-slate-600 dark:text-slate-400">
                     <div className="flex items-center gap-2">
                         <span className="w-3 h-3 bg-emerald-500 rounded-full ring-2 ring-emerald-100"></span> Present
                     </div>
@@ -151,8 +151,8 @@ export default function AttendanceCalendar() {
                 </div>
 
                 {/* Calendar Grid */}
-                <div className="bg-white">
-                    <div className="grid grid-cols-7 border-l border-t border-slate-100">
+                <div className="bg-white dark:bg-slate-800">
+                    <div className="grid grid-cols-7 border-l border-t border-slate-100 dark:border-slate-700">
                         {renderCalendar()}
                     </div>
                 </div>

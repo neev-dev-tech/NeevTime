@@ -90,24 +90,24 @@ export default function EmployeePortal() {
 
     const statusBadge = (status) => {
         const map = {
-            approved: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-            rejected: 'bg-rose-50 text-rose-700 border-rose-200',
-            pending: 'bg-amber-50 text-amber-700 border-amber-200'
+            approved: 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
+            rejected: 'bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800',
+            pending: 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800'
         };
         return map[(status || 'pending').toLowerCase()] || map.pending;
     };
 
     return (
-        <div className="min-h-screen bg-slate-50">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
             {/* Header */}
-            <header className="bg-white border-b sticky top-0 z-10">
+            <header className="bg-white dark:bg-slate-800 border-b dark:border-slate-700 sticky top-0 z-10">
                 <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <div className="p-1.5 bg-orange-100 rounded-lg text-orange-600"><Fingerprint size={18} /></div>
-                        <span className="font-bold text-slate-800">My NeevTime</span>
+                        <div className="p-1.5 bg-orange-100 dark:bg-orange-900/30 rounded-lg text-orange-600 dark:text-orange-300"><Fingerprint size={18} /></div>
+                        <span className="font-bold text-slate-800 dark:text-slate-100">My NeevTime</span>
                     </div>
                     <div className="flex items-center gap-3">
-                        <span className="text-sm text-slate-600 hidden sm:block">{profile?.name || auth?.name}</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-400 hidden sm:block">{profile?.name || auth?.name}</span>
                         <Button variant="ghost" size="sm" icon={LogOut} iconSize={18} onClick={handleLogout} title="Logout" />
                     </div>
                 </div>
@@ -116,66 +116,66 @@ export default function EmployeePortal() {
             <main className="max-w-3xl mx-auto px-4 py-6 space-y-5">
                 {/* Profile card */}
                 {profile && (
-                    <div className="bg-white rounded-xl border p-4 flex items-center gap-4">
+                    <div className="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 p-4 flex items-center gap-4">
                         <div className="w-12 h-12 rounded-full bg-orange-500 text-white flex items-center justify-center font-bold text-lg">
                             {(profile.name || '?').charAt(0)}
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="font-bold text-slate-800 truncate">{profile.name}</p>
-                            <p className="text-xs text-slate-500 flex items-center gap-2">
+                            <p className="font-bold text-slate-800 dark:text-slate-100 truncate">{profile.name}</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2">
                                 <span className="font-mono">{profile.employee_code}</span>
                                 {profile.department && <span className="flex items-center gap-1"><Briefcase size={11} />{profile.department}</span>}
                             </p>
                         </div>
                         <div className="text-right hidden sm:block">
-                            <p className="text-lg font-bold text-slate-800">{presentDays}</p>
+                            <p className="text-lg font-bold text-slate-800 dark:text-slate-100">{presentDays}</p>
                             <p className="text-[10px] text-slate-400 uppercase font-bold">Days present</p>
                         </div>
                         <div className="text-right">
-                            <p className="text-lg font-bold text-slate-800">{Math.floor(totalMinutes / 60)}h</p>
+                            <p className="text-lg font-bold text-slate-800 dark:text-slate-100">{Math.floor(totalMinutes / 60)}h</p>
                             <p className="text-[10px] text-slate-400 uppercase font-bold">Hours worked</p>
                         </div>
                     </div>
                 )}
 
                 {/* Tabs */}
-                <div className="flex bg-white rounded-lg border p-1 gap-1">
+                <div className="flex bg-white dark:bg-slate-800 rounded-lg border dark:border-slate-700 p-1 gap-1">
                     <button
                         onClick={() => setTab('attendance')}
-                        className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-md text-sm font-semibold transition-colors ${tab === 'attendance' ? 'bg-orange-500 text-white' : 'text-slate-500 hover:bg-slate-50'}`}
+                        className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-md text-sm font-semibold transition-colors ${tab === 'attendance' ? 'bg-orange-500 text-white' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}
                     >
                         <Clock size={15} /> My Attendance
                     </button>
                     <button
                         onClick={() => setTab('leave')}
-                        className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-md text-sm font-semibold transition-colors ${tab === 'leave' ? 'bg-orange-500 text-white' : 'text-slate-500 hover:bg-slate-50'}`}
+                        className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-md text-sm font-semibold transition-colors ${tab === 'leave' ? 'bg-orange-500 text-white' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}
                     >
                         <Calendar size={15} /> My Leave
                     </button>
                     <button
                         onClick={() => setTab('requests')}
-                        className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-md text-sm font-semibold transition-colors ${tab === 'requests' ? 'bg-orange-500 text-white' : 'text-slate-500 hover:bg-slate-50'}`}
+                        className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-md text-sm font-semibold transition-colors ${tab === 'requests' ? 'bg-orange-500 text-white' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}
                     >
                         <Send size={15} /> Requests
                     </button>
                 </div>
 
                 {message && (
-                    <div className={`text-sm rounded-lg px-3 py-2 border ${message.type === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'}`}>
+                    <div className={`text-sm rounded-lg px-3 py-2 border ${message.type === 'success' ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' : 'bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800'}`}>
                         {message.text}
                     </div>
                 )}
 
                 {tab === 'attendance' && (
-                    <div className="bg-white rounded-xl border overflow-hidden">
-                        <div className="px-4 py-3 border-b flex items-center gap-2 flex-wrap">
-                            <input type="date" value={range.start} onChange={e => setRange(r => ({ ...r, start: e.target.value }))} className="text-sm border rounded-md px-2 py-1" />
+                    <div className="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 overflow-hidden">
+                        <div className="px-4 py-3 border-b dark:border-slate-700 flex items-center gap-2 flex-wrap">
+                            <input type="date" value={range.start} onChange={e => setRange(r => ({ ...r, start: e.target.value }))} className="text-sm border dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-md px-2 py-1" />
                             <span className="text-slate-300">→</span>
-                            <input type="date" value={range.end} onChange={e => setRange(r => ({ ...r, end: e.target.value }))} className="text-sm border rounded-md px-2 py-1" />
+                            <input type="date" value={range.end} onChange={e => setRange(r => ({ ...r, end: e.target.value }))} className="text-sm border dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-md px-2 py-1" />
                         </div>
                         <div className="overflow-x-auto">
                             <table className="w-full text-left text-sm">
-                                <thead className="bg-slate-50 text-xs text-slate-500 uppercase">
+                                <thead className="bg-slate-50 dark:bg-slate-900/50 text-xs text-slate-500 dark:text-slate-400 uppercase">
                                     <tr>
                                         <th className="px-4 py-2">Date</th>
                                         <th className="px-4 py-2">In</th>
@@ -184,20 +184,20 @@ export default function EmployeePortal() {
                                         <th className="px-4 py-2">Status</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y">
+                                <tbody className="divide-y dark:divide-slate-700">
                                     {attendance.length === 0 ? (
                                         <tr><td colSpan={5} className="px-4 py-8 text-center text-slate-400">No records in this range</td></tr>
                                     ) : attendance.map((row, i) => (
                                         <tr key={i}>
                                             <td className="px-4 py-2 whitespace-nowrap">
-                                                <span className="font-medium text-slate-700">{row.date}</span>
+                                                <span className="font-medium text-slate-700 dark:text-slate-300">{row.date}</span>
                                                 <span className="text-xs text-slate-400 ml-1">{(row.weekday || '').trim().slice(0, 3)}</span>
                                             </td>
                                             <td className="px-4 py-2 font-mono text-xs">{row.in_time || '-'}</td>
                                             <td className="px-4 py-2 font-mono text-xs">{row.out_time || '-'}</td>
                                             <td className="px-4 py-2">{row.duration_minutes != null ? (row.duration_minutes / 60).toFixed(1) : '-'}</td>
                                             <td className="px-4 py-2">
-                                                <span className={`inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full border ${row.status === 'Present' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-50 text-slate-500 border-slate-200'}`}>
+                                                <span className={`inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full border ${row.status === 'Present' ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' : 'bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'}`}>
                                                     {row.status === 'Present' ? <CheckCircle size={10} /> : <XCircle size={10} />}
                                                     {row.status || '-'}
                                                 </span>
@@ -216,9 +216,9 @@ export default function EmployeePortal() {
                         {leave.balances.length > 0 && (
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                 {leave.balances.map(b => (
-                                    <div key={b.id} className="bg-white rounded-xl border p-3">
-                                        <p className="text-xs text-slate-500 truncate">{b.leave_type_name}</p>
-                                        <p className="text-xl font-bold text-slate-800">{b.balance}<span className="text-xs text-slate-400 font-normal"> left</span></p>
+                                    <div key={b.id} className="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 p-3">
+                                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{b.leave_type_name}</p>
+                                        <p className="text-xl font-bold text-slate-800 dark:text-slate-100">{b.balance}<span className="text-xs text-slate-400 font-normal"> left</span></p>
                                     </div>
                                 ))}
                             </div>
@@ -235,26 +235,26 @@ export default function EmployeePortal() {
                         </Button>
 
                         {showApply && (
-                            <form onSubmit={applyLeave} className="bg-white rounded-xl border p-4 space-y-3">
+                            <form onSubmit={applyLeave} className="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 p-4 space-y-3">
                                 <select
                                     value={form.leave_type_id}
                                     onChange={e => setForm(f => ({ ...f, leave_type_id: e.target.value }))}
-                                    className="w-full text-sm border rounded-lg px-3 py-2"
+                                    className="w-full text-sm border dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg px-3 py-2"
                                     required
                                 >
                                     <option value="">Select leave type</option>
                                     {leave.types.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                                 </select>
                                 <div className="flex gap-2">
-                                    <input type="date" value={form.from_date} onChange={e => setForm(f => ({ ...f, from_date: e.target.value }))} className="flex-1 text-sm border rounded-lg px-3 py-2" required />
-                                    <input type="date" value={form.to_date} onChange={e => setForm(f => ({ ...f, to_date: e.target.value }))} className="flex-1 text-sm border rounded-lg px-3 py-2" required />
+                                    <input type="date" value={form.from_date} onChange={e => setForm(f => ({ ...f, from_date: e.target.value }))} className="flex-1 text-sm border dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg px-3 py-2" required />
+                                    <input type="date" value={form.to_date} onChange={e => setForm(f => ({ ...f, to_date: e.target.value }))} className="flex-1 text-sm border dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg px-3 py-2" required />
                                 </div>
                                 <textarea
                                     value={form.reason}
                                     onChange={e => setForm(f => ({ ...f, reason: e.target.value }))}
                                     placeholder="Reason (optional)"
                                     rows={2}
-                                    className="w-full text-sm border rounded-lg px-3 py-2"
+                                    className="w-full text-sm border dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg px-3 py-2"
                                 />
                                 <Button type="submit" variant="primary" icon={Send} iconSize={14} className="w-full">
                                     Submit
@@ -263,14 +263,14 @@ export default function EmployeePortal() {
                         )}
 
                         {/* Applications */}
-                        <div className="bg-white rounded-xl border divide-y">
+                        <div className="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 divide-y dark:divide-slate-700">
                             {leave.applications.length === 0 ? (
                                 <p className="px-4 py-8 text-center text-slate-400 text-sm">No leave applications yet</p>
                             ) : leave.applications.map(app => (
                                 <div key={app.id} className="px-4 py-3 flex items-center justify-between gap-3">
                                     <div className="min-w-0">
-                                        <p className="text-sm font-semibold text-slate-700 truncate">{app.leave_type_name}</p>
-                                        <p className="text-xs text-slate-500">
+                                        <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 truncate">{app.leave_type_name}</p>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">
                                             {String(app.from_date).split('T')[0]} → {String(app.to_date).split('T')[0]} · {app.total_days} day{app.total_days > 1 ? 's' : ''}
                                         </p>
                                     </div>
@@ -296,19 +296,19 @@ export default function EmployeePortal() {
                         </Button>
 
                         {showRegForm && (
-                            <form onSubmit={submitRegularization} className="bg-white rounded-xl border p-4 space-y-3">
+                            <form onSubmit={submitRegularization} className="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 p-4 space-y-3">
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Date</label>
-                                    <input type="date" value={regForm.date} max={today()} onChange={e => setRegForm(f => ({ ...f, date: e.target.value }))} className="w-full text-sm border rounded-lg px-3 py-2" required />
+                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Date</label>
+                                    <input type="date" value={regForm.date} max={today()} onChange={e => setRegForm(f => ({ ...f, date: e.target.value }))} className="w-full text-sm border dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg px-3 py-2" required />
                                 </div>
                                 <div className="flex gap-2">
                                     <div className="flex-1">
-                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Correct In Time</label>
-                                        <input type="time" value={regForm.requested_in_time} onChange={e => setRegForm(f => ({ ...f, requested_in_time: e.target.value }))} className="w-full text-sm border rounded-lg px-3 py-2" />
+                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Correct In Time</label>
+                                        <input type="time" value={regForm.requested_in_time} onChange={e => setRegForm(f => ({ ...f, requested_in_time: e.target.value }))} className="w-full text-sm border dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg px-3 py-2" />
                                     </div>
                                     <div className="flex-1">
-                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Correct Out Time</label>
-                                        <input type="time" value={regForm.requested_out_time} onChange={e => setRegForm(f => ({ ...f, requested_out_time: e.target.value }))} className="w-full text-sm border rounded-lg px-3 py-2" />
+                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Correct Out Time</label>
+                                        <input type="time" value={regForm.requested_out_time} onChange={e => setRegForm(f => ({ ...f, requested_out_time: e.target.value }))} className="w-full text-sm border dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg px-3 py-2" />
                                     </div>
                                 </div>
                                 <textarea
@@ -316,7 +316,7 @@ export default function EmployeePortal() {
                                     onChange={e => setRegForm(f => ({ ...f, reason: e.target.value }))}
                                     placeholder="Reason (e.g. forgot to punch out)"
                                     rows={2}
-                                    className="w-full text-sm border rounded-lg px-3 py-2"
+                                    className="w-full text-sm border dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg px-3 py-2"
                                     required
                                 />
                                 <Button type="submit" variant="primary" icon={Send} iconSize={14} className="w-full">
@@ -325,14 +325,14 @@ export default function EmployeePortal() {
                             </form>
                         )}
 
-                        <div className="bg-white rounded-xl border divide-y">
+                        <div className="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 divide-y dark:divide-slate-700">
                             {regularizations.length === 0 ? (
                                 <p className="px-4 py-8 text-center text-slate-400 text-sm">No correction requests yet</p>
                             ) : regularizations.map(reg => (
                                 <div key={reg.id} className="px-4 py-3 flex items-center justify-between gap-3">
                                     <div className="min-w-0">
-                                        <p className="text-sm font-semibold text-slate-700">{reg.date}</p>
-                                        <p className="text-xs text-slate-500 truncate">
+                                        <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">{reg.date}</p>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
                                             {reg.requested_in_time && `In ${reg.requested_in_time}`}
                                             {reg.requested_in_time && reg.requested_out_time && ' · '}
                                             {reg.requested_out_time && `Out ${reg.requested_out_time}`}

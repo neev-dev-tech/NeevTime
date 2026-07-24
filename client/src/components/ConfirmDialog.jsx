@@ -60,19 +60,19 @@ export default function ConfirmDialog() {
 
     const colorSchemes = {
         warning: {
-            icon: 'text-yellow-600',
-            bg: 'bg-yellow-50',
-            border: 'border-yellow-200'
+            icon: 'text-yellow-600 dark:text-yellow-300',
+            bg: 'bg-yellow-50 dark:bg-yellow-900/30',
+            border: 'border-yellow-200 dark:border-yellow-800'
         },
         danger: {
-            icon: 'text-red-600',
-            bg: 'bg-red-50',
-            border: 'border-red-200'
+            icon: 'text-red-600 dark:text-red-300',
+            bg: 'bg-red-50 dark:bg-red-900/30',
+            border: 'border-red-200 dark:border-red-800'
         },
         info: {
-            icon: 'text-blue-600',
-            bg: 'bg-blue-50',
-            border: 'border-blue-200'
+            icon: 'text-blue-600 dark:text-blue-300',
+            bg: 'bg-blue-50 dark:bg-blue-900/30',
+            border: 'border-blue-200 dark:border-blue-800'
         }
     };
 
@@ -116,7 +116,7 @@ export default function ConfirmDialog() {
                             <h3 id="confirm-dialog-title" className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
                                 {options.title}
                             </h3>
-                            <p id="confirm-dialog-description" className="text-sm text-slate-600 dark:text-slate-300 mb-6">
+                            <p id="confirm-dialog-description" className="text-sm text-slate-600 dark:text-slate-400 mb-6">
                                 {options.message}
                             </p>
                             <div className="flex gap-3 justify-end">

@@ -155,11 +155,11 @@ export default function Settings() {
 
         if (config.data_type === 'boolean') {
             return (
-                <label key={key} className="flex items-center justify-between p-4 rounded-[12px] transition-colors border group hover:border-orange-200 hover:shadow-sm cursor-pointer" style={{ backgroundColor: '#F8FAFC', borderColor: '#E5E7EB' }}>
+                <label key={key} className="flex items-center justify-between p-4 rounded-[12px] transition-colors border dark:border-slate-700 group hover:border-orange-200 dark:hover:border-orange-800 hover:shadow-sm cursor-pointer" style={{ backgroundColor: '#F8FAFC', borderColor: '#E5E7EB' }}>
                     <div className="flex-1">
-                        <span className="font-medium block mb-1 text-slate-700 group-hover:text-orange-700 transition-colors">{label}</span>
+                        <span className="font-medium block mb-1 text-slate-700 dark:text-slate-300 group-hover:text-orange-700 dark:group-hover:text-orange-300 transition-colors">{label}</span>
                         {config.description && (
-                            <p className="text-xs text-slate-500">{config.description}</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">{config.description}</p>
                         )}
                     </div>
                     <div className={`toggle-switch ml-4 ${value === true || value === 'true' ? 'active' : ''}`}>
@@ -178,7 +178,7 @@ export default function Settings() {
         if (config.data_type === 'number') {
             return (
                 <div key={key} className="space-y-2">
-                    <label className="block text-sm font-semibold text-slate-700 ml-1">{label}</label>
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">{label}</label>
                     <input
                         type="number"
                         value={value ?? ''}
@@ -186,7 +186,7 @@ export default function Settings() {
                         className="input-premium transition-all duration-200"
                     />
                     {config.description && (
-                        <p className="text-xs text-slate-500 ml-1">{config.description}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 ml-1">{config.description}</p>
                     )}
                 </div>
             );
@@ -199,7 +199,7 @@ export default function Settings() {
         if (isTextarea) {
             return (
                 <div key={key} className="space-y-2 md:col-span-2">
-                    <label className="block text-sm font-semibold text-slate-700 ml-1">{label}</label>
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">{label}</label>
                     <textarea
                         value={value ?? ''}
                         onChange={(e) => handleChange(key, e.target.value)}
@@ -207,7 +207,7 @@ export default function Settings() {
                         className="input-premium resize-y min-h-[100px] transition-all duration-200"
                     />
                     {config.description && (
-                        <p className="text-xs text-slate-500 ml-1">{config.description}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 ml-1">{config.description}</p>
                     )}
                 </div>
             );
@@ -215,7 +215,7 @@ export default function Settings() {
 
         return (
             <div key={key} className="space-y-2">
-                <label className="block text-sm font-semibold text-slate-700 ml-1">{label}</label>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">{label}</label>
                 <input
                     type={isPassword ? 'password' : 'text'}
                     value={value ?? ''}
@@ -223,7 +223,7 @@ export default function Settings() {
                     className="input-premium transition-all duration-200"
                 />
                 {config.description && (
-                    <p className="text-xs text-slate-500 ml-1">{config.description}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 ml-1">{config.description}</p>
                 )}
             </div>
         );
@@ -248,7 +248,7 @@ export default function Settings() {
             {/* Tabs + Content */}
             <div className="card-premium overflow-hidden">
                 {/* Tab Navigation */}
-                <div className="flex border-b border-slate-200 overflow-x-auto custom-scrollbar" style={{ backgroundColor: '#F8FAFC' }}>
+                <div className="flex border-b border-slate-200 dark:border-slate-700 overflow-x-auto custom-scrollbar" style={{ backgroundColor: '#F8FAFC' }}>
                     {CATEGORIES.map(cat => {
                         const Icon = cat.icon;
                         const isActive = activeTab === cat.id;
@@ -257,8 +257,8 @@ export default function Settings() {
                                 key={cat.id}
                                 onClick={() => setActiveTab(cat.id)}
                                 className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold whitespace-nowrap transition-all border-b-2 ${isActive
-                                    ? 'border-saffron text-saffron bg-white'
-                                    : 'border-transparent hover:bg-white/50'
+                                    ? 'border-saffron text-saffron bg-white dark:bg-slate-800'
+                                    : 'border-transparent hover:bg-white/50 dark:hover:bg-slate-700/50'
                                     }`}
                                 style={{
                                     transition: 'all 200ms cubic-bezier(0.25, 0.8, 0.25, 1)',
@@ -289,16 +289,16 @@ export default function Settings() {
 
                     {/* SMTP test — only on the Email tab */}
                     {activeTab === 'notifications' && (
-                        <div className="mt-6 p-4 bg-slate-50 border border-slate-200 rounded-xl">
-                            <p className="text-sm font-semibold text-slate-700 mb-1">Test email delivery</p>
-                            <p className="text-xs text-slate-500 mb-3">Save your SMTP settings first, then send a test message.</p>
+                        <div className="mt-6 p-4 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl">
+                            <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Test email delivery</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">Save your SMTP settings first, then send a test message.</p>
                             <div className="flex gap-2 flex-wrap">
                                 <input
                                     type="email"
                                     value={testEmail}
                                     onChange={e => setTestEmail(e.target.value)}
                                     placeholder="recipient@example.com"
-                                    className="flex-1 min-w-[220px] text-sm border border-slate-200 rounded-lg px-3 py-2"
+                                    className="flex-1 min-w-[220px] text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg px-3 py-2"
                                 />
                                 <Button variant="dark" icon={Send} onClick={handleTestEmail} disabled={testingEmail}>
                                     {testingEmail ? 'Sending...' : 'Send Test Email'}
@@ -308,7 +308,7 @@ export default function Settings() {
                     )}
 
                     {/* Actions */}
-                    <div className="flex items-center gap-3 mt-8 pt-6 border-t border-slate-100">
+                    <div className="flex items-center gap-3 mt-8 pt-6 border-t border-slate-100 dark:border-slate-700">
                         <Button icon={saving ? Loader2 : Save} onClick={handleSave} disabled={saving}>
                             {saving ? 'Saving...' : 'Save Changes'}
                         </Button>

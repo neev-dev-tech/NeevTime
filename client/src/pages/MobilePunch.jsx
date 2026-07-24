@@ -130,22 +130,22 @@ const MobilePunch = () => {
     }
 
     return (
-        <div className="h-full flex flex-col bg-slate-50">
+        <div className="h-full flex flex-col bg-slate-50 dark:bg-slate-900/50">
             <PageHeader
                 icon={MapPin}
                 title="Mobile Punch"
                 subtitle="GPS geofenced attendance punch"
             />
             <div className="flex-1 flex flex-col items-center justify-center">
-            <div className="w-full max-w-md bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-100">
+            <div className="w-full max-w-md bg-white dark:bg-slate-800 rounded-3xl shadow-xl overflow-hidden border border-slate-100 dark:border-slate-700">
 
                 {/* Header Map Placeholder */}
-                <div className="h-48 bg-blue-50 relative flex items-center justify-center">
+                <div className="h-48 bg-blue-50 dark:bg-blue-900/30 relative flex items-center justify-center">
                     <div className="absolute inset-0 bg-saffron-gradient opacity-10"></div>
                     {status === 'locating' ? (
                         <div className="animate-pulse flex flex-col items-center">
                             <Navigation className="text-orange-500 animate-spin mb-2" size={32} />
-                            <span className="text-orange-600 font-medium">Locating GPS...</span>
+                            <span className="text-orange-600 dark:text-orange-400 font-medium">Locating GPS...</span>
                         </div>
                     ) : location ? (
                         <div className="flex flex-col items-center z-10">
@@ -154,7 +154,7 @@ const MobilePunch = () => {
                                 <MapPin className="text-white" size={32} />
                             </div>
                             <div className="mt-2 text-center">
-                                <p className="font-bold text-slate-800">{nearestFence?.name || 'Unknown Location'}</p>
+                                <p className="font-bold text-slate-800 dark:text-slate-100">{nearestFence?.name || 'Unknown Location'}</p>
                                 <p className={`text-sm font-medium ${status === 'ready' ? 'text-green-600' : 'text-red-500'}`}>
                                     {distance ? `${Math.round(distance)}m away` : '--'}
                                 </p>
@@ -182,12 +182,12 @@ const MobilePunch = () => {
                         <div className="text-center py-8 animate-fade-in">
                             <CheckCircle className="mx-auto text-green-500 mb-4" size={64} />
                             <h2 className="text-2xl font-bold text-green-600">Punched In!</h2>
-                            <p className="text-slate-500 mt-2">Attendance recorded successfully.</p>
+                            <p className="text-slate-500 dark:text-slate-400 mt-2">Attendance recorded successfully.</p>
                         </div>
                     ) : status === 'error' ? (
                         <div className="text-center py-6 animate-fade-in">
                             <XCircle className="mx-auto text-red-500 mb-4" size={48} />
-                            <h3 className="text-lg font-bold text-slate-800">Punch Failed</h3>
+                            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">Punch Failed</h3>
                             <p className="text-red-600 mt-2 mb-4 text-sm">{error}</p>
                             <Button variant="secondary" onClick={() => setStatus('ready')} className="w-full">
                                 Try Again
@@ -195,7 +195,7 @@ const MobilePunch = () => {
                         </div>
                     ) : (
                         <div className="space-y-4">
-                            <div className="bg-blue-50 p-4 rounded-xl text-sm text-blue-700">
+                            <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-xl text-sm text-blue-700 dark:text-blue-300">
                                 <p className="flex items-center gap-2 font-semibold">
                                     <MapPin size={16} /> Location Required
                                 </p>

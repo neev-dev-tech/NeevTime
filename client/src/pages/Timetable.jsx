@@ -189,13 +189,13 @@ export default function Timetable() {
             {/* Timetable Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {loading ? (
-                    <div className="col-span-full text-center py-8 text-slate-500">Loading...</div>
+                    <div className="col-span-full text-center py-8 text-slate-500 dark:text-slate-400">Loading...</div>
                 ) : timetables.length === 0 ? (
-                    <div className="col-span-full text-center py-8 text-slate-500">No timetables defined</div>
+                    <div className="col-span-full text-center py-8 text-slate-500 dark:text-slate-400">No timetables defined</div>
                 ) : timetables.map(tt => (
                     <div
                         key={tt.id}
-                        className="bg-white rounded-xl shadow-sm border overflow-hidden hover:shadow-md transition-shadow"
+                        className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border dark:border-slate-700 overflow-hidden hover:shadow-md transition-shadow"
                     >
                         {/* Header with color */}
                         <div
@@ -206,18 +206,18 @@ export default function Timetable() {
                             <div className="flex items-start justify-between mb-3">
                                 <div>
                                     <h3 className="font-semibold text-lg">{tt.name}</h3>
-                                    <span className="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+                                    <span className="text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded">
                                         {tt.code}
                                     </span>
                                 </div>
                                 <div className="flex gap-1">
                                     {tt.is_overnight && (
-                                        <span className="p-1.5 bg-indigo-100 text-indigo-600 rounded" title="Overnight">
+                                        <span className="p-1.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded" title="Overnight">
                                             <Moon size={14} />
                                         </span>
                                     )}
                                     {tt.is_flexible && (
-                                        <span className="p-1.5 bg-amber-100 text-amber-600 rounded" title="Flexible">
+                                        <span className="p-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded" title="Flexible">
                                             <Sun size={14} />
                                         </span>
                                     )}
@@ -226,24 +226,24 @@ export default function Timetable() {
 
                             {/* Time Display */}
                             <div className="grid grid-cols-2 gap-3 mb-4">
-                                <div className="bg-green-50 rounded-lg p-3 text-center">
-                                    <div className="text-xs text-green-600 mb-1">Check In</div>
-                                    <div className="text-lg font-bold text-green-700">{formatTime(tt.check_in)}</div>
+                                <div className="bg-green-50 dark:bg-green-900/30 rounded-lg p-3 text-center">
+                                    <div className="text-xs text-green-600 dark:text-green-400 mb-1">Check In</div>
+                                    <div className="text-lg font-bold text-green-700 dark:text-green-300">{formatTime(tt.check_in)}</div>
                                     {tt.late_in && (
-                                        <div className="text-xs text-slate-500">Late after {formatTime(tt.late_in)}</div>
+                                        <div className="text-xs text-slate-500 dark:text-slate-400">Late after {formatTime(tt.late_in)}</div>
                                     )}
                                 </div>
-                                <div className="bg-red-50 rounded-lg p-3 text-center">
-                                    <div className="text-xs text-red-600 mb-1">Check Out</div>
-                                    <div className="text-lg font-bold text-red-700">{formatTime(tt.check_out)}</div>
+                                <div className="bg-red-50 dark:bg-red-900/30 rounded-lg p-3 text-center">
+                                    <div className="text-xs text-red-600 dark:text-red-400 mb-1">Check Out</div>
+                                    <div className="text-lg font-bold text-red-700 dark:text-red-300">{formatTime(tt.check_out)}</div>
                                     {tt.early_out && (
-                                        <div className="text-xs text-slate-500">Early before {formatTime(tt.early_out)}</div>
+                                        <div className="text-xs text-slate-500 dark:text-slate-400">Early before {formatTime(tt.early_out)}</div>
                                     )}
                                 </div>
                             </div>
 
                             {/* Details */}
-                            <div className="text-sm text-slate-600 space-y-1 mb-4">
+                            <div className="text-sm text-slate-600 dark:text-slate-400 space-y-1 mb-4">
                                 <div className="flex justify-between">
                                     <span>Grace Period:</span>
                                     <span className="font-medium">{tt.grace_period_minutes} min</span>
@@ -259,7 +259,7 @@ export default function Timetable() {
                             </div>
 
                             {/* Actions */}
-                            <div className="flex gap-2 pt-3 border-t">
+                            <div className="flex gap-2 pt-3 border-t dark:border-slate-700">
                                 <Button
                                     variant="secondary"
                                     size="sm"
@@ -294,8 +294,8 @@ export default function Timetable() {
             {/* Add/Edit Timetable Modal */}
             {showModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-xl shadow-lg w-full max-w-2xl max-h-[90vh] overflow-auto">
-                        <div className="flex items-center justify-between p-4 border-b">
+                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg w-full max-w-2xl max-h-[90vh] overflow-auto">
+                        <div className="flex items-center justify-between p-4 border-b dark:border-slate-700">
                             <h2 className="text-lg font-semibold">
                                 {editingId ? 'Edit Timetable' : 'Add Timetable'}
                             </h2>
@@ -309,7 +309,7 @@ export default function Timetable() {
                                         type="text"
                                         value={form.name}
                                         onChange={e => setForm({ ...form, name: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                        className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                                         required
                                     />
                                 </div>
@@ -319,7 +319,7 @@ export default function Timetable() {
                                         type="text"
                                         value={form.code}
                                         onChange={e => setForm({ ...form, code: e.target.value.toUpperCase() })}
-                                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                        className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                                         maxLength={10}
                                         required
                                     />
@@ -333,7 +333,7 @@ export default function Timetable() {
                                         type="time"
                                         value={form.check_in}
                                         onChange={e => setForm({ ...form, check_in: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                        className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                                         required
                                     />
                                 </div>
@@ -343,7 +343,7 @@ export default function Timetable() {
                                         type="time"
                                         value={form.check_out}
                                         onChange={e => setForm({ ...form, check_out: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                        className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                                         required
                                     />
                                 </div>
@@ -356,7 +356,7 @@ export default function Timetable() {
                                         type="time"
                                         value={form.late_in}
                                         onChange={e => setForm({ ...form, late_in: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                        className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                                     />
                                 </div>
                                 <div>
@@ -365,7 +365,7 @@ export default function Timetable() {
                                         type="time"
                                         value={form.early_out}
                                         onChange={e => setForm({ ...form, early_out: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                        className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                                     />
                                 </div>
                             </div>
@@ -377,7 +377,7 @@ export default function Timetable() {
                                         type="number"
                                         value={form.grace_period_minutes}
                                         onChange={e => setForm({ ...form, grace_period_minutes: parseInt(e.target.value) })}
-                                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                        className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                                     />
                                 </div>
                                 <div>
@@ -387,7 +387,7 @@ export default function Timetable() {
                                         step="0.5"
                                         value={form.min_hours_for_full_day}
                                         onChange={e => setForm({ ...form, min_hours_for_full_day: parseFloat(e.target.value) })}
-                                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                        className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                                     />
                                 </div>
                                 <div>
@@ -397,7 +397,7 @@ export default function Timetable() {
                                         step="0.5"
                                         value={form.min_hours_for_half_day}
                                         onChange={e => setForm({ ...form, min_hours_for_half_day: parseFloat(e.target.value) })}
-                                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                        className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                                     />
                                 </div>
                             </div>
@@ -437,12 +437,12 @@ export default function Timetable() {
                                 <textarea
                                     value={form.description}
                                     onChange={e => setForm({ ...form, description: e.target.value })}
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                    className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                                     rows={2}
                                 />
                             </div>
 
-                            <div className="flex justify-end gap-3 pt-4 border-t">
+                            <div className="flex justify-end gap-3 pt-4 border-t dark:border-slate-700">
                                 <Button variant="secondary" onClick={closeModal}>Cancel</Button>
                                 <Button type="submit" icon={Save}>
                                     {editingId ? 'Update' : 'Create'}
@@ -456,10 +456,10 @@ export default function Timetable() {
             {/* Break Times Modal */}
             {showBreakModal && selectedTimetable && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-xl shadow-lg w-full max-w-lg">
-                        <div className="flex items-center justify-between p-4 border-b">
+                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg w-full max-w-lg">
+                        <div className="flex items-center justify-between p-4 border-b dark:border-slate-700">
                             <h2 className="text-lg font-semibold flex items-center gap-2">
-                                <Coffee className="text-amber-600" />
+                                <Coffee className="text-amber-600 dark:text-amber-400" />
                                 Break Times - {selectedTimetable.name}
                             </h2>
                             <Button variant="ghost" size="sm" icon={X} aria-label="Close" onClick={() => setShowBreakModal(false)} />
@@ -469,14 +469,14 @@ export default function Timetable() {
                             {/* Existing Breaks */}
                             <div className="space-y-2 mb-4">
                                 {breaks.length === 0 ? (
-                                    <div className="text-center py-4 text-slate-500">No breaks defined</div>
+                                    <div className="text-center py-4 text-slate-500 dark:text-slate-400">No breaks defined</div>
                                 ) : breaks.map(b => (
-                                    <div key={b.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                    <div key={b.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
                                         <div>
                                             <div className="font-medium">{b.name}</div>
-                                            <div className="text-sm text-slate-500">
+                                            <div className="text-sm text-slate-500 dark:text-slate-400">
                                                 {formatTime(b.start_time)} - {formatTime(b.end_time)}
-                                                {b.is_paid && <span className="ml-2 text-green-600">(Paid)</span>}
+                                                {b.is_paid && <span className="ml-2 text-green-600 dark:text-green-400">(Paid)</span>}
                                             </div>
                                         </div>
                                         <Button
@@ -491,7 +491,7 @@ export default function Timetable() {
                             </div>
 
                             {/* Add Break Form */}
-                            <form onSubmit={handleBreakSubmit} className="border-t pt-4">
+                            <form onSubmit={handleBreakSubmit} className="border-t dark:border-slate-700 pt-4">
                                 <h3 className="font-medium mb-3">Add New Break</h3>
                                 <div className="grid grid-cols-2 gap-3 mb-3">
                                     <div className="col-span-2">
@@ -500,7 +500,7 @@ export default function Timetable() {
                                             placeholder="Break Name (e.g., Lunch Break)"
                                             value={breakForm.name}
                                             onChange={e => setBreakForm({ ...breakForm, name: e.target.value })}
-                                            className="w-full px-3 py-2 border rounded-lg"
+                                            className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                             required
                                         />
                                     </div>
@@ -508,14 +508,14 @@ export default function Timetable() {
                                         type="time"
                                         value={breakForm.start_time}
                                         onChange={e => setBreakForm({ ...breakForm, start_time: e.target.value })}
-                                        className="px-3 py-2 border rounded-lg"
+                                        className="px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                         required
                                     />
                                     <input
                                         type="time"
                                         value={breakForm.end_time}
                                         onChange={e => setBreakForm({ ...breakForm, end_time: e.target.value })}
-                                        className="px-3 py-2 border rounded-lg"
+                                        className="px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                         required
                                     />
                                 </div>

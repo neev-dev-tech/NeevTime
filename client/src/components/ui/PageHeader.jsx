@@ -13,13 +13,13 @@ export default function PageHeader({ icon: Icon, title, subtitle, actions, class
         <div className={`flex items-center justify-between flex-wrap gap-3 mb-6 ${className}`}>
             <div className="flex items-center gap-3 min-w-0">
                 {Icon && (
-                    <div className="p-2.5 bg-orange-50 border border-orange-100 rounded-xl text-orange-600 shrink-0">
+                    <div className="p-2.5 bg-orange-50 border border-orange-100 rounded-xl text-orange-600 shrink-0 dark:bg-orange-900/30 dark:border-orange-800 dark:text-orange-400">
                         <Icon size={22} />
                     </div>
                 )}
                 <div className="min-w-0">
-                    <h1 className="text-xl font-bold text-slate-800 truncate">{title}</h1>
-                    {subtitle && <p className="text-sm text-slate-500 truncate">{subtitle}</p>}
+                    <h1 className="text-xl font-bold text-slate-800 truncate dark:text-slate-100">{title}</h1>
+                    {subtitle && <p className="text-sm text-slate-500 truncate dark:text-slate-400">{subtitle}</p>}
                 </div>
             </div>
             {actions && <div className="flex items-center gap-2 flex-wrap">{actions}</div>}

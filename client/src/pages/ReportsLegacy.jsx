@@ -118,8 +118,8 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                 label: 'Employee',
                 render: (row) => (
                     <div className="flex flex-col">
-                        <span className="font-semibold text-slate-800">{row.employee_name || row.emp_name || 'Unknown'}</span>
-                        <span className="text-xs text-slate-500 font-mono">{row.employee_code}</span>
+                        <span className="font-semibold text-slate-800 dark:text-slate-100">{row.employee_name || row.emp_name || 'Unknown'}</span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">{row.employee_code}</span>
                     </div>
                 )
             },
@@ -139,8 +139,8 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                         label: 'Employee',
                         render: (row) => (
                             <div className="flex flex-col">
-                                <span className="font-semibold text-slate-800">{row.emp_name || 'Unknown'}</span>
-                                <span className="text-xs text-slate-500 font-mono">{row.employee_code}</span>
+                                <span className="font-semibold text-slate-800 dark:text-slate-100">{row.emp_name || 'Unknown'}</span>
+                                <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">{row.employee_code}</span>
                             </div>
                         )
                     },
@@ -148,8 +148,8 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                         label: 'Time',
                         render: (row) => (
                             <div className="flex flex-col">
-                                <span className="text-sm font-medium text-slate-800">{new Date(row.punch_time).toLocaleTimeString()}</span>
-                                <span className="text-xs text-slate-500">{new Date(row.punch_time).toLocaleDateString()}</span>
+                                <span className="text-sm font-medium text-slate-800 dark:text-slate-100">{new Date(row.punch_time).toLocaleTimeString()}</span>
+                                <span className="text-xs text-slate-500 dark:text-slate-400">{new Date(row.punch_time).toLocaleDateString()}</span>
                             </div>
                         )
                     },
@@ -158,7 +158,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                         render: (row) => {
                             const dir = getDirection(row);
                             return (
-                                <span className={`badge-premium ${dir === 'OUT' ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'} inline-flex items-center gap-1 border px-2 py-0.5 rounded-full text-[10px] font-bold uppercase`}>
+                                <span className={`badge-premium ${dir === 'OUT' ? 'bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800' : 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'} inline-flex items-center gap-1 border px-2 py-0.5 rounded-full text-[10px] font-bold uppercase`}>
                                     {dir === 'OUT' ? <LogOut size={10} /> : <LogIn size={10} />} {dir}
                                 </span>
                             );
@@ -168,7 +168,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                     {
                         label: 'Mode',
                         render: (row) => (
-                            <div className="flex items-center gap-1.5 text-xs text-slate-600">
+                            <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
                                 <Fingerprint size={12} className="text-orange-500" />
                                 {row.verification_mode || '15'}
                             </div>
@@ -247,7 +247,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                     dateCol,
                     ...commonEmployeeCols,
                     { key: 'shift', label: 'Shift' },
-                    { key: 'remarks', label: 'Remarks', className: 'text-slate-500 italic' },
+                    { key: 'remarks', label: 'Remarks', className: 'text-slate-500 dark:text-slate-400 italic' },
                     statusCol
                 ];
 
@@ -563,10 +563,10 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
 
         if (col.type === 'status') {
             return (
-                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${val === 'Present' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
-                    val === 'Absent' ? 'bg-rose-50 text-rose-700 border border-rose-100' :
-                        val === 'Late' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
-                            'bg-slate-50 text-slate-600 border border-slate-200'
+                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${val === 'Present' ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-100 dark:border-emerald-800' :
+                    val === 'Absent' ? 'bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 border border-rose-100 dark:border-rose-800' :
+                        val === 'Late' ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-100 dark:border-amber-800' :
+                            'bg-slate-50 dark:bg-slate-900/50 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700'
                     }`}>
                     {val === 'Present' ? <CheckCircle size={10} /> :
                         val === 'Absent' ? <XCircle size={10} /> :
@@ -577,32 +577,32 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
             );
         }
         if (col.type === 'time' || col.key.includes('time')) {
-            return <span className="font-mono text-xs text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">{val || '-'}</span>;
+            return <span className="font-mono text-xs text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/50 px-1.5 py-0.5 rounded border border-slate-100 dark:border-slate-700">{val || '-'}</span>;
         }
         if (col.type === 'code') {
-            return <code className="text-xs bg-slate-100 px-1.5 py-0.5 rounded text-slate-600">{val}</code>;
+            return <code className="text-xs bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded text-slate-600 dark:text-slate-400">{val}</code>;
         }
 
-        return <span className={`text-sm text-slate-700 ${col.className || ''}`}>{val || '-'}</span>;
+        return <span className={`text-sm text-slate-700 dark:text-slate-300 ${col.className || ''}`}>{val || '-'}</span>;
     };
 
     const columns = getColumnDefs(reportType);
 
     return (
-        <div className="flex flex-col h-full bg-[#FAFBFC]">
+        <div className="flex flex-col h-full bg-[#FAFBFC] dark:bg-slate-900">
             {/* Premium Header */}
-            <div className="bg-white border-b sticky top-0 z-30 shadow-sm">
+            <div className="bg-white dark:bg-slate-800 border-b dark:border-slate-700 sticky top-0 z-30 shadow-sm">
                 <div className="px-6 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <Button variant="ghost" size="sm" icon={ArrowLeft} iconSize={20} onClick={() => navigate('/reports')} aria-label="Back to reports" />
                         <div>
-                            <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                                <div className="p-2 bg-gradient-to-br from-orange-50 to-amber-50 rounded-lg border border-orange-100 text-orange-600 shadow-sm">
+                            <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                                <div className="p-2 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/30 dark:to-amber-900/30 rounded-lg border border-orange-100 dark:border-orange-800 text-orange-600 dark:text-orange-300 shadow-sm">
                                     <FileBarChart size={20} />
                                 </div>
                                 {getReportTitle()}
                             </h1>
-                            <p className="text-xs text-slate-500 mt-0.5 ml-1">Comprehensive data view and analysis</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 ml-1">Comprehensive data view and analysis</p>
                         </div>
                     </div>
                     <div className="flex gap-3">
@@ -620,17 +620,17 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                     </div>
                 </div>
                 {/* Filters */}
-                <div className="px-6 py-3 bg-slate-50 border-t flex items-center gap-4 overflow-x-auto">
-                    <div className="flex items-center gap-2 bg-white p-1 rounded-md border shadow-sm">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2 border-r">Range</span>
-                        <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="text-sm font-medium border-none focus:ring-0 py-1" />
+                <div className="px-6 py-3 bg-slate-50 dark:bg-slate-900/50 border-t dark:border-slate-700 flex items-center gap-4 overflow-x-auto">
+                    <div className="flex items-center gap-2 bg-white dark:bg-slate-800 p-1 rounded-md border dark:border-slate-700 shadow-sm">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2 border-r dark:border-slate-700">Range</span>
+                        <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="text-sm font-medium border-none focus:ring-0 py-1 dark:bg-slate-900 dark:text-slate-100" />
                         <span className="text-slate-300">→</span>
-                        <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="text-sm font-medium border-none focus:ring-0 py-1" />
+                        <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="text-sm font-medium border-none focus:ring-0 py-1 dark:bg-slate-900 dark:text-slate-100" />
                     </div>
 
-                    <div className="flex items-center gap-2 bg-white p-1 rounded-md border shadow-sm min-w-[200px]">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2 border-r">Dept</span>
-                        <select value={department} onChange={e => setDepartment(e.target.value)} className="text-sm font-medium border-none focus:ring-0 w-full py-1">
+                    <div className="flex items-center gap-2 bg-white dark:bg-slate-800 p-1 rounded-md border dark:border-slate-700 shadow-sm min-w-[200px]">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2 border-r dark:border-slate-700">Dept</span>
+                        <select value={department} onChange={e => setDepartment(e.target.value)} className="text-sm font-medium border-none focus:ring-0 w-full py-1 dark:bg-slate-900 dark:text-slate-100">
                             <option value="">All Departments</option>
                             {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                         </select>
@@ -645,13 +645,13 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                 {generated && stats.length > 0 && (
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
                         {stats.map((stat, i) => (
-                            <div key={i} className="bg-white p-4 rounded-xl border shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow">
-                                <div className={`p-3 rounded-lg bg-${stat.color}-50 text-${stat.color}-600`}>
+                            <div key={i} className="bg-white dark:bg-slate-800 p-4 rounded-xl border dark:border-slate-700 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow">
+                                <div className={`p-3 rounded-lg bg-${stat.color}-50 dark:bg-${stat.color}-900/30 text-${stat.color}-600 dark:text-${stat.color}-300`}>
                                     <stat.icon size={24} />
                                 </div>
                                 <div>
-                                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">{stat.label}</p>
-                                    <p className="text-xl font-bold text-slate-800">{stat.value}</p>
+                                    <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">{stat.label}</p>
+                                    <p className="text-xl font-bold text-slate-800 dark:text-slate-100">{stat.value}</p>
                                 </div>
                             </div>
                         ))}
@@ -659,14 +659,14 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                 )}
 
                 {!generated ? (
-                    <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50/50 m-4">
-                        <div className="bg-white p-4 rounded-full shadow-sm mb-3">
+                    <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl bg-slate-50/50 dark:bg-slate-900/50 m-4">
+                        <div className="bg-white dark:bg-slate-800 p-4 rounded-full shadow-sm mb-3">
                             <FileBarChart className="text-slate-300" size={32} />
                         </div>
-                        <p className="text-slate-500 font-medium">Select filters and generate report</p>
+                        <p className="text-slate-500 dark:text-slate-400 font-medium">Select filters and generate report</p>
                     </div>
                 ) : (
-                    <div className="table-premium-wrapper shadow-sm border rounded-xl overflow-hidden bg-white animate-in fade-in slide-in-from-bottom-6 duration-700">
+                    <div className="table-premium-wrapper shadow-sm border dark:border-slate-700 rounded-xl overflow-hidden bg-white dark:bg-slate-800 animate-in fade-in slide-in-from-bottom-6 duration-700">
                         <table className="table-premium w-full text-left">
                             <thead>
                                 <tr>
@@ -684,12 +684,12 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                                     </tr>
                                 ) : (
                                     reportData.map((row, i) => (
-                                        <tr key={i} className="hover:bg-slate-50 transition-colors">
+                                        <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
                                             {columns ? columns.map((col, j) => (
-                                                <td key={j} className="py-3 px-4 border-b border-slate-100">
+                                                <td key={j} className="py-3 px-4 border-b border-slate-100 dark:border-slate-700">
                                                     {renderCell(row, col)}
                                                 </td>
-                                            )) : Object.keys(row).map(k => <td key={k} className="py-3 px-4 border-b border-slate-100 text-sm text-slate-600">{row[k]}</td>)}
+                                            )) : Object.keys(row).map(k => <td key={k} className="py-3 px-4 border-b border-slate-100 dark:border-slate-700 text-sm text-slate-600 dark:text-slate-400">{row[k]}</td>)}
                                         </tr>
                                     ))
                                 )}

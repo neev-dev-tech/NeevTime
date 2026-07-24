@@ -35,41 +35,41 @@ export default function PortalLogin() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 via-white to-amber-50 p-4">
-            <div className="w-full max-w-sm bg-white rounded-2xl shadow-xl border border-orange-100 p-8">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 via-white to-amber-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 p-4">
+            <div className="w-full max-w-sm bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-orange-100 dark:border-slate-700 p-8">
                 <div className="flex flex-col items-center mb-6">
-                    <div className="p-3 bg-orange-100 rounded-2xl text-orange-600 mb-3">
+                    <div className="p-3 bg-orange-100 dark:bg-orange-900/30 rounded-2xl text-orange-600 dark:text-orange-300 mb-3">
                         <Fingerprint size={28} />
                     </div>
-                    <h1 className="text-xl font-bold text-slate-800">Employee Portal</h1>
-                    <p className="text-sm text-slate-500 mt-1">NeevTime self-service</p>
+                    <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">Employee Portal</h1>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">NeevTime self-service</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Employee Code</label>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Employee Code</label>
                         <input
                             type="text"
                             value={employeeCode}
                             onChange={e => setEmployeeCode(e.target.value)}
-                            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400 outline-none"
+                            className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400 outline-none"
                             placeholder="e.g. EMP001"
                             required
                         />
                     </div>
                     <div>
-                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Password</label>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Password</label>
                         <input
                             type="password"
                             value={password}
                             onChange={e => setPassword(e.target.value)}
-                            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400 outline-none"
+                            className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400 outline-none"
                             required
                         />
                     </div>
 
                     {error && (
-                        <div className="text-sm text-rose-600 bg-rose-50 border border-rose-100 rounded-lg px-3 py-2">{error}</div>
+                        <div className="text-sm text-rose-600 dark:text-rose-300 bg-rose-50 dark:bg-rose-900/30 border border-rose-100 dark:border-rose-800 rounded-lg px-3 py-2">{error}</div>
                     )}
 
                     <Button

@@ -200,7 +200,7 @@ export default function Positions() {
             />
 
             {/* Toolbar */}
-            <div className="flex items-center gap-2 p-2 border-b border-slate-200 bg-slate-50 text-sm flex-wrap">
+            <div className="flex items-center gap-2 p-2 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-sm flex-wrap">
                 <Button variant="danger" icon={Trash2} onClick={handleBulkDelete}>
                     Delete
                 </Button>
@@ -209,7 +209,7 @@ export default function Positions() {
                 </Button>
 
                 {/* Separator */}
-                <div className="w-px h-6 bg-slate-300 mx-1" />
+                <div className="w-px h-6 bg-slate-300 dark:bg-slate-700 mx-1" />
 
                 {/* Export Buttons */}
                 <ExportMenu
@@ -235,7 +235,7 @@ export default function Positions() {
                         placeholder="Search positions..."
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
-                        className="w-full pl-8 pr-3 py-1.5 border rounded text-sm focus:outline-none focus:border-orange-400"
+                        className="w-full pl-8 pr-3 py-1.5 border rounded text-sm focus:outline-none focus:border-orange-400 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                     />
                     <Search size={14} className="absolute left-2.5 top-2 text-slate-400" />
                 </div>
@@ -265,7 +265,7 @@ export default function Positions() {
                         <tbody>
                             {filteredPositions.length === 0 ? (
                                 <tr>
-                                    <td colSpan="5" className="px-6 py-8 text-center text-slate-500">
+                                    <td colSpan="5" className="px-6 py-8 text-center text-slate-500 dark:text-slate-400">
                                         No positions found.
                                     </td>
                                 </tr>
@@ -279,9 +279,9 @@ export default function Positions() {
                                                 onChange={() => toggleSelect(pos.id)}
                                             />
                                         </td>
-                                        <td className="px-6 py-4 text-slate-500">#{pos.id}</td>
-                                        <td className="px-6 py-4 font-semibold text-slate-800">{pos.name}</td>
-                                        <td className="px-6 py-4 text-slate-600">{pos.description || '-'}</td>
+                                        <td className="px-6 py-4 text-slate-500 dark:text-slate-400">#{pos.id}</td>
+                                        <td className="px-6 py-4 font-semibold text-slate-800 dark:text-slate-100">{pos.name}</td>
+                                        <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{pos.description || '-'}</td>
                                         <td className="px-6 py-4 sticky-action">
                                             <div className="flex items-center justify-center gap-2">
                                                 <Button
@@ -311,9 +311,9 @@ export default function Positions() {
             {/* Add/Edit Modal */}
             {showModal && (
                 <div className="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-md border border-white/50">
-                        <div className="flex items-center justify-between p-4 border-b">
-                            <h2 className="text-lg font-semibold text-slate-800">
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-md border border-white/50 dark:border-slate-700">
+                        <div className="flex items-center justify-between p-4 border-b dark:border-slate-700">
+                            <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
                                 {editItem ? 'Edit Position' : 'Add Position'}
                             </h2>
                             <Button
@@ -332,7 +332,7 @@ export default function Positions() {
                                     type="text"
                                     value={formData.name}
                                     onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                    className="w-full px-3 py-2 border rounded-lg"
+                                    className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                     placeholder="e.g., Software Engineer"
                                     required
                                     autoFocus
@@ -343,12 +343,12 @@ export default function Positions() {
                                 <textarea
                                     value={formData.description}
                                     onChange={e => setFormData({ ...formData, description: e.target.value })}
-                                    className="w-full px-3 py-2 border rounded-lg resize-none"
+                                    className="w-full px-3 py-2 border rounded-lg resize-none dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                     rows={3}
                                     placeholder="Optional description"
                                 />
                             </div>
-                            <div className="flex justify-end gap-3 pt-4 border-t">
+                            <div className="flex justify-end gap-3 pt-4 border-t dark:border-slate-700">
                                 <Button variant="secondary" onClick={closeModal}>
                                     Cancel
                                 </Button>
@@ -364,10 +364,10 @@ export default function Positions() {
             {/* Delete Confirmation Modal */}
             {deleteConfirm && (
                 <div className="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4" onClick={() => setDeleteConfirm(null)}>
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm border border-white/50" onClick={(e) => e.stopPropagation()}>
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-sm border border-white/50 dark:border-slate-700" onClick={(e) => e.stopPropagation()}>
                         <div className="p-6">
-                            <h3 className="text-lg font-semibold mb-4 text-slate-800">Confirm Delete</h3>
-                            <p className="text-slate-600 mb-6">
+                            <h3 className="text-lg font-semibold mb-4 text-slate-800 dark:text-slate-100">Confirm Delete</h3>
+                            <p className="text-slate-600 dark:text-slate-400 mb-6">
                                 {deleteConfirm.type === 'single'
                                     ? 'Are you sure you want to delete this position? This action cannot be undone.'
                                     : `Are you sure you want to delete ${deleteConfirm.count} selected position(s)? This action cannot be undone.`
@@ -389,9 +389,9 @@ export default function Positions() {
             {/* Import Modal */}
             {showImportModal && (
                 <div className="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4" onClick={closeImportModal}>
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-md border border-white/50" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-between p-4 border-b">
-                            <h2 className="text-lg font-semibold text-slate-800">
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-md border border-white/50 dark:border-slate-700" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-between p-4 border-b dark:border-slate-700">
+                            <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
                                 Import Positions
                             </h2>
                             <Button
@@ -404,7 +404,7 @@ export default function Positions() {
                             />
                         </div>
                         <div className="p-6 space-y-4">
-                            <p className="text-sm text-slate-600">
+                            <p className="text-sm text-slate-600 dark:text-slate-400">
                                 Upload a CSV file with position names and descriptions. Format: name,description
                             </p>
 
@@ -419,7 +419,7 @@ export default function Positions() {
                             </Button>
 
                             {/* File Input */}
-                            <div className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-purple-400 transition-colors">
+                            <div className="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg p-6 text-center hover:border-purple-400 transition-colors">
                                 <input
                                     ref={fileInputRef}
                                     type="file"
@@ -433,7 +433,7 @@ export default function Positions() {
                                     className="cursor-pointer flex flex-col items-center gap-2"
                                 >
                                     <Upload size={32} className="text-slate-400" />
-                                    <span className="text-sm text-slate-600">
+                                    <span className="text-sm text-slate-600 dark:text-slate-400">
                                         {importing ? 'Importing...' : 'Click to select CSV file'}
                                     </span>
                                 </label>
@@ -441,23 +441,23 @@ export default function Positions() {
 
                             {/* Import Result */}
                             {importResult && (
-                                <div className={`p-4 rounded-lg ${importResult.failed > 0 ? 'bg-amber-50 border border-amber-200' : 'bg-green-50 border border-green-200'}`}>
+                                <div className={`p-4 rounded-lg ${importResult.failed > 0 ? 'bg-amber-50 border border-amber-200 dark:bg-amber-900/30 dark:border-amber-800' : 'bg-green-50 border border-green-200 dark:bg-green-900/30 dark:border-green-800'}`}>
                                     <div className="flex items-start gap-3">
                                         {importResult.failed > 0 ? (
-                                            <AlertCircle size={20} className="text-amber-600 mt-0.5" />
+                                            <AlertCircle size={20} className="text-amber-600 dark:text-amber-400 mt-0.5" />
                                         ) : (
-                                            <CheckCircle size={20} className="text-green-600 mt-0.5" />
+                                            <CheckCircle size={20} className="text-green-600 dark:text-green-400 mt-0.5" />
                                         )}
                                         <div>
-                                            <p className="font-medium text-slate-800">
+                                            <p className="font-medium text-slate-800 dark:text-slate-100">
                                                 Import Complete
                                             </p>
-                                            <p className="text-sm text-slate-600 mt-1">
+                                            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
                                                 {importResult.success} imported successfully
                                                 {importResult.failed > 0 && `, ${importResult.failed} failed`}
                                             </p>
                                             {importResult.errors.length > 0 && (
-                                                <ul className="text-xs text-red-600 mt-2 list-disc list-inside">
+                                                <ul className="text-xs text-red-600 dark:text-red-400 mt-2 list-disc list-inside">
                                                     {importResult.errors.slice(0, 5).map((err, i) => (
                                                         <li key={i}>{err}</li>
                                                     ))}
@@ -471,7 +471,7 @@ export default function Positions() {
                                 </div>
                             )}
 
-                            <div className="flex justify-end pt-4 border-t">
+                            <div className="flex justify-end pt-4 border-t dark:border-slate-700">
                                 <Button variant="secondary" onClick={closeImportModal}>
                                     Close
                                 </Button>

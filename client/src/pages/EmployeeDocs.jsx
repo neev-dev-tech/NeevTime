@@ -208,7 +208,7 @@ export default function EmployeeDocs() {
 
             <div className="flex flex-col h-[calc(100vh-210px)] card-base overflow-hidden">
             {/* Search Bar */}
-            <div className="p-4 border-b border-slate-100 bg-white">
+            <div className="p-4 border-b border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800">
                 <div className="relative w-full max-w-md">
                     <input
                         type="text"
@@ -217,43 +217,43 @@ export default function EmployeeDocs() {
                         onChange={e => setSearchQuery(e.target.value)}
                         className="input-base pl-10 py-2 text-sm w-full"
                     />
-                    <Search size={16} className="absolute left-3.5 top-2.5 text-slate-grey" />
+                    <Search size={16} className="absolute left-3.5 top-2.5 text-slate-grey dark:text-slate-400" />
                 </div>
             </div>
 
             {/* Documents Table */}
-            <div className="flex-1 overflow-auto bg-white custom-scrollbar">
+            <div className="flex-1 overflow-auto bg-white dark:bg-slate-800 custom-scrollbar">
                 {filteredDocuments.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full p-12 text-center">
                         <FileText size={64} className="text-slate-300 mb-4" />
-                        <p className="text-slate-500 text-lg font-medium">No documents found</p>
+                        <p className="text-slate-500 dark:text-slate-400 text-lg font-medium">No documents found</p>
                         <p className="text-sm text-slate-400 mt-2">
                             {searchQuery ? 'Try a different search term' : 'Upload your first document to get started'}
                         </p>
                     </div>
                 ) : (
                     <table className="w-full text-left text-sm border-collapse">
-                        <thead className="bg-orange-50/50 text-charcoal font-semibold sticky top-0 z-10">
+                        <thead className="bg-orange-50/50 dark:bg-slate-900/50 text-charcoal dark:text-slate-100 font-semibold sticky top-0 z-10">
                             <tr>
-                                <th className="p-4 border-b border-slate-100">Document Name</th>
-                                <th className="p-4 border-b border-slate-100">Employee</th>
-                                <th className="p-4 border-b border-slate-100">Employee Code</th>
-                                <th className="p-4 border-b border-slate-100">Uploaded Date</th>
-                                <th className="p-4 border-b border-slate-100 text-center">Actions</th>
+                                <th className="p-4 border-b border-slate-100 dark:border-slate-700">Document Name</th>
+                                <th className="p-4 border-b border-slate-100 dark:border-slate-700">Employee</th>
+                                <th className="p-4 border-b border-slate-100 dark:border-slate-700">Employee Code</th>
+                                <th className="p-4 border-b border-slate-100 dark:border-slate-700">Uploaded Date</th>
+                                <th className="p-4 border-b border-slate-100 dark:border-slate-700 text-center">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-50">
+                        <tbody className="divide-y divide-slate-50 dark:divide-slate-700">
                             {filteredDocuments.map(doc => (
-                                <tr key={doc.id} className="hover:bg-cream-50 transition-colors">
+                                <tr key={doc.id} className="hover:bg-cream-50 dark:hover:bg-slate-700/50 transition-colors">
                                     <td className="p-4">
                                         <div className="flex items-center gap-2">
-                                            <FileText size={18} className="text-orange-600" />
-                                            <span className="font-medium text-charcoal">{doc.doc_name}</span>
+                                            <FileText size={18} className="text-orange-600 dark:text-orange-400" />
+                                            <span className="font-medium text-charcoal dark:text-slate-100">{doc.doc_name}</span>
                                         </div>
                                     </td>
-                                    <td className="p-4 text-slate-grey">{doc.employee_name || '-'}</td>
+                                    <td className="p-4 text-slate-grey dark:text-slate-400">{doc.employee_name || '-'}</td>
                                     <td className="p-4 font-mono text-saffron font-medium">{doc.employee_code}</td>
-                                    <td className="p-4 text-slate-grey">
+                                    <td className="p-4 text-slate-grey dark:text-slate-400">
                                         <div className="flex items-center gap-2">
                                             <Calendar size={14} className="text-slate-400" />
                                             {formatDate(doc.uploaded_at)}
@@ -287,17 +287,17 @@ export default function EmployeeDocs() {
             </div>
 
             {/* Footer */}
-            <div className="p-4 border-t border-slate-100 bg-slate-50/50 text-xs font-medium text-slate-grey flex justify-between items-center">
-                <span>Total <span className="text-charcoal font-bold">{filteredDocuments.length}</span> Documents</span>
+            <div className="p-4 border-t border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50 text-xs font-medium text-slate-grey dark:text-slate-400 flex justify-between items-center">
+                <span>Total <span className="text-charcoal dark:text-slate-100 font-bold">{filteredDocuments.length}</span> Documents</span>
             </div>
             </div>
 
             {/* Upload Modal */}
             {showUploadModal && (
                 <div className="fixed inset-0 bg-charcoal/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 border border-white/50">
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-md p-6 border border-white/50 dark:border-slate-700">
                         <div className="flex justify-between items-center mb-6">
-                            <h3 className="font-bold text-xl text-charcoal">Upload Document</h3>
+                            <h3 className="font-bold text-xl text-charcoal dark:text-slate-100">Upload Document</h3>
                             <Button
                                 variant="ghost"
                                 size="sm"
@@ -318,7 +318,7 @@ export default function EmployeeDocs() {
 
                         <form onSubmit={handleUpload} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-slate-grey mb-1.5">Employee *</label>
+                                <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Employee *</label>
                                 <select
                                     required
                                     value={selectedEmployee}
@@ -335,7 +335,7 @@ export default function EmployeeDocs() {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-grey mb-1.5">Document Name *</label>
+                                <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Document Name *</label>
                                 <input
                                     type="text"
                                     required
@@ -347,8 +347,8 @@ export default function EmployeeDocs() {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-grey mb-1.5">File *</label>
-                                <div className="border-2 border-dashed border-slate-200 rounded-lg p-4 hover:border-orange-300 transition-colors">
+                                <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">File *</label>
+                                <div className="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-lg p-4 hover:border-orange-300 transition-colors">
                                     <input
                                         ref={fileInputRef}
                                         type="file"
@@ -362,21 +362,21 @@ export default function EmployeeDocs() {
                                         htmlFor="file-upload"
                                         className="cursor-pointer flex flex-col items-center justify-center"
                                     >
-                                        <Upload size={32} className="text-orange-500 mb-2" />
-                                        <span className="text-sm text-slate-grey">
+                                        <Upload size={32} className="text-orange-500 dark:text-orange-400 mb-2" />
+                                        <span className="text-sm text-slate-grey dark:text-slate-400">
                                             {selectedFile ? selectedFile.name : 'Click to select file'}
                                         </span>
                                         <span className="text-xs text-slate-400 mt-1">PDF, DOC, DOCX, JPG, PNG (Max 10MB)</span>
                                     </label>
                                 </div>
                                 {selectedFile && (
-                                    <p className="text-xs text-slate-500 mt-2">
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
                                         Selected: {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
                                     </p>
                                 )}
                             </div>
 
-                            <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                            <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-700">
                                 <Button
                                     variant="secondary"
                                     onClick={() => {

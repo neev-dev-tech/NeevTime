@@ -220,13 +220,13 @@ export default function EmployeeSchedule() {
                         placeholder="Search employee..."
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
-                        className="w-full pl-9 pr-3 py-2 border rounded-lg"
+                        className="w-full pl-9 pr-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                     />
                 </div>
                 <select
                     value={filterDepartment}
                     onChange={e => setFilterDepartment(e.target.value)}
-                    className="px-3 py-2 border rounded-lg"
+                    className="px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                 >
                     <option value="">All Departments</option>
                     {departments.map(d => (
@@ -236,40 +236,40 @@ export default function EmployeeSchedule() {
             </div>
 
             {/* Schedules Table */}
-            <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border dark:border-slate-700 overflow-hidden">
                 <table className="w-full">
-                    <thead className="bg-slate-50">
+                    <thead className="bg-slate-50 dark:bg-slate-900/50">
                         <tr>
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Employee</th>
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Department</th>
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Shift</th>
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Effective Period</th>
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Type</th>
-                            <th className="px-4 py-3 text-center text-sm font-semibold text-slate-600">Actions</th>
+                            <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600 dark:text-slate-400">Employee</th>
+                            <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600 dark:text-slate-400">Department</th>
+                            <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600 dark:text-slate-400">Shift</th>
+                            <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600 dark:text-slate-400">Effective Period</th>
+                            <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600 dark:text-slate-400">Type</th>
+                            <th className="px-4 py-3 text-center text-sm font-semibold text-slate-600 dark:text-slate-400">Actions</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y">
+                    <tbody className="divide-y dark:divide-slate-700">
                         {loading ? (
                             <tr>
-                                <td colSpan={6} className="px-4 py-8 text-center text-slate-500">Loading...</td>
+                                <td colSpan={6} className="px-4 py-8 text-center text-slate-500 dark:text-slate-400">Loading...</td>
                             </tr>
                         ) : filteredSchedules.length === 0 ? (
                             <tr>
-                                <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
+                                <td colSpan={6} className="px-4 py-8 text-center text-slate-500 dark:text-slate-400">
                                     No employee schedules found.
                                 </td>
                             </tr>
                         ) : filteredSchedules.map(schedule => (
-                            <tr key={schedule.id} className="hover:bg-slate-50">
+                            <tr key={schedule.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
                                 <td className="px-4 py-3">
                                     <div className="font-medium">{schedule.employee_name}</div>
-                                    <div className="text-xs text-slate-500">{schedule.employee_code}</div>
+                                    <div className="text-xs text-slate-500 dark:text-slate-400">{schedule.employee_code}</div>
                                 </td>
-                                <td className="px-4 py-3 text-sm text-slate-600">
+                                <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">
                                     {schedule.department_name || '-'}
                                 </td>
                                 <td className="px-4 py-3">
-                                    <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm">
+                                    <span className="px-2 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 rounded text-sm">
                                         {schedule.shift_name || schedule.timetable_name || '-'}
                                     </span>
                                 </td>
@@ -278,9 +278,9 @@ export default function EmployeeSchedule() {
                                 </td>
                                 <td className="px-4 py-3">
                                     {schedule.is_temporary ? (
-                                        <span className="px-2 py-1 bg-amber-100 text-amber-800 rounded text-xs">Temporary</span>
+                                        <span className="px-2 py-1 bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 rounded text-xs">Temporary</span>
                                     ) : (
-                                        <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Regular</span>
+                                        <span className="px-2 py-1 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 rounded text-xs">Regular</span>
                                     )}
                                 </td>
                                 <td className="px-4 py-3">
@@ -298,8 +298,8 @@ export default function EmployeeSchedule() {
             {/* Individual Schedule Modal */}
             {showModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-xl shadow-lg w-full max-w-lg max-h-[90vh] overflow-auto">
-                        <div className="flex items-center justify-between p-4 border-b">
+                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg w-full max-w-lg max-h-[90vh] overflow-auto">
+                        <div className="flex items-center justify-between p-4 border-b dark:border-slate-700">
                             <h2 className="text-lg font-semibold">
                                 {editingId ? 'Edit Employee Schedule' : 'Assign Employee Schedule'}
                             </h2>
@@ -311,7 +311,7 @@ export default function EmployeeSchedule() {
                                 <select
                                     value={form.employee_id}
                                     onChange={e => setForm({ ...form, employee_id: e.target.value })}
-                                    className="w-full px-3 py-2 border rounded-lg"
+                                    className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                     required
                                 >
                                     <option value="">Select Employee</option>
@@ -327,7 +327,7 @@ export default function EmployeeSchedule() {
                                     <select
                                         value={form.shift_id}
                                         onChange={e => setForm({ ...form, shift_id: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded-lg"
+                                        className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                     >
                                         <option value="">Select Shift</option>
                                         {shifts.map(s => (
@@ -340,7 +340,7 @@ export default function EmployeeSchedule() {
                                     <select
                                         value={form.timetable_id}
                                         onChange={e => setForm({ ...form, timetable_id: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded-lg"
+                                        className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                     >
                                         <option value="">Select Timetable</option>
                                         {timetables.map(t => (
@@ -357,7 +357,7 @@ export default function EmployeeSchedule() {
                                         type="date"
                                         value={form.effective_from}
                                         onChange={e => setForm({ ...form, effective_from: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded-lg"
+                                        className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                         required
                                     />
                                 </div>
@@ -367,7 +367,7 @@ export default function EmployeeSchedule() {
                                         type="date"
                                         value={form.effective_to}
                                         onChange={e => setForm({ ...form, effective_to: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded-lg"
+                                        className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                     />
                                 </div>
                             </div>
@@ -391,13 +391,13 @@ export default function EmployeeSchedule() {
                                         type="text"
                                         value={form.reason}
                                         onChange={e => setForm({ ...form, reason: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded-lg"
+                                        className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                         placeholder="Reason for temporary schedule"
                                     />
                                 </div>
                             )}
 
-                            <div className="flex justify-end gap-3 pt-4 border-t">
+                            <div className="flex justify-end gap-3 pt-4 border-t dark:border-slate-700">
                                 <Button variant="secondary" onClick={closeModal}>Cancel</Button>
                                 <Button type="submit" icon={Save}>
                                     {editingId ? 'Update' : 'Assign'}
@@ -411,14 +411,14 @@ export default function EmployeeSchedule() {
             {/* Bulk Assign Modal */}
             {showBulkModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-xl shadow-lg w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
-                        <div className="flex items-center justify-between p-4 border-b">
+                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
+                        <div className="flex items-center justify-between p-4 border-b dark:border-slate-700">
                             <h2 className="text-lg font-semibold">Bulk Assign Schedule</h2>
                             <Button variant="ghost" icon={X} iconSize={20} onClick={() => { setShowBulkModal(false); setSelectedEmployees([]); }} aria-label="Close" />
                         </div>
                         <div className="flex flex-1 overflow-hidden">
                             {/* Employee Selection */}
-                            <div className="w-1/2 border-r p-4 overflow-auto">
+                            <div className="w-1/2 border-r dark:border-slate-700 p-4 overflow-auto">
                                 <div className="flex justify-between items-center mb-3">
                                     <h3 className="font-medium">Select Employees ({selectedEmployees.length})</h3>
                                     <Button variant="ghost" size="sm" onClick={selectAllFiltered}>
@@ -427,7 +427,7 @@ export default function EmployeeSchedule() {
                                 </div>
                                 <div className="space-y-1">
                                     {filteredEmployees.map(emp => (
-                                        <label key={emp.id} className="flex items-center gap-2 p-2 rounded hover:bg-slate-50 cursor-pointer">
+                                        <label key={emp.id} className="flex items-center gap-2 p-2 rounded hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer">
                                             <input
                                                 type="checkbox"
                                                 checked={selectedEmployees.includes(emp.id)}
@@ -435,7 +435,7 @@ export default function EmployeeSchedule() {
                                                 className="w-4 h-4 text-green-600 rounded"
                                             />
                                             <span className="text-sm">{emp.name}</span>
-                                            <span className="text-xs text-slate-500">({emp.employee_code})</span>
+                                            <span className="text-xs text-slate-500 dark:text-slate-400">({emp.employee_code})</span>
                                         </label>
                                     ))}
                                 </div>
@@ -447,7 +447,7 @@ export default function EmployeeSchedule() {
                                     <select
                                         value={form.shift_id}
                                         onChange={e => setForm({ ...form, shift_id: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded-lg"
+                                        className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                     >
                                         <option value="">Select Shift</option>
                                         {shifts.map(s => (
@@ -460,7 +460,7 @@ export default function EmployeeSchedule() {
                                     <select
                                         value={form.timetable_id}
                                         onChange={e => setForm({ ...form, timetable_id: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded-lg"
+                                        className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                     >
                                         <option value="">Select Timetable</option>
                                         {timetables.map(t => (
@@ -474,7 +474,7 @@ export default function EmployeeSchedule() {
                                         type="date"
                                         value={form.effective_from}
                                         onChange={e => setForm({ ...form, effective_from: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded-lg"
+                                        className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                         required
                                     />
                                 </div>
@@ -484,10 +484,10 @@ export default function EmployeeSchedule() {
                                         type="date"
                                         value={form.effective_to}
                                         onChange={e => setForm({ ...form, effective_to: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded-lg"
+                                        className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                     />
                                 </div>
-                                <div className="pt-4 border-t">
+                                <div className="pt-4 border-t dark:border-slate-700">
                                     <Button
                                         type="submit"
                                         icon={Users}

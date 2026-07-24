@@ -34,7 +34,7 @@ export const TableSkeleton = ({ rows = 5, cols = 4 }) => {
 
 export const CardSkeleton = () => {
   return (
-    <div className="p-4 border border-slate-100 rounded-2xl bg-white space-y-3">
+    <div className="p-4 border border-slate-100 dark:border-slate-700 rounded-2xl bg-white dark:bg-slate-800 space-y-3">
       <Skeleton height="8rem" className="rounded-xl" />
       <Skeleton width="60%" height="1.25rem" />
       <Skeleton width="40%" height="1rem" />

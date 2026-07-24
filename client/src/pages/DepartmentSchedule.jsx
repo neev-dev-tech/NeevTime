@@ -129,41 +129,41 @@ export default function DepartmentSchedule() {
             />
 
             {/* Schedules Table */}
-            <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border dark:border-slate-700 overflow-hidden">
                 <table className="w-full">
-                    <thead className="bg-slate-50">
+                    <thead className="bg-slate-50 dark:bg-slate-900/50">
                         <tr>
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Department</th>
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Shift</th>
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Timetable</th>
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Effective From</th>
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Effective To</th>
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Week Off</th>
-                            <th className="px-4 py-3 text-center text-sm font-semibold text-slate-600">Actions</th>
+                            <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600 dark:text-slate-400">Department</th>
+                            <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600 dark:text-slate-400">Shift</th>
+                            <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600 dark:text-slate-400">Timetable</th>
+                            <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600 dark:text-slate-400">Effective From</th>
+                            <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600 dark:text-slate-400">Effective To</th>
+                            <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600 dark:text-slate-400">Week Off</th>
+                            <th className="px-4 py-3 text-center text-sm font-semibold text-slate-600 dark:text-slate-400">Actions</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y">
+                    <tbody className="divide-y dark:divide-slate-700">
                         {loading ? (
                             <tr>
-                                <td colSpan={7} className="px-4 py-8 text-center text-slate-500">Loading...</td>
+                                <td colSpan={7} className="px-4 py-8 text-center text-slate-500 dark:text-slate-400">Loading...</td>
                             </tr>
                         ) : schedules.length === 0 ? (
                             <tr>
-                                <td colSpan={7} className="px-4 py-8 text-center text-slate-500">
+                                <td colSpan={7} className="px-4 py-8 text-center text-slate-500 dark:text-slate-400">
                                     No department schedules defined. Click "Assign Schedule" to create one.
                                 </td>
                             </tr>
                         ) : schedules.map(schedule => (
-                            <tr key={schedule.id} className="hover:bg-slate-50">
+                            <tr key={schedule.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
                                 <td className="px-4 py-3">
                                     <div className="font-medium">{schedule.department_name}</div>
                                 </td>
                                 <td className="px-4 py-3">
-                                    <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm">
+                                    <span className="px-2 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 rounded text-sm">
                                         {schedule.shift_name || '-'}
                                     </span>
                                 </td>
-                                <td className="px-4 py-3 text-sm text-slate-600">
+                                <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">
                                     {schedule.timetable_name || '-'}
                                 </td>
                                 <td className="px-4 py-3 text-sm">
@@ -175,7 +175,7 @@ export default function DepartmentSchedule() {
                                 <td className="px-4 py-3">
                                     <div className="flex gap-1">
                                         {schedule.week_off_days?.map(day => (
-                                            <span key={day} className="px-1.5 py-0.5 bg-slate-200 text-slate-600 rounded text-xs capitalize">
+                                            <span key={day} className="px-1.5 py-0.5 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 rounded text-xs capitalize">
                                                 {day.substring(0, 3)}
                                             </span>
                                         ))}
@@ -196,8 +196,8 @@ export default function DepartmentSchedule() {
             {/* Modal */}
             {showModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-xl shadow-lg w-full max-w-lg">
-                        <div className="flex items-center justify-between p-4 border-b">
+                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg w-full max-w-lg">
+                        <div className="flex items-center justify-between p-4 border-b dark:border-slate-700">
                             <h2 className="text-lg font-semibold">
                                 {editingId ? 'Edit Department Schedule' : 'Assign Department Schedule'}
                             </h2>
@@ -209,7 +209,7 @@ export default function DepartmentSchedule() {
                                 <select
                                     value={form.department_id}
                                     onChange={e => setForm({ ...form, department_id: e.target.value })}
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
+                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                     required
                                 >
                                     <option value="">Select Department</option>
@@ -225,7 +225,7 @@ export default function DepartmentSchedule() {
                                     <select
                                         value={form.shift_id}
                                         onChange={e => setForm({ ...form, shift_id: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
+                                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                     >
                                         <option value="">Select Shift</option>
                                         {shifts.map(s => (
@@ -238,7 +238,7 @@ export default function DepartmentSchedule() {
                                     <select
                                         value={form.timetable_id}
                                         onChange={e => setForm({ ...form, timetable_id: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
+                                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                     >
                                         <option value="">Select Timetable</option>
                                         {timetables.map(t => (
@@ -255,7 +255,7 @@ export default function DepartmentSchedule() {
                                         type="date"
                                         value={form.effective_from}
                                         onChange={e => setForm({ ...form, effective_from: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
+                                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                         required
                                     />
                                 </div>
@@ -265,7 +265,7 @@ export default function DepartmentSchedule() {
                                         type="date"
                                         value={form.effective_to}
                                         onChange={e => setForm({ ...form, effective_to: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
+                                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                     />
                                 </div>
                             </div>
@@ -280,7 +280,7 @@ export default function DepartmentSchedule() {
                                             onClick={() => toggleWeekOff(day)}
                                             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors capitalize ${form.week_off_days.includes(day)
                                                     ? 'bg-green-600 text-white'
-                                                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                                    : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'
                                                 }`}
                                         >
                                             {day.substring(0, 3)}
@@ -289,7 +289,7 @@ export default function DepartmentSchedule() {
                                 </div>
                             </div>
 
-                            <div className="flex justify-end gap-3 pt-4 border-t">
+                            <div className="flex justify-end gap-3 pt-4 border-t dark:border-slate-700">
                                 <Button variant="secondary" onClick={closeModal}>Cancel</Button>
                                 <Button type="submit" icon={Save}>
                                     {editingId ? 'Update' : 'Assign'}

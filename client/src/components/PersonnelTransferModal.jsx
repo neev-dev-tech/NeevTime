@@ -56,10 +56,10 @@ export default function PersonnelTransferModal({ isOpen, onClose, transferType =
 
     return (
         <div className="fixed inset-0 bg-charcoal/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[85vh] overflow-hidden flex flex-col border border-white/50">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-5xl max-h-[85vh] overflow-hidden flex flex-col border border-white/50 dark:border-slate-700">
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-slate-100">
-                    <h3 className="text-xl font-bold text-charcoal">{transferType} Transfer</h3>
+                <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-700">
+                    <h3 className="text-xl font-bold text-charcoal dark:text-slate-100">{transferType} Transfer</h3>
                     <Button variant="ghost" size="sm" icon={X} onClick={onClose} aria-label="Close" />
                 </div>
 
@@ -67,7 +67,7 @@ export default function PersonnelTransferModal({ isOpen, onClose, transferType =
                 <div className="flex-1 p-6 overflow-hidden flex flex-col gap-6">
                     {/* Target Selection */}
                     <div className="flex items-center gap-4">
-                        <label className="text-slate-grey font-medium whitespace-nowrap">Target {transferType}<span className="text-red-500">*</span>:</label>
+                        <label className="text-slate-grey dark:text-slate-400 font-medium whitespace-nowrap">Target {transferType}<span className="text-red-500">*</span>:</label>
                         <select
                             value={targetValue}
                             onChange={e => setTargetValue(e.target.value)}
@@ -82,9 +82,9 @@ export default function PersonnelTransferModal({ isOpen, onClose, transferType =
 
                     <div className="flex-1 flex gap-6 overflow-hidden min-h-0">
                         {/* Left Panel - Employee Selection */}
-                        <div className="flex-1 border border-slate-200 rounded-xl flex flex-col overflow-hidden bg-white">
+                        <div className="flex-1 border border-slate-200 dark:border-slate-700 rounded-xl flex flex-col overflow-hidden bg-white dark:bg-slate-800">
                             {/* Filters */}
-                            <div className="flex gap-3 p-3 border-b border-slate-100 bg-slate-50/30">
+                            <div className="flex gap-3 p-3 border-b border-slate-100 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900/30">
                                 <select
                                     value={selectedDept}
                                     onChange={e => setSelectedDept(e.target.value)}
@@ -110,8 +110,8 @@ export default function PersonnelTransferModal({ isOpen, onClose, transferType =
                             {/* Employee Table */}
                             <div className="flex-1 overflow-auto">
                                 <table className="w-full text-sm">
-                                    <thead className="bg-slate-50 sticky top-0">
-                                        <tr className="text-left text-slate-600">
+                                    <thead className="bg-slate-50 dark:bg-slate-900/50 sticky top-0">
+                                        <tr className="text-left text-slate-600 dark:text-slate-400">
                                             <th className="p-2 w-8">
                                                 <input type="checkbox" checked={selectedEmployees.length === filteredEmployees.length && filteredEmployees.length > 0} onChange={toggleSelectAll} />
                                             </th>
@@ -126,11 +126,11 @@ export default function PersonnelTransferModal({ isOpen, onClose, transferType =
                                             <tr><td colSpan={5} className="p-8 text-center text-slate-400">No employees found</td></tr>
                                         ) : (
                                             paginatedEmployees.map(emp => (
-                                                <tr key={emp.id} className="border-t hover:bg-slate-50">
+                                                <tr key={emp.id} className="border-t dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50">
                                                     <td className="p-2">
                                                         <input type="checkbox" checked={selectedEmployees.includes(emp.id)} onChange={() => toggleEmployee(emp.id)} />
                                                     </td>
-                                                    <td className="p-2 text-orange-600">{emp.employee_code}</td>
+                                                    <td className="p-2 text-orange-600 dark:text-orange-300">{emp.employee_code}</td>
                                                     <td className="p-2">{emp.name}</td>
                                                     <td className="p-2">{emp.last_name || ''}</td>
                                                     <td className="p-2">{emp.department_name || '-'}</td>
@@ -142,15 +142,15 @@ export default function PersonnelTransferModal({ isOpen, onClose, transferType =
                             </div>
 
                             {/* Pagination */}
-                            <div className="flex items-center gap-2 p-2 border-t text-sm text-slate-600 bg-slate-50">
-                                <select className="border rounded px-2 py-1" value={itemsPerPage}>
+                            <div className="flex items-center gap-2 p-2 border-t dark:border-slate-700 text-sm text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/50">
+                                <select className="border dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1" value={itemsPerPage}>
                                     <option>50</option>
                                 </select>
-                                <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="p-1 hover:bg-slate-200 rounded">
+                                <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="p-1 hover:bg-slate-200 dark:hover:bg-slate-600 rounded">
                                     <ChevronLeft size={16} />
                                 </button>
                                 <span className="px-2">{currentPage} / {totalPages || 1}</span>
-                                <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="p-1 hover:bg-slate-200 rounded">
+                                <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="p-1 hover:bg-slate-200 dark:hover:bg-slate-600 rounded">
                                     <ChevronRight size={16} />
                                 </button>
                                 <span>Total {filteredEmployees.length} Records</span>
@@ -158,30 +158,30 @@ export default function PersonnelTransferModal({ isOpen, onClose, transferType =
                         </div>
 
                         {/* Right Panel - Selected */}
-                        <div className="w-80 border border-slate-200 rounded-xl flex flex-col flex-shrink-0 bg-white overflow-hidden">
-                            <div className="p-3 border-b border-slate-100 bg-slate-50/30 flex items-center justify-between">
-                                <span className="text-charcoal font-bold text-sm">Selected Employees</span>
+                        <div className="w-80 border border-slate-200 dark:border-slate-700 rounded-xl flex flex-col flex-shrink-0 bg-white dark:bg-slate-800 overflow-hidden">
+                            <div className="p-3 border-b border-slate-100 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900/30 flex items-center justify-between">
+                                <span className="text-charcoal dark:text-slate-100 font-bold text-sm">Selected Employees</span>
                                 <span className="bg-saffron text-white text-xs px-2 py-0.5 rounded-full font-bold">{selectedEmployees.length}</span>
                             </div>
                             <div className="flex-1 overflow-auto">
                                 <table className="w-full text-sm">
-                                    <thead className="bg-orange-50/50 sticky top-0 z-10">
-                                        <tr className="text-left text-charcoal font-semibold">
+                                    <thead className="bg-orange-50/50 dark:bg-orange-900/20 sticky top-0 z-10">
+                                        <tr className="text-left text-charcoal dark:text-slate-100 font-semibold">
                                             <th className="p-3">ID</th>
                                             <th className="p-3">Name</th>
                                             <th className="p-3 w-8"></th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-slate-50">
+                                    <tbody className="divide-y divide-slate-50 dark:divide-slate-700">
                                         {selectedEmployees.length === 0 ? (
                                             <tr><td colSpan={3} className="p-8 text-center text-slate-400 text-xs">No employees selected</td></tr>
                                         ) : (
                                             employees.filter(e => selectedEmployees.includes(e.id)).map(emp => (
-                                                <tr key={emp.id} className="hover:bg-cream-50 transition-colors group">
+                                                <tr key={emp.id} className="hover:bg-cream-50 dark:hover:bg-slate-700/50 transition-colors group">
                                                     <td className="p-3 text-saffron font-medium">{emp.employee_code}</td>
-                                                    <td className="p-3 text-slate-grey">{emp.name}</td>
+                                                    <td className="p-3 text-slate-grey dark:text-slate-400">{emp.name}</td>
                                                     <td className="p-3">
-                                                        <button onClick={() => toggleEmployee(emp.id)} className="text-slate-300 hover:text-red-500 hover:bg-red-50 p-1 rounded transition-colors opacity-0 group-hover:opacity-100">
+                                                        <button onClick={() => toggleEmployee(emp.id)} className="text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 p-1 rounded transition-colors opacity-0 group-hover:opacity-100">
                                                             <X size={14} />
                                                         </button>
                                                     </td>
@@ -207,7 +207,7 @@ export default function PersonnelTransferModal({ isOpen, onClose, transferType =
                 </div>
 
                 {/* Footer */}
-                <div className="flex justify-end gap-3 p-6 border-t border-slate-100 bg-slate-50/30">
+                <div className="flex justify-end gap-3 p-6 border-t border-slate-100 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900/30">
                     <Button variant="secondary" onClick={onClose}>
                         Cancel
                     </Button>

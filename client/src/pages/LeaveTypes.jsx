@@ -55,9 +55,9 @@ export default function LeaveTypes() {
                 actions={<Button variant="successSolid" icon={Plus} onClick={() => setShowModal(true)}>Add Leave Type</Button>}
             />
 
-            <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
+            <div className="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm overflow-hidden">
                 <table className="w-full text-sm text-left">
-                    <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+                    <thead className="bg-slate-50 dark:bg-slate-900/50 text-xs uppercase text-slate-500 dark:text-slate-400">
                         <tr>
                             <th className="px-6 py-3">Code</th>
                             <th className="px-6 py-3">Name</th>
@@ -67,17 +67,17 @@ export default function LeaveTypes() {
                             <th className="px-6 py-3 text-right">Actions</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y">
+                    <tbody className="divide-y dark:divide-slate-700">
                         {types.length === 0 ? (
                             <tr><td colSpan={6} className="px-6 py-10 text-center text-slate-400">No leave types defined</td></tr>
                         ) : types.map(t => (
-                            <tr key={t.id} className="hover:bg-slate-50">
-                                <td className="px-6 py-3 font-mono font-bold text-slate-700">{t.code}</td>
-                                <td className="px-6 py-3 font-medium text-slate-800">{t.name}</td>
+                            <tr key={t.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
+                                <td className="px-6 py-3 font-mono font-bold text-slate-700 dark:text-slate-300">{t.code}</td>
+                                <td className="px-6 py-3 font-medium text-slate-800 dark:text-slate-100">{t.name}</td>
                                 <td className="px-6 py-3">{t.annual_quota}</td>
                                 <td className="px-6 py-3">{t.carry_forward ? 'Yes' : 'No'}</td>
                                 <td className="px-6 py-3">
-                                    <span className="inline-block w-5 h-5 rounded-full border" style={{ backgroundColor: t.color }} />
+                                    <span className="inline-block w-5 h-5 rounded-full border dark:border-slate-700" style={{ backgroundColor: t.color }} />
                                 </td>
                                 <td className="px-6 py-3 text-right">
                                     <Button variant="danger" size="sm" icon={Trash2} aria-label="Delete leave type" onClick={() => handleDelete(t.id)} />
@@ -90,33 +90,33 @@ export default function LeaveTypes() {
 
             {showModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm">
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-sm">
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-bold text-slate-800">Add Leave Type</h3>
+                            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">Add Leave Type</h3>
                             <Button variant="ghost" size="sm" icon={X} aria-label="Close" onClick={() => setShowModal(false)} />
                         </div>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div className="flex gap-3">
                                 <div className="w-24">
-                                    <label className="block text-sm font-medium text-slate-600 mb-1">Code</label>
+                                    <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">Code</label>
                                     <input type="text" value={form.code} onChange={e => setForm(f => ({ ...f, code: e.target.value.toUpperCase() }))} className="input-base" placeholder="CL" required />
                                 </div>
                                 <div className="flex-1">
-                                    <label className="block text-sm font-medium text-slate-600 mb-1">Name</label>
+                                    <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">Name</label>
                                     <input type="text" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className="input-base" placeholder="Casual Leave" required />
                                 </div>
                             </div>
                             <div className="flex gap-3 items-end">
                                 <div className="flex-1">
-                                    <label className="block text-sm font-medium text-slate-600 mb-1">Annual Quota (days)</label>
+                                    <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">Annual Quota (days)</label>
                                     <input type="number" min="0" value={form.annual_quota} onChange={e => setForm(f => ({ ...f, annual_quota: parseInt(e.target.value) || 0 }))} className="input-base" required />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-600 mb-1">Color</label>
-                                    <input type="color" value={form.color} onChange={e => setForm(f => ({ ...f, color: e.target.value }))} className="h-10 w-14 border rounded-lg cursor-pointer" />
+                                    <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">Color</label>
+                                    <input type="color" value={form.color} onChange={e => setForm(f => ({ ...f, color: e.target.value }))} className="h-10 w-14 border dark:border-slate-600 rounded-lg cursor-pointer" />
                                 </div>
                             </div>
-                            <label className="flex items-center gap-2 text-sm text-slate-600">
+                            <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
                                 <input type="checkbox" checked={form.carry_forward} onChange={e => setForm(f => ({ ...f, carry_forward: e.target.checked }))} />
                                 Unused days carry forward to next year
                             </label>

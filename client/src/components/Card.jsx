@@ -32,10 +32,10 @@ export function Card({
     const baseClasses = 'rounded-2xl transition-all duration-200';
 
     const variantClasses = {
-        default: 'bg-white border border-slate-100 shadow-sm',
-        elevated: 'bg-white shadow-md hover:shadow-lg',
-        outlined: 'bg-white border-2 border-slate-200',
-        glass: 'bg-white/80 backdrop-blur-sm border border-white/20 shadow-lg',
+        default: 'bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-sm',
+        elevated: 'bg-white dark:bg-slate-800 shadow-md hover:shadow-lg',
+        outlined: 'bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700',
+        glass: 'bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-white/20 shadow-lg',
         gradient: 'bg-gradient-to-br from-white to-slate-50 border border-slate-100 shadow-sm'
     };
 
@@ -89,10 +89,10 @@ export function CardHeader({
                 )}
                 <div>
                     {title && (
-                        <h3 className="text-lg font-semibold text-slate-800">{title}</h3>
+                        <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">{title}</h3>
                     )}
                     {subtitle && (
-                        <p className="text-sm text-slate-500 mt-0.5">{subtitle}</p>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">{subtitle}</p>
                     )}
                     {children}
                 </div>
@@ -124,7 +124,7 @@ export function CardFooter({ children, className = '', separator = true }) {
     return (
         <div className={`
             mt-4 pt-4 
-            ${separator ? 'border-t border-slate-100' : ''} 
+            ${separator ? 'border-t border-slate-100 dark:border-slate-700' : ''} 
             ${className}
         `}>
             {children}
@@ -243,11 +243,11 @@ export function SummaryCard({
             <div className="space-y-3">
                 {items.map((item, index) => (
                     <div key={index} className="flex items-center justify-between">
-                        <span className="text-sm text-slate-600">{item.label}</span>
-                        <span className={`font-semibold ${item.color === 'green' ? 'text-green-600' :
-                                item.color === 'red' ? 'text-red-600' :
-                                    item.color === 'orange' ? 'text-orange-600' :
-                                        'text-slate-800'
+                        <span className="text-sm text-slate-600 dark:text-slate-400">{item.label}</span>
+                        <span className={`font-semibold ${item.color === 'green' ? 'text-green-600 dark:text-green-300' :
+                                item.color === 'red' ? 'text-red-600 dark:text-red-300' :
+                                    item.color === 'orange' ? 'text-orange-600 dark:text-orange-300' :
+                                        'text-slate-800 dark:text-slate-100'
                             }`}>
                             {item.value}
                         </span>
@@ -277,15 +277,15 @@ export function ActionCard({
                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-100 to-orange-200 
                         flex items-center justify-center flex-shrink-0
                         group-hover:scale-110 transition-transform">
-                        {React.cloneElement(icon, { size: 24, className: 'text-orange-600' })}
+                        {React.cloneElement(icon, { size: 24, className: 'text-orange-600 dark:text-orange-300' })}
                     </div>
                 )}
                 <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-slate-800 mb-1">{title}</h4>
-                    <p className="text-sm text-slate-500 mb-3">{description}</p>
+                    <h4 className="font-semibold text-slate-800 dark:text-slate-100 mb-1">{title}</h4>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">{description}</p>
                     <button
                         onClick={onAction}
-                        className="text-sm font-medium text-orange-600 hover:text-orange-700 
+                        className="text-sm font-medium text-orange-600 dark:text-orange-300 hover:text-orange-700 
                             flex items-center gap-1 group/btn"
                     >
                         {actionLabel}
@@ -309,7 +309,7 @@ export function InfoCard({
     return (
         <Card variant="default" className={className}>
             {title && (
-                <h3 className="text-lg font-semibold text-slate-800 mb-4 pb-3 border-b border-slate-100">
+                <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-4 pb-3 border-b border-slate-100 dark:border-slate-700">
                     {title}
                 </h3>
             )}
@@ -317,13 +317,13 @@ export function InfoCard({
                 {data.map((item, index) => (
                     <div key={index} className="flex items-start gap-3">
                         {item.icon && (
-                            <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
-                                {React.cloneElement(item.icon, { size: 16, className: 'text-slate-500' })}
+                            <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center flex-shrink-0">
+                                {React.cloneElement(item.icon, { size: 16, className: 'text-slate-500 dark:text-slate-400' })}
                             </div>
                         )}
                         <div>
-                            <p className="text-xs text-slate-500 uppercase tracking-wide">{item.key}</p>
-                            <p className="text-sm font-medium text-slate-800 mt-0.5">{item.value || '-'}</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">{item.key}</p>
+                            <p className="text-sm font-medium text-slate-800 dark:text-slate-100 mt-0.5">{item.value || '-'}</p>
                         </div>
                     </div>
                 ))}
@@ -363,14 +363,14 @@ export function FeatureCard({
                 )}
                 <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-semibold text-slate-800">{title}</h4>
+                        <h4 className="font-semibold text-slate-800 dark:text-slate-100">{title}</h4>
                         {badge && (
-                            <span className="px-2 py-0.5 text-xs font-medium bg-orange-100 text-orange-600 rounded-full">
+                            <span className="px-2 py-0.5 text-xs font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-300 rounded-full">
                                 {badge}
                             </span>
                         )}
                     </div>
-                    <p className="text-sm text-slate-500">{description}</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">{description}</p>
                 </div>
             </div>
         </Card>
@@ -394,12 +394,12 @@ export function ListCard({
     return (
         <Card variant="default" padding={false} className={className}>
             {title && (
-                <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-                    <h3 className="font-semibold text-slate-800">{title}</h3>
+                <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
+                    <h3 className="font-semibold text-slate-800 dark:text-slate-100">{title}</h3>
                     {hasMore && (
                         <button
                             onClick={onViewAll}
-                            className="text-sm text-orange-600 hover:text-orange-700 font-medium"
+                            className="text-sm text-orange-600 dark:text-orange-300 hover:text-orange-700 font-medium"
                         >
                             View All ({items.length})
                         </button>
@@ -407,22 +407,22 @@ export function ListCard({
                 </div>
             )}
             {displayItems.length === 0 ? (
-                <div className="px-6 py-8 text-center text-slate-500 text-sm">
+                <div className="px-6 py-8 text-center text-slate-500 dark:text-slate-400 text-sm">
                     {emptyMessage}
                 </div>
             ) : (
-                <div className="divide-y divide-slate-50">
+                <div className="divide-y divide-slate-50 dark:divide-slate-700">
                     {displayItems.map((item, index) => (
-                        <div key={index} className="px-6 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors">
+                        <div key={index} className="px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
                             {item.icon && (
-                                <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0">
+                                <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center flex-shrink-0">
                                     {item.icon}
                                 </div>
                             )}
                             <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-slate-800 truncate">{item.primary}</p>
+                                <p className="text-sm font-medium text-slate-800 dark:text-slate-100 truncate">{item.primary}</p>
                                 {item.secondary && (
-                                    <p className="text-xs text-slate-500 truncate">{item.secondary}</p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{item.secondary}</p>
                                 )}
                             </div>
                             {item.action}

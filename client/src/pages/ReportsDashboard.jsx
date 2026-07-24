@@ -269,8 +269,8 @@ export default function ReportsDashboard() {
         <div className="space-y-10 p-6" style={{ paddingBottom: '40px' }}>
             {/* Header */}
             <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold flex items-center gap-3 text-charcoal">
-                    <div className="p-2 bg-orange-50 rounded-lg">
+                <h1 className="text-2xl font-bold flex items-center gap-3 text-charcoal dark:text-slate-100">
+                    <div className="p-2 bg-orange-50 dark:bg-orange-900/30 rounded-lg">
                         <FileBarChart className="text-saffron" size={24} />
                     </div>
                     Reports

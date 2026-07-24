@@ -25,8 +25,8 @@ export default function BulkActions({
         delete: {
             label: 'Delete',
             icon: Trash2,
-            color: 'text-red-600',
-            bgColor: 'bg-red-50 hover:bg-red-100',
+            color: 'text-red-600 dark:text-red-300',
+            bgColor: 'bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50',
             onClick: async () => {
                 if (onAction) {
                     await onAction('delete', selectedItems);
@@ -36,8 +36,8 @@ export default function BulkActions({
         edit: {
             label: 'Edit',
             icon: Edit,
-            color: 'text-blue-600',
-            bgColor: 'bg-blue-50 hover:bg-blue-100',
+            color: 'text-blue-600 dark:text-blue-300',
+            bgColor: 'bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50',
             onClick: async () => {
                 if (onAction) {
                     await onAction('edit', selectedItems);
@@ -47,8 +47,8 @@ export default function BulkActions({
         export: {
             label: 'Export',
             icon: Download,
-            color: 'text-green-600',
-            bgColor: 'bg-green-50 hover:bg-green-100',
+            color: 'text-green-600 dark:text-green-300',
+            bgColor: 'bg-green-50 dark:bg-green-900/30 hover:bg-green-100 dark:hover:bg-green-900/50',
             onClick: async () => {
                 if (onAction) {
                     await onAction('export', selectedItems);
@@ -58,8 +58,8 @@ export default function BulkActions({
         copy: {
             label: 'Copy',
             icon: Copy,
-            color: 'text-slate-600',
-            bgColor: 'bg-slate-50 hover:bg-slate-100',
+            color: 'text-slate-600 dark:text-slate-400',
+            bgColor: 'bg-slate-50 dark:bg-slate-900/50 hover:bg-slate-100 dark:hover:bg-slate-700',
             onClick: async () => {
                 if (onAction) {
                     await onAction('copy', selectedItems);

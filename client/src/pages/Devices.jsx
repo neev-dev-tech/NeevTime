@@ -531,7 +531,7 @@ export default function Devices() {
                                     {showSyncAllMenu && (
                                         <>
                                             <div className="fixed inset-0 z-10" onClick={() => setShowSyncAllMenu(false)}></div>
-                                            <div className="absolute right-0 mt-2 w-72 bg-white border border-slate-100 shadow-xl rounded-xl z-20 overflow-hidden">
+                                            <div className="absolute right-0 mt-2 w-72 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-xl rounded-xl z-20 overflow-hidden">
                                                 <button
                                                     type="button"
                                                     onClick={(e) => {
@@ -539,7 +539,7 @@ export default function Devices() {
                                                         e.stopPropagation();
                                                         syncAllDevices('upload-users');
                                                     }}
-                                                    className="flex items-center gap-3 w-full text-left px-4 py-3 hover:bg-green-50 text-sm text-slate-grey hover:text-charcoal border-b border-slate-50"
+                                                    className="flex items-center gap-3 w-full text-left px-4 py-3 hover:bg-green-50 dark:hover:bg-slate-700 text-sm text-slate-grey dark:text-slate-400 hover:text-charcoal dark:hover:text-slate-100 border-b border-slate-50 dark:border-slate-700"
                                                 >
                                                     <Upload size={16} className="text-green-600" />
                                                     Push Users to All Devices
@@ -551,7 +551,7 @@ export default function Devices() {
                                                         e.stopPropagation();
                                                         syncAllDevices('download-users');
                                                     }}
-                                                    className="flex items-center gap-3 w-full text-left px-4 py-3 hover:bg-orange-50 text-sm text-slate-grey hover:text-charcoal border-b border-slate-50"
+                                                    className="flex items-center gap-3 w-full text-left px-4 py-3 hover:bg-orange-50 dark:hover:bg-slate-700 text-sm text-slate-grey dark:text-slate-400 hover:text-charcoal dark:hover:text-slate-100 border-b border-slate-50 dark:border-slate-700"
                                                 >
                                                     <Download size={16} className="text-orange-600" />
                                                     Pull Users from All Devices
@@ -563,7 +563,7 @@ export default function Devices() {
                                                         e.stopPropagation();
                                                         syncAllDevices('upload-biometrics');
                                                     }}
-                                                    className="flex items-center gap-3 w-full text-left px-4 py-3 hover:bg-purple-50 text-sm text-slate-grey hover:text-charcoal border-b border-slate-50"
+                                                    className="flex items-center gap-3 w-full text-left px-4 py-3 hover:bg-purple-50 dark:hover:bg-slate-700 text-sm text-slate-grey dark:text-slate-400 hover:text-charcoal dark:hover:text-slate-100 border-b border-slate-50 dark:border-slate-700"
                                                 >
                                                     <Fingerprint size={16} className="text-purple-600" />
                                                     Push Biometrics to All Devices
@@ -575,7 +575,7 @@ export default function Devices() {
                                                         e.stopPropagation();
                                                         syncAllDevices('download-biometrics');
                                                     }}
-                                                    className="flex items-center gap-3 w-full text-left px-4 py-3 hover:bg-pink-50 text-sm text-slate-grey hover:text-charcoal border-b border-slate-50"
+                                                    className="flex items-center gap-3 w-full text-left px-4 py-3 hover:bg-pink-50 dark:hover:bg-slate-700 text-sm text-slate-grey dark:text-slate-400 hover:text-charcoal dark:hover:text-slate-100 border-b border-slate-50 dark:border-slate-700"
                                                 >
                                                     <Fingerprint size={16} className="text-pink-600" />
                                                     Pull Biometrics from All Devices
@@ -587,7 +587,7 @@ export default function Devices() {
                                                         e.stopPropagation();
                                                         syncAllDevices('download-logs');
                                                     }}
-                                                    className="flex items-center gap-3 w-full text-left px-4 py-3 hover:bg-orange-50 text-sm text-slate-grey hover:text-charcoal"
+                                                    className="flex items-center gap-3 w-full text-left px-4 py-3 hover:bg-orange-50 dark:hover:bg-slate-700 text-sm text-slate-grey dark:text-slate-400 hover:text-charcoal dark:hover:text-slate-100"
                                                 >
                                                     <Clock size={16} className="text-orange-600" />
                                                     Pull Logs from All Devices
@@ -614,8 +614,8 @@ export default function Devices() {
                                     {showTransferMenu && (
                                         <>
                                             <div className="fixed inset-0 z-10" onClick={() => setShowTransferMenu(false)}></div>
-                                            <div className="absolute right-0 mt-2 w-64 bg-white border border-slate-100 shadow-xl rounded-xl z-20 overflow-hidden">
-                                                <div className="px-4 py-2 bg-slate-50 text-xs font-semibold text-slate-500 uppercase">Selected: {selectedDevices.length} device(s)</div>
+                                            <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-xl rounded-xl z-20 overflow-hidden">
+                                                <div className="px-4 py-2 bg-slate-50 dark:bg-slate-900/50 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Selected: {selectedDevices.length} device(s)</div>
                                                 {['download-users', 'download-logs', 'upload-users', 'reboot'].map(action => (
                                                     <button
                                                         key={action}
@@ -626,7 +626,7 @@ export default function Devices() {
                                                             initiateDataTransfer(action);
                                                             setShowTransferMenu(false);
                                                         }}
-                                                        className="block w-full text-left px-4 py-3 hover:bg-orange-50 text-sm text-slate-grey hover:text-charcoal capitalize border-b border-slate-50 last:border-0"
+                                                        className="block w-full text-left px-4 py-3 hover:bg-orange-50 dark:hover:bg-slate-700 text-sm text-slate-grey dark:text-slate-400 hover:text-charcoal dark:hover:text-slate-100 capitalize border-b border-slate-50 dark:border-slate-700 last:border-0"
                                                     >
                                                         {action.replace('-', ' ')}
                                                     </button>
@@ -673,8 +673,8 @@ export default function Devices() {
                                             <div className={`device-status-indicator ${device.status === 'online' ? 'online' : 'offline'}`}></div>
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <h3 className="font-bold text-lg text-slate-800 truncate">{device.device_name}</h3>
-                                            <p className="text-xs font-mono text-slate-500 tracking-wide">{device.serial_number}</p>
+                                            <h3 className="font-bold text-lg text-slate-800 dark:text-slate-100 truncate">{device.device_name}</h3>
+                                            <p className="text-xs font-mono text-slate-500 dark:text-slate-400 tracking-wide">{device.serial_number}</p>
                                         </div>
                                     </div>
 
@@ -840,7 +840,7 @@ export default function Devices() {
 
             default:
                 return (
-                    <div className="flex flex-col items-center justify-center h-full text-slate-grey">
+                    <div className="flex flex-col items-center justify-center h-full text-slate-grey dark:text-slate-400">
                         <Database size={48} className="mb-4 text-slate-200" />
                         <p>Selected View: {activeView}</p>
                     </div>
@@ -894,7 +894,7 @@ export default function Devices() {
                         borderColor: '#FED7AA'
                     }}>
                         <h3 className="font-semibold" style={{ color: '#1E293B', fontWeight: 600 }}>{confirmation.title}</h3>
-                        <p className="my-2 text-sm text-slate-500">{confirmation.message}</p>
+                        <p className="my-2 text-sm text-slate-500 dark:text-slate-400">{confirmation.message}</p>
                         <div className="flex justify-center gap-2 mt-4">
                             <Button variant="secondary" onClick={() => setConfirmation({ show: false, action: null })}>Cancel</Button>
                             <Button variant={confirmation.action === 'delete' ? 'dangerSolid' : 'primary'} onClick={processDataTransfer}>Confirm</Button>

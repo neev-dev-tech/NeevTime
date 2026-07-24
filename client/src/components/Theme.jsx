@@ -101,7 +101,11 @@ const ThemeContext = createContext(null);
  */
 export function ThemeProvider({ children }) {
     const [isDarkMode, setIsDarkMode] = useState(() => {
-        // FORCE LIGHT MODE: Ignore localStorage to fix UI contrast issues
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem('theme-dark-mode');
+            if (saved !== null) return JSON.parse(saved);
+            return window.matchMedia?.('(prefers-color-scheme: dark)')?.matches || false;
+        }
         return false;
     });
 

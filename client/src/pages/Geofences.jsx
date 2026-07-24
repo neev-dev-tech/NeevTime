@@ -135,13 +135,13 @@ const Geofences = () => {
             />
 
             <div className="card-base p-0 flex flex-col flex-1 overflow-hidden">
-                <div className="p-4 border-b border-slate-100 flex gap-4 bg-slate-50/50">
+                <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex gap-4 bg-slate-50/50 dark:bg-slate-900/50">
                     <div className="relative flex-1">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={20} />
                         <input
                             type="text"
                             placeholder="Search locations..."
-                            className="input-base pl-10 bg-white"
+                            className="input-base pl-10 bg-white dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -150,29 +150,29 @@ const Geofences = () => {
 
                 <div className="overflow-auto flex-1">
                     <table className="w-full text-left">
-                        <thead className="bg-slate-50 sticky top-0">
+                        <thead className="bg-slate-50 dark:bg-slate-900/50 sticky top-0">
                             <tr>
-                                <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase">Name</th>
-                                <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase">Coordinates</th>
-                                <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase">Radius</th>
-                                <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase">Address</th>
-                                <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase text-right">Actions</th>
+                                <th className="px-6 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Name</th>
+                                <th className="px-6 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Coordinates</th>
+                                <th className="px-6 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Radius</th>
+                                <th className="px-6 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Address</th>
+                                <th className="px-6 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100">
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                             {loading ? (
-                                <tr><td colSpan="5" className="p-8 text-center text-slate-500">Loading locations...</td></tr>
+                                <tr><td colSpan="5" className="p-8 text-center text-slate-500 dark:text-slate-400">Loading locations...</td></tr>
                             ) : filteredGeofences.length === 0 ? (
-                                <tr><td colSpan="5" className="p-8 text-center text-slate-500">No locations found</td></tr>
+                                <tr><td colSpan="5" className="p-8 text-center text-slate-500 dark:text-slate-400">No locations found</td></tr>
                             ) : (
                                 filteredGeofences.map(fence => (
-                                    <tr key={fence.id} className="hover:bg-slate-50 bg-white">
-                                        <td className="px-6 py-4 font-medium text-slate-900">{fence.name}</td>
-                                        <td className="px-6 py-4 text-slate-600 font-mono text-sm">
+                                    <tr key={fence.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 bg-white dark:bg-slate-800">
+                                        <td className="px-6 py-4 font-medium text-slate-900 dark:text-slate-100">{fence.name}</td>
+                                        <td className="px-6 py-4 text-slate-600 dark:text-slate-400 font-mono text-sm">
                                             {Number(fence.latitude).toFixed(5)}, {Number(fence.longitude).toFixed(5)}
                                         </td>
-                                        <td className="px-6 py-4 text-slate-600">{fence.radius_meters}m</td>
-                                        <td className="px-6 py-4 text-slate-600">{fence.address || '-'}</td>
+                                        <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{fence.radius_meters}m</td>
+                                        <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{fence.address || '-'}</td>
                                         <td className="px-6 py-4 text-right space-x-2">
                                             <Button variant="ghost" size="sm" icon={Edit2} aria-label="Edit geofence" onClick={() => openModal(fence)} />
                                             <Button variant="danger" size="sm" icon={Trash2} aria-label="Delete geofence" onClick={() => handleDelete(fence.id)} />
@@ -188,22 +188,22 @@ const Geofences = () => {
             {/* Modal */}
             {showModal && (
                 <div className="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-md border border-white/50 animate-fade-in" onClick={e => e.stopPropagation()}>
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-md border border-white/50 dark:border-slate-700 animate-fade-in" onClick={e => e.stopPropagation()}>
                         <div className="p-6">
-                            <h3 className="text-lg font-bold text-slate-900 mb-4">{editingGeofence ? 'Edit Location' : 'Add Location'}</h3>
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4">{editingGeofence ? 'Edit Location' : 'Add Location'}</h3>
 
                             {error && (
-                                <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm flex items-center gap-2">
+                                <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-300 rounded-lg text-sm flex items-center gap-2">
                                     <AlertCircle size={16} /> {error}
                                 </div>
                             )}
 
                             <form onSubmit={handleSubmit} className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Location Name</label>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Location Name</label>
                                     <input
                                         required
-                                        className="input-base"
+                                        className="input-base dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                         placeholder="e.g. Head Office"
                                         value={form.name}
                                         onChange={e => setForm({ ...form, name: e.target.value })}
@@ -212,22 +212,22 @@ const Geofences = () => {
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">Latitude</label>
+                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Latitude</label>
                                         <input
                                             required
                                             type="number" step="any"
-                                            className="input-base"
+                                            className="input-base dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                             placeholder="12.9716"
                                             value={form.latitude}
                                             onChange={e => setForm({ ...form, latitude: e.target.value })}
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">Longitude</label>
+                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Longitude</label>
                                         <input
                                             required
                                             type="number" step="any"
-                                            className="input-base"
+                                            className="input-base dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                             placeholder="77.5946"
                                             value={form.longitude}
                                             onChange={e => setForm({ ...form, longitude: e.target.value })}
@@ -241,10 +241,10 @@ const Geofences = () => {
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">Radius (Meters)</label>
+                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Radius (Meters)</label>
                                         <input
                                             type="number"
-                                            className="input-base"
+                                            className="input-base dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                             value={form.radius_meters}
                                             onChange={e => setForm({ ...form, radius_meters: e.target.value })}
                                         />
@@ -252,16 +252,16 @@ const Geofences = () => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Address (Optional)</label>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Address (Optional)</label>
                                     <textarea
-                                        className="input-base h-20 resize-none"
+                                        className="input-base h-20 resize-none dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                         placeholder="Full address..."
                                         value={form.address}
                                         onChange={e => setForm({ ...form, address: e.target.value })}
                                     />
                                 </div>
 
-                                <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
+                                <div className="flex justify-end gap-3 mt-6 pt-4 border-t dark:border-slate-700">
                                     <Button variant="secondary" onClick={closeModal}>Cancel</Button>
                                     <Button type="submit">{editingGeofence ? 'Update' : 'Create'}</Button>
                                 </div>

@@ -241,12 +241,12 @@ export default function Resign() {
     return (
         <div className="flex flex-col h-[calc(100vh-120px)] card-base overflow-hidden relative">
             {/* Toolbar */}
-            <div className="flex items-center gap-3 p-4 border-b border-slate-100 bg-white text-sm flex-wrap">
+            <div className="flex items-center gap-3 p-4 border-b border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm flex-wrap">
                 <Button variant="successSolid" icon={Plus} onClick={() => { resetForm(); setShowModal(true); }}>
                     Add Resignation
                 </Button>
 
-                <div className="h-8 w-px bg-slate-200 mx-2 hidden md:block"></div>
+                <div className="h-8 w-px bg-slate-200 dark:bg-slate-700 mx-2 hidden md:block"></div>
 
                 <Button variant="danger" icon={Trash2} onClick={handleDelete}>
                     Delete
@@ -284,56 +284,56 @@ export default function Resign() {
                         onChange={e => setSearchQuery(e.target.value)}
                         className="input-base pl-10 py-2 text-sm"
                     />
-                    <Search size={16} className="absolute left-3.5 top-2.5 text-slate-grey" />
+                    <Search size={16} className="absolute left-3.5 top-2.5 text-slate-grey dark:text-slate-400" />
                 </div>
             </div>
 
             {/* Table */}
-            <div className="flex-1 overflow-auto bg-white custom-scrollbar">
+            <div className="flex-1 overflow-auto bg-white dark:bg-slate-800 custom-scrollbar">
                 <table className="w-full text-left text-sm border-collapse">
-                    <thead className="bg-orange-50/50 text-charcoal font-semibold sticky top-0 z-10 border-b border-slate-100">
+                    <thead className="bg-orange-50/50 dark:bg-slate-900/50 text-charcoal dark:text-slate-100 font-semibold sticky top-0 z-10 border-b border-slate-100 dark:border-slate-700">
                         <tr>
                             <th className="p-4 w-12 text-center">
                                 <input
                                     type="checkbox"
-                                    className="rounded border-slate-300 text-saffron focus:ring-saffron"
+                                    className="rounded border-slate-300 dark:border-slate-700 text-saffron focus:ring-saffron"
                                     checked={selectedIds.length === filteredItems.length && filteredItems.length > 0}
                                     onChange={toggleSelectAll}
                                 />
                             </th>
-                            <th className="p-4 border-b border-slate-100">Employee Id</th>
-                            <th className="p-4 border-b border-slate-100">Full Name</th>
-                            <th className="p-4 border-b border-slate-100">Department</th>
-                            <th className="p-4 border-b border-slate-100">Position</th>
-                            <th className="p-4 border-b border-slate-100">Area Name</th>
-                            <th className="p-4 border-b border-slate-100">Resign Type</th>
+                            <th className="p-4 border-b border-slate-100 dark:border-slate-700">Employee Id</th>
+                            <th className="p-4 border-b border-slate-100 dark:border-slate-700">Full Name</th>
+                            <th className="p-4 border-b border-slate-100 dark:border-slate-700">Department</th>
+                            <th className="p-4 border-b border-slate-100 dark:border-slate-700">Position</th>
+                            <th className="p-4 border-b border-slate-100 dark:border-slate-700">Area Name</th>
+                            <th className="p-4 border-b border-slate-100 dark:border-slate-700">Resign Type</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-50">
+                    <tbody className="divide-y divide-slate-50 dark:divide-slate-700">
                         {loading ? (
-                            <tr><td colSpan={7} className="p-8 text-center text-slate-grey">Loading...</td></tr>
+                            <tr><td colSpan={7} className="p-8 text-center text-slate-grey dark:text-slate-400">Loading...</td></tr>
                         ) : paginatedItems.length === 0 ? (
-                            <tr><td colSpan={7} className="p-12 text-center text-slate-grey">No resignation records found</td></tr>
+                            <tr><td colSpan={7} className="p-12 text-center text-slate-grey dark:text-slate-400">No resignation records found</td></tr>
                         ) : (
                             paginatedItems.map(emp => (
-                                <tr key={emp.id} className="hover:bg-cream-50 transition-colors group">
+                                <tr key={emp.id} className="hover:bg-cream-50 dark:hover:bg-slate-700/50 transition-colors group">
                                     <td className="p-4 text-center">
                                         <input
                                             type="checkbox"
-                                            className="rounded border-slate-300 text-saffron focus:ring-saffron"
+                                            className="rounded border-slate-300 dark:border-slate-700 text-saffron focus:ring-saffron"
                                             checked={selectedIds.includes(emp.id)}
                                             onChange={() => toggleSelect(emp.id)}
                                         />
                                     </td>
                                     <td className="p-4 font-mono text-saffron font-medium">{emp.employee_code}</td>
-                                    <td className="p-4 font-bold text-charcoal">{emp.name} {emp.last_name || ''}</td>
-                                    <td className="p-4 text-slate-grey">{emp.department_name || '-'}</td>
-                                    <td className="p-4 text-slate-grey">{emp.position_name || emp.designation || '-'}</td>
-                                    <td className="p-4 text-slate-grey">{emp.area_name || '-'}</td>
+                                    <td className="p-4 font-bold text-charcoal dark:text-slate-100">{emp.name} {emp.last_name || ''}</td>
+                                    <td className="p-4 text-slate-grey dark:text-slate-400">{emp.department_name || '-'}</td>
+                                    <td className="p-4 text-slate-grey dark:text-slate-400">{emp.position_name || emp.designation || '-'}</td>
+                                    <td className="p-4 text-slate-grey dark:text-slate-400">{emp.area_name || '-'}</td>
                                     <td className="p-4">
-                                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${emp.resignation_type === 'Dismissed' ? 'bg-red-50 text-red-700 border border-red-200' :
-                                            emp.resignation_type === 'Transfer' ? 'bg-blue-50 text-blue-700 border border-blue-200' :
-                                                'bg-orange-50 text-orange-700 border border-orange-200'
+                                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${emp.resignation_type === 'Dismissed' ? 'bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800' :
+                                            emp.resignation_type === 'Transfer' ? 'bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800' :
+                                                'bg-orange-50 text-orange-700 border border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-800'
                                             }`}>
                                             {emp.resignation_type || 'Resigned'}
                                         </span>
@@ -347,19 +347,19 @@ export default function Resign() {
 
             {/* Pagination Component */}
             {/* Pagination Component */}
-            <div className="p-3 border-t border-slate-100 flex items-center justify-between text-sm text-slate-grey bg-slate-50/50">
+            <div className="p-3 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between text-sm text-slate-grey dark:text-slate-400 bg-slate-50/50 dark:bg-slate-900/50">
                 {/* Left Side: Total Records */}
                 <div className="flex items-center gap-4">
-                    <span className="text-xs font-medium text-slate-grey bg-white border border-slate-200 px-3 py-1 rounded-full shadow-sm">
-                        Total Records: <span className="text-charcoal font-bold ml-1">{filteredItems.length}</span>
+                    <span className="text-xs font-medium text-slate-grey dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-1 rounded-full shadow-sm">
+                        Total Records: <span className="text-charcoal dark:text-slate-100 font-bold ml-1">{filteredItems.length}</span>
                     </span>
                 </div>
 
                 {/* Right Side: Selected Count */}
                 <div className="flex items-center gap-4">
                     {selectedIds.length > 0 && (
-                        <span className="text-xs font-medium text-slate-grey bg-white border border-slate-200 px-3 py-1 rounded-full shadow-sm">
-                            Selected: <span className="text-charcoal font-bold ml-1">{selectedIds.length}</span>
+                        <span className="text-xs font-medium text-slate-grey dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-1 rounded-full shadow-sm">
+                            Selected: <span className="text-charcoal dark:text-slate-100 font-bold ml-1">{selectedIds.length}</span>
                         </span>
                     )}
                 </div>
@@ -368,14 +368,14 @@ export default function Resign() {
             {/* Resignation Modal */}
             {showModal && (
                 <div className="fixed inset-0 bg-charcoal/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg border border-white/50 overflow-hidden">
-                        <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50/50">
-                            <h3 className="font-bold text-lg text-charcoal">Add Resignation</h3>
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-lg border border-white/50 dark:border-slate-700 overflow-hidden">
+                        <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50">
+                            <h3 className="font-bold text-lg text-charcoal dark:text-slate-100">Add Resignation</h3>
                             <Button variant="ghost" size="sm" icon={X} iconSize={20} aria-label="Close" onClick={() => setShowModal(false)} />
                         </div>
                         <form onSubmit={handleResignSubmit} className="p-6 space-y-4">
                             <div className="flex items-center gap-3">
-                                <label className="w-40 text-right text-slate-grey text-sm font-medium">Employee<span className="text-red-500">*</span>:</label>
+                                <label className="w-40 text-right text-slate-grey dark:text-slate-400 text-sm font-medium">Employee<span className="text-red-500 dark:text-red-400">*</span>:</label>
                                 <select
                                     value={formData.selectedEmployee}
                                     onChange={e => setFormData({ ...formData, selectedEmployee: e.target.value })}
@@ -389,7 +389,7 @@ export default function Resign() {
                                 </select>
                             </div>
                             <div className="flex items-center gap-3">
-                                <label className="w-40 text-right text-slate-grey text-sm font-medium">Resignation Date<span className="text-red-500">*</span>:</label>
+                                <label className="w-40 text-right text-slate-grey dark:text-slate-400 text-sm font-medium">Resignation Date<span className="text-red-500 dark:text-red-400">*</span>:</label>
                                 <input
                                     type="date"
                                     value={formData.resignationDate}
@@ -399,7 +399,7 @@ export default function Resign() {
                                 />
                             </div>
                             <div className="flex items-center gap-3">
-                                <label className="w-40 text-right text-slate-grey text-sm font-medium">Resignation Type<span className="text-red-500">*</span>:</label>
+                                <label className="w-40 text-right text-slate-grey dark:text-slate-400 text-sm font-medium">Resignation Type<span className="text-red-500 dark:text-red-400">*</span>:</label>
                                 <select
                                     value={formData.resignationType}
                                     onChange={e => setFormData({ ...formData, resignationType: e.target.value })}
@@ -412,7 +412,7 @@ export default function Resign() {
                                 </select>
                             </div>
                             <div className="flex items-center gap-3">
-                                <label className="w-40 text-right text-slate-grey text-sm font-medium">Report End Date<span className="text-red-500">*</span>:</label>
+                                <label className="w-40 text-right text-slate-grey dark:text-slate-400 text-sm font-medium">Report End Date<span className="text-red-500 dark:text-red-400">*</span>:</label>
                                 <input
                                     type="date"
                                     value={formData.reportEndDate}
@@ -422,7 +422,7 @@ export default function Resign() {
                                 />
                             </div>
                             <div className="flex items-center gap-3">
-                                <label className="w-40 text-right text-slate-grey text-sm font-medium">Attendance<span className="text-red-500">*</span>:</label>
+                                <label className="w-40 text-right text-slate-grey dark:text-slate-400 text-sm font-medium">Attendance<span className="text-red-500 dark:text-red-400">*</span>:</label>
                                 <select
                                     value={formData.attendanceOption}
                                     onChange={e => setFormData({ ...formData, attendanceOption: e.target.value })}
@@ -435,7 +435,7 @@ export default function Resign() {
                                 </select>
                             </div>
                             <div className="flex items-start gap-3">
-                                <label className="w-40 text-right text-slate-grey text-sm font-medium pt-2">Resign Reason:</label>
+                                <label className="w-40 text-right text-slate-grey dark:text-slate-400 text-sm font-medium pt-2">Resign Reason:</label>
                                 <textarea
                                     value={formData.reason}
                                     onChange={e => setFormData({ ...formData, reason: e.target.value })}
@@ -444,7 +444,7 @@ export default function Resign() {
                                     placeholder="Optional reason for resignation..."
                                 />
                             </div>
-                            <div className="flex justify-end gap-3 pt-4 border-t border-slate-50">
+                            <div className="flex justify-end gap-3 pt-4 border-t border-slate-50 dark:border-slate-700">
                                 <Button variant="secondary" onClick={() => setShowModal(false)}>
                                     Cancel
                                 </Button>
@@ -460,15 +460,15 @@ export default function Resign() {
             {/* General Confirmation Modal */}
             {confirmModal.show && (
                 <div className="fixed inset-0 bg-charcoal/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm border border-white/50 text-center p-6">
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-sm border border-white/50 dark:border-slate-700 text-center p-6">
                         <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 
-                            ${confirmModal.type === 'danger' ? 'bg-red-100 text-red-500' :
-                                confirmModal.type === 'warning' ? 'bg-yellow-100 text-yellow-600' : 'bg-orange-100 text-orange-600'}`}>
+                            ${confirmModal.type === 'danger' ? 'bg-red-100 text-red-500 dark:bg-red-900/30 dark:text-red-400' :
+                                confirmModal.type === 'warning' ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400' : 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400'}`}>
                             {confirmModal.type === 'danger' ? <Trash2 size={24} /> :
                                 confirmModal.type === 'warning' ? <BellOff size={24} /> : <RotateCcw size={24} />}
                         </div>
-                        <h3 className="text-lg font-bold text-charcoal mb-2">{confirmModal.title}</h3>
-                        <p className="text-slate-grey mb-6">{confirmModal.message}</p>
+                        <h3 className="text-lg font-bold text-charcoal dark:text-slate-100 mb-2">{confirmModal.title}</h3>
+                        <p className="text-slate-grey dark:text-slate-400 mb-6">{confirmModal.message}</p>
                         <div className="flex justify-center gap-3">
                             <Button variant="secondary" onClick={closeConfirmModal}>
                                 Cancel

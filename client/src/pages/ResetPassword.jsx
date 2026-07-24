@@ -36,9 +36,9 @@ export default function ResetPassword() {
 
     if (!uid || !token) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+            <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 p-4">
                 <div className="text-center">
-                    <p className="text-slate-600 mb-3">Invalid reset link.</p>
+                    <p className="text-slate-600 dark:text-slate-400 mb-3">Invalid reset link.</p>
                     <Link to="/forgot-password" className="text-orange-600 font-semibold hover:underline">Request a new one</Link>
                 </div>
             </div>
@@ -46,29 +46,29 @@ export default function ResetPassword() {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 via-white to-amber-50 p-4">
-            <div className="w-full max-w-sm bg-white rounded-2xl shadow-xl border border-orange-100 p-8">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 via-white to-amber-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 p-4">
+            <div className="w-full max-w-sm bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-orange-100 dark:border-slate-700 p-8">
                 <div className="flex flex-col items-center mb-6">
-                    <div className="p-3 bg-orange-100 rounded-2xl text-orange-600 mb-3">
+                    <div className="p-3 bg-orange-100 dark:bg-orange-900/30 rounded-2xl text-orange-600 dark:text-orange-300 mb-3">
                         <LockKeyhole size={28} />
                     </div>
-                    <h1 className="text-xl font-bold text-slate-800">Set New Password</h1>
+                    <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">Set New Password</h1>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">New Password</label>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">New Password</label>
                         <input type="password" value={password} onChange={e => setPassword(e.target.value)} minLength={6}
-                            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400 outline-none" required />
+                            className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400 outline-none" required />
                     </div>
                     <div>
-                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Confirm Password</label>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Confirm Password</label>
                         <input type="password" value={confirm} onChange={e => setConfirm(e.target.value)} minLength={6}
-                            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400 outline-none" required />
+                            className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400 outline-none" required />
                     </div>
 
                     {message && (
-                        <div className={`text-sm rounded-lg px-3 py-2 border ${message.type === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'}`}>
+                        <div className={`text-sm rounded-lg px-3 py-2 border ${message.type === 'success' ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' : 'bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800'}`}>
                             {message.text}
                         </div>
                     )}

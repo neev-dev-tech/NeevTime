@@ -119,7 +119,7 @@ export default function AddEmployeeModal({
                         <h3 className="font-semibold text-xl" style={{ color: '#1E293B', fontWeight: 600 }}>
                             Add Employee
                         </h3>
-                        <p className="text-sm text-slate-500 mt-0.5">
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
                             Fill in the details to create a new employee record
                         </p>
                     </div>
@@ -134,11 +134,11 @@ export default function AddEmployeeModal({
                 >
                     {/* Personal Details Section */}
                     <div className="mb-8">
-                        <div className="flex items-center gap-2 pb-3 mb-6 border-b border-slate-100">
-                            <div className="p-2 bg-orange-50 rounded-lg">
+                        <div className="flex items-center gap-2 pb-3 mb-6 border-b border-slate-100 dark:border-slate-700">
+                            <div className="p-2 bg-orange-50 dark:bg-orange-900/30 rounded-lg">
                                 <User size={18} className="text-orange-500" />
                             </div>
-                            <span className="text-sm font-bold text-slate-700 uppercase tracking-wider">
+                            <span className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                                 Personal Details
                             </span>
                         </div>
@@ -204,11 +204,11 @@ export default function AddEmployeeModal({
 
                     {/* Work Details Section */}
                     <div className="mb-8">
-                        <div className="flex items-center gap-2 pb-3 mb-6 border-b border-slate-100">
-                            <div className="p-2 bg-blue-50 rounded-lg">
+                        <div className="flex items-center gap-2 pb-3 mb-6 border-b border-slate-100 dark:border-slate-700">
+                            <div className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
                                 <Briefcase size={18} className="text-blue-500" />
                             </div>
-                            <span className="text-sm font-bold text-slate-700 uppercase tracking-wider">
+                            <span className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                                 Work Details
                             </span>
                         </div>
@@ -267,11 +267,11 @@ export default function AddEmployeeModal({
 
                     {/* System Access Section */}
                     <div>
-                        <div className="flex items-center gap-2 pb-3 mb-6 border-b border-slate-100">
-                            <div className="p-2 bg-purple-50 rounded-lg">
+                        <div className="flex items-center gap-2 pb-3 mb-6 border-b border-slate-100 dark:border-slate-700">
+                            <div className="p-2 bg-purple-50 dark:bg-purple-900/30 rounded-lg">
                                 <CreditCard size={18} className="text-purple-500" />
                             </div>
-                            <span className="text-sm font-bold text-slate-700 uppercase tracking-wider">
+                            <span className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                                 System & Device
                             </span>
                         </div>
@@ -314,7 +314,7 @@ export default function AddEmployeeModal({
                         borderColor: '#E5E7EB'
                     }}
                 >
-                    <div className="text-sm text-slate-500">
+                    <div className="text-sm text-slate-500 dark:text-slate-400">
                         {!isValid && touched.employee_code && (
                             <span className="text-red-500">
                                 Please fix the validation errors above

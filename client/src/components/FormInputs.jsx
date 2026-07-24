@@ -48,7 +48,7 @@ export const FormInput = ({
     return (
         <div className={`form-field ${className}`}>
             {label && (
-                <label className="block text-sm font-medium text-slate-600 mb-1.5">
+                <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1.5">
                     {label}
                     {required && <span className="text-red-500 ml-1">*</span>}
                 </label>
@@ -69,18 +69,18 @@ export const FormInput = ({
                     disabled={disabled}
                     maxLength={maxLength}
                     className={`
-                        w-full border rounded-[10px] px-4 py-2.5 text-sm
+                        w-full border rounded-[10px] px-4 py-2.5 text-sm dark:text-slate-100
                         transition-all duration-200 ease-in-out
                         placeholder:text-slate-400
                         ${prefix ? 'pl-10' : ''}
                         ${suffix || isPassword ? 'pr-10' : ''}
                         ${hasError
-                            ? 'border-red-400 bg-red-50/50 focus:border-red-500 focus:ring-2 focus:ring-red-200'
+                            ? 'border-red-400 bg-red-50/50 dark:bg-red-900/20 focus:border-red-500 focus:ring-2 focus:ring-red-200'
                             : isValid
-                                ? 'border-green-400 bg-green-50/30 focus:border-green-500 focus:ring-2 focus:ring-green-200'
-                                : 'border-slate-200 bg-white focus:border-orange-400 focus:ring-2 focus:ring-orange-100'
+                                ? 'border-green-400 bg-green-50/30 dark:bg-green-900/20 focus:border-green-500 focus:ring-2 focus:ring-green-200'
+                                : 'border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 focus:border-orange-400 focus:ring-2 focus:ring-orange-100'
                         }
-                        ${disabled ? 'bg-slate-100 cursor-not-allowed opacity-60' : ''}
+                        ${disabled ? 'bg-slate-100 dark:bg-slate-700 cursor-not-allowed opacity-60' : ''}
                         focus:outline-none
                         ${inputClassName}
                     `}
@@ -91,7 +91,7 @@ export const FormInput = ({
                     <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
                     >
                         {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
@@ -160,7 +160,7 @@ export const FormSelect = ({
     return (
         <div className={`form-field ${className}`}>
             {label && (
-                <label className="block text-sm font-medium text-slate-600 mb-1.5">
+                <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1.5">
                     {label}
                     {required && <span className="text-red-500 ml-1">*</span>}
                 </label>
@@ -173,15 +173,15 @@ export const FormSelect = ({
                     onBlur={onBlur}
                     disabled={disabled}
                     className={`
-                        w-full border rounded-[10px] px-4 py-2.5 text-sm appearance-none
+                        w-full border rounded-[10px] px-4 py-2.5 text-sm dark:text-slate-100 appearance-none
                         transition-all duration-200 ease-in-out
                         ${hasError
-                            ? 'border-red-400 bg-red-50/50 focus:border-red-500'
+                            ? 'border-red-400 bg-red-50/50 dark:bg-red-900/20 focus:border-red-500'
                             : isValid
-                                ? 'border-green-400 bg-green-50/30 focus:border-green-500'
-                                : 'border-slate-200 bg-white focus:border-orange-400'
+                                ? 'border-green-400 bg-green-50/30 dark:bg-green-900/20 focus:border-green-500'
+                                : 'border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 focus:border-orange-400'
                         }
-                        ${disabled ? 'bg-slate-100 cursor-not-allowed opacity-60' : ''}
+                        ${disabled ? 'bg-slate-100 dark:bg-slate-700 cursor-not-allowed opacity-60' : ''}
                         focus:outline-none focus:ring-2 
                         ${hasError ? 'focus:ring-red-200' : 'focus:ring-orange-100'}
                     `}
@@ -239,7 +239,7 @@ export const FormTextarea = ({
     return (
         <div className={`form-field ${className}`}>
             {label && (
-                <label className="block text-sm font-medium text-slate-600 mb-1.5">
+                <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1.5">
                     {label}
                     {required && <span className="text-red-500 ml-1">*</span>}
                 </label>
@@ -254,16 +254,16 @@ export const FormTextarea = ({
                 maxLength={maxLength}
                 rows={rows}
                 className={`
-                    w-full border rounded-[10px] px-4 py-2.5 text-sm resize-none
+                    w-full border rounded-[10px] px-4 py-2.5 text-sm dark:text-slate-100 resize-none
                     transition-all duration-200 ease-in-out
                     placeholder:text-slate-400
                     ${hasError
-                        ? 'border-red-400 bg-red-50/50 focus:border-red-500'
+                        ? 'border-red-400 bg-red-50/50 dark:bg-red-900/20 focus:border-red-500'
                         : isValid
-                            ? 'border-green-400 bg-green-50/30 focus:border-green-500'
-                            : 'border-slate-200 bg-white focus:border-orange-400'
+                            ? 'border-green-400 bg-green-50/30 dark:bg-green-900/20 focus:border-green-500'
+                            : 'border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 focus:border-orange-400'
                     }
-                    ${disabled ? 'bg-slate-100 cursor-not-allowed opacity-60' : ''}
+                    ${disabled ? 'bg-slate-100 dark:bg-slate-700 cursor-not-allowed opacity-60' : ''}
                     focus:outline-none focus:ring-2 
                     ${hasError ? 'focus:ring-red-200' : 'focus:ring-orange-100'}
                 `}
@@ -309,7 +309,7 @@ export const FormCheckbox = ({
                     className="sr-only peer"
                     {...props}
                 />
-                <div className="w-5 h-5 border-2 border-slate-300 rounded-md transition-all duration-200
+                <div className="w-5 h-5 border-2 border-slate-300 dark:border-slate-600 rounded-md transition-all duration-200
                     peer-checked:bg-orange-500 peer-checked:border-orange-500
                     peer-focus:ring-2 peer-focus:ring-orange-200
                     group-hover:border-orange-400
@@ -325,7 +325,7 @@ export const FormCheckbox = ({
                     </svg>
                 </div>
             </div>
-            {label && <span className="text-sm text-slate-700">{label}</span>}
+            {label && <span className="text-sm text-slate-700 dark:text-slate-300">{label}</span>}
         </label>
     );
 };
@@ -346,7 +346,7 @@ export const FormToggle = ({
     return (
         <div className={`flex items-center justify-between ${className}`}>
             <div>
-                {label && <span className="text-sm font-medium text-slate-700">{label}</span>}
+                {label && <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{label}</span>}
                 {description && <p className="text-xs text-slate-400 mt-0.5">{description}</p>}
             </div>
             <label className={`relative inline-flex items-center cursor-pointer ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`}>
@@ -359,7 +359,7 @@ export const FormToggle = ({
                     className="sr-only peer"
                     {...props}
                 />
-                <div className="w-11 h-6 bg-slate-200 rounded-full peer 
+                <div className="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer 
                     peer-checked:bg-green-500
                     peer-focus:ring-2 peer-focus:ring-green-200
                     transition-all duration-300
@@ -394,7 +394,7 @@ export const FormRadioGroup = ({
     return (
         <div className={`form-field ${className}`}>
             {label && (
-                <label className="block text-sm font-medium text-slate-600 mb-2">
+                <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">
                     {label}
                     {required && <span className="text-red-500 ml-1">*</span>}
                 </label>
@@ -412,9 +412,9 @@ export const FormRadioGroup = ({
                             checked={value === (opt.value ?? opt)}
                             onChange={onChange}
                             disabled={disabled}
-                            className="w-4 h-4 text-orange-500 border-slate-300 focus:ring-orange-400"
+                            className="w-4 h-4 text-orange-500 border-slate-300 dark:border-slate-600 focus:ring-orange-400"
                         />
-                        <span className="text-sm text-slate-700">{opt.label ?? opt}</span>
+                        <span className="text-sm text-slate-700 dark:text-slate-300">{opt.label ?? opt}</span>
                     </label>
                 ))}
             </div>

@@ -2417,3 +2417,112 @@ body {
 .stagger-8 {
   animation-delay: 400ms;
 }
+/* ==========================================================================
+   DARK MODE — overrides for shared component classes
+   ========================================================================== */
+
+.dark .card-base,
+.dark .card-tier-1,
+.dark .card-tier-2,
+.dark .card-premium {
+  background: #1E293B;
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+.dark .input-base,
+.dark .input-premium {
+  background: #0F172A;
+  border-color: #334155;
+  color: #E2E8F0;
+}
+
+.dark .input-base:focus,
+.dark .input-premium:focus {
+  background: #0F172A;
+  border-color: #F97316;
+}
+
+.dark .input-base::placeholder,
+.dark .input-premium::placeholder {
+  color: #64748B;
+}
+
+.dark .table-premium th {
+  background: #0F172A;
+  border-bottom-color: #334155;
+  color: #94A3B8;
+}
+
+.dark .table-premium td {
+  border-bottom-color: #1E293B;
+  color: #CBD5E1;
+}
+
+.dark .table-premium tbody tr:hover {
+  background: rgba(51, 65, 85, 0.4);
+}
+
+.dark .table-premium-wrapper {
+  scrollbar-color: #475569 #1E293B;
+}
+
+.dark .table-empty-state {
+  background: #1E293B;
+}
+
+.dark .table-empty-title {
+  color: #E2E8F0;
+}
+
+.dark .table-empty-description {
+  color: #94A3B8;
+}
+
+.dark .modal-backdrop {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+/* Inline-style light surfaces (legacy modals/tiles set backgrounds via style=)
+   — attribute-match the serialized rgb values and override in dark mode */
+.dark [style*="rgb(255, 251, 245)"] {
+  background: #1E293B !important;
+  border-color: #334155 !important;
+}
+.dark [style*="background-color: rgb(248, 250, 252)"] {
+  background-color: #0F172A !important;
+}
+.dark [style*="background-color: rgb(255, 255, 255)"],
+.dark [style*="background: rgb(255, 255, 255)"] {
+  background-color: #1E293B !important;
+}
+
+.dark .table-header {
+  background: #0F172A;
+  border-color: #334155;
+  color: #94A3B8;
+}
+
+.dark .table-row {
+  background: #1E293B;
+  border-color: #334155;
+}
+
+.dark .table-row:nth-child(even) {
+  background: #24334A;
+}
+
+.dark .table-row:hover {
+  background: #334155;
+  border-color: #475569;
+  box-shadow: none;
+}
+
+.dark .badge-active {
+  background: rgba(16, 185, 129, 0.15);
+  color: #6EE7B7;
+}
+
+.dark .badge-inactive {
+  background: rgba(148, 163, 184, 0.15);
+  color: #94A3B8;
+}

@@ -41,7 +41,7 @@ export function EmptyState({
         <div className={`
             flex flex-col items-center justify-center text-center
             ${isCompact ? 'py-8 px-4' : 'py-16 px-6'}
-            ${isCard ? 'bg-white rounded-2xl border border-slate-100 shadow-sm' : ''}
+            ${isCard ? 'bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm' : ''}
             ${className}
         `}>
             {/* Illustration or Icon */}
@@ -66,7 +66,7 @@ export function EmptyState({
             {/* Title */}
             {title && (
                 <h3 className={`
-                    font-semibold text-slate-800
+                    font-semibold text-slate-800 dark:text-slate-100
                     ${isCompact ? 'text-base mb-1' : 'text-xl mb-2'}
                 `}>
                     {title}
@@ -76,7 +76,7 @@ export function EmptyState({
             {/* Description */}
             {description && (
                 <p className={`
-                    text-slate-500 max-w-md
+                    text-slate-500 dark:text-slate-400 max-w-md
                     ${isCompact ? 'text-sm mb-4' : 'text-base mb-6'}
                 `}>
                     {description}
@@ -103,8 +103,8 @@ export function EmptyState({
                         <button
                             onClick={onSecondary}
                             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl
-                                border border-slate-200 text-slate-600
-                                font-medium hover:bg-slate-50
+                                border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400
+                                font-medium hover:bg-slate-50 dark:hover:bg-slate-700/50
                                 transition-colors duration-200"
                         >
                             {secondaryLabel}
@@ -394,10 +394,10 @@ export function EmptyShifts({ onAdd, ...props }) {
 export function EmptyLoading({ message = 'Loading...', ...props }) {
     return (
         <div className="flex flex-col items-center justify-center py-16">
-            <div className="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center mb-4 animate-pulse">
+            <div className="w-16 h-16 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center mb-4 animate-pulse">
                 <div className="w-8 h-8 border-3 border-orange-400 border-t-transparent rounded-full animate-spin" />
             </div>
-            <p className="text-slate-500">{message}</p>
+            <p className="text-slate-500 dark:text-slate-400">{message}</p>
         </div>
     );
 }

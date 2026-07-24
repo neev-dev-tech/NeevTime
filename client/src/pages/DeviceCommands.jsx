@@ -104,11 +104,11 @@ export default function DeviceCommands() {
 
     const getCommandColor = (color) => {
         const colors = {
-            blue: 'bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-200',
-            green: 'bg-green-50 text-green-600 hover:bg-green-100 border-green-200',
-            amber: 'bg-amber-50 text-amber-600 hover:bg-amber-100 border-amber-200',
-            red: 'bg-red-50 text-red-600 hover:bg-red-100 border-red-200',
-            purple: 'bg-purple-50 text-purple-600 hover:bg-purple-100 border-purple-200'
+            blue: 'bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50 dark:border-blue-800',
+            green: 'bg-green-50 text-green-600 hover:bg-green-100 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-900/50 dark:border-green-800',
+            amber: 'bg-amber-50 text-amber-600 hover:bg-amber-100 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:hover:bg-amber-900/50 dark:border-amber-800',
+            red: 'bg-red-50 text-red-600 hover:bg-red-100 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50 dark:border-red-800',
+            purple: 'bg-purple-50 text-purple-600 hover:bg-purple-100 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:hover:bg-purple-900/50 dark:border-purple-800'
         };
         return colors[color] || colors.blue;
     };
@@ -172,9 +172,9 @@ export default function DeviceCommands() {
                     <div className="card-base p-4">
                         <h3 className="font-semibold mb-3">Select Device</h3>
                         {loading ? (
-                            <div className="text-center py-4 text-slate-500">Loading devices...</div>
+                            <div className="text-center py-4 text-slate-500 dark:text-slate-400">Loading devices...</div>
                         ) : devices.length === 0 ? (
-                            <div className="text-center py-4 text-slate-500">
+                            <div className="text-center py-4 text-slate-500 dark:text-slate-400">
                                 <WifiOff className="mx-auto mb-2 text-slate-300" size={32} />
                                 <p>No devices registered</p>
                                 <p className="text-xs mt-1">Add devices in Device Management</p>
@@ -187,7 +187,7 @@ export default function DeviceCommands() {
                                         onClick={() => setSelectedDevice(device)}
                                         className={`w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors ${selectedDevice?.serial_number === device.serial_number
                                             ? 'bg-orange-600 text-white'
-                                            : 'bg-slate-50 hover:bg-slate-100'
+                                            : 'bg-slate-50 dark:bg-slate-900/50 hover:bg-slate-100 dark:hover:bg-slate-700'
                                             }`}
                                     >
                                         <div className={`p-2 rounded-lg ${selectedDevice?.serial_number === device.serial_number
@@ -204,7 +204,7 @@ export default function DeviceCommands() {
                                                 <WifiOff size={18} className={
                                                     selectedDevice?.serial_number === device.serial_number
                                                         ? 'text-white'
-                                                        : 'text-slate-500'
+                                                        : 'text-slate-500 dark:text-slate-400'
                                                 } />
                                             )}
                                         </div>
@@ -214,7 +214,7 @@ export default function DeviceCommands() {
                                             </div>
                                             <div className={`text-xs truncate ${selectedDevice?.serial_number === device.serial_number
                                                 ? 'text-orange-200'
-                                                : 'text-slate-500'
+                                                : 'text-slate-500 dark:text-slate-400'
                                                 }`}>
                                                 {device.serial_number}
                                             </div>
@@ -228,17 +228,17 @@ export default function DeviceCommands() {
 
                         {/* Device Info */}
                         {selectedDevice && (
-                            <div className="mt-4 pt-4 border-t space-y-2 text-sm">
+                            <div className="mt-4 pt-4 border-t dark:border-slate-700 space-y-2 text-sm">
                                 <div className="flex justify-between">
-                                    <span className="text-slate-500">Serial:</span>
+                                    <span className="text-slate-500 dark:text-slate-400">Serial:</span>
                                     <span className="font-medium">{selectedDevice.serial_number}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-slate-500">IP:</span>
+                                    <span className="text-slate-500 dark:text-slate-400">IP:</span>
                                     <span className="font-medium">{selectedDevice.ip_address || 'N/A'}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-slate-500">Status:</span>
+                                    <span className="text-slate-500 dark:text-slate-400">Status:</span>
                                     <span className={`px-2 py-0.5 rounded text-xs ${selectedDevice.status === 'online'
                                         ? 'bg-green-100 text-green-800'
                                         : 'bg-slate-100 text-slate-800'
@@ -247,19 +247,19 @@ export default function DeviceCommands() {
                                     </span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-slate-500">Users:</span>
+                                    <span className="text-slate-500 dark:text-slate-400">Users:</span>
                                     <span className="font-medium">{selectedDevice.user_count || 0}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-slate-500">FP Count:</span>
+                                    <span className="text-slate-500 dark:text-slate-400">FP Count:</span>
                                     <span className="font-medium">{selectedDevice.fingerprint_count || 0}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-slate-500">Face Count:</span>
+                                    <span className="text-slate-500 dark:text-slate-400">Face Count:</span>
                                     <span className="font-medium">{selectedDevice.face_count || 0}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-slate-500">Transactions:</span>
+                                    <span className="text-slate-500 dark:text-slate-400">Transactions:</span>
                                     <span className="font-medium">{selectedDevice.transaction_count || 0}</span>
                                 </div>
                             </div>
@@ -291,9 +291,9 @@ export default function DeviceCommands() {
                     </div>
 
                     {/* Warning */}
-                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-start gap-3">
-                        <AlertTriangle className="text-amber-600 mt-0.5 flex-shrink-0" size={18} />
-                        <div className="text-sm text-amber-800">
+                    <div className="bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4 flex items-start gap-3">
+                        <AlertTriangle className="text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" size={18} />
+                        <div className="text-sm text-amber-800 dark:text-amber-200">
                             <strong>Warning:</strong> Commands like "Clear Logs", "Clear All Data", and "Restart"
                             are irreversible. Ensure the device is connected and use with caution.
                         </div>
@@ -318,13 +318,13 @@ export default function DeviceCommands() {
                             </Button>
                         </div>
                         {deviceCommands.length === 0 ? (
-                            <div className="text-center py-6 text-slate-500">
+                            <div className="text-center py-6 text-slate-500 dark:text-slate-400">
                                 No commands sent yet. Select a device and click a command to begin.
                             </div>
                         ) : (
                             <div className="space-y-2 max-h-80 overflow-y-auto">
                                 {deviceCommands.slice(0, 20).map(cmd => (
-                                    <div key={cmd.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                    <div key={cmd.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
                                         <div className="flex items-center gap-3 min-w-0">
                                             <div className={`w-2 h-2 rounded-full flex-shrink-0 ${cmd.status === 'success' ? 'bg-green-500' :
                                                 cmd.status === 'pending' ? 'bg-yellow-500' :
@@ -333,7 +333,7 @@ export default function DeviceCommands() {
                                                 }`} />
                                             <div className="min-w-0">
                                                 <div className="font-medium text-sm truncate">{cmd.command}</div>
-                                                <div className="text-xs text-slate-500">
+                                                <div className="text-xs text-slate-500 dark:text-slate-400">
                                                     {formatTime(cmd.created_at)}
                                                 </div>
                                             </div>

@@ -63,8 +63,8 @@ export default function LeaveApplications() {
     };
 
     const getStatusBadge = (status) => {
-        const colors = { 'Pending': 'bg-yellow-100 text-yellow-700', 'Approved': 'bg-green-100 text-green-700', 'Rejected': 'bg-red-100 text-red-700' };
-        return <span className={`px-2 py-0.5 rounded text-xs font-medium ${colors[status] || 'bg-slate-100'}`}>{status}</span>;
+        const colors = { 'Pending': 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300', 'Approved': 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300', 'Rejected': 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' };
+        return <span className={`px-2 py-0.5 rounded text-xs font-medium ${colors[status] || 'bg-slate-100 dark:bg-slate-700'}`}>{status}</span>;
     };
 
     const exportColumns = [
@@ -100,21 +100,21 @@ export default function LeaveApplications() {
                     </>
                 }
             />
-            <div className="flex flex-col flex-1 bg-white border border-slate-200 shadow-sm rounded-md overflow-hidden relative">
+            <div className="flex flex-col flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm rounded-md overflow-hidden relative">
             {/* Toolbar */}
-            <div className="flex items-center gap-2 p-2 border-b border-slate-200 bg-slate-50 text-sm flex-wrap">
+            <div className="flex items-center gap-2 p-2 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-sm flex-wrap">
                 <div className="relative">
                     <select
                         value={statusFilter}
                         onChange={e => setStatusFilter(e.target.value)}
-                        className="appearance-none pl-3 pr-8 py-1.5 bg-slate-200 hover:bg-slate-300 rounded text-slate-700 cursor-pointer text-sm font-medium focus:outline-none"
+                        className="appearance-none pl-3 pr-8 py-1.5 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 rounded text-slate-700 dark:text-slate-300 cursor-pointer text-sm font-medium focus:outline-none"
                     >
                         <option value="All">All Status</option>
                         <option value="Pending">Pending</option>
                         <option value="Approved">Approved</option>
                         <option value="Rejected">Rejected</option>
                     </select>
-                    <ChevronDown size={14} className="absolute right-2 top-2.5 text-slate-500 pointer-events-none" />
+                    <ChevronDown size={14} className="absolute right-2 top-2.5 text-slate-500 dark:text-slate-400 pointer-events-none" />
                 </div>
 
                 <div className="ml-auto w-64 relative">
@@ -123,41 +123,41 @@ export default function LeaveApplications() {
                         placeholder="Search employee..."
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
-                        className="w-full pl-8 pr-3 py-1.5 border rounded text-sm focus:outline-none focus:border-orange-400"
+                        className="w-full pl-8 pr-3 py-1.5 border dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 rounded text-sm focus:outline-none focus:border-orange-400"
                     />
                     <Search size={14} className="absolute left-2.5 top-2 text-slate-400" />
                 </div>
             </div>
 
             {/* Applications Table */}
-            <div className="flex-1 overflow-auto bg-white">
+            <div className="flex-1 overflow-auto bg-white dark:bg-slate-800">
                 <table className="w-full text-sm text-left border-collapse">
-                    <thead className="bg-slate-100 text-slate-600 sticky top-0 z-10">
+                    <thead className="bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 sticky top-0 z-10">
                         <tr>
-                            <th className="p-3 border-b border-r font-semibold">Employee</th>
-                            <th className="p-3 border-b border-r font-semibold">Leave Type</th>
-                            <th className="p-3 border-b border-r font-semibold text-center">From</th>
-                            <th className="p-3 border-b border-r font-semibold text-center">To</th>
-                            <th className="p-3 border-b border-r font-semibold text-center">Days</th>
-                            <th className="p-3 border-b border-r font-semibold text-center">Status</th>
-                            <th className="p-3 border-b font-semibold text-center">Actions</th>
+                            <th className="p-3 border-b border-r dark:border-slate-700 font-semibold">Employee</th>
+                            <th className="p-3 border-b border-r dark:border-slate-700 font-semibold">Leave Type</th>
+                            <th className="p-3 border-b border-r dark:border-slate-700 font-semibold text-center">From</th>
+                            <th className="p-3 border-b border-r dark:border-slate-700 font-semibold text-center">To</th>
+                            <th className="p-3 border-b border-r dark:border-slate-700 font-semibold text-center">Days</th>
+                            <th className="p-3 border-b border-r dark:border-slate-700 font-semibold text-center">Status</th>
+                            <th className="p-3 border-b dark:border-slate-700 font-semibold text-center">Actions</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-50">
+                    <tbody className="divide-y divide-slate-50 dark:divide-slate-700">
                         {filteredApps.map(app => (
-                            <tr key={app.id} className="hover:bg-orange-50">
-                                <td className="p-3 border-r flex items-center gap-2 font-medium text-slate-900">
+                            <tr key={app.id} className="hover:bg-orange-50 dark:hover:bg-slate-700">
+                                <td className="p-3 border-r dark:border-slate-700 flex items-center gap-2 font-medium text-slate-900 dark:text-slate-100">
                                     <User size={16} className="text-slate-400" /> {app.employee_name}
                                 </td>
-                                <td className="p-3 border-r">
+                                <td className="p-3 border-r dark:border-slate-700">
                                     <span className="px-2 py-0.5 rounded text-xs" style={{ backgroundColor: (app.color || '#999') + '20', color: (app.color || '#666') }}>
                                         {app.leave_type_name}
                                     </span>
                                 </td>
-                                <td className="p-3 border-r text-center text-slate-600">{new Date(app.from_date).toLocaleDateString()}</td>
-                                <td className="p-3 border-r text-center text-slate-600">{new Date(app.to_date).toLocaleDateString()}</td>
-                                <td className="p-3 border-r text-center text-slate-600">{app.total_days}</td>
-                                <td className="p-3 border-r text-center">{getStatusBadge(app.status)}</td>
+                                <td className="p-3 border-r dark:border-slate-700 text-center text-slate-600 dark:text-slate-400">{new Date(app.from_date).toLocaleDateString()}</td>
+                                <td className="p-3 border-r dark:border-slate-700 text-center text-slate-600 dark:text-slate-400">{new Date(app.to_date).toLocaleDateString()}</td>
+                                <td className="p-3 border-r dark:border-slate-700 text-center text-slate-600 dark:text-slate-400">{app.total_days}</td>
+                                <td className="p-3 border-r dark:border-slate-700 text-center">{getStatusBadge(app.status)}</td>
                                 <td className="p-3 text-center">
                                     {app.status === 'Pending' && (
                                         <div className="flex justify-center gap-1">
@@ -182,18 +182,18 @@ export default function LeaveApplications() {
             {/* Apply Modal */}
             {showApply && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <form onSubmit={handleApply} className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6 space-y-4">
+                    <form onSubmit={handleApply} className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-lg p-6 space-y-4">
                         <h3 className="font-bold text-lg">Apply Leave</h3>
                         <div>
                             <label className="block text-sm font-medium mb-1">Employee</label>
-                            <select required className="w-full border rounded-lg px-3 py-2" value={form.employee_code} onChange={e => setForm({ ...form, employee_code: e.target.value })}>
+                            <select required className="w-full border dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 rounded-lg px-3 py-2" value={form.employee_code} onChange={e => setForm({ ...form, employee_code: e.target.value })}>
                                 <option value="">Select Employee</option>
                                 {employees.map(e => <option key={e.employee_code} value={e.employee_code}>{e.name} ({e.employee_code})</option>)}
                             </select>
                         </div>
                         <div>
                             <label className="block text-sm font-medium mb-1">Leave Type</label>
-                            <select required className="w-full border rounded-lg px-3 py-2" value={form.leave_type_id} onChange={e => setForm({ ...form, leave_type_id: e.target.value })}>
+                            <select required className="w-full border dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 rounded-lg px-3 py-2" value={form.leave_type_id} onChange={e => setForm({ ...form, leave_type_id: e.target.value })}>
                                 <option value="">Select Type</option>
                                 {leaveTypes.map(lt => <option key={lt.id} value={lt.id}>{lt.name}</option>)}
                             </select>
@@ -201,11 +201,11 @@ export default function LeaveApplications() {
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium mb-1">From Date</label>
-                                <input type="date" required className="w-full border rounded-lg px-3 py-2" value={form.from_date} onChange={e => setForm({ ...form, from_date: e.target.value })} />
+                                <input type="date" required className="w-full border dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 rounded-lg px-3 py-2" value={form.from_date} onChange={e => setForm({ ...form, from_date: e.target.value })} />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium mb-1">To Date</label>
-                                <input type="date" required className="w-full border rounded-lg px-3 py-2" value={form.to_date} onChange={e => setForm({ ...form, to_date: e.target.value })} />
+                                <input type="date" required className="w-full border dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 rounded-lg px-3 py-2" value={form.to_date} onChange={e => setForm({ ...form, to_date: e.target.value })} />
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
@@ -214,7 +214,7 @@ export default function LeaveApplications() {
                         </div>
                         <div>
                             <label className="block text-sm font-medium mb-1">Reason</label>
-                            <textarea required className="w-full border rounded-lg px-3 py-2" rows={2} value={form.reason} onChange={e => setForm({ ...form, reason: e.target.value })} />
+                            <textarea required className="w-full border dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 rounded-lg px-3 py-2" rows={2} value={form.reason} onChange={e => setForm({ ...form, reason: e.target.value })} />
                         </div>
                         <div className="flex justify-end gap-3 pt-2">
                             <Button variant="secondary" onClick={() => setShowApply(false)}>Cancel</Button>

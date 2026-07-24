@@ -364,7 +364,7 @@ export default function Employees() {
                 setShowAppMenu(false);
                 setShowMoreMenu(false);
             }}
-            className={`block w-full text-left px-4 py-2 text-sm hover:bg-slate-100 ${danger ? 'text-red-600' : 'text-slate-700'}`}
+            className={`block w-full text-left px-4 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-700 ${danger ? 'text-red-600 dark:text-red-400' : 'text-slate-700 dark:text-slate-300'}`}
         >
             {label}
         </button>
@@ -413,11 +413,11 @@ export default function Employees() {
     return (
         <div className="flex flex-col h-[calc(100vh-120px)] card-base overflow-hidden relative">
             {/* Toolbar */}
-            <div className="flex items-center gap-3 p-4 border-b border-slate-200 text-sm flex-wrap bg-white">
+            <div className="flex items-center gap-3 p-4 border-b border-slate-200 dark:border-slate-700 text-sm flex-wrap bg-white dark:bg-slate-800">
                 <Button variant="successSolid" icon={Plus} onClick={() => setShowAddModal(true)}>
                     Add Employee
                 </Button>
-                <div className="h-8 w-px bg-slate-200 mx-2 hidden md:block"></div>
+                <div className="h-8 w-px bg-slate-200 dark:bg-slate-700 mx-2 hidden md:block"></div>
                 <Button variant="danger" icon={Trash2} onClick={handleDelete}>
                     Delete
                 </Button>
@@ -465,7 +465,7 @@ export default function Employees() {
                     {showImportMenu && (
                         <>
                             <div className="fixed inset-0 z-10" onClick={() => setShowImportMenu(false)}></div>
-                            <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-slate-100 shadow-xl rounded-2xl z-20 overflow-hidden dropdown-menu">
+                            <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-xl rounded-2xl z-20 overflow-hidden dropdown-menu">
                             <DropdownItem label="Import Employee (CSV)" onClick={() => setShowImportModal(true)} />
                         </div>
                         </>
@@ -492,7 +492,7 @@ export default function Employees() {
                         showTransferMenu && (
                             <>
                                 <div className="fixed inset-0 z-10" onClick={() => setShowTransferMenu(false)}></div>
-                                <div className="absolute top-full left-0 mt-2 w-56 bg-white border border-slate-100 shadow-xl rounded-2xl z-20 overflow-hidden dropdown-menu">
+                                <div className="absolute top-full left-0 mt-2 w-56 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-xl rounded-2xl z-20 overflow-hidden dropdown-menu">
                             <DropdownItem label="Department Transfer" onClick={() => handleTransfer('Department')} />
                             <DropdownItem label="Position Transfer" onClick={() => handleTransfer('Position')} />
                             <DropdownItem label="Move to New Area" onClick={() => handleTransfer('Area')} />
@@ -530,7 +530,7 @@ export default function Employees() {
                         showAppMenu && (
                             <>
                                 <div className="fixed inset-0 z-10" onClick={() => setShowAppMenu(false)}></div>
-                                <div className="absolute top-full left-0 mt-2 w-40 bg-white border border-slate-100 shadow-xl rounded-2xl z-20 overflow-hidden dropdown-menu">
+                                <div className="absolute top-full left-0 mt-2 w-40 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-xl rounded-2xl z-20 overflow-hidden dropdown-menu">
                             <DropdownItem label="Enable Access" onClick={() => handleAppAccess(true)} />
                             <DropdownItem label="Disable Access" onClick={() => handleAppAccess(false)} danger />
                         </div>
@@ -559,7 +559,7 @@ export default function Employees() {
                         showMoreMenu && (
                             <>
                                 <div className="fixed inset-0 z-10" onClick={() => setShowMoreMenu(false)}></div>
-                                <div className="absolute top-full left-0 mt-2 w-56 bg-white border border-slate-100 shadow-xl rounded-2xl z-20 overflow-hidden dropdown-menu">
+                                <div className="absolute top-full left-0 mt-2 w-56 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-xl rounded-2xl z-20 overflow-hidden dropdown-menu">
                             <DropdownItem label="Resynchronize to device" onClick={() => handleMoreSettings('push')} />
                             <DropdownItem label="Re-upload from device" onClick={() => handleMoreSettings('pull')} />
                             <DropdownItem label="Delete Biometric Template" onClick={() => handleMoreSettings('delete-bio')} danger />
@@ -577,12 +577,12 @@ export default function Employees() {
                         onChange={e => setSearchQuery(e.target.value)}
                         className="input-base pl-10 py-2 text-sm"
                     />
-                    <Search size={16} className="absolute left-3.5 top-2.5 text-slate-grey" />
+                    <Search size={16} className="absolute left-3.5 top-2.5 text-slate-grey dark:text-slate-400" />
                 </div>
             </div >
 
             {/* Table */}
-            <div className="flex-1 overflow-auto custom-scrollbar bg-white">
+            <div className="flex-1 overflow-auto custom-scrollbar bg-white dark:bg-slate-800">
                 {loading ? (
                     <SkeletonLoader rows={10} columns={10} showHeader={true} />
                 ) : (
@@ -592,7 +592,7 @@ export default function Employees() {
                             <th className="table-header w-12 text-center">
                                 <input
                                     type="checkbox"
-                                    className="rounded border-slate-300 text-saffron focus:ring-saffron"
+                                    className="rounded border-slate-300 dark:border-slate-700 text-saffron focus:ring-saffron"
                                     onChange={(e) => {
                                         if (e.target.checked) setSelectedIds(filteredEmployees.map(e => e.id));
                                         else setSelectedIds([]);
@@ -618,13 +618,13 @@ export default function Employees() {
                                         type="checkbox"
                                         checked={selectedIds.includes(emp.id)}
                                         onChange={() => toggleSelect(emp.id)}
-                                        className="rounded border-slate-300 text-saffron focus:ring-saffron"
+                                        className="rounded border-slate-300 dark:border-slate-700 text-saffron focus:ring-saffron"
                                     />
                                 </td>
                                 <td className="px-6 py-4 font-mono text-saffron font-medium cursor-pointer" onClick={() => navigate(`/employees/${emp.id}`)}>{emp.employee_code}</td>
-                                <td className="px-6 py-4 font-semibold cursor-pointer text-slate-800" onClick={() => navigate(`/employees/${emp.id}`)}>{emp.name}</td>
-                                <td className="px-6 py-4 text-slate-600">{emp.department_name || '-'}</td>
-                                <td className="px-6 py-4 font-mono text-xs text-slate-600">{emp.mobile || '-'}</td>
+                                <td className="px-6 py-4 font-semibold cursor-pointer text-slate-800 dark:text-slate-100" onClick={() => navigate(`/employees/${emp.id}`)}>{emp.name}</td>
+                                <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{emp.department_name || '-'}</td>
+                                <td className="px-6 py-4 font-mono text-xs text-slate-600 dark:text-slate-400">{emp.mobile || '-'}</td>
                                 <td className="px-6 py-4 text-center">
                                     <span className={`px-2.5 py-1 rounded-full text-xs font-medium uppercase tracking-wide ${emp.status === 'active' ? 'badge-success' : 'badge-inactive'}`}>
                                         {emp.status}
@@ -641,8 +641,8 @@ export default function Employees() {
                                         {emp.app_login_enabled ? 'Enabled' : 'Disabled'}
                                     </span>
                                 </td>
-                                <td className="px-6 py-4 text-slate-600">{emp.designation || '-'}</td>
-                                <td className="px-6 py-4 text-slate-600">{emp.area_name || '-'}</td>
+                                <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{emp.designation || '-'}</td>
+                                <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{emp.area_name || '-'}</td>
                             </tr>
                         ))}
                     </tbody>
@@ -650,10 +650,10 @@ export default function Employees() {
                 )}
             </div>
 
-            <div className="p-4 border-t border-slate-200 text-xs font-medium text-slate-grey flex justify-between items-center bg-slate-50">
-                <span>Total <span className="text-charcoal font-bold">{filteredEmployees.length}</span> Records</span>
+            <div className="p-4 border-t border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-grey dark:text-slate-400 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
+                <span>Total <span className="text-charcoal dark:text-slate-100 font-bold">{filteredEmployees.length}</span> Records</span>
                 <div className="flex gap-2">
-                    <span className="text-slate-grey">Selected: <span className="text-saffron font-bold text-sm">{selectedIds.length}</span></span>
+                    <span className="text-slate-grey dark:text-slate-400">Selected: <span className="text-saffron font-bold text-sm">{selectedIds.length}</span></span>
                 </div>
             </div>
 
@@ -670,31 +670,31 @@ export default function Employees() {
                                 background: 'linear-gradient(135deg, #FFF7ED 0%, #FFFFFF 100%)',
                                 borderColor: '#FED7AA'
                             }}>
-                                <h3 className="font-semibold text-xl text-slate-800">Add Employee</h3>
+                                <h3 className="font-semibold text-xl text-slate-800 dark:text-slate-100">Add Employee</h3>
                             <Button variant="ghost" size="sm" icon={X} iconSize={20} aria-label="Close" onClick={() => setShowAddModal(false)} />
                         </div>
                             <form onSubmit={handleAddSubmit} className="p-8 overflow-y-auto max-h-[calc(90vh-80px)] custom-scrollbar" autoComplete="off">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 {/* Personal Details */}
-                                <div className="col-span-1 md:col-span-3 flex items-center gap-2 pb-2 mb-2 border-b border-slate-100">
+                                <div className="col-span-1 md:col-span-3 flex items-center gap-2 pb-2 mb-2 border-b border-slate-100 dark:border-slate-700">
                                     <div className="w-1 h-4 bg-saffron rounded-full"></div>
-                                    <span className="text-sm font-bold text-charcoal uppercase tracking-wider">Personal Details</span>
+                                    <span className="text-sm font-bold text-charcoal dark:text-slate-100 uppercase tracking-wider">Personal Details</span>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-grey mb-1.5">Employee ID *</label>
+                                    <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Employee ID *</label>
                                     <input required type="text" className="input-base"
                                         value={newEmp.employee_code} onChange={e => setNewEmp({ ...newEmp, employee_code: e.target.value })}
                                             placeholder="e.g. EMP001" autoComplete="off" />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-grey mb-1.5">Full Name *</label>
+                                    <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Full Name *</label>
                                     <input required type="text" className="input-base"
                                         value={newEmp.name} onChange={e => setNewEmp({ ...newEmp, name: e.target.value })}
                                         placeholder="John Doe" />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-grey mb-1.5">Gender</label>
+                                    <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Gender</label>
                                     <select className="input-base"
                                         value={newEmp.gender} onChange={e => setNewEmp({ ...newEmp, gender: e.target.value })}>
                                         <option value="Male">Male</option>
@@ -703,37 +703,37 @@ export default function Employees() {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-grey mb-1.5">Date of Birth</label>
+                                    <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Date of Birth</label>
                                     <input type="date" className="input-base"
                                         value={newEmp.dob} onChange={e => setNewEmp({ ...newEmp, dob: e.target.value })} />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-grey mb-1.5">Mobile</label>
+                                    <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Mobile</label>
                                     <input type="text" className="input-base"
                                         value={newEmp.mobile} onChange={e => setNewEmp({ ...newEmp, mobile: e.target.value })}
                                         placeholder="+91..." />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-grey mb-1.5">Email</label>
+                                    <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Email</label>
                                     <input type="email" className="input-base"
                                         value={newEmp.email} onChange={e => setNewEmp({ ...newEmp, email: e.target.value })}
                                         placeholder="john@example.com" />
                                 </div>
                                 <div className="col-span-1 md:col-span-3">
-                                    <label className="block text-sm font-medium text-slate-grey mb-1.5">Address</label>
+                                    <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Address</label>
                                     <textarea rows={2} className="input-base resize-none"
                                         value={newEmp.address} onChange={e => setNewEmp({ ...newEmp, address: e.target.value })}
                                         placeholder="Enter full address" />
                                 </div>
 
                                 {/* Work Details */}
-                                <div className="col-span-1 md:col-span-3 flex items-center gap-2 pb-2 mb-2 mt-4 border-b border-slate-100">
+                                <div className="col-span-1 md:col-span-3 flex items-center gap-2 pb-2 mb-2 mt-4 border-b border-slate-100 dark:border-slate-700">
                                     <div className="w-1 h-4 bg-saffron rounded-full"></div>
-                                    <span className="text-sm font-bold text-charcoal uppercase tracking-wider">Work Details</span>
+                                    <span className="text-sm font-bold text-charcoal dark:text-slate-100 uppercase tracking-wider">Work Details</span>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-grey mb-1.5">Department</label>
+                                    <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Department</label>
                                     <select className="input-base"
                                         value={newEmp.department_id} onChange={e => setNewEmp({ ...newEmp, department_id: e.target.value })}>
                                         <option value="">Select Department</option>
@@ -741,7 +741,7 @@ export default function Employees() {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-grey mb-1.5">Position / Designation</label>
+                                    <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Position / Designation</label>
                                         <select className="input-base"
                                             value={newEmp.designation} onChange={e => setNewEmp({ ...newEmp, designation: e.target.value })}>
                                             <option value="">Select Position</option>
@@ -749,7 +749,7 @@ export default function Employees() {
                                         </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-grey mb-1.5">Area</label>
+                                    <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Area</label>
                                     <select className="input-base"
                                         value={newEmp.area_id} onChange={e => setNewEmp({ ...newEmp, area_id: e.target.value })}>
                                         <option value="">Select Area</option>
@@ -757,12 +757,12 @@ export default function Employees() {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-grey mb-1.5">Joining Date</label>
+                                    <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Joining Date</label>
                                     <input type="date" className="input-base"
                                         value={newEmp.joining_date} onChange={e => setNewEmp({ ...newEmp, joining_date: e.target.value })} />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-grey mb-1.5">Status</label>
+                                    <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Status</label>
                                     <select className="input-base"
                                         value={newEmp.status} onChange={e => setNewEmp({ ...newEmp, status: e.target.value })}>
                                         <option value="active">Active</option>
@@ -772,7 +772,7 @@ export default function Employees() {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-grey mb-1.5">Employment Type</label>
+                                    <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Employment Type</label>
                                     <select className="input-base"
                                         value={newEmp.employment_type} onChange={e => setNewEmp({ ...newEmp, employment_type: e.target.value })}>
                                         <option value="Permanent">Permanent</option>
@@ -782,24 +782,24 @@ export default function Employees() {
                                 </div>
 
                                 {/* System Access */}
-                                <div className="col-span-1 md:col-span-3 flex items-center gap-2 pb-2 mb-2 mt-4 border-b border-slate-100">
+                                <div className="col-span-1 md:col-span-3 flex items-center gap-2 pb-2 mb-2 mt-4 border-b border-slate-100 dark:border-slate-700">
                                     <div className="w-1 h-4 bg-saffron rounded-full"></div>
-                                    <span className="text-sm font-bold text-charcoal uppercase tracking-wider">System & Device</span>
+                                    <span className="text-sm font-bold text-charcoal dark:text-slate-100 uppercase tracking-wider">System & Device</span>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-grey mb-1.5">Card Number</label>
+                                    <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Card Number</label>
                                     <input type="text" className="input-base"
                                         value={newEmp.card_number} onChange={e => setNewEmp({ ...newEmp, card_number: e.target.value })} />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-grey mb-1.5">Password (Device)</label>
+                                    <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Password (Device)</label>
                                     <input type="password" className="input-base"
                                             value={newEmp.password} onChange={e => setNewEmp({ ...newEmp, password: e.target.value })}
                                             autoComplete="new-password" />
                                 </div>
 
-                                <div className="col-span-1 md:col-span-3 flex justify-end gap-4 pt-6 border-t border-slate-100 mt-4">
+                                <div className="col-span-1 md:col-span-3 flex justify-end gap-4 pt-6 border-t border-slate-100 dark:border-slate-700 mt-4">
                                     <Button variant="secondary" onClick={() => setShowAddModal(false)}>Cancel</Button>
                                     <Button type="submit" variant="primary">Add Employee</Button>
                                 </div>
@@ -823,17 +823,17 @@ export default function Employees() {
                                 background: 'linear-gradient(135deg, #FFF7ED 0%, #FFFBF5 100%)',
                                 borderColor: '#FED7AA'
                             }}>
-                                <h3 className="font-semibold text-xl text-slate-800">Import Employees</h3>
+                                <h3 className="font-semibold text-xl text-slate-800 dark:text-slate-100">Import Employees</h3>
                             <Button variant="ghost" size="sm" icon={X} iconSize={20} aria-label="Close" onClick={() => setShowImportModal(false)} />
                         </div>
 
                         <div className="p-8 text-center">
-                            <div className="border-2 border-dashed border-slate-200 rounded-2xl p-8 hover:bg-orange-50/50 hover:border-saffron/50 transition-all cursor-pointer group">
-                                <div className="w-16 h-16 bg-orange-50 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                                    <Upload className="text-orange-500" size={28} />
+                            <div className="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl p-8 hover:bg-orange-50/50 dark:hover:bg-slate-700/50 hover:border-saffron/50 transition-all cursor-pointer group">
+                                <div className="w-16 h-16 bg-orange-50 dark:bg-orange-900/30 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                                    <Upload className="text-orange-500 dark:text-orange-400" size={28} />
                                 </div>
-                                <h4 className="text-lg font-bold text-charcoal mb-2">Upload CSV File</h4>
-                                <p className="text-sm text-slate-grey mb-6">Format: ID, Name, DeptID</p>
+                                <h4 className="text-lg font-bold text-charcoal dark:text-slate-100 mb-2">Upload CSV File</h4>
+                                <p className="text-sm text-slate-grey dark:text-slate-400 mb-6">Format: ID, Name, DeptID</p>
                                 <div className="relative inline-block">
                                     <Button variant="secondary" className="relative pointer-events-none">Select File</Button>
                                     <input
@@ -860,15 +860,15 @@ export default function Employees() {
                             borderColor: '#FED7AA'
                         }}>
                         <div className="mb-6">
-                            <div className="w-12 h-12 bg-orange-50 rounded-full flex items-center justify-center mb-4">
+                            <div className="w-12 h-12 bg-orange-50 dark:bg-orange-900/30 rounded-full flex items-center justify-center mb-4">
                                 <ArrowRightLeft className="text-saffron" size={24} />
                             </div>
-                                <h3 className="font-semibold text-xl mb-1 text-slate-800">{transferType} Transfer</h3>
-                            <p className="text-slate-grey text-sm">Move <span className="font-bold text-charcoal">{selectedIds.length}</span> employees to a new {transferType.toLowerCase()}.</p>
+                                <h3 className="font-semibold text-xl mb-1 text-slate-800 dark:text-slate-100">{transferType} Transfer</h3>
+                            <p className="text-slate-grey dark:text-slate-400 text-sm">Move <span className="font-bold text-charcoal dark:text-slate-100">{selectedIds.length}</span> employees to a new {transferType.toLowerCase()}.</p>
                         </div>
 
                         <div className="mb-8">
-                            <label className="block text-sm font-bold text-charcoal mb-2">
+                            <label className="block text-sm font-bold text-charcoal dark:text-slate-100 mb-2">
                                 Select New {transferType}
                             </label>
 
@@ -923,12 +923,12 @@ export default function Employees() {
                             background: 'linear-gradient(135deg, #FFFFFF 0%, #FFFBF5 100%)',
                             borderColor: '#FED7AA'
                         }}>
-                        <div className="mx-auto w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-6 shadow-sm">
-                            <Trash2 className="text-red-500" size={32} />
+                        <div className="mx-auto w-16 h-16 bg-red-50 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-6 shadow-sm">
+                            <Trash2 className="text-red-500 dark:text-red-400" size={32} />
                         </div>
-                            <h3 className="text-xl font-semibold mb-2 text-slate-800">Delete Employees?</h3>
-                        <p className="text-slate-grey text-sm mb-8 leading-relaxed">
-                            Are you sure you want to delete <span className="font-bold text-charcoal">{selectedIds.length}</span> selected employees? This action cannot be undone.
+                            <h3 className="text-xl font-semibold mb-2 text-slate-800 dark:text-slate-100">Delete Employees?</h3>
+                        <p className="text-slate-grey dark:text-slate-400 text-sm mb-8 leading-relaxed">
+                            Are you sure you want to delete <span className="font-bold text-charcoal dark:text-slate-100">{selectedIds.length}</span> selected employees? This action cannot be undone.
                         </p>
                         <div className="flex justify-center gap-4">
                             <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
@@ -961,11 +961,11 @@ export default function Employees() {
                             borderColor: '#FED7AA'
                         }}>
                         <div className="mb-6">
-                            <div className="w-12 h-12 bg-orange-50 rounded-full flex items-center justify-center mb-4">
+                            <div className="w-12 h-12 bg-orange-50 dark:bg-orange-900/30 rounded-full flex items-center justify-center mb-4">
                                 <Settings className="text-saffron" size={24} />
                             </div>
-                                <h3 className="font-semibold text-xl mb-1 text-slate-800">Confirm Action</h3>
-                            <p className="text-slate-grey text-sm">{confirmMessage}</p>
+                                <h3 className="font-semibold text-xl mb-1 text-slate-800 dark:text-slate-100">Confirm Action</h3>
+                            <p className="text-slate-grey dark:text-slate-400 text-sm">{confirmMessage}</p>
                         </div>
                         <div className="flex justify-end gap-3">
                             <Button

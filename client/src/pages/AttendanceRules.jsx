@@ -153,11 +153,11 @@ export default function AttendanceRules() {
                 <div>
                     <div className="flex items-center gap-2 mb-1">
                         <span className={`h-2 w-2 rounded-full ${rule.rule_type === 'global' ? 'bg-blue-500' : 'bg-emerald-500'}`}></span>
-                        <h3 className="font-bold text-lg text-slate-800">{rule.name}</h3>
+                        <h3 className="font-bold text-lg text-slate-800 dark:text-slate-100">{rule.name}</h3>
                     </div>
                     <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full ${rule.rule_type === 'global'
-                        ? 'bg-blue-50 text-blue-600 border border-blue-100'
-                        : 'bg-emerald-50 text-emerald-600 border border-emerald-100'
+                        ? 'bg-blue-50 text-blue-600 border border-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800'
+                        : 'bg-emerald-50 text-emerald-600 border border-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800'
                         }`}>
                         {rule.rule_type === 'global' ? 'Global Rule' : rule.department_name}
                     </span>
@@ -169,53 +169,53 @@ export default function AttendanceRules() {
             </div>
 
             <div className="grid grid-cols-2 gap-3 text-sm mb-4">
-                <div className="bg-slate-50/80 rounded-lg p-3 border border-slate-100">
-                    <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Late Threshold</div>
-                    <div className="font-bold text-slate-800 flex items-center gap-1">
+                <div className="bg-slate-50/80 dark:bg-slate-900/50 rounded-lg p-3 border border-slate-100 dark:border-slate-700">
+                    <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1">Late Threshold</div>
+                    <div className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1">
                         <Clock size={14} className="text-amber-500" />
                         {rule.late_threshold_minutes} min
                     </div>
                 </div>
-                <div className="bg-slate-50/80 rounded-lg p-3 border border-slate-100">
-                    <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Early Leave</div>
-                    <div className="font-bold text-slate-800 flex items-center gap-1">
+                <div className="bg-slate-50/80 dark:bg-slate-900/50 rounded-lg p-3 border border-slate-100 dark:border-slate-700">
+                    <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1">Early Leave</div>
+                    <div className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1">
                         <Clock size={14} className="text-rose-500" />
                         {rule.early_leave_threshold_minutes} min
                     </div>
                 </div>
-                <div className="bg-slate-50/80 rounded-lg p-3 border border-slate-100">
-                    <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Grace Period</div>
-                    <div className="font-bold text-slate-800 flex items-center gap-1">
+                <div className="bg-slate-50/80 dark:bg-slate-900/50 rounded-lg p-3 border border-slate-100 dark:border-slate-700">
+                    <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1">Grace Period</div>
+                    <div className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1">
                         <CheckCircle size={14} className="text-emerald-500" />
                         {rule.grace_period_minutes} min
                     </div>
                 </div>
-                <div className="bg-slate-50/80 rounded-lg p-3 border border-slate-100">
-                    <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Half Day</div>
-                    <div className="font-bold text-slate-800 flex items-center gap-1">
+                <div className="bg-slate-50/80 dark:bg-slate-900/50 rounded-lg p-3 border border-slate-100 dark:border-slate-700">
+                    <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1">Half Day</div>
+                    <div className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1">
                         <AlertTriangle size={14} className="text-purple-500" />
                         {rule.half_day_threshold_minutes} min
                     </div>
                 </div>
             </div>
 
-            <div className="pt-3 border-t border-slate-100">
+            <div className="pt-3 border-t border-slate-100 dark:border-slate-700">
                 <div className="flex flex-wrap items-center gap-2 mb-3">
                     <span className="text-xs font-semibold text-slate-400 uppercase">Week Off:</span>
                     {rule.week_off_days?.map(day => (
-                        <span key={day} className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-bold uppercase tracking-wide">
+                        <span key={day} className="px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 rounded text-[10px] font-bold uppercase tracking-wide">
                             {day.substring(0, 3)}
                         </span>
                     ))}
                 </div>
                 <div className="flex items-center gap-4 text-xs font-medium">
                     {rule.overtime_enabled && (
-                        <span className="flex items-center gap-1.5 text-emerald-600 bg-emerald-50 px-2 py-1 rounded">
+                        <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-1 rounded">
                             <Clock size={12} /> OT: {rule.overtime_multiplier}x
                         </span>
                     )}
                     {rule.alternate_saturday && (
-                        <span className="flex items-center gap-1.5 text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                        <span className="flex items-center gap-1.5 text-blue-600 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded">
                             <Calendar size={12} /> Alt. Sat
                         </span>
                     )}
@@ -237,28 +237,28 @@ export default function AttendanceRules() {
             />
 
             {/* Tabs */}
-            <div className="flex gap-2 bg-slate-100/50 p-1 rounded-xl w-fit border border-slate-200">
+            <div className="flex gap-2 bg-slate-100/50 dark:bg-slate-700/50 p-1 rounded-xl w-fit border border-slate-200 dark:border-slate-700">
                 <button
                     onClick={() => setActiveTab('global')}
                     className={`flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${activeTab === 'global'
-                        ? 'bg-white text-blue-600 shadow-sm'
-                        : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
+                        ? 'bg-white dark:bg-slate-800 text-blue-600 shadow-sm'
+                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'}`}
                 >
                     <Globe size={16} />
                     Global Rules
-                    <span className={`ml-1 text-xs px-1.5 py-0.5 rounded-full ${activeTab === 'global' ? 'bg-blue-50' : 'bg-slate-200'}`}>
+                    <span className={`ml-1 text-xs px-1.5 py-0.5 rounded-full ${activeTab === 'global' ? 'bg-blue-50 dark:bg-blue-900/30' : 'bg-slate-200 dark:bg-slate-700'}`}>
                         {globalRules.length}
                     </span>
                 </button>
                 <button
                     onClick={() => setActiveTab('department')}
                     className={`flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${activeTab === 'department'
-                        ? 'bg-white text-emerald-600 shadow-sm'
-                        : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
+                        ? 'bg-white dark:bg-slate-800 text-emerald-600 shadow-sm'
+                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'}`}
                 >
                     <Building2 size={16} />
                     Department Rules
-                    <span className={`ml-1 text-xs px-1.5 py-0.5 rounded-full ${activeTab === 'department' ? 'bg-emerald-50' : 'bg-slate-200'}`}>
+                    <span className={`ml-1 text-xs px-1.5 py-0.5 rounded-full ${activeTab === 'department' ? 'bg-emerald-50 dark:bg-emerald-900/30' : 'bg-slate-200 dark:bg-slate-700'}`}>
                         {departmentRules.length}
                     </span>
                 </button>
@@ -286,11 +286,11 @@ export default function AttendanceRules() {
                     {activeTab === 'global' ? (
                         globalRules.length === 0 ? (
                             <div className="col-span-full py-12 text-center">
-                                <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
+                                <div className="w-16 h-16 bg-slate-50 dark:bg-slate-900/50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
                                     <Globe size={32} />
                                 </div>
-                                <h3 className="text-lg font-semibold text-slate-700">No Global Rules</h3>
-                                <p className="text-slate-500 max-w-sm mx-auto mt-1">Create a global rule to set the default attendance policy for your organization.</p>
+                                <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300">No Global Rules</h3>
+                                <p className="text-slate-500 dark:text-slate-400 max-w-sm mx-auto mt-1">Create a global rule to set the default attendance policy for your organization.</p>
                                 <Button variant="primary" className="mt-4" onClick={() => setShowModal(true)}>Create Now</Button>
                             </div>
                         ) : (
@@ -299,11 +299,11 @@ export default function AttendanceRules() {
                     ) : (
                         departmentRules.length === 0 ? (
                             <div className="col-span-full py-12 text-center">
-                                <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
+                                <div className="w-16 h-16 bg-slate-50 dark:bg-slate-900/50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
                                     <Building2 size={32} />
                                 </div>
-                                <h3 className="text-lg font-semibold text-slate-700">No Department Rules</h3>
-                                <p className="text-slate-500 max-w-sm mx-auto mt-1">Department rules allow you to override global settings for specific teams.</p>
+                                <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300">No Department Rules</h3>
+                                <p className="text-slate-500 dark:text-slate-400 max-w-sm mx-auto mt-1">Department rules allow you to override global settings for specific teams.</p>
                             </div>
                         ) : (
                             departmentRules.map(rule => <RuleCard key={rule.id} rule={rule} />)
@@ -315,9 +315,9 @@ export default function AttendanceRules() {
             {/* Modal */}
             {showModal && (
                 <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
-                        <div className="flex items-center justify-between px-6 py-4 border-b bg-slate-50">
-                            <h2 className="text-lg font-bold text-slate-800">
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+                        <div className="flex items-center justify-between px-6 py-4 border-b dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
+                            <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">
                                 {editingId ? 'Edit Attendance Rule' : 'Add Attendance Rule'}
                             </h2>
                             <Button variant="ghost" icon={X} iconSize={20} onClick={closeModal} aria-label="Close" />
@@ -327,11 +327,11 @@ export default function AttendanceRules() {
                                 {/* Rule Type */}
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-1.5">
-                                        <label className="text-xs font-bold text-slate-500 uppercase">Rule Type <span className="text-red-500">*</span></label>
+                                        <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Rule Type <span className="text-red-500">*</span></label>
                                         <select
                                             value={form.rule_type}
                                             onChange={e => setForm({ ...form, rule_type: e.target.value })}
-                                            className="input-premium"
+                                            className="input-premium dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                         >
                                             <option value="global">Global Rule</option>
                                             <option value="department">Department Specific</option>
@@ -339,11 +339,11 @@ export default function AttendanceRules() {
                                     </div>
                                     {form.rule_type === 'department' && (
                                         <div className="space-y-1.5">
-                                            <label className="text-xs font-bold text-slate-500 uppercase">Department <span className="text-red-500">*</span></label>
+                                            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Department <span className="text-red-500">*</span></label>
                                             <select
                                                 value={form.department_id}
                                                 onChange={e => setForm({ ...form, department_id: e.target.value })}
-                                                className="input-premium"
+                                                className="input-premium dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                                 required
                                             >
                                                 <option value="">Select Department</option>
@@ -356,93 +356,93 @@ export default function AttendanceRules() {
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-slate-500 uppercase">Rule Name <span className="text-red-500">*</span></label>
+                                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Rule Name <span className="text-red-500">*</span></label>
                                     <input
                                         type="text"
                                         value={form.name}
                                         onChange={e => setForm({ ...form, name: e.target.value })}
-                                        className="input-premium"
+                                        className="input-premium dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                         placeholder="e.g., Default Policy, Sales Team Rules"
                                         required
                                     />
                                 </div>
 
                                 {/* Time Thresholds */}
-                                <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
-                                    <h3 className="font-bold text-slate-700 mb-4 flex items-center gap-2">
+                                <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-100 dark:border-slate-700">
+                                    <h3 className="font-bold text-slate-700 dark:text-slate-300 mb-4 flex items-center gap-2">
                                         <Clock size={16} className="text-blue-500" /> Time Thresholds
                                     </h3>
                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                         <div className="space-y-1">
-                                            <label className="text-xs font-semibold text-slate-500">Late After (min)</label>
+                                            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Late After (min)</label>
                                             <input
                                                 type="number"
                                                 value={form.late_threshold_minutes || ''}
                                                 onChange={e => setForm({ ...form, late_threshold_minutes: e.target.value ? parseInt(e.target.value) || 0 : 0 })}
-                                                className="input-premium bg-white"
+                                                className="input-premium bg-white dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                             />
                                         </div>
                                         <div className="space-y-1">
-                                            <label className="text-xs font-semibold text-slate-500">Early Leave (min)</label>
+                                            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Early Leave (min)</label>
                                             <input
                                                 type="number"
                                                 value={form.early_leave_threshold_minutes || ''}
                                                 onChange={e => setForm({ ...form, early_leave_threshold_minutes: e.target.value ? parseInt(e.target.value) || 0 : 0 })}
-                                                className="input-premium bg-white"
+                                                className="input-premium bg-white dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                             />
                                         </div>
                                         <div className="space-y-1">
-                                            <label className="text-xs font-semibold text-slate-500">Half Day (min)</label>
+                                            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Half Day (min)</label>
                                             <input
                                                 type="number"
                                                 value={form.half_day_threshold_minutes || ''}
                                                 onChange={e => setForm({ ...form, half_day_threshold_minutes: e.target.value ? parseInt(e.target.value) || 0 : 0 })}
-                                                className="input-premium bg-white"
+                                                className="input-premium bg-white dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                             />
                                         </div>
                                         <div className="space-y-1">
-                                            <label className="text-xs font-semibold text-slate-500">Absent (min)</label>
+                                            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Absent (min)</label>
                                             <input
                                                 type="number"
                                                 value={form.absent_threshold_minutes || ''}
                                                 onChange={e => setForm({ ...form, absent_threshold_minutes: e.target.value ? parseInt(e.target.value) || 0 : 0 })}
-                                                className="input-premium bg-white"
+                                                className="input-premium bg-white dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                             />
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Grace Period */}
-                                <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
-                                    <h3 className="font-bold text-slate-700 mb-4 flex items-center gap-2">
+                                <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-100 dark:border-slate-700">
+                                    <h3 className="font-bold text-slate-700 dark:text-slate-300 mb-4 flex items-center gap-2">
                                         <CheckCircle size={16} className="text-emerald-500" /> Grace Period
                                     </h3>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-1">
-                                            <label className="text-xs font-semibold text-slate-500">Grace Minutes</label>
+                                            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Grace Minutes</label>
                                             <input
                                                 type="number"
                                                 value={form.grace_period_minutes || ''}
                                                 onChange={e => setForm({ ...form, grace_period_minutes: e.target.value ? parseInt(e.target.value) || 0 : 0 })}
-                                                className="input-premium bg-white"
+                                                className="input-premium bg-white dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                             />
                                         </div>
                                         <div className="space-y-1">
-                                            <label className="text-xs font-semibold text-slate-500">Allowed Count/Month</label>
+                                            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Allowed Count/Month</label>
                                             <input
                                                 type="number"
                                                 value={form.grace_late_allowed_per_month || ''}
                                                 onChange={e => setForm({ ...form, grace_late_allowed_per_month: e.target.value ? parseInt(e.target.value) || 0 : 0 })}
-                                                className="input-premium bg-white"
+                                                className="input-premium bg-white dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                             />
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Overtime */}
-                                <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                                <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-100 dark:border-slate-700">
                                     <div className="flex items-center justify-between mb-4">
-                                        <h3 className="font-bold text-slate-700 flex items-center gap-2">
+                                        <h3 className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
                                             <Calendar size={16} className="text-amber-500" /> Overtime Settings
                                         </h3>
                                         <label className="toggle-switch cursor-pointer">
@@ -460,22 +460,22 @@ export default function AttendanceRules() {
                                     {form.overtime_enabled && (
                                         <div className="grid grid-cols-2 gap-4 animate-in slide-in-from-top-2">
                                             <div className="space-y-1">
-                                                <label className="text-xs font-semibold text-slate-500">Min OT Minutes</label>
+                                                <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Min OT Minutes</label>
                                                 <input
                                                     type="number"
                                                     value={form.overtime_threshold_minutes || ''}
                                                     onChange={e => setForm({ ...form, overtime_threshold_minutes: e.target.value ? parseInt(e.target.value) || 0 : 0 })}
-                                                    className="input-premium bg-white"
+                                                    className="input-premium bg-white dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                                 />
                                             </div>
                                             <div className="space-y-1">
-                                                <label className="text-xs font-semibold text-slate-500">OT Multiplier</label>
+                                                <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">OT Multiplier</label>
                                                 <input
                                                     type="number"
                                                     step="0.1"
                                                     value={form.overtime_multiplier || ''}
                                                     onChange={e => setForm({ ...form, overtime_multiplier: e.target.value ? parseFloat(e.target.value) || 0 : 0 })}
-                                                    className="input-premium bg-white"
+                                                    className="input-premium bg-white dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
                                                 />
                                             </div>
                                         </div>
@@ -484,7 +484,7 @@ export default function AttendanceRules() {
 
                                 {/* Week Off Days */}
                                 <div className="space-y-2">
-                                    <label className="text-xs font-bold text-slate-500 uppercase">Week Off Days</label>
+                                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Week Off Days</label>
                                     <div className="flex flex-wrap gap-2">
                                         {weekDays.map(day => (
                                             <button
@@ -493,7 +493,7 @@ export default function AttendanceRules() {
                                                 onClick={() => toggleWeekOff(day)}
                                                 className={`px-4 py-2 rounded-lg text-sm font-bold transition-all capitalize border ${form.week_off_days.includes(day)
                                                     ? 'bg-slate-800 text-white border-slate-800 shadow-md'
-                                                    : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                                                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50'
                                                     }`}
                                             >
                                                 {day.substring(0, 3)}
@@ -502,7 +502,7 @@ export default function AttendanceRules() {
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                                <div className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700">
                                     <label className="flex items-center gap-3 cursor-pointer w-full">
                                         <div className="relative flex items-center">
                                             <input
@@ -513,12 +513,12 @@ export default function AttendanceRules() {
                                             />
                                             <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-100 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
                                         </div>
-                                        <span className="text-sm font-semibold text-slate-700">Alternate Saturday Off</span>
+                                        <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Alternate Saturday Off</span>
                                     </label>
                                 </div>
                             </form>
                         </div>
-                        <div className="p-4 border-t bg-slate-50 flex justify-end gap-3">
+                        <div className="p-4 border-t dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 flex justify-end gap-3">
                             <Button variant="secondary" onClick={closeModal}>Cancel</Button>
                             <Button icon={Save} onClick={handleSubmit}>
                                 {editingId ? 'Update Rule' : 'Create Rule'}

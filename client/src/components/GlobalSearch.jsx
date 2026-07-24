@@ -26,26 +26,26 @@ const searchCategories = {
     employees: {
         icon: Users,
         label: 'Employees',
-        color: 'text-blue-600',
-        bgColor: 'bg-blue-50'
+        color: 'text-blue-600 dark:text-blue-300',
+        bgColor: 'bg-blue-50 dark:bg-blue-900/30'
     },
     devices: {
         icon: TabletSmartphone,
         label: 'Devices',
-        color: 'text-green-600',
-        bgColor: 'bg-green-50'
+        color: 'text-green-600 dark:text-green-300',
+        bgColor: 'bg-green-50 dark:bg-green-900/30'
     },
     reports: {
         icon: FileBarChart,
         label: 'Reports',
-        color: 'text-purple-600',
-        bgColor: 'bg-purple-50'
+        color: 'text-purple-600 dark:text-purple-300',
+        bgColor: 'bg-purple-50 dark:bg-purple-900/30'
     },
     settings: {
         icon: Settings2,
         label: 'Settings',
-        color: 'text-slate-600',
-        bgColor: 'bg-slate-50'
+        color: 'text-slate-600 dark:text-slate-400',
+        bgColor: 'bg-slate-50 dark:bg-slate-900/50'
     }
 };
 
@@ -270,8 +270,8 @@ export default function GlobalSearch() {
                                             <button
                                                 key={result.id}
                                                 onClick={() => handleSelectResult(result)}
-                                                className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-colors ${
-                                                    isSelected ? 'bg-slate-50' : ''
+                                                className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors ${
+                                                    isSelected ? 'bg-slate-50 dark:bg-slate-900/50' : ''
                                                 }`}
                                                 onMouseEnter={() => setSelectedIndex(index)}
                                             >
@@ -279,8 +279,8 @@ export default function GlobalSearch() {
                                                     <Icon className={category.color} size={18} />
                                                 </div>
                                                 <div className="flex-1 text-left">
-                                                    <div className="font-medium text-slate-900">{result.title}</div>
-                                                    <div className="text-sm text-slate-500">{result.subtitle}</div>
+                                                    <div className="font-medium text-slate-900 dark:text-slate-100">{result.title}</div>
+                                                    <div className="text-sm text-slate-500 dark:text-slate-400">{result.subtitle}</div>
                                                 </div>
                                                 <ArrowRight className="text-slate-400" size={16} />
                                             </button>
@@ -288,7 +288,7 @@ export default function GlobalSearch() {
                                     })}
                                 </div>
                             ) : (
-                                <div className="py-12 text-center text-slate-500">
+                                <div className="py-12 text-center text-slate-500 dark:text-slate-400">
                                     <p className="text-sm">No results found for "{query}"</p>
                                 </div>
                             )
@@ -296,7 +296,7 @@ export default function GlobalSearch() {
                             <div className="py-4">
                                 {recentSearches.length > 0 && (
                                     <>
-                                        <div className="px-4 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                        <div className="px-4 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                             Recent Searches
                                         </div>
                                         {recentSearches.map((result, index) => {
@@ -307,14 +307,14 @@ export default function GlobalSearch() {
                                                 <button
                                                     key={result.id}
                                                     onClick={() => handleSelectResult(result)}
-                                                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-colors"
+                                                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
                                                 >
                                                     <div className={`p-2 rounded-lg ${category.bgColor}`}>
                                                         <Icon className={category.color} size={18} />
                                                     </div>
                                                     <div className="flex-1 text-left">
-                                                        <div className="font-medium text-slate-900">{result.title}</div>
-                                                        <div className="text-sm text-slate-500">{result.subtitle}</div>
+                                                        <div className="font-medium text-slate-900 dark:text-slate-100">{result.title}</div>
+                                                        <div className="text-sm text-slate-500 dark:text-slate-400">{result.subtitle}</div>
                                                     </div>
                                                     <Clock className="text-slate-400" size={14} />
                                                 </button>

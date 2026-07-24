@@ -118,21 +118,21 @@ function FirstLastReport() {
     };
 
     return (
-        <div className="flex flex-col h-full bg-[#FAFBFC]">
+        <div className="flex flex-col h-full bg-[#FAFBFC] dark:bg-slate-900">
             {/* Premium Header Container */}
-            <div className="bg-white border-b sticky top-0 z-30 shadow-sm">
+            <div className="bg-white dark:bg-slate-800 border-b dark:border-slate-700 sticky top-0 z-30 shadow-sm">
                 {/* Top Bar */}
                 <div className="px-6 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <Button variant="ghost" size="sm" icon={ArrowLeft} iconSize={20} onClick={() => navigate('/reports')} aria-label="Back to reports" />
                         <div>
-                            <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                                <span className="p-2 bg-orange-50 text-orange-600 rounded-lg">
+                            <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                                <span className="p-2 bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-300 rounded-lg">
                                     <Search size={20} />
                                 </span>
                                 First & Last Punch
                             </h1>
-                            <p className="text-xs text-slate-500 mt-0.5">Daily punch analysis report</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Daily punch analysis report</p>
                         </div>
                     </div>
 
@@ -149,28 +149,28 @@ function FirstLastReport() {
                 </div>
 
                 {/* Filter Bar */}
-                <div className="px-6 py-3 bg-slate-50 border-t flex flex-wrap items-center gap-4">
-                    <div className="flex items-center gap-3 bg-white p-1 rounded-lg border shadow-sm">
-                        <div className="flex items-center gap-2 px-3 border-r h-full">
+                <div className="px-6 py-3 bg-slate-50 dark:bg-slate-900/50 border-t dark:border-slate-700 flex flex-wrap items-center gap-4">
+                    <div className="flex items-center gap-3 bg-white dark:bg-slate-800 p-1 rounded-lg border dark:border-slate-700 shadow-sm">
+                        <div className="flex items-center gap-2 px-3 border-r dark:border-slate-700 h-full">
                             <span className="text-xs font-bold text-slate-400 uppercase tracking-wide">Date Range</span>
                         </div>
                         <input
                             type="date"
                             value={startDate}
                             onChange={e => setStartDate(e.target.value)}
-                            className="text-sm font-medium text-slate-700 bg-transparent border-none focus:ring-0 px-2 outline-none h-8"
+                            className="text-sm font-medium text-slate-700 dark:text-slate-100 bg-transparent border-none focus:ring-0 px-2 outline-none h-8"
                         />
                         <span className="text-slate-300">→</span>
                         <input
                             type="date"
                             value={endDate}
                             onChange={e => setEndDate(e.target.value)}
-                            className="text-sm font-medium text-slate-700 bg-transparent border-none focus:ring-0 px-2 outline-none h-8"
+                            className="text-sm font-medium text-slate-700 dark:text-slate-100 bg-transparent border-none focus:ring-0 px-2 outline-none h-8"
                         />
                     </div>
 
-                    <div className="flex items-center gap-3 bg-white p-1 rounded-lg border shadow-sm">
-                        <div className="flex items-center gap-2 px-3 border-r h-full">
+                    <div className="flex items-center gap-3 bg-white dark:bg-slate-800 p-1 rounded-lg border dark:border-slate-700 shadow-sm">
+                        <div className="flex items-center gap-2 px-3 border-r dark:border-slate-700 h-full">
                             <span className="text-xs font-bold text-slate-400 uppercase tracking-wide">Employee</span>
                         </div>
                         <input
@@ -178,15 +178,15 @@ function FirstLastReport() {
                             placeholder="ID..."
                             value={employeeId}
                             onChange={e => setEmployeeId(e.target.value)}
-                            className="text-sm font-medium text-slate-700 bg-transparent border-none focus:ring-0 px-2 outline-none w-24 h-8"
+                            className="text-sm font-medium text-slate-700 dark:text-slate-100 bg-transparent border-none focus:ring-0 px-2 outline-none w-24 h-8"
                         />
-                        <div className="w-px h-6 bg-slate-200"></div>
+                        <div className="w-px h-6 bg-slate-200 dark:bg-slate-700"></div>
                         <input
                             type="text"
                             placeholder="Name..."
                             value={firstName}
                             onChange={e => setFirstName(e.target.value)}
-                            className="text-sm font-medium text-slate-700 bg-transparent border-none focus:ring-0 px-2 outline-none w-32 h-8"
+                            className="text-sm font-medium text-slate-700 dark:text-slate-100 bg-transparent border-none focus:ring-0 px-2 outline-none w-32 h-8"
                         />
                     </div>
                 </div>
@@ -194,7 +194,7 @@ function FirstLastReport() {
 
             {/* Data Area */}
             <div className="flex-1 overflow-auto p-6">
-                <div className="bg-white rounded-xl shadow-sm border overflow-hidden min-h-[400px]">
+                <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border dark:border-slate-700 overflow-hidden min-h-[400px]">
                     {data.length === 0 && calculated ? (
                         <div className="table-empty-state">
                             <div className="table-empty-icon"><Search size={48} /></div>
@@ -203,10 +203,10 @@ function FirstLastReport() {
                         </div>
                     ) : !calculated ? (
                         <div className="flex flex-col items-center justify-center p-12 text-center h-96">
-                            <div className="p-6 bg-slate-50 rounded-full mb-6">
+                            <div className="p-6 bg-slate-50 dark:bg-slate-900/50 rounded-full mb-6">
                                 <Calculator size={48} className="text-slate-300" />
                             </div>
-                            <h3 className="text-lg font-semibold text-slate-600">No Data Generated</h3>
+                            <h3 className="text-lg font-semibold text-slate-600 dark:text-slate-400">No Data Generated</h3>
                             <p className="text-sm text-slate-400 max-w-xs mt-2">Use the filters above and click Calculate to generate the report.</p>
                         </div>
                     ) : (
@@ -230,15 +230,15 @@ function FirstLastReport() {
                                             <td><span className="cell-code">{row.employee_code}</span></td>
                                             <td>
                                                 <div className="flex flex-col">
-                                                    <span className="font-semibold text-slate-700">{row.first_name} {row.last_name}</span>
+                                                    <span className="font-semibold text-slate-700 dark:text-slate-300">{row.first_name} {row.last_name}</span>
                                                 </div>
                                             </td>
-                                            <td><span className="text-slate-600 font-medium text-sm">{row.department}</span></td>
-                                            <td><span className="text-slate-600 font-medium text-sm">{row.date}</span></td>
-                                            <td><span className="text-slate-500 text-xs uppercase font-bold tracking-wide">{row.weekday}</span></td>
-                                            <td><span className="font-mono text-sm text-emerald-600 bg-emerald-50 px-2 py-1 rounded">{row.first_punch || '-'}</span></td>
-                                            <td><span className="font-mono text-sm text-rose-600 bg-rose-50 px-2 py-1 rounded">{row.last_punch || '-'}</span></td>
-                                            <td><span className="font-mono text-sm font-bold text-slate-700">{row.total_time}</span></td>
+                                            <td><span className="text-slate-600 dark:text-slate-400 font-medium text-sm">{row.department}</span></td>
+                                            <td><span className="text-slate-600 dark:text-slate-400 font-medium text-sm">{row.date}</span></td>
+                                            <td><span className="text-slate-500 dark:text-slate-400 text-xs uppercase font-bold tracking-wide">{row.weekday}</span></td>
+                                            <td><span className="font-mono text-sm text-emerald-600 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-1 rounded">{row.first_punch || '-'}</span></td>
+                                            <td><span className="font-mono text-sm text-rose-600 dark:text-rose-300 bg-rose-50 dark:bg-rose-900/30 px-2 py-1 rounded">{row.last_punch || '-'}</span></td>
+                                            <td><span className="font-mono text-sm font-bold text-slate-700 dark:text-slate-300">{row.total_time}</span></td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -250,8 +250,8 @@ function FirstLastReport() {
 
             {/* Footer */}
             {data.length > 0 && (
-                <div className="bg-white border-t p-4 flex justify-between items-center sticky bottom-0 z-20 shadow-[0_-4px_12px_rgba(0,0,0,0.03)]">
-                    <div className="text-sm font-medium text-slate-500">
+                <div className="bg-white dark:bg-slate-800 border-t dark:border-slate-700 p-4 flex justify-between items-center sticky bottom-0 z-20 shadow-[0_-4px_12px_rgba(0,0,0,0.03)]">
+                    <div className="text-sm font-medium text-slate-500 dark:text-slate-400">
                         Total {data.length} Records
                     </div>
                     <div className="flex gap-2">

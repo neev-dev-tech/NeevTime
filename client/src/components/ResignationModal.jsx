@@ -23,17 +23,17 @@ export default function ResignationModal({ isOpen, onClose, selectedCount, onCon
 
     return (
         <div className="fixed inset-0 bg-charcoal/30 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-100 flex flex-col max-h-[90vh]">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-100 dark:border-slate-700 flex flex-col max-h-[90vh]">
                 {/* Header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
-                    <h3 className="font-bold text-lg text-charcoal">Resignation</h3>
+                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/25">
+                    <h3 className="font-bold text-lg text-charcoal dark:text-slate-100">Resignation</h3>
                     <Button variant="ghost" size="sm" icon={X} onClick={onClose} aria-label="Close" />
                 </div>
 
                 <form onSubmit={handleSubmit} className="p-6 overflow-y-auto">
                     <div className="space-y-5">
                         {selectedCount > 1 && (
-                            <div className="flex items-start gap-3 p-3 bg-orange-50 text-orange-800 rounded-lg text-sm border border-orange-100">
+                            <div className="flex items-start gap-3 p-3 bg-orange-50 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 rounded-lg text-sm border border-orange-100 dark:border-orange-800">
                                 <AlertTriangle size={18} className="shrink-0 mt-0.5" />
                                 <p>You are applying resignation for <strong>{selectedCount}</strong> employees. All of them will share these details.</p>
                             </div>
@@ -41,7 +41,7 @@ export default function ResignationModal({ isOpen, onClose, selectedCount, onCon
 
                         {/* Resignation Date */}
                         <div className="grid grid-cols-3 gap-4 items-center">
-                            <label className="text-sm font-medium text-slate-grey text-right">Resignation Date<span className="text-red-500">*</span>:</label>
+                            <label className="text-sm font-medium text-slate-grey dark:text-slate-400 text-right">Resignation Date<span className="text-red-500">*</span>:</label>
                             <div className="col-span-2 relative">
                                 <input
                                     type="date"
@@ -55,7 +55,7 @@ export default function ResignationModal({ isOpen, onClose, selectedCount, onCon
 
                         {/* Resignation Type */}
                         <div className="grid grid-cols-3 gap-4 items-center">
-                            <label className="text-sm font-medium text-slate-grey text-right">Resignation Type<span className="text-red-500">*</span>:</label>
+                            <label className="text-sm font-medium text-slate-grey dark:text-slate-400 text-right">Resignation Type<span className="text-red-500">*</span>:</label>
                             <div className="col-span-2">
                                 <select
                                     className="input-base w-full"
@@ -73,7 +73,7 @@ export default function ResignationModal({ isOpen, onClose, selectedCount, onCon
 
                         {/* Report Generation End Date */}
                         <div className="grid grid-cols-3 gap-4 items-center">
-                            <label className="text-sm font-medium text-slate-grey text-right">Report Generation End Date<span className="text-red-500">*</span>:</label>
+                            <label className="text-sm font-medium text-slate-grey dark:text-slate-400 text-right">Report Generation End Date<span className="text-red-500">*</span>:</label>
                             <div className="col-span-2">
                                 <input
                                     type="date"
@@ -87,7 +87,7 @@ export default function ResignationModal({ isOpen, onClose, selectedCount, onCon
 
                         {/* Attendance */}
                         <div className="grid grid-cols-3 gap-4 items-center">
-                            <label className="text-sm font-medium text-slate-grey text-right">Attendance<span className="text-red-500">*</span>:</label>
+                            <label className="text-sm font-medium text-slate-grey dark:text-slate-400 text-right">Attendance<span className="text-red-500">*</span>:</label>
                             <div className="col-span-2">
                                 <select
                                     className="input-base w-full"
@@ -102,7 +102,7 @@ export default function ResignationModal({ isOpen, onClose, selectedCount, onCon
 
                         {/* Resign Reason */}
                         <div className="grid grid-cols-3 gap-4 items-start">
-                            <label className="text-sm font-medium text-slate-grey text-right pt-2">Resign Reason:</label>
+                            <label className="text-sm font-medium text-slate-grey dark:text-slate-400 text-right pt-2">Resign Reason:</label>
                             <div className="col-span-2">
                                 <textarea
                                     rows={4}
@@ -115,7 +115,7 @@ export default function ResignationModal({ isOpen, onClose, selectedCount, onCon
                     </div>
 
                     {/* Footer */}
-                    <div className="flex justify-end gap-3 mt-8 pt-4 border-t border-slate-100">
+                    <div className="flex justify-end gap-3 mt-8 pt-4 border-t border-slate-100 dark:border-slate-700">
                         <Button type="button" variant="secondary" onClick={onClose}>
                             Cancel
                         </Button>

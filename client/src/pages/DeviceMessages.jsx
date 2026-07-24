@@ -53,24 +53,24 @@ export default function DeviceMessages() {
                 actions={<Button variant="secondary" icon={RefreshCw} onClick={fetchData}>Refresh</Button>}
             />
 
-            <form onSubmit={handleSend} className="bg-white rounded-xl border shadow-sm p-4 flex flex-wrap gap-3 items-end">
+            <form onSubmit={handleSend} className="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm p-4 flex flex-wrap gap-3 items-end">
                 <div className="min-w-[220px]">
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Device</label>
-                    <select value={form.device_serial} onChange={e => setForm(f => ({ ...f, device_serial: e.target.value }))} className="w-full text-sm border rounded-lg px-3 py-2" required>
+                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Device</label>
+                    <select value={form.device_serial} onChange={e => setForm(f => ({ ...f, device_serial: e.target.value }))} className="w-full text-sm border rounded-lg px-3 py-2 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100" required>
                         <option value="">Select device</option>
                         {devices.map(d => <option key={d.serial_number} value={d.serial_number}>{d.device_name || d.serial_number}</option>)}
                     </select>
                 </div>
                 <div className="flex-1 min-w-[260px]">
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Message</label>
-                    <input type="text" value={form.message} onChange={e => setForm(f => ({ ...f, message: e.target.value }))} maxLength={200} placeholder="e.g. Office closes early today at 4 PM" className="w-full text-sm border rounded-lg px-3 py-2" required />
+                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Message</label>
+                    <input type="text" value={form.message} onChange={e => setForm(f => ({ ...f, message: e.target.value }))} maxLength={200} placeholder="e.g. Office closes early today at 4 PM" className="w-full text-sm border rounded-lg px-3 py-2 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100" required />
                 </div>
                 <Button type="submit" variant="primary" icon={Send} disabled={sending}>{sending ? 'Sending...' : 'Send'}</Button>
             </form>
 
-            <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
+            <div className="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm overflow-hidden">
                 <table className="w-full text-sm text-left">
-                    <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+                    <thead className="bg-slate-50 dark:bg-slate-900/50 text-xs uppercase text-slate-500 dark:text-slate-400">
                         <tr>
                             <th className="px-6 py-3">Device</th>
                             <th className="px-6 py-3">Message</th>
@@ -78,19 +78,19 @@ export default function DeviceMessages() {
                             <th className="px-6 py-3">Sent</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y">
+                    <tbody className="divide-y dark:divide-slate-700">
                         {messages.length === 0 ? (
                             <tr><td colSpan={4} className="px-6 py-10 text-center text-slate-400">No messages sent yet</td></tr>
                         ) : messages.map((m, i) => (
-                            <tr key={m.id || i} className="hover:bg-slate-50">
+                            <tr key={m.id || i} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
                                 <td className="px-6 py-3 font-mono text-xs">{m.device_name || m.device_serial}</td>
-                                <td className="px-6 py-3 text-slate-700">{m.message}</td>
+                                <td className="px-6 py-3 text-slate-700 dark:text-slate-300">{m.message}</td>
                                 <td className="px-6 py-3">
-                                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full border capitalize ${m.status === 'sent' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
+                                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full border capitalize ${m.status === 'sent' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800' : 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800'}`}>
                                         {m.status || 'pending'}
                                     </span>
                                 </td>
-                                <td className="px-6 py-3 text-xs text-slate-500">{m.created_at ? new Date(m.created_at).toLocaleString() : '-'}</td>
+                                <td className="px-6 py-3 text-xs text-slate-500 dark:text-slate-400">{m.created_at ? new Date(m.created_at).toLocaleString() : '-'}</td>
                             </tr>
                         ))}
                     </tbody>

@@ -228,11 +228,11 @@ export default function DataTable({
         // Boolean formatting
         if (typeof value === 'boolean') {
             return value ? (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">
                     <Check size={12} className="mr-1" /> Yes
                 </span>
             ) : (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400">
                     <X size={12} className="mr-1" /> No
                 </span>
             );
@@ -241,18 +241,18 @@ export default function DataTable({
         // Status badge
         if (column.type === 'status' || column.key === 'status') {
             const statusColors = {
-                active: 'bg-green-100 text-green-800',
-                inactive: 'bg-slate-100 text-slate-600',
-                present: 'bg-green-100 text-green-800',
-                absent: 'bg-red-100 text-red-800',
-                late: 'bg-amber-100 text-amber-800',
-                online: 'bg-green-100 text-green-800',
-                offline: 'bg-slate-100 text-slate-600',
-                pending: 'bg-yellow-100 text-yellow-800',
-                approved: 'bg-green-100 text-green-800',
-                rejected: 'bg-red-100 text-red-800'
+                active: 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300',
+                inactive: 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400',
+                present: 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300',
+                absent: 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300',
+                late: 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300',
+                online: 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300',
+                offline: 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400',
+                pending: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300',
+                approved: 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300',
+                rejected: 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
             };
-            const colorClass = statusColors[String(value).toLowerCase()] || 'bg-slate-100 text-slate-600';
+            const colorClass = statusColors[String(value).toLowerCase()] || 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400';
             return (
                 <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium uppercase tracking-wide ${colorClass}`}>
                     {value}
@@ -307,14 +307,14 @@ export default function DataTable({
                                 setSearchTerm(e.target.value);
                                 setCurrentPage(1);
                             }}
-                            className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg text-sm
+                            className="w-full pl-10 pr-4 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg text-sm
                                 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100
                                 transition-all duration-200"
                         />
                         {searchTerm && (
                             <button
                                 onClick={() => setSearchTerm('')}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
                             >
                                 <X size={14} />
                             </button>
@@ -325,7 +325,7 @@ export default function DataTable({
                 <div className="flex items-center gap-2">
                     {/* Row count */}
                     {showRowCount && (
-                        <span className="text-sm text-slate-500">
+                        <span className="text-sm text-slate-500 dark:text-slate-400">
                             {processedData.length} record{processedData.length !== 1 ? 's' : ''}
                             {selectedRows.size > 0 && ` (${selectedRows.size} selected)`}
                         </span>
@@ -336,10 +336,10 @@ export default function DataTable({
                         <div className="relative">
                             <button
                                 onClick={() => setShowColumnMenu(!showColumnMenu)}
-                                className="p-2 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors"
+                                className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
                                 title="Toggle columns"
                             >
-                                <Columns3 size={18} className="text-slate-500" />
+                                <Columns3 size={18} className="text-slate-500 dark:text-slate-400" />
                             </button>
 
                             {showColumnMenu && (
@@ -348,23 +348,23 @@ export default function DataTable({
                                         className="fixed inset-0 z-10"
                                         onClick={() => setShowColumnMenu(false)}
                                     />
-                                    <div className="absolute right-0 top-full mt-2 w-56 bg-white border border-slate-200 rounded-xl shadow-lg z-20 py-2">
-                                        <div className="px-3 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b">
+                                    <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg z-20 py-2">
+                                        <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b dark:border-slate-700">
                                             Visible Columns
                                         </div>
                                         <div className="max-h-64 overflow-y-auto">
                                             {tableColumns.map(col => (
                                                 <label
                                                     key={col.key}
-                                                    className="flex items-center gap-3 px-3 py-2 hover:bg-slate-50 cursor-pointer"
+                                                    className="flex items-center gap-3 px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer"
                                                 >
                                                     <input
                                                         type="checkbox"
                                                         checked={visibleColumns[col.key]}
                                                         onChange={() => toggleColumn(col.key)}
-                                                        className="rounded border-slate-300 text-orange-500 focus:ring-orange-400"
+                                                        className="rounded border-slate-300 dark:border-slate-600 text-orange-500 focus:ring-orange-400"
                                                     />
-                                                    <span className="text-sm text-slate-700">{col.label}</span>
+                                                    <span className="text-sm text-slate-700 dark:text-slate-300">{col.label}</span>
                                                 </label>
                                             ))}
                                         </div>
@@ -381,8 +381,8 @@ export default function DataTable({
                                 ? data.filter((row, i) => selectedRows.has(row.id || i))
                                 : processedData
                             )}
-                            className="flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 
-                                hover:bg-slate-50 transition-colors text-sm text-slate-600"
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 
+                                hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors text-sm text-slate-600 dark:text-slate-400"
                         >
                             <Download size={16} />
                             Export
@@ -392,10 +392,10 @@ export default function DataTable({
             </div>
 
             {/* Table */}
-            <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+            <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
                 <table className="w-full text-sm">
                     <thead className={stickyHeader ? 'sticky top-0 z-10' : ''}>
-                        <tr className="bg-slate-50 border-b border-slate-200">
+                        <tr className="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700">
                             {/* Selection checkbox */}
                             {selectable && (
                                 <th className="w-12 px-4 py-3 text-center">
@@ -403,7 +403,7 @@ export default function DataTable({
                                         type="checkbox"
                                         checked={paginatedData.length > 0 && selectedRows.size === paginatedData.length}
                                         onChange={handleSelectAll}
-                                        className="rounded border-slate-300 text-orange-500 focus:ring-orange-400"
+                                        className="rounded border-slate-300 dark:border-slate-600 text-orange-500 focus:ring-orange-400"
                                     />
                                 </th>
                             )}
@@ -413,9 +413,9 @@ export default function DataTable({
                                 <th
                                     key={col.key}
                                     className={`
-                                        px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider
-                                        ${col.sortable ? 'cursor-pointer select-none group hover:bg-slate-100 transition-colors' : ''}
-                                        ${stickyFirstColumn && index === 0 ? 'sticky left-0 bg-slate-50 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]' : ''}
+                                        px-4 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider
+                                        ${col.sortable ? 'cursor-pointer select-none group hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors' : ''}
+                                        ${stickyFirstColumn && index === 0 ? 'sticky left-0 bg-slate-50 dark:bg-slate-900/50 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]' : ''}
                                         ${headerClassName}
                                     `}
                                     style={{
@@ -437,11 +437,11 @@ export default function DataTable({
                         {loading ? (
                             // Loading skeleton
                             Array.from({ length: 5 }).map((_, i) => (
-                                <tr key={i} className="border-b border-slate-100">
-                                    {selectable && <td className="px-4 py-3"><div className="w-4 h-4 bg-slate-200 rounded animate-pulse" /></td>}
+                                <tr key={i} className="border-b border-slate-100 dark:border-slate-700">
+                                    {selectable && <td className="px-4 py-3"><div className="w-4 h-4 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" /></td>}
                                     {renderColumns.map((col, j) => (
                                         <td key={j} className="px-4 py-3">
-                                            <div className="h-4 bg-slate-200 rounded animate-pulse" style={{ width: `${60 + Math.random() * 40}%` }} />
+                                            <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" style={{ width: `${60 + Math.random() * 40}%` }} />
                                         </td>
                                     ))}
                                 </tr>
@@ -451,10 +451,10 @@ export default function DataTable({
                             <tr>
                                 <td
                                     colSpan={renderColumns.length + (selectable ? 1 : 0)}
-                                    className="px-4 py-12 text-center text-slate-500"
+                                    className="px-4 py-12 text-center text-slate-500 dark:text-slate-400"
                                 >
                                     <div className="flex flex-col items-center gap-2">
-                                        <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center">
+                                        <div className="w-12 h-12 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center">
                                             <Search size={24} className="text-slate-400" />
                                         </div>
                                         <span>{searchTerm ? 'No matching records found' : emptyMessage}</span>
@@ -471,10 +471,10 @@ export default function DataTable({
                                     <tr
                                         key={rowId}
                                         className={`
-                                            border-b border-slate-100 transition-colors
-                                            ${striped && rowIndex % 2 === 1 ? 'bg-slate-50/50' : 'bg-white'}
-                                            ${isSelected ? 'bg-orange-50' : ''}
-                                            ${onRowClick ? 'cursor-pointer hover:bg-slate-50' : 'hover:bg-slate-50/80'}
+                                            border-b border-slate-100 dark:border-slate-700 transition-colors
+                                            ${striped && rowIndex % 2 === 1 ? 'bg-slate-50/50 dark:bg-slate-900/25' : 'bg-white dark:bg-slate-800'}
+                                            ${isSelected ? 'bg-orange-50 dark:bg-orange-900/30' : ''}
+                                            ${onRowClick ? 'cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50' : 'hover:bg-slate-50/80 dark:hover:bg-slate-700/50'}
                                             ${rowClassName}
                                         `}
                                         onClick={() => onRowClick?.(row)}
@@ -485,7 +485,7 @@ export default function DataTable({
                                                     type="checkbox"
                                                     checked={isSelected}
                                                     onChange={() => handleSelectRow(rowId)}
-                                                    className="rounded border-slate-300 text-orange-500 focus:ring-orange-400"
+                                                    className="rounded border-slate-300 dark:border-slate-600 text-orange-500 focus:ring-orange-400"
                                                 />
                                             </td>
                                         )}
@@ -494,7 +494,7 @@ export default function DataTable({
                                             <td
                                                 key={col.key}
                                                 className={`
-                                                    px-4 ${compact ? 'py-2' : 'py-3'} text-slate-700
+                                                    px-4 ${compact ? 'py-2' : 'py-3'} text-slate-700 dark:text-slate-300
                                                     ${stickyFirstColumn && colIndex === 0 ? 'sticky left-0 bg-inherit z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]' : ''}
                                                     ${col.align === 'center' ? 'text-center' : col.align === 'right' ? 'text-right' : 'text-left'}
                                                 `}
@@ -514,7 +514,7 @@ export default function DataTable({
             {showPagination && totalPages > 0 && (
                 <div className="flex items-center justify-between mt-4 flex-wrap gap-4">
                     {/* Rows per page */}
-                    <div className="flex items-center gap-2 text-sm text-slate-600">
+                    <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
                         <span>Rows per page:</span>
                         <select
                             value={rowsPerPage}
@@ -522,7 +522,7 @@ export default function DataTable({
                                 setRowsPerPage(Number(e.target.value));
                                 setCurrentPage(1);
                             }}
-                            className="border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:border-orange-400"
+                            className="border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg px-2 py-1 focus:outline-none focus:border-orange-400"
                         >
                             {pageSizeOptions.map(size => (
                                 <option key={size} value={size}>{size}</option>
@@ -532,7 +532,7 @@ export default function DataTable({
 
                     {/* Page info & navigation */}
                     <div className="flex items-center gap-2">
-                        <span className="text-sm text-slate-600">
+                        <span className="text-sm text-slate-600 dark:text-slate-400">
                             {((currentPage - 1) * rowsPerPage) + 1} - {Math.min(currentPage * rowsPerPage, processedData.length)} of {processedData.length}
                         </span>
 
@@ -540,18 +540,18 @@ export default function DataTable({
                             <button
                                 onClick={() => setCurrentPage(1)}
                                 disabled={currentPage === 1}
-                                className="p-1.5 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 title="First page"
                             >
-                                <ChevronsLeft size={18} className="text-slate-600" />
+                                <ChevronsLeft size={18} className="text-slate-600 dark:text-slate-400" />
                             </button>
                             <button
                                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                                 disabled={currentPage === 1}
-                                className="p-1.5 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 title="Previous page"
                             >
-                                <ChevronLeft size={18} className="text-slate-600" />
+                                <ChevronLeft size={18} className="text-slate-600 dark:text-slate-400" />
                             </button>
 
                             {/* Page numbers */}
@@ -576,7 +576,7 @@ export default function DataTable({
                                                 w-8 h-8 rounded-lg text-sm font-medium transition-colors
                                                 ${currentPage === pageNum
                                                     ? 'bg-orange-500 text-white'
-                                                    : 'text-slate-600 hover:bg-slate-100'
+                                                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
                                                 }
                                             `}
                                         >
@@ -589,18 +589,18 @@ export default function DataTable({
                             <button
                                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                                 disabled={currentPage === totalPages}
-                                className="p-1.5 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 title="Next page"
                             >
-                                <ChevronRight size={18} className="text-slate-600" />
+                                <ChevronRight size={18} className="text-slate-600 dark:text-slate-400" />
                             </button>
                             <button
                                 onClick={() => setCurrentPage(totalPages)}
                                 disabled={currentPage === totalPages}
-                                className="p-1.5 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 title="Last page"
                             >
-                                <ChevronsRight size={18} className="text-slate-600" />
+                                <ChevronsRight size={18} className="text-slate-600 dark:text-slate-400" />
                             </button>
                         </div>
                     </div>

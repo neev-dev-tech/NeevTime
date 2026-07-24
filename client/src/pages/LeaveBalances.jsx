@@ -53,7 +53,7 @@ export default function LeaveBalances() {
                 subtitle="Per-employee leave entitlements and usage"
                 actions={
                     <>
-                        <select value={year} onChange={e => setYear(parseInt(e.target.value))} className="text-sm border rounded-lg px-3 py-2 bg-white">
+                        <select value={year} onChange={e => setYear(parseInt(e.target.value))} className="text-sm border dark:border-slate-600 rounded-lg px-3 py-2 bg-white dark:bg-slate-900 dark:text-slate-100">
                             {[0, 1, 2].map(off => {
                                 const y = new Date().getFullYear() - off;
                                 return <option key={y} value={y}>{y}</option>;
@@ -80,9 +80,9 @@ export default function LeaveBalances() {
                 }
             />
 
-            <div className="bg-white rounded-xl border shadow-sm overflow-x-auto">
+            <div className="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm overflow-x-auto">
                 <table className="w-full text-sm text-left">
-                    <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+                    <thead className="bg-slate-50 dark:bg-slate-900/50 text-xs uppercase text-slate-500 dark:text-slate-400">
                         <tr>
                             <th className="px-6 py-3">Employee</th>
                             <th className="px-6 py-3">Leave Type</th>
@@ -91,7 +91,7 @@ export default function LeaveBalances() {
                             <th className="px-6 py-3">Balance</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y">
+                    <tbody className="divide-y dark:divide-slate-700">
                         {balances.length === 0 ? (
                             <tr>
                                 <td colSpan={5} className="px-6 py-10 text-center text-slate-400">
@@ -99,9 +99,9 @@ export default function LeaveBalances() {
                                 </td>
                             </tr>
                         ) : balances.map(b => (
-                            <tr key={b.id} className="hover:bg-slate-50">
+                            <tr key={b.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
                                 <td className="px-6 py-3">
-                                    <span className="font-medium text-slate-800">{b.employee_name}</span>
+                                    <span className="font-medium text-slate-800 dark:text-slate-100">{b.employee_name}</span>
                                     <span className="text-xs text-slate-400 font-mono ml-2">{b.employee_code}</span>
                                 </td>
                                 <td className="px-6 py-3">
