@@ -73,8 +73,8 @@ class ErrorBoundary extends React.Component {
                                     <AlertTriangle className="text-red-600" size={24} />
                                 </div>
                                 <div>
-                                    <h1 className="text-xl font-bold text-gray-900">Something went wrong</h1>
-                                    <p className="text-sm text-gray-600 mt-1">
+                                    <h1 className="text-xl font-bold text-slate-900">Something went wrong</h1>
+                                    <p className="text-sm text-slate-600 mt-1">
                                         Error ID: <span className="font-mono text-xs">{this.state.errorId}</span>
                                     </p>
                                 </div>
@@ -92,10 +92,10 @@ class ErrorBoundary extends React.Component {
                             {/* Error Details (Development only) */}
                             {showDetails && process.env.NODE_ENV === 'development' && this.state.errorInfo && (
                                 <details className="mt-4">
-                                    <summary className="cursor-pointer text-sm font-medium text-gray-700 mb-2">
+                                    <summary className="cursor-pointer text-sm font-medium text-slate-700 mb-2">
                                         Technical Details (Development Only)
                                     </summary>
-                                    <pre className="bg-gray-50 border border-gray-200 rounded p-3 text-xs overflow-auto max-h-64 font-mono">
+                                    <pre className="bg-slate-50 border border-slate-200 rounded p-3 text-xs overflow-auto max-h-64 font-mono">
                                         {this.state.errorInfo.componentStack}
                                     </pre>
                                 </details>
@@ -105,21 +105,21 @@ class ErrorBoundary extends React.Component {
                             <div className="flex flex-wrap gap-3 mt-6">
                                 <button
                                     onClick={this.handleReset}
-                                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                                    className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-sm font-medium"
                                 >
                                     <RefreshCw size={16} />
                                     Try Again
                                 </button>
                                 <button
                                     onClick={this.handleReload}
-                                    className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+                                    className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors text-sm font-medium"
                                 >
                                     <RefreshCw size={16} />
                                     Reload Page
                                 </button>
                                 <button
                                     onClick={this.handleGoHome}
-                                    className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+                                    className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors text-sm font-medium"
                                 >
                                     <Home size={16} />
                                     Go Home

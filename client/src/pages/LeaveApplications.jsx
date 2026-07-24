@@ -64,7 +64,7 @@ export default function LeaveApplications() {
 
     const getStatusBadge = (status) => {
         const colors = { 'Pending': 'bg-yellow-100 text-yellow-700', 'Approved': 'bg-green-100 text-green-700', 'Rejected': 'bg-red-100 text-red-700' };
-        return <span className={`px-2 py-0.5 rounded text-xs font-medium ${colors[status] || 'bg-gray-100'}`}>{status}</span>;
+        return <span className={`px-2 py-0.5 rounded text-xs font-medium ${colors[status] || 'bg-slate-100'}`}>{status}</span>;
     };
 
     const exportColumns = [
@@ -100,21 +100,21 @@ export default function LeaveApplications() {
                     </>
                 }
             />
-            <div className="flex flex-col flex-1 bg-white border border-gray-200 shadow-sm rounded-md overflow-hidden relative">
+            <div className="flex flex-col flex-1 bg-white border border-slate-200 shadow-sm rounded-md overflow-hidden relative">
             {/* Toolbar */}
-            <div className="flex items-center gap-2 p-2 border-b border-gray-200 bg-gray-50 text-sm flex-wrap">
+            <div className="flex items-center gap-2 p-2 border-b border-slate-200 bg-slate-50 text-sm flex-wrap">
                 <div className="relative">
                     <select
                         value={statusFilter}
                         onChange={e => setStatusFilter(e.target.value)}
-                        className="appearance-none pl-3 pr-8 py-1.5 bg-gray-200 hover:bg-gray-300 rounded text-gray-700 cursor-pointer text-sm font-medium focus:outline-none"
+                        className="appearance-none pl-3 pr-8 py-1.5 bg-slate-200 hover:bg-slate-300 rounded text-slate-700 cursor-pointer text-sm font-medium focus:outline-none"
                     >
                         <option value="All">All Status</option>
                         <option value="Pending">Pending</option>
                         <option value="Approved">Approved</option>
                         <option value="Rejected">Rejected</option>
                     </select>
-                    <ChevronDown size={14} className="absolute right-2 top-2.5 text-gray-500 pointer-events-none" />
+                    <ChevronDown size={14} className="absolute right-2 top-2.5 text-slate-500 pointer-events-none" />
                 </div>
 
                 <div className="ml-auto w-64 relative">
@@ -123,16 +123,16 @@ export default function LeaveApplications() {
                         placeholder="Search employee..."
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
-                        className="w-full pl-8 pr-3 py-1.5 border rounded text-sm focus:outline-none focus:border-blue-500"
+                        className="w-full pl-8 pr-3 py-1.5 border rounded text-sm focus:outline-none focus:border-orange-400"
                     />
-                    <Search size={14} className="absolute left-2.5 top-2 text-gray-400" />
+                    <Search size={14} className="absolute left-2.5 top-2 text-slate-400" />
                 </div>
             </div>
 
             {/* Applications Table */}
             <div className="flex-1 overflow-auto bg-white">
                 <table className="w-full text-sm text-left border-collapse">
-                    <thead className="bg-gray-100 text-gray-600 sticky top-0 z-10">
+                    <thead className="bg-slate-100 text-slate-600 sticky top-0 z-10">
                         <tr>
                             <th className="p-3 border-b border-r font-semibold">Employee</th>
                             <th className="p-3 border-b border-r font-semibold">Leave Type</th>
@@ -143,20 +143,20 @@ export default function LeaveApplications() {
                             <th className="p-3 border-b font-semibold text-center">Actions</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-50">
+                    <tbody className="divide-y divide-slate-50">
                         {filteredApps.map(app => (
-                            <tr key={app.id} className="hover:bg-blue-50">
-                                <td className="p-3 border-r flex items-center gap-2 font-medium text-gray-900">
-                                    <User size={16} className="text-gray-400" /> {app.employee_name}
+                            <tr key={app.id} className="hover:bg-orange-50">
+                                <td className="p-3 border-r flex items-center gap-2 font-medium text-slate-900">
+                                    <User size={16} className="text-slate-400" /> {app.employee_name}
                                 </td>
                                 <td className="p-3 border-r">
                                     <span className="px-2 py-0.5 rounded text-xs" style={{ backgroundColor: (app.color || '#999') + '20', color: (app.color || '#666') }}>
                                         {app.leave_type_name}
                                     </span>
                                 </td>
-                                <td className="p-3 border-r text-center text-gray-600">{new Date(app.from_date).toLocaleDateString()}</td>
-                                <td className="p-3 border-r text-center text-gray-600">{new Date(app.to_date).toLocaleDateString()}</td>
-                                <td className="p-3 border-r text-center text-gray-600">{app.total_days}</td>
+                                <td className="p-3 border-r text-center text-slate-600">{new Date(app.from_date).toLocaleDateString()}</td>
+                                <td className="p-3 border-r text-center text-slate-600">{new Date(app.to_date).toLocaleDateString()}</td>
+                                <td className="p-3 border-r text-center text-slate-600">{app.total_days}</td>
                                 <td className="p-3 border-r text-center">{getStatusBadge(app.status)}</td>
                                 <td className="p-3 text-center">
                                     {app.status === 'Pending' && (
@@ -170,7 +170,7 @@ export default function LeaveApplications() {
                         ))}
                         {filteredApps.length === 0 && (
                             <tr>
-                                <td colSpan={7} className="p-8 text-center text-gray-400">
+                                <td colSpan={7} className="p-8 text-center text-slate-400">
                                     No applications found matching your filters.
                                 </td>
                             </tr>

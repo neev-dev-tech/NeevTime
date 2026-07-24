@@ -531,7 +531,7 @@ export default function Devices() {
                                     {showSyncAllMenu && (
                                         <>
                                             <div className="fixed inset-0 z-10" onClick={() => setShowSyncAllMenu(false)}></div>
-                                            <div className="absolute right-0 mt-2 w-72 bg-white border border-gray-100 shadow-xl rounded-xl z-20 overflow-hidden">
+                                            <div className="absolute right-0 mt-2 w-72 bg-white border border-slate-100 shadow-xl rounded-xl z-20 overflow-hidden">
                                                 <button
                                                     type="button"
                                                     onClick={(e) => {
@@ -539,7 +539,7 @@ export default function Devices() {
                                                         e.stopPropagation();
                                                         syncAllDevices('upload-users');
                                                     }}
-                                                    className="flex items-center gap-3 w-full text-left px-4 py-3 hover:bg-green-50 text-sm text-slate-grey hover:text-charcoal border-b border-gray-50"
+                                                    className="flex items-center gap-3 w-full text-left px-4 py-3 hover:bg-green-50 text-sm text-slate-grey hover:text-charcoal border-b border-slate-50"
                                                 >
                                                     <Upload size={16} className="text-green-600" />
                                                     Push Users to All Devices
@@ -551,9 +551,9 @@ export default function Devices() {
                                                         e.stopPropagation();
                                                         syncAllDevices('download-users');
                                                     }}
-                                                    className="flex items-center gap-3 w-full text-left px-4 py-3 hover:bg-blue-50 text-sm text-slate-grey hover:text-charcoal border-b border-gray-50"
+                                                    className="flex items-center gap-3 w-full text-left px-4 py-3 hover:bg-orange-50 text-sm text-slate-grey hover:text-charcoal border-b border-slate-50"
                                                 >
-                                                    <Download size={16} className="text-blue-600" />
+                                                    <Download size={16} className="text-orange-600" />
                                                     Pull Users from All Devices
                                                 </button>
                                                 <button
@@ -563,7 +563,7 @@ export default function Devices() {
                                                         e.stopPropagation();
                                                         syncAllDevices('upload-biometrics');
                                                     }}
-                                                    className="flex items-center gap-3 w-full text-left px-4 py-3 hover:bg-purple-50 text-sm text-slate-grey hover:text-charcoal border-b border-gray-50"
+                                                    className="flex items-center gap-3 w-full text-left px-4 py-3 hover:bg-purple-50 text-sm text-slate-grey hover:text-charcoal border-b border-slate-50"
                                                 >
                                                     <Fingerprint size={16} className="text-purple-600" />
                                                     Push Biometrics to All Devices
@@ -575,7 +575,7 @@ export default function Devices() {
                                                         e.stopPropagation();
                                                         syncAllDevices('download-biometrics');
                                                     }}
-                                                    className="flex items-center gap-3 w-full text-left px-4 py-3 hover:bg-pink-50 text-sm text-slate-grey hover:text-charcoal border-b border-gray-50"
+                                                    className="flex items-center gap-3 w-full text-left px-4 py-3 hover:bg-pink-50 text-sm text-slate-grey hover:text-charcoal border-b border-slate-50"
                                                 >
                                                     <Fingerprint size={16} className="text-pink-600" />
                                                     Pull Biometrics from All Devices
@@ -614,8 +614,8 @@ export default function Devices() {
                                     {showTransferMenu && (
                                         <>
                                             <div className="fixed inset-0 z-10" onClick={() => setShowTransferMenu(false)}></div>
-                                            <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-100 shadow-xl rounded-xl z-20 overflow-hidden">
-                                                <div className="px-4 py-2 bg-gray-50 text-xs font-semibold text-gray-500 uppercase">Selected: {selectedDevices.length} device(s)</div>
+                                            <div className="absolute right-0 mt-2 w-64 bg-white border border-slate-100 shadow-xl rounded-xl z-20 overflow-hidden">
+                                                <div className="px-4 py-2 bg-slate-50 text-xs font-semibold text-slate-500 uppercase">Selected: {selectedDevices.length} device(s)</div>
                                                 {['download-users', 'download-logs', 'upload-users', 'reboot'].map(action => (
                                                     <button
                                                         key={action}
@@ -626,7 +626,7 @@ export default function Devices() {
                                                             initiateDataTransfer(action);
                                                             setShowTransferMenu(false);
                                                         }}
-                                                        className="block w-full text-left px-4 py-3 hover:bg-orange-50 text-sm text-slate-grey hover:text-charcoal capitalize border-b border-gray-50 last:border-0"
+                                                        className="block w-full text-left px-4 py-3 hover:bg-orange-50 text-sm text-slate-grey hover:text-charcoal capitalize border-b border-slate-50 last:border-0"
                                                     >
                                                         {action.replace('-', ' ')}
                                                     </button>
@@ -668,7 +668,7 @@ export default function Devices() {
                                         <div className={`device-icon-container ${device.status === 'offline' ? 'offline' : ''}`}>
                                             {device.status === 'online'
                                                 ? <Wifi className="text-emerald-600" size={22} />
-                                                : <WifiOff className="text-gray-400" size={22} />
+                                                : <WifiOff className="text-slate-400" size={22} />
                                             }
                                             <div className={`device-status-indicator ${device.status === 'online' ? 'online' : 'offline'}`}></div>
                                         </div>
@@ -681,7 +681,7 @@ export default function Devices() {
                                     {/* Status Badges */}
                                     <div className="flex gap-2 mb-5">
                                         <span className={`badge-premium ${device.status === 'online' ? 'badge-online' : 'badge-offline'}`}>
-                                            <span className={`w-1.5 h-1.5 rounded-full ${device.status === 'online' ? 'bg-emerald-500' : 'bg-gray-400'}`}></span>
+                                            <span className={`w-1.5 h-1.5 rounded-full ${device.status === 'online' ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
                                             {device.status}
                                         </span>
                                         <span className="badge-premium badge-direction">
@@ -836,7 +836,7 @@ export default function Devices() {
             default:
                 return (
                     <div className="flex flex-col items-center justify-center h-full text-slate-grey">
-                        <Database size={48} className="mb-4 text-gray-200" />
+                        <Database size={48} className="mb-4 text-slate-200" />
                         <p>Selected View: {activeView}</p>
                     </div>
                 );
@@ -889,7 +889,7 @@ export default function Devices() {
                         borderColor: '#FED7AA'
                     }}>
                         <h3 className="font-semibold" style={{ color: '#1E293B', fontWeight: 600 }}>{confirmation.title}</h3>
-                        <p className="my-2 text-sm text-gray-500">{confirmation.message}</p>
+                        <p className="my-2 text-sm text-slate-500">{confirmation.message}</p>
                         <div className="flex justify-center gap-2 mt-4">
                             <button onClick={() => setConfirmation({ show: false, action: null })} className="btn-secondary rounded-full">Cancel</button>
                             <button onClick={processDataTransfer} className="btn-primary">Confirm</button>
@@ -910,7 +910,7 @@ export default function Devices() {
                             }
                             setToast(null);
                         }}
-                        className="text-white hover:text-gray-200 focus:outline-none font-bold text-lg leading-none"
+                        className="text-white hover:text-slate-200 focus:outline-none font-bold text-lg leading-none"
                     >
                         ✕
                     </button>

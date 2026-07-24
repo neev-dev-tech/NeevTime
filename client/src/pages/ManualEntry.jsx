@@ -55,7 +55,7 @@ export default function ManualEntry() {
     };
 
     return (
-        <div className="p-6 max-w-2xl mx-auto">
+        <div className="max-w-2xl mx-auto">
             <PageHeader
                 icon={ClipboardEdit}
                 title="Manual Attendance Entry"
@@ -72,9 +72,9 @@ export default function ManualEntry() {
             <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border p-6 space-y-6">
                 {/* Employee Search */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Select Employee *</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Select Employee *</label>
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                         <input
                             type="text"
                             placeholder="Search by name or ID..."
@@ -87,13 +87,13 @@ export default function ManualEntry() {
                     {!selectedEmployee && searchTerm && (
                         <div className="border rounded-lg mt-1 max-h-40 overflow-auto bg-white shadow-lg">
                             {filteredEmployees.length === 0 ? (
-                                <div className="p-3 text-gray-400 text-sm">No employees found</div>
+                                <div className="p-3 text-slate-400 text-sm">No employees found</div>
                             ) : filteredEmployees.slice(0, 5).map(emp => (
                                 <button key={emp.id} type="button" onClick={() => { setSelectedEmployee(emp); setSearchTerm(''); }}
-                                    className="w-full text-left px-4 py-2 hover:bg-blue-50 flex items-center gap-2">
-                                    <User size={16} className="text-gray-400" />
+                                    className="w-full text-left px-4 py-2 hover:bg-orange-50 flex items-center gap-2">
+                                    <User size={16} className="text-slate-400" />
                                     <span className="font-medium">{emp.name}</span>
-                                    <span className="text-gray-500 text-sm">{emp.employee_code}</span>
+                                    <span className="text-slate-500 text-sm">{emp.employee_code}</span>
                                 </button>
                             ))}
                         </div>
@@ -102,9 +102,9 @@ export default function ManualEntry() {
 
                 {/* Date */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Date *</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Date *</label>
                     <div className="relative">
-                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                         <input type="date" className="w-full border rounded-lg pl-10 pr-4 py-2" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} required />
                     </div>
                 </div>
@@ -112,16 +112,16 @@ export default function ManualEntry() {
                 {/* Time */}
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">In Time *</label>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">In Time *</label>
                         <div className="relative">
-                            <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                            <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                             <input type="time" className="w-full border rounded-lg pl-10 pr-4 py-2" value={form.in_time} onChange={e => setForm({ ...form, in_time: e.target.value })} required />
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Out Time *</label>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Out Time *</label>
                         <div className="relative">
-                            <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                            <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                             <input type="time" className="w-full border rounded-lg pl-10 pr-4 py-2" value={form.out_time} onChange={e => setForm({ ...form, out_time: e.target.value })} required />
                         </div>
                     </div>
@@ -129,7 +129,7 @@ export default function ManualEntry() {
 
                 {/* Reason */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Reason *</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Reason *</label>
                     <textarea className="w-full border rounded-lg px-4 py-2" rows={3} placeholder="Reason for manual entry..." value={form.reason} onChange={e => setForm({ ...form, reason: e.target.value })} required />
                 </div>
 

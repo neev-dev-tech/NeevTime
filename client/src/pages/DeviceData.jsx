@@ -47,10 +47,10 @@ export default function DeviceData() {
             {/* Sidebar */}
             <aside className="w-full md:w-64 bg-charcoal text-white rounded-2xl overflow-hidden shadow-lg flex-shrink-0">
                 {Object.entries(groupedSections).map(([groupName, sections], groupIdx) => (
-                    <div key={groupIdx} className="border-b border-gray-700 last:border-0">
-                        <div className="px-4 py-3 bg-gray-800/50 flex items-center gap-2">
-                            <Database size={16} className="text-gray-400" />
-                            <h3 className="text-sm font-bold uppercase tracking-wider text-gray-300">{groupName}</h3>
+                    <div key={groupIdx} className="border-b border-slate-700 last:border-0">
+                        <div className="px-4 py-3 bg-slate-800/50 flex items-center gap-2">
+                            <Database size={16} className="text-slate-400" />
+                            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-300">{groupName}</h3>
                         </div>
                         <nav className="py-2">
                             {sections.map((section) => (
@@ -59,7 +59,7 @@ export default function DeviceData() {
                                     onClick={() => setActiveSection(section.id)}
                                     className={`w-full px-4 py-3 text-left text-sm transition-all flex items-center gap-3 ${activeSection === section.id
                                             ? 'bg-white/10 text-white font-medium border-l-4 border-saffron'
-                                            : 'text-gray-300 hover:bg-white/5 hover:text-white'
+                                            : 'text-slate-300 hover:bg-white/5 hover:text-white'
                                         }`}
                                 >
                                     <section.icon size={16} />
@@ -105,25 +105,25 @@ export default function DeviceData() {
                         </div>
                     </div>
                 ) : data.length === 0 ? (
-                    <div className="text-center py-20 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
-                        <Database size={48} className="mx-auto mb-4 text-gray-300" />
+                    <div className="text-center py-20 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
+                        <Database size={48} className="mx-auto mb-4 text-slate-300" />
                         <h3 className="text-lg font-bold text-charcoal mb-2">No Data Available</h3>
                         <p className="text-slate-grey text-sm">
                             There are no {dataSections.find(s => s.id === activeSection)?.label.toLowerCase()} records to display.
                         </p>
                     </div>
                 ) : (
-                    <div className="overflow-x-auto rounded-xl border border-gray-100">
+                    <div className="overflow-x-auto rounded-xl border border-slate-100">
                         <table className="w-full text-sm">
                             <thead className="bg-orange-50/50 text-charcoal font-semibold">
                                 <tr>
-                                    <th className="px-4 py-3 text-left border-b border-gray-100">#</th>
-                                    <th className="px-4 py-3 text-left border-b border-gray-100">ID</th>
-                                    <th className="px-4 py-3 text-left border-b border-gray-100">Details</th>
-                                    <th className="px-4 py-3 text-left border-b border-gray-100">Timestamp</th>
+                                    <th className="px-4 py-3 text-left border-b border-slate-100">#</th>
+                                    <th className="px-4 py-3 text-left border-b border-slate-100">ID</th>
+                                    <th className="px-4 py-3 text-left border-b border-slate-100">Details</th>
+                                    <th className="px-4 py-3 text-left border-b border-slate-100">Timestamp</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-50">
+                            <tbody className="divide-y divide-slate-50">
                                 {data.map((item, idx) => (
                                     <tr key={idx} className="hover:bg-cream-50 transition-colors">
                                         <td className="px-4 py-3 text-slate-grey">{idx + 1}</td>

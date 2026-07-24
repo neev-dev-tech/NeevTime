@@ -189,9 +189,9 @@ export default function Timetable() {
             {/* Timetable Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {loading ? (
-                    <div className="col-span-full text-center py-8 text-gray-500">Loading...</div>
+                    <div className="col-span-full text-center py-8 text-slate-500">Loading...</div>
                 ) : timetables.length === 0 ? (
-                    <div className="col-span-full text-center py-8 text-gray-500">No timetables defined</div>
+                    <div className="col-span-full text-center py-8 text-slate-500">No timetables defined</div>
                 ) : timetables.map(tt => (
                     <div
                         key={tt.id}
@@ -206,7 +206,7 @@ export default function Timetable() {
                             <div className="flex items-start justify-between mb-3">
                                 <div>
                                     <h3 className="font-semibold text-lg">{tt.name}</h3>
-                                    <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                                    <span className="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
                                         {tt.code}
                                     </span>
                                 </div>
@@ -230,20 +230,20 @@ export default function Timetable() {
                                     <div className="text-xs text-green-600 mb-1">Check In</div>
                                     <div className="text-lg font-bold text-green-700">{formatTime(tt.check_in)}</div>
                                     {tt.late_in && (
-                                        <div className="text-xs text-gray-500">Late after {formatTime(tt.late_in)}</div>
+                                        <div className="text-xs text-slate-500">Late after {formatTime(tt.late_in)}</div>
                                     )}
                                 </div>
                                 <div className="bg-red-50 rounded-lg p-3 text-center">
                                     <div className="text-xs text-red-600 mb-1">Check Out</div>
                                     <div className="text-lg font-bold text-red-700">{formatTime(tt.check_out)}</div>
                                     {tt.early_out && (
-                                        <div className="text-xs text-gray-500">Early before {formatTime(tt.early_out)}</div>
+                                        <div className="text-xs text-slate-500">Early before {formatTime(tt.early_out)}</div>
                                     )}
                                 </div>
                             </div>
 
                             {/* Details */}
-                            <div className="text-sm text-gray-600 space-y-1 mb-4">
+                            <div className="text-sm text-slate-600 space-y-1 mb-4">
                                 <div className="flex justify-between">
                                     <span>Grace Period:</span>
                                     <span className="font-medium">{tt.grace_period_minutes} min</span>
@@ -269,7 +269,7 @@ export default function Timetable() {
                                 </button>
                                 <button
                                     onClick={() => openEdit(tt)}
-                                    className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 text-sm"
+                                    className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100 text-sm"
                                 >
                                     <Edit2 size={14} />
                                     Edit
@@ -294,7 +294,7 @@ export default function Timetable() {
                             <h2 className="text-lg font-semibold">
                                 {editingId ? 'Edit Timetable' : 'Add Timetable'}
                             </h2>
-                            <button onClick={closeModal} className="p-2 hover:bg-gray-100 rounded-lg">
+                            <button onClick={closeModal} className="p-2 hover:bg-slate-100 rounded-lg">
                                 <X size={20} />
                             </button>
                         </div>
@@ -461,7 +461,7 @@ export default function Timetable() {
                             </h2>
                             <button
                                 onClick={() => setShowBreakModal(false)}
-                                className="p-2 hover:bg-gray-100 rounded-lg"
+                                className="p-2 hover:bg-slate-100 rounded-lg"
                             >
                                 <X size={20} />
                             </button>
@@ -471,12 +471,12 @@ export default function Timetable() {
                             {/* Existing Breaks */}
                             <div className="space-y-2 mb-4">
                                 {breaks.length === 0 ? (
-                                    <div className="text-center py-4 text-gray-500">No breaks defined</div>
+                                    <div className="text-center py-4 text-slate-500">No breaks defined</div>
                                 ) : breaks.map(b => (
-                                    <div key={b.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                    <div key={b.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
                                         <div>
                                             <div className="font-medium">{b.name}</div>
-                                            <div className="text-sm text-gray-500">
+                                            <div className="text-sm text-slate-500">
                                                 {formatTime(b.start_time)} - {formatTime(b.end_time)}
                                                 {b.is_paid && <span className="ml-2 text-green-600">(Paid)</span>}
                                             </div>

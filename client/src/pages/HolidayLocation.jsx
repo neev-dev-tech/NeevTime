@@ -138,7 +138,7 @@ export default function HolidayLocation() {
             case 'national': return 'bg-blue-100 text-blue-800';
             case 'regional': return 'bg-green-100 text-green-800';
             case 'company': return 'bg-purple-100 text-purple-800';
-            default: return 'bg-gray-100 text-gray-800';
+            default: return 'bg-slate-100 text-slate-800';
         }
     };
 
@@ -200,7 +200,7 @@ export default function HolidayLocation() {
                     onClick={() => setActiveTab('locations')}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${activeTab === 'locations'
                             ? 'bg-red-600 text-white'
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                         }`}
                 >
                     <MapPin size={16} />
@@ -209,8 +209,8 @@ export default function HolidayLocation() {
                 <button
                     onClick={() => setActiveTab('holidays')}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${activeTab === 'holidays'
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            ? 'bg-orange-600 text-white'
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                         }`}
                 >
                     <Calendar size={16} />
@@ -228,7 +228,7 @@ export default function HolidayLocation() {
                         {upcomingHolidays.map(h => (
                             <div key={h.id} className="bg-white rounded-lg px-3 py-2 shadow-sm">
                                 <div className="font-medium text-sm">{h.name}</div>
-                                <div className="text-xs text-gray-500">
+                                <div className="text-xs text-slate-500">
                                     {new Date(h.date).toLocaleDateString('en-US', {
                                         month: 'short', day: 'numeric', year: 'numeric'
                                     })}
@@ -241,12 +241,12 @@ export default function HolidayLocation() {
 
             {/* Content */}
             {loading ? (
-                <div className="text-center py-8 text-gray-500">Loading...</div>
+                <div className="text-center py-8 text-slate-500">Loading...</div>
             ) : activeTab === 'locations' ? (
                 /* Locations Grid */
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {locations.length === 0 ? (
-                        <div className="col-span-full text-center py-8 text-gray-500">
+                        <div className="col-span-full text-center py-8 text-slate-500">
                             No locations defined. Locations help assign region-specific holidays.
                         </div>
                     ) : locations.map(loc => (
@@ -258,7 +258,7 @@ export default function HolidayLocation() {
                                     </div>
                                     <div>
                                         <h3 className="font-semibold">{loc.name}</h3>
-                                        <div className="text-xs text-gray-500">
+                                        <div className="text-xs text-slate-500">
                                             {loc.description || 'No description'}
                                         </div>
                                     </div>
@@ -266,7 +266,7 @@ export default function HolidayLocation() {
                                 <div className="flex gap-1">
                                     <button
                                         onClick={() => openEdit(loc)}
-                                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded"
+                                        className="p-1.5 text-orange-600 hover:bg-orange-50 rounded"
                                     >
                                         <Edit2 size={16} />
                                     </button>
@@ -285,28 +285,28 @@ export default function HolidayLocation() {
                 /* Holidays Table */
                 <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
                     <table className="w-full">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-slate-50">
                             <tr>
-                                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Holiday Name</th>
-                                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Date</th>
-                                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Type</th>
-                                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Optional</th>
-                                <th className="px-4 py-3 text-center text-sm font-semibold text-gray-600">Actions</th>
+                                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Holiday Name</th>
+                                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Date</th>
+                                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Type</th>
+                                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Optional</th>
+                                <th className="px-4 py-3 text-center text-sm font-semibold text-slate-600">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y">
                             {holidays.length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                                    <td colSpan={5} className="px-4 py-8 text-center text-slate-500">
                                         No holidays defined. Click "Add Holiday" to create one.
                                     </td>
                                 </tr>
                             ) : holidays.map(h => (
-                                <tr key={h.id} className="hover:bg-gray-50">
+                                <tr key={h.id} className="hover:bg-slate-50">
                                     <td className="px-4 py-3">
                                         <div className="font-medium">{h.name}</div>
                                         {h.description && (
-                                            <div className="text-xs text-gray-500">{h.description}</div>
+                                            <div className="text-xs text-slate-500">{h.description}</div>
                                         )}
                                     </td>
                                     <td className="px-4 py-3 text-sm">
@@ -330,7 +330,7 @@ export default function HolidayLocation() {
                                         <div className="flex items-center justify-center gap-2">
                                             <button
                                                 onClick={() => openHolidayEdit(h)}
-                                                className="p-1.5 text-blue-600 hover:bg-blue-50 rounded"
+                                                className="p-1.5 text-orange-600 hover:bg-orange-50 rounded"
                                             >
                                                 <Edit2 size={16} />
                                             </button>
@@ -357,7 +357,7 @@ export default function HolidayLocation() {
                             <h2 className="text-lg font-semibold">
                                 {editingId ? 'Edit Location' : 'Add Location'}
                             </h2>
-                            <button onClick={closeModal} className="p-2 hover:bg-gray-100 rounded-lg">
+                            <button onClick={closeModal} className="p-2 hover:bg-slate-100 rounded-lg">
                                 <X size={20} />
                             </button>
                         </div>
@@ -402,7 +402,7 @@ export default function HolidayLocation() {
                             <h2 className="text-lg font-semibold">
                                 {editingHolidayId ? 'Edit Holiday' : 'Add Holiday'}
                             </h2>
-                            <button onClick={closeHolidayModal} className="p-2 hover:bg-gray-100 rounded-lg">
+                            <button onClick={closeHolidayModal} className="p-2 hover:bg-slate-100 rounded-lg">
                                 <X size={20} />
                             </button>
                         </div>

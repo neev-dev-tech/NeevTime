@@ -58,8 +58,8 @@ export default function BulkActions({
         copy: {
             label: 'Copy',
             icon: Copy,
-            color: 'text-gray-600',
-            bgColor: 'bg-gray-50 hover:bg-gray-100',
+            color: 'text-slate-600',
+            bgColor: 'bg-slate-50 hover:bg-slate-100',
             onClick: async () => {
                 if (onAction) {
                     await onAction('copy', selectedItems);
@@ -83,16 +83,16 @@ export default function BulkActions({
 
     return (
         <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center gap-4">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 px-4 py-3 flex items-center gap-4">
                 {/* Selection Count */}
                 <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
                         {selectedItems.length} {selectedItems.length === 1 ? 'item' : 'items'} selected
                     </span>
                 </div>
 
                 {/* Divider */}
-                <div className="h-6 w-px bg-gray-300 dark:bg-gray-600"></div>
+                <div className="h-6 w-px bg-slate-300 dark:bg-slate-600"></div>
 
                 {/* Action Buttons */}
                 <div className="flex items-center gap-2">
@@ -115,7 +115,7 @@ export default function BulkActions({
                 {/* Clear Selection */}
                 <button
                     onClick={onClearSelection}
-                    className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                    className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700"
                     title="Clear selection"
                 >
                     <X size={18} />

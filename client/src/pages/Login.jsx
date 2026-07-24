@@ -120,12 +120,12 @@ export default function Login({ setAuth }) {
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-charcoal">Username</label>
                             <div className="relative">
-                                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                                 <input
                                     type="text"
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value)}
-                                    className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-saffron/50 focus:border-saffron transition-all bg-gray-50/50"
+                                    className="w-full pl-12 pr-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-saffron/50 focus:border-saffron transition-all bg-slate-50/50"
                                     placeholder="Enter your username"
                                 />
                             </div>
@@ -134,12 +134,12 @@ export default function Login({ setAuth }) {
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-charcoal">Password</label>
                             <div className="relative">
-                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                                 <input
                                     type="password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-saffron/50 focus:border-saffron transition-all bg-gray-50/50"
+                                    className="w-full pl-12 pr-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-saffron/50 focus:border-saffron transition-all bg-slate-50/50"
                                     placeholder="Enter your password"
                                 />
                             </div>
@@ -147,7 +147,7 @@ export default function Login({ setAuth }) {
 
                         <div className="flex items-center justify-between text-sm">
                             <label className="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" className="rounded border-gray-300 text-saffron focus:ring-saffron" />
+                                <input type="checkbox" className="rounded border-slate-300 text-saffron focus:ring-saffron" />
                                 <span className="text-slate-grey">Remember me</span>
                             </label>
                             <a href="#" className="text-saffron hover:underline font-medium">Forgot password?</a>
@@ -159,9 +159,9 @@ export default function Login({ setAuth }) {
                     </form>
 
                     {/* Footer */}
-                    <div className="mt-8 pt-6 border-t border-gray-100 text-center">
+                    <div className="mt-8 pt-6 border-t border-slate-100 text-center">
                         <p className="text-xs text-slate-grey">
-                            Demo credentials: <span className="font-mono bg-gray-100 px-2 py-1 rounded">admin / admin</span>
+                            Demo credentials: <span className="font-mono bg-slate-100 px-2 py-1 rounded">admin / admin</span>
                         </p>
                     </div>
                 </div>

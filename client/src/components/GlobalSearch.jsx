@@ -44,8 +44,8 @@ const searchCategories = {
     settings: {
         icon: Settings2,
         label: 'Settings',
-        color: 'text-gray-600',
-        bgColor: 'bg-gray-50'
+        color: 'text-slate-600',
+        bgColor: 'bg-slate-50'
     }
 };
 
@@ -219,29 +219,29 @@ export default function GlobalSearch() {
                 aria-label="Global search"
             >
                 <div
-                    className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full overflow-hidden pointer-events-auto transform transition-all"
+                    className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-2xl w-full overflow-hidden pointer-events-auto transform transition-all"
                     onClick={(e) => e.stopPropagation()}
                 >
                     {/* Search Input */}
-                    <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-                        <Search className="text-gray-400" size={20} aria-hidden="true" />
+                    <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-200 dark:border-slate-700">
+                        <Search className="text-slate-400" size={20} aria-hidden="true" />
                         <input
                             ref={inputRef}
                             type="text"
                             placeholder="Search employees, devices, reports..."
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
-                            className="flex-1 outline-none text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 bg-transparent"
+                            className="flex-1 outline-none text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 bg-transparent"
                             aria-label="Search input"
                             aria-describedby="search-help"
                         />
                         <div className="flex items-center gap-2">
-                            <kbd className="px-2 py-1 text-xs font-semibold text-gray-500 bg-gray-100 dark:bg-gray-700 dark:text-gray-400 border border-gray-300 dark:border-gray-600 rounded" aria-label="Keyboard shortcut">
+                            <kbd className="px-2 py-1 text-xs font-semibold text-slate-500 bg-slate-100 dark:bg-slate-700 dark:text-slate-400 border border-slate-300 dark:border-slate-600 rounded" aria-label="Keyboard shortcut">
                                 {navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'}+K
                             </kbd>
                             <button
                                 onClick={handleClose}
-                                className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
                                 aria-label="Close search"
                             >
                                 <X size={18} aria-hidden="true" />
@@ -270,8 +270,8 @@ export default function GlobalSearch() {
                                             <button
                                                 key={result.id}
                                                 onClick={() => handleSelectResult(result)}
-                                                className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors ${
-                                                    isSelected ? 'bg-gray-50' : ''
+                                                className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-colors ${
+                                                    isSelected ? 'bg-slate-50' : ''
                                                 }`}
                                                 onMouseEnter={() => setSelectedIndex(index)}
                                             >
@@ -279,16 +279,16 @@ export default function GlobalSearch() {
                                                     <Icon className={category.color} size={18} />
                                                 </div>
                                                 <div className="flex-1 text-left">
-                                                    <div className="font-medium text-gray-900">{result.title}</div>
-                                                    <div className="text-sm text-gray-500">{result.subtitle}</div>
+                                                    <div className="font-medium text-slate-900">{result.title}</div>
+                                                    <div className="text-sm text-slate-500">{result.subtitle}</div>
                                                 </div>
-                                                <ArrowRight className="text-gray-400" size={16} />
+                                                <ArrowRight className="text-slate-400" size={16} />
                                             </button>
                                         );
                                     })}
                                 </div>
                             ) : (
-                                <div className="py-12 text-center text-gray-500">
+                                <div className="py-12 text-center text-slate-500">
                                     <p className="text-sm">No results found for "{query}"</p>
                                 </div>
                             )
@@ -296,7 +296,7 @@ export default function GlobalSearch() {
                             <div className="py-4">
                                 {recentSearches.length > 0 && (
                                     <>
-                                        <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                        <div className="px-4 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
                                             Recent Searches
                                         </div>
                                         {recentSearches.map((result, index) => {
@@ -307,22 +307,22 @@ export default function GlobalSearch() {
                                                 <button
                                                     key={result.id}
                                                     onClick={() => handleSelectResult(result)}
-                                                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
+                                                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-colors"
                                                 >
                                                     <div className={`p-2 rounded-lg ${category.bgColor}`}>
                                                         <Icon className={category.color} size={18} />
                                                     </div>
                                                     <div className="flex-1 text-left">
-                                                        <div className="font-medium text-gray-900">{result.title}</div>
-                                                        <div className="text-sm text-gray-500">{result.subtitle}</div>
+                                                        <div className="font-medium text-slate-900">{result.title}</div>
+                                                        <div className="text-sm text-slate-500">{result.subtitle}</div>
                                                     </div>
-                                                    <Clock className="text-gray-400" size={14} />
+                                                    <Clock className="text-slate-400" size={14} />
                                                 </button>
                                             );
                                         })}
                                     </>
                                 )}
-                                <div className="px-4 py-8 text-center text-gray-400">
+                                <div className="px-4 py-8 text-center text-slate-400">
                                     <Search size={32} className="mx-auto mb-2 opacity-50" />
                                     <p className="text-sm">Start typing to search...</p>
                                     <p className="text-xs mt-1">Use ↑↓ to navigate, Enter to select, Esc to close</p>

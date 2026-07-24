@@ -107,7 +107,7 @@ export default function AttendanceRegister() {
         <div className="space-y-6">
             <div className="report-container">
                 {/* Header */}
-                <div className="px-6 pt-6 border-b border-gray-100">
+                <div className="px-6 pt-6 border-b border-slate-100">
                     <PageHeader
                         icon={Calendar}
                         title="Attendance Register"
@@ -118,7 +118,7 @@ export default function AttendanceRegister() {
                                     type="date"
                                     value={date}
                                     onChange={e => setDate(e.target.value)}
-                                    className="input-premium py-1.5 px-3 bg-white/50 border-gray-200 text-sm"
+                                    className="input-premium py-1.5 px-3 bg-white/50 border-slate-200 text-sm"
                                 />
                                 <Button variant="secondary" icon={Filter}>Filters</Button>
                                 <Button variant="danger" size="sm" icon={FileDown} onClick={handleExportPDF} title="Export PDF">PDF</Button>
@@ -129,7 +129,7 @@ export default function AttendanceRegister() {
                 </div>
 
                 {/* Summary Cards */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 border-b border-gray-100 bg-slate-50/30">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 border-b border-slate-100 bg-slate-50/30">
                     <div className="bg-white border border-emerald-100 rounded-xl p-4 shadow-sm relative overflow-hidden group">
                         <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
                         <div className="relative z-10">

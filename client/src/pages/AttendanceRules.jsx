@@ -165,7 +165,7 @@ export default function AttendanceRules() {
                 <div className="flex gap-1 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                         onClick={() => openEdit(rule)}
-                        className="p-2 text-slate-400 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
+                        className="p-2 text-slate-400 hover:bg-orange-50 hover:text-orange-600 rounded-lg transition-colors"
                         title="Edit Rule"
                     >
                         <Edit2 size={16} />
@@ -290,7 +290,7 @@ export default function AttendanceRules() {
             {/* Rules Grid */}
             {loading ? (
                 <div className="text-center py-12 text-slate-400 flex flex-col items-center gap-3">
-                    <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                    <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
                     Loading rules...
                 </div>
             ) : (
@@ -303,7 +303,7 @@ export default function AttendanceRules() {
                                 </div>
                                 <h3 className="text-lg font-semibold text-slate-700">No Global Rules</h3>
                                 <p className="text-slate-500 max-w-sm mx-auto mt-1">Create a global rule to set the default attendance policy for your organization.</p>
-                                <button onClick={() => setShowModal(true)} className="mt-4 text-blue-600 font-semibold hover:underline">Create Now</button>
+                                <button onClick={() => setShowModal(true)} className="mt-4 text-orange-600 font-semibold hover:underline">Create Now</button>
                             </div>
                         ) : (
                             globalRules.map(rule => <RuleCard key={rule.id} rule={rule} />)
@@ -525,7 +525,7 @@ export default function AttendanceRules() {
                                                 onChange={e => setForm({ ...form, alternate_saturday: e.target.checked })}
                                                 className="sr-only peer"
                                             />
-                                            <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-100 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                            <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-100 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
                                         </div>
                                         <span className="text-sm font-semibold text-slate-700">Alternate Saturday Off</span>
                                     </label>

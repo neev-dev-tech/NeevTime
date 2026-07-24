@@ -41,7 +41,7 @@ export function EmptyState({
         <div className={`
             flex flex-col items-center justify-center text-center
             ${isCompact ? 'py-8 px-4' : 'py-16 px-6'}
-            ${isCard ? 'bg-white rounded-2xl border border-gray-100 shadow-sm' : ''}
+            ${isCard ? 'bg-white rounded-2xl border border-slate-100 shadow-sm' : ''}
             ${className}
         `}>
             {/* Illustration or Icon */}
@@ -66,7 +66,7 @@ export function EmptyState({
             {/* Title */}
             {title && (
                 <h3 className={`
-                    font-semibold text-gray-800
+                    font-semibold text-slate-800
                     ${isCompact ? 'text-base mb-1' : 'text-xl mb-2'}
                 `}>
                     {title}
@@ -76,7 +76,7 @@ export function EmptyState({
             {/* Description */}
             {description && (
                 <p className={`
-                    text-gray-500 max-w-md
+                    text-slate-500 max-w-md
                     ${isCompact ? 'text-sm mb-4' : 'text-base mb-6'}
                 `}>
                     {description}
@@ -103,8 +103,8 @@ export function EmptyState({
                         <button
                             onClick={onSecondary}
                             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl
-                                border border-gray-200 text-gray-600
-                                font-medium hover:bg-gray-50
+                                border border-slate-200 text-slate-600
+                                font-medium hover:bg-slate-50
                                 transition-colors duration-200"
                         >
                             {secondaryLabel}
@@ -397,7 +397,7 @@ export function EmptyLoading({ message = 'Loading...', ...props }) {
             <div className="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center mb-4 animate-pulse">
                 <div className="w-8 h-8 border-3 border-orange-400 border-t-transparent rounded-full animate-spin" />
             </div>
-            <p className="text-gray-500">{message}</p>
+            <p className="text-slate-500">{message}</p>
         </div>
     );
 }

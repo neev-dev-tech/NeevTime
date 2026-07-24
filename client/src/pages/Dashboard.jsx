@@ -375,16 +375,16 @@ export default function Dashboard() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-semibold flex items-center gap-3" style={{ color: '#1E293B', fontWeight: 600 }}>
+                    <h1 className="text-2xl font-semibold flex items-center gap-3 text-slate-800">
                         <div className="p-2 bg-orange-50 rounded-lg">
                             <LayoutDashboard className="text-saffron" size={24} />
                         </div>
                         Worktable
                     </h1>
                     <div className="flex items-center gap-3 mt-1 ml-11">
-                        <p className="text-sm" style={{ color: '#475569' }}>Overview of today's attendance and device status</p>
+                        <p className="text-sm text-slate-600">Overview of today's attendance and device status</p>
                         {lastUpdated && (
-                            <div className="flex items-center gap-1.5 text-xs" style={{ color: '#6B7280' }}>
+                            <div className="flex items-center gap-1.5 text-xs text-slate-500">
                                 <Circle size={6} className="text-green-500 fill-green-500 animate-pulse" />
                                 <span>Live · Updated {Math.floor((new Date() - lastUpdated) / 1000 / 60)} min{Math.floor((new Date() - lastUpdated) / 1000 / 60) !== 1 ? 's' : ''} ago</span>
                             </div>
@@ -406,7 +406,7 @@ export default function Dashboard() {
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">
                             <Brain size={18} className="text-purple-600" />
-                            <h2 className="font-semibold text-base" style={{ color: '#1E293B', fontWeight: 600 }}>Today's Insights</h2>
+                            <h2 className="font-semibold text-base text-slate-800">Today's Insights</h2>
                         </div>
                     </div>
                     <div className="space-y-2">
@@ -520,12 +520,12 @@ export default function Dashboard() {
             {/* Attendance Status Row - Staggered */}
             <div className="card-tier-2 animate-fade-in stagger-2">
                 <div className="flex items-center justify-between mb-6">
-                    <h2 className="font-semibold flex items-center gap-2 text-base" style={{ color: '#1E293B', fontWeight: 600 }}>
+                    <h2 className="font-semibold flex items-center gap-2 text-base text-slate-800">
                         <Clock className="text-blue-500" size={18} /> Today's Attendance Status
                     </h2>
                     <a
                         href="/attendance-register"
-                        className="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                        className="flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900 transition-colors"
                         onClick={(e) => {
                             e.preventDefault();
                             navigate('/attendance-register');
@@ -555,12 +555,12 @@ export default function Dashboard() {
                 {/* Device Status Widget - Staggered */}
                 <div className="card-tier-2 animate-slide-up stagger-3">
                     <div className="flex items-center justify-between mb-6">
-                        <h2 className="font-semibold flex items-center gap-2 text-base" style={{ color: '#1E293B', fontWeight: 600 }}>
+                        <h2 className="font-semibold flex items-center gap-2 text-base text-slate-800">
                             <Tablet className="text-saffron" size={18} /> Device Status
                         </h2>
                         <a
                             href="/devices"
-                            className="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                            className="flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900 transition-colors"
                             onClick={(e) => {
                                 e.preventDefault();
                                 navigate('/devices');
@@ -585,14 +585,14 @@ export default function Dashboard() {
                             />
                             <div className="absolute inset-0 rounded-full scale-[0.88] bg-white" />
                             <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                <span className="text-2xl font-bold" style={{ color: '#111827', fontSize: '28px' }}>{stats.devices}</span>
-                                <span className="text-xs" style={{ color: '#6B7280', fontSize: '12px', fontWeight: 500 }}>Total Devices</span>
+                                <span className="text-[28px] font-bold text-slate-900">{stats.devices}</span>
+                                <span className="text-xs font-medium text-slate-500">Total Devices</span>
                             </div>
                         </div>
                     </div>
                     <div className="space-y-2 text-sm">
                         <button
-                            className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                            className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
                             onClick={() => {
                                 // Future: Filter devices by online status
                                 console.log('Filter: Online devices');
@@ -600,27 +600,27 @@ export default function Dashboard() {
                         >
                             <div className="flex items-center gap-2">
                                 <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#2EAD6D' }} />
-                                <span style={{ color: '#6B7280', fontSize: '13px', fontWeight: 500 }}>Online</span>
+                                <span className="text-[13px] font-medium text-slate-500">Online</span>
                             </div>
-                            <span className="font-semibold" style={{ color: '#111827', fontSize: '14px' }}>{stats.devicesOnline}</span>
+                            <span className="font-semibold text-sm text-slate-900">{stats.devicesOnline}</span>
                         </button>
                         <button
-                            className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                            className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
                             onClick={() => {
                                 // Future: Filter devices by offline status
                                 console.log('Filter: Offline devices');
                             }}
                         >
                             <div className="flex items-center gap-2">
-                                <div className="w-2.5 h-2.5 rounded-full bg-gray-300" />
-                                <span style={{ color: '#6B7280', fontSize: '13px', fontWeight: 500 }}>Offline</span>
+                                <div className="w-2.5 h-2.5 rounded-full bg-slate-300" />
+                                <span className="text-[13px] font-medium text-slate-500">Offline</span>
                             </div>
-                            <span className="font-semibold" style={{ color: '#111827', fontSize: '14px' }}>{stats.devices - stats.devicesOnline}</span>
+                            <span className="font-semibold text-sm text-slate-900">{stats.devices - stats.devicesOnline}</span>
                         </button>
-                        <div className="pt-2 mt-2 border-t border-gray-100 flex items-center justify-between">
-                            <span style={{ color: '#6B7280', fontSize: '12px', fontWeight: 500 }}>Live sync from {stats.devices} device{stats.devices !== 1 ? 's' : ''}</span>
+                        <div className="pt-2 mt-2 border-t border-slate-100 flex items-center justify-between">
+                            <span className="text-xs font-medium text-slate-500">Live sync from {stats.devices} device{stats.devices !== 1 ? 's' : ''}</span>
                             {lastUpdated && (
-                                <span style={{ color: '#6B7280', fontSize: '12px', fontWeight: 500 }}>
+                                <span className="text-xs font-medium text-slate-500">
                                     Live · Updated {Math.floor((new Date() - lastUpdated) / 1000 / 60)} min{Math.floor((new Date() - lastUpdated) / 1000 / 60) !== 1 ? 's' : ''} ago
                                 </span>
                             )}
@@ -630,7 +630,7 @@ export default function Dashboard() {
 
                 {/* Attendance Exception Chart - Staggered */}
                 <div className="card-base animate-slide-up stagger-4">
-                    <h2 className="font-semibold mb-4 flex items-center gap-2 text-base" style={{ color: '#1E293B', fontWeight: 600 }}>
+                    <h2 className="font-semibold mb-4 flex items-center gap-2 text-base text-slate-800">
                         <TrendingUp className="text-saffron" size={18} /> Attendance Exception
                     </h2>
                     <div className="h-48 pt-4">
@@ -670,12 +670,12 @@ export default function Dashboard() {
                 {/* Real-Time Monitor - Staggered */}
                 <div className="card-tier-2 animate-slide-up stagger-5">
                     <div className="flex items-center justify-between mb-4">
-                        <h2 className="font-semibold flex items-center gap-2 text-base" style={{ color: '#1E293B', fontWeight: 600 }}>
+                        <h2 className="font-semibold flex items-center gap-2 text-base text-slate-800">
                             <Clock className="text-green-500 animate-pulse" size={18} /> Real-Time Monitor
                         </h2>
                         <a
                             href="/logs"
-                            className="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                            className="flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900 transition-colors"
                             onClick={(e) => {
                                 e.preventDefault();
                                 navigate('/logs');
@@ -687,9 +687,9 @@ export default function Dashboard() {
                     </div>
                     <div className="space-y-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
                         {recentLogs.length === 0 ? (
-                            <div className="text-center py-10 rounded-xl" style={{ color: '#6B7280', fontSize: '13px', backgroundColor: '#FAFAFA' }}>
+                            <div className="text-center py-10 rounded-xl text-[13px] text-slate-500 bg-slate-50">
                                 <div className="mb-2 font-medium">No attendance data yet</div>
-                                <div className="text-xs" style={{ color: '#9CA3AF' }}>Devices will sync automatically once employees check in</div>
+                                <div className="text-xs text-slate-400">Devices will sync automatically once employees check in</div>
                             </div>
                         ) : (() => {
                             const now = new Date();
@@ -701,13 +701,13 @@ export default function Dashboard() {
                                 <>
                                     {recent.length > 0 && (
                                         <div className="mb-3">
-                                            <div className="text-xs font-semibold mb-2" style={{ color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                            <div className="text-xs font-semibold mb-2 uppercase tracking-wider text-slate-500">
                                                 Last 5 mins
                                             </div>
                                             {recent.map((log, i) => (
                                                 <div
                                                     key={i}
-                                                    className={`flex items-center justify-between py-3 px-4 rounded-lg transition-all mb-2 ${i === 0 ? 'bg-green-50 border border-green-200 animate-pulse' : 'bg-white border border-gray-100 hover:bg-gray-50'}`}
+                                                    className={`flex items-center justify-between py-3 px-4 rounded-lg transition-all mb-2 ${i === 0 ? 'bg-green-50 border border-green-200 animate-pulse' : 'bg-white border border-slate-100 hover:bg-slate-50'}`}
                                                     style={i === 0 ? { animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' } : {}}
                                                 >
                                                     <div className="flex items-center gap-3">
@@ -715,12 +715,12 @@ export default function Dashboard() {
                                                             {log.punch_type === 'IN' ? <LogIn size={14} style={{ color: '#2EAD6D' }} /> : <LogOutIcon size={14} style={{ color: '#E5533D' }} />}
                                                         </div>
                                                         <div>
-                                                            <div className="font-semibold text-sm" style={{ color: '#111827', fontWeight: 600 }}>{log.employee_name || log.emp_name || log.employee_code}</div>
-                                                            <div className="text-xs mt-0.5" style={{ color: '#6B7280' }}>{log.device_name || log.device_serial}</div>
+                                                            <div className="font-semibold text-sm text-slate-900">{log.employee_name || log.emp_name || log.employee_code}</div>
+                                                            <div className="text-xs mt-0.5 text-slate-500">{log.device_name || log.device_serial}</div>
                                                         </div>
                                                     </div>
                                                     <div className="text-right">
-                                                        <div className="text-sm font-bold font-mono" style={{ color: '#111827' }}>
+                                                        <div className="text-sm font-bold font-mono text-slate-900">
                                                             {formatTimeShort(log.punch_time)}
                                                         </div>
                                                         <div className={`text-[10px] font-semibold uppercase tracking-wider mt-0.5 ${log.punch_type === 'IN' ? 'text-green-600' : 'text-red-600'}`}>
@@ -733,25 +733,25 @@ export default function Dashboard() {
                                     )}
                                     {older.length > 0 && (
                                         <div>
-                                            <div className="text-xs font-semibold mb-2" style={{ color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                            <div className="text-xs font-semibold mb-2 uppercase tracking-wider text-slate-500">
                                                 Earlier
                                             </div>
                                             {older.map((log, i) => (
                                                 <div
                                                     key={i + recent.length}
-                                                    className="flex items-center justify-between py-3 px-4 rounded-lg transition-all mb-2 bg-white border border-gray-100 hover:bg-gray-50"
+                                                    className="flex items-center justify-between py-3 px-4 rounded-lg transition-all mb-2 bg-white border border-slate-100 hover:bg-slate-50"
                                                 >
                                                     <div className="flex items-center gap-3">
                                                         <div className={`p-1.5 rounded-lg ${log.punch_type === 'IN' ? 'bg-green-100' : 'bg-red-100'}`}>
                                                             {log.punch_type === 'IN' ? <LogIn size={14} style={{ color: '#2EAD6D' }} /> : <LogOutIcon size={14} style={{ color: '#E5533D' }} />}
                                                         </div>
                                                         <div>
-                                                            <div className="font-semibold text-sm" style={{ color: '#111827', fontWeight: 600 }}>{log.employee_name || log.emp_name || log.employee_code}</div>
-                                                            <div className="text-xs mt-0.5" style={{ color: '#6B7280' }}>{log.device_name || log.device_serial}</div>
+                                                            <div className="font-semibold text-sm text-slate-900">{log.employee_name || log.emp_name || log.employee_code}</div>
+                                                            <div className="text-xs mt-0.5 text-slate-500">{log.device_name || log.device_serial}</div>
                                                         </div>
                                                     </div>
                                                     <div className="text-right">
-                                                        <div className="text-sm font-bold font-mono" style={{ color: '#111827' }}>
+                                                        <div className="text-sm font-bold font-mono text-slate-900">
                                                             {formatTimeShort(log.punch_time)}
                                                         </div>
                                                         <div className={`text-[10px] font-semibold uppercase tracking-wider mt-0.5 ${log.punch_type === 'IN' ? 'text-green-600' : 'text-red-600'}`}>
@@ -773,7 +773,7 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Today's Summary - Staggered */}
                 <div className="card-tier-2 animate-slide-up stagger-6">
-                    <h2 className="font-semibold mb-6 flex items-center gap-2 text-base" style={{ color: '#1E293B', fontWeight: 600 }}>
+                    <h2 className="font-semibold mb-6 flex items-center gap-2 text-base text-slate-800">
                         <Calendar className="text-indigo-500" size={18} /> Today's Summary
                     </h2>
                     <div className="grid grid-cols-2 gap-4">
@@ -817,7 +817,7 @@ export default function Dashboard() {
                                     <div className="card-value">{stats.onLeave}</div>
                                 </div>
                                 <div className="p-2 rounded-lg" style={{ backgroundColor: 'rgba(156, 163, 175, 0.1)' }}>
-                                    <Calendar size={20} style={{ color: '#6B7280' }} />
+                                    <Calendar size={20} className="text-slate-500" />
                                 </div>
                             </div>
                         </div>
@@ -826,10 +826,10 @@ export default function Dashboard() {
 
                 {/* Device List - Staggered */}
                 <div className="card-tier-2 animate-slide-up stagger-6">
-                    <h2 className="font-semibold mb-6 flex items-center gap-2 text-base" style={{ color: '#1E293B', fontWeight: 600 }}>
+                    <h2 className="font-semibold mb-6 flex items-center gap-2 text-base text-slate-800">
                         <Wifi className="text-blue-500" size={18} /> Connected Devices
                     </h2>
-                    <div className="overflow-x-auto rounded-xl border border-gray-100" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                    <div className="overflow-x-auto rounded-xl border border-slate-100" style={{ maxHeight: '400px', overflowY: 'auto' }}>
                         <table className="w-full text-sm">
                             <thead className="sticky top-0 z-10">
                                 <tr>
@@ -843,11 +843,11 @@ export default function Dashboard() {
                             <tbody>
                                 {devices.length === 0 ? (
                                     <tr>
-                                        <td colSpan={5} className="text-center py-12" style={{ color: '#6B7280' }}>
+                                        <td colSpan={5} className="text-center py-12 text-slate-500">
                                             <div className="flex flex-col items-center gap-2">
-                                                <WifiOff size={32} className="text-gray-300 mb-2" />
+                                                <WifiOff size={32} className="text-slate-300 mb-2" />
                                                 <div className="font-medium">No devices registered</div>
-                                                <div className="text-xs" style={{ color: '#9CA3AF' }}>Add devices to start tracking attendance</div>
+                                                <div className="text-xs text-slate-400">Add devices to start tracking attendance</div>
                                             </div>
                                         </td>
                                     </tr>

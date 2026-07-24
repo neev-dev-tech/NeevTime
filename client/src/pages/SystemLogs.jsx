@@ -55,7 +55,7 @@ export default function SystemLogs() {
             IMPORT: 'bg-indigo-50 text-indigo-700 border-indigo-200',
             SYNC: 'bg-cyan-50 text-cyan-700 border-cyan-200'
         };
-        return styles[action] || 'bg-gray-50 text-gray-700 border-gray-200';
+        return styles[action] || 'bg-slate-50 text-slate-700 border-slate-200';
     };
 
     const exportLogs = () => {
@@ -110,7 +110,7 @@ export default function SystemLogs() {
                             variant="secondary"
                             icon={Filter}
                             onClick={() => setShowFilters(!showFilters)}
-                            className={showFilters ? 'bg-blue-50 border-blue-200 text-blue-700' : ''}
+                            className={showFilters ? 'bg-orange-50 border-orange-200 text-orange-700' : ''}
                         >
                             Filters
                             <ChevronDown size={14} className={`transition-transform ${showFilters ? 'rotate-180' : ''}`} />
@@ -128,7 +128,7 @@ export default function SystemLogs() {
             <div className="report-container">
                 {/* Filter Panel */}
                 {showFilters && (
-                    <div className="bg-slate-50/50 border-b border-gray-200 p-4 animate-in fade-in slide-in-from-top-2">
+                    <div className="bg-slate-50/50 border-b border-slate-200 p-4 animate-in fade-in slide-in-from-top-2">
                         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                             <div>
                                 <label className="text-xs font-semibold text-slate-500 uppercase mb-1 block">Action</label>
@@ -186,7 +186,7 @@ export default function SystemLogs() {
                 )}
 
                 {/* KPI Cards */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 border-b border-gray-100 bg-slate-50/30">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 border-b border-slate-100 bg-slate-50/30">
                     <div className="bg-white border border-purple-100 rounded-xl p-4 shadow-sm relative overflow-hidden group">
                         <div className="absolute top-0 right-0 w-16 h-16 bg-purple-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
                         <div className="relative z-10">

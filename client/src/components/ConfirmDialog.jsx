@@ -102,7 +102,7 @@ export default function ConfirmDialog() {
                 aria-describedby="confirm-dialog-description"
             >
                 <div
-                    className={`bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full p-6 pointer-events-auto transform transition-all ${
+                    className={`bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-md w-full p-6 pointer-events-auto transform transition-all ${
                         isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
                     }`}
                     onClick={(e) => e.stopPropagation()}
@@ -112,16 +112,16 @@ export default function ConfirmDialog() {
                             <AlertTriangle className={scheme.icon} size={24} />
                         </div>
                         <div className="flex-1">
-                            <h3 id="confirm-dialog-title" className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                            <h3 id="confirm-dialog-title" className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
                                 {options.title}
                             </h3>
-                            <p id="confirm-dialog-description" className="text-sm text-gray-600 dark:text-gray-300 mb-6">
+                            <p id="confirm-dialog-description" className="text-sm text-slate-600 dark:text-slate-300 mb-6">
                                 {options.message}
                             </p>
                             <div className="flex gap-3 justify-end">
                                 <button
                                     onClick={handleCancel}
-                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                                    className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors"
                                 >
                                     {options.cancelText}
                                 </button>
@@ -135,7 +135,7 @@ export default function ConfirmDialog() {
                         </div>
                         <button
                             onClick={handleCancel}
-                            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors flex-shrink-0"
+                            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors flex-shrink-0"
                             aria-label="Close dialog"
                         >
                             <X size={20} aria-hidden="true" />

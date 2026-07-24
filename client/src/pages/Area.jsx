@@ -16,7 +16,7 @@ const AreaTreeItem = ({ area, areas, onSelect, selectedId, level = 0 }) => {
     return (
         <div className="">
             <div
-                className={`flex items-center gap-2 py-2 px-3 cursor-pointer rounded-lg transition-colors mb-0.5 ${isSelected ? 'bg-orange-50 text-saffron' : 'text-slate-grey hover:bg-gray-50'}`}
+                className={`flex items-center gap-2 py-2 px-3 cursor-pointer rounded-lg transition-colors mb-0.5 ${isSelected ? 'bg-orange-50 text-saffron' : 'text-slate-grey hover:bg-slate-50'}`}
                 style={{ paddingLeft: `${level * 16 + 12}px` }}
                 onClick={() => onSelect(area)}
             >
@@ -230,12 +230,12 @@ export default function Area() {
             <div className="flex gap-6 h-[calc(100vh-12rem)]">
                 {/* Tree View Sidebar */}
                 <div className="w-64 card-base p-0 flex flex-col overflow-hidden shrink-0">
-                    <div className="p-4 border-b border-gray-100 bg-gray-50/50">
+                    <div className="p-4 border-b border-slate-100 bg-slate-50/50">
                         <h3 className="font-bold text-charcoal text-sm uppercase tracking-wide">Area Structure</h3>
                     </div>
                     <div className="p-2 flex-1 overflow-y-auto custom-scrollbar">
                         <div
-                            className={`flex items-center gap-2 py-2 px-3 cursor-pointer rounded-lg mb-0.5 transition-colors ${!selectedArea ? 'bg-orange-50 text-saffron' : 'text-slate-grey hover:bg-gray-50'}`}
+                            className={`flex items-center gap-2 py-2 px-3 cursor-pointer rounded-lg mb-0.5 transition-colors ${!selectedArea ? 'bg-orange-50 text-saffron' : 'text-slate-grey hover:bg-slate-50'}`}
                             onClick={() => setSelectedArea(null)}
                         >
                             <Folder size={16} className={!selectedArea ? 'text-saffron fill-saffron/20' : 'text-yellow-400 fill-yellow-100'} />
@@ -256,7 +256,7 @@ export default function Area() {
                 {/* Main Table Section */}
                 <div className="flex-1 flex flex-col card-base overflow-hidden p-0">
                     {/* Toolbar */}
-                    <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-white flex-wrap gap-3">
+                    <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-white flex-wrap gap-3">
                         <div className="flex items-center gap-2">
                             <Button variant="primary" icon={Plus} onClick={() => { setFormData({}); setShowModal(true); }}>
                                 Add
@@ -264,7 +264,7 @@ export default function Area() {
                             <Button variant="danger" icon={Trash2} onClick={handleBulkDelete}>
                                 Delete
                             </Button>
-                            <div className="h-6 w-px bg-gray-200 mx-2"></div>
+                            <div className="h-6 w-px bg-slate-200 mx-2"></div>
                             <Button variant="secondary" icon={Upload} onClick={() => setShowImportModal(true)}>
                                 Import
                             </Button>
@@ -304,7 +304,7 @@ export default function Area() {
                                     <th className="px-6 py-4 font-semibold text-charcoal text-sm w-20">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-50">
+                            <tbody className="divide-y divide-slate-50">
                                 {tableData.length === 0 ? (
                                     <tr>
                                         <td colSpan="11" className="p-8 text-center text-slate-grey">No areas found</td>
@@ -354,7 +354,7 @@ export default function Area() {
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-slate-grey mb-1">Parent Area</label>
-                                <div className="input-base bg-gray-50 flex items-center">
+                                <div className="input-base bg-slate-50 flex items-center">
                                     {selectedArea ? selectedArea.name : 'Root (None)'}
                                 </div>
                             </div>

@@ -248,7 +248,7 @@ export default function Settings() {
             {/* Tabs + Content */}
             <div className="card-premium overflow-hidden">
                 {/* Tab Navigation */}
-                <div className="flex border-b border-gray-200 overflow-x-auto custom-scrollbar" style={{ backgroundColor: '#F8FAFC' }}>
+                <div className="flex border-b border-slate-200 overflow-x-auto custom-scrollbar" style={{ backgroundColor: '#F8FAFC' }}>
                     {CATEGORIES.map(cat => {
                         const Icon = cat.icon;
                         const isActive = activeTab === cat.id;
@@ -308,7 +308,7 @@ export default function Settings() {
                     )}
 
                     {/* Actions */}
-                    <div className="flex items-center gap-3 mt-8 pt-6 border-t border-gray-100">
+                    <div className="flex items-center gap-3 mt-8 pt-6 border-t border-slate-100">
                         <Button icon={saving ? Loader2 : Save} onClick={handleSave} disabled={saving}>
                             {saving ? 'Saving...' : 'Save Changes'}
                         </Button>

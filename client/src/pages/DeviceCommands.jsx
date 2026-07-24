@@ -98,7 +98,7 @@ export default function DeviceCommands() {
             case 'pending': return 'bg-yellow-100 text-yellow-800';
             case 'sent': return 'bg-blue-100 text-blue-800';
             case 'fail': return 'bg-red-100 text-red-800';
-            default: return 'bg-gray-100 text-gray-800';
+            default: return 'bg-slate-100 text-slate-800';
         }
     };
 
@@ -172,10 +172,10 @@ export default function DeviceCommands() {
                     <div className="card-base p-4">
                         <h3 className="font-semibold mb-3">Select Device</h3>
                         {loading ? (
-                            <div className="text-center py-4 text-gray-500">Loading devices...</div>
+                            <div className="text-center py-4 text-slate-500">Loading devices...</div>
                         ) : devices.length === 0 ? (
-                            <div className="text-center py-4 text-gray-500">
-                                <WifiOff className="mx-auto mb-2 text-gray-300" size={32} />
+                            <div className="text-center py-4 text-slate-500">
+                                <WifiOff className="mx-auto mb-2 text-slate-300" size={32} />
                                 <p>No devices registered</p>
                                 <p className="text-xs mt-1">Add devices in Device Management</p>
                             </div>
@@ -186,13 +186,13 @@ export default function DeviceCommands() {
                                         key={device.serial_number}
                                         onClick={() => setSelectedDevice(device)}
                                         className={`w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors ${selectedDevice?.serial_number === device.serial_number
-                                            ? 'bg-blue-600 text-white'
-                                            : 'bg-gray-50 hover:bg-gray-100'
+                                            ? 'bg-orange-600 text-white'
+                                            : 'bg-slate-50 hover:bg-slate-100'
                                             }`}
                                     >
                                         <div className={`p-2 rounded-lg ${selectedDevice?.serial_number === device.serial_number
-                                            ? 'bg-blue-500'
-                                            : device.status === 'online' ? 'bg-green-100' : 'bg-gray-200'
+                                            ? 'bg-orange-500'
+                                            : device.status === 'online' ? 'bg-green-100' : 'bg-slate-200'
                                             }`}>
                                             {device.status === 'online' ? (
                                                 <Wifi size={18} className={
@@ -204,7 +204,7 @@ export default function DeviceCommands() {
                                                 <WifiOff size={18} className={
                                                     selectedDevice?.serial_number === device.serial_number
                                                         ? 'text-white'
-                                                        : 'text-gray-500'
+                                                        : 'text-slate-500'
                                                 } />
                                             )}
                                         </div>
@@ -213,13 +213,13 @@ export default function DeviceCommands() {
                                                 {device.device_name || 'Unnamed Device'}
                                             </div>
                                             <div className={`text-xs truncate ${selectedDevice?.serial_number === device.serial_number
-                                                ? 'text-blue-200'
-                                                : 'text-gray-500'
+                                                ? 'text-orange-200'
+                                                : 'text-slate-500'
                                                 }`}>
                                                 {device.serial_number}
                                             </div>
                                         </div>
-                                        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${device.status === 'online' ? 'bg-green-400' : 'bg-gray-400'
+                                        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${device.status === 'online' ? 'bg-green-400' : 'bg-slate-400'
                                             }`} />
                                     </button>
                                 ))}
@@ -230,36 +230,36 @@ export default function DeviceCommands() {
                         {selectedDevice && (
                             <div className="mt-4 pt-4 border-t space-y-2 text-sm">
                                 <div className="flex justify-between">
-                                    <span className="text-gray-500">Serial:</span>
+                                    <span className="text-slate-500">Serial:</span>
                                     <span className="font-medium">{selectedDevice.serial_number}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-gray-500">IP:</span>
+                                    <span className="text-slate-500">IP:</span>
                                     <span className="font-medium">{selectedDevice.ip_address || 'N/A'}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-gray-500">Status:</span>
+                                    <span className="text-slate-500">Status:</span>
                                     <span className={`px-2 py-0.5 rounded text-xs ${selectedDevice.status === 'online'
                                         ? 'bg-green-100 text-green-800'
-                                        : 'bg-gray-100 text-gray-800'
+                                        : 'bg-slate-100 text-slate-800'
                                         }`}>
                                         {selectedDevice.status || 'Unknown'}
                                     </span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-gray-500">Users:</span>
+                                    <span className="text-slate-500">Users:</span>
                                     <span className="font-medium">{selectedDevice.user_count || 0}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-gray-500">FP Count:</span>
+                                    <span className="text-slate-500">FP Count:</span>
                                     <span className="font-medium">{selectedDevice.fingerprint_count || 0}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-gray-500">Face Count:</span>
+                                    <span className="text-slate-500">Face Count:</span>
                                     <span className="font-medium">{selectedDevice.face_count || 0}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-gray-500">Transactions:</span>
+                                    <span className="text-slate-500">Transactions:</span>
                                     <span className="font-medium">{selectedDevice.transaction_count || 0}</span>
                                 </div>
                             </div>
@@ -318,13 +318,13 @@ export default function DeviceCommands() {
                             </Button>
                         </div>
                         {deviceCommands.length === 0 ? (
-                            <div className="text-center py-6 text-gray-500">
+                            <div className="text-center py-6 text-slate-500">
                                 No commands sent yet. Select a device and click a command to begin.
                             </div>
                         ) : (
                             <div className="space-y-2 max-h-80 overflow-y-auto">
                                 {deviceCommands.slice(0, 20).map(cmd => (
-                                    <div key={cmd.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                    <div key={cmd.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
                                         <div className="flex items-center gap-3 min-w-0">
                                             <div className={`w-2 h-2 rounded-full flex-shrink-0 ${cmd.status === 'success' ? 'bg-green-500' :
                                                 cmd.status === 'pending' ? 'bg-yellow-500' :
@@ -333,7 +333,7 @@ export default function DeviceCommands() {
                                                 }`} />
                                             <div className="min-w-0">
                                                 <div className="font-medium text-sm truncate">{cmd.command}</div>
-                                                <div className="text-xs text-gray-500">
+                                                <div className="text-xs text-slate-500">
                                                     {formatTime(cmd.created_at)}
                                                 </div>
                                             </div>

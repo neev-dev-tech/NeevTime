@@ -48,14 +48,14 @@ export const FormInput = ({
     return (
         <div className={`form-field ${className}`}>
             {label && (
-                <label className="block text-sm font-medium text-gray-600 mb-1.5">
+                <label className="block text-sm font-medium text-slate-600 mb-1.5">
                     {label}
                     {required && <span className="text-red-500 ml-1">*</span>}
                 </label>
             )}
             <div className="relative">
                 {prefix && (
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
                         {prefix}
                     </span>
                 )}
@@ -71,16 +71,16 @@ export const FormInput = ({
                     className={`
                         w-full border rounded-[10px] px-4 py-2.5 text-sm
                         transition-all duration-200 ease-in-out
-                        placeholder:text-gray-400
+                        placeholder:text-slate-400
                         ${prefix ? 'pl-10' : ''}
                         ${suffix || isPassword ? 'pr-10' : ''}
                         ${hasError
                             ? 'border-red-400 bg-red-50/50 focus:border-red-500 focus:ring-2 focus:ring-red-200'
                             : isValid
                                 ? 'border-green-400 bg-green-50/30 focus:border-green-500 focus:ring-2 focus:ring-green-200'
-                                : 'border-gray-200 bg-white focus:border-orange-400 focus:ring-2 focus:ring-orange-100'
+                                : 'border-slate-200 bg-white focus:border-orange-400 focus:ring-2 focus:ring-orange-100'
                         }
-                        ${disabled ? 'bg-gray-100 cursor-not-allowed opacity-60' : ''}
+                        ${disabled ? 'bg-slate-100 cursor-not-allowed opacity-60' : ''}
                         focus:outline-none
                         ${inputClassName}
                     `}
@@ -91,12 +91,12 @@ export const FormInput = ({
                     <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
                     >
                         {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
                 ) : suffix ? (
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
                         {suffix}
                     </span>
                 ) : null}
@@ -122,12 +122,12 @@ export const FormInput = ({
                         {error}
                     </span>
                 ) : hint ? (
-                    <span className="text-xs text-gray-400">{hint}</span>
+                    <span className="text-xs text-slate-400">{hint}</span>
                 ) : (
                     <span></span>
                 )}
                 {showCharCount && maxLength && (
-                    <span className={`text-xs ${value?.length >= maxLength ? 'text-red-500' : 'text-gray-400'}`}>
+                    <span className={`text-xs ${value?.length >= maxLength ? 'text-red-500' : 'text-slate-400'}`}>
                         {value?.length || 0}/{maxLength}
                     </span>
                 )}
@@ -160,7 +160,7 @@ export const FormSelect = ({
     return (
         <div className={`form-field ${className}`}>
             {label && (
-                <label className="block text-sm font-medium text-gray-600 mb-1.5">
+                <label className="block text-sm font-medium text-slate-600 mb-1.5">
                     {label}
                     {required && <span className="text-red-500 ml-1">*</span>}
                 </label>
@@ -179,9 +179,9 @@ export const FormSelect = ({
                             ? 'border-red-400 bg-red-50/50 focus:border-red-500'
                             : isValid
                                 ? 'border-green-400 bg-green-50/30 focus:border-green-500'
-                                : 'border-gray-200 bg-white focus:border-orange-400'
+                                : 'border-slate-200 bg-white focus:border-orange-400'
                         }
-                        ${disabled ? 'bg-gray-100 cursor-not-allowed opacity-60' : ''}
+                        ${disabled ? 'bg-slate-100 cursor-not-allowed opacity-60' : ''}
                         focus:outline-none focus:ring-2 
                         ${hasError ? 'focus:ring-red-200' : 'focus:ring-orange-100'}
                     `}
@@ -199,7 +199,7 @@ export const FormSelect = ({
                 </select>
                 {/* Dropdown arrow */}
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                     </svg>
                 </div>
@@ -239,7 +239,7 @@ export const FormTextarea = ({
     return (
         <div className={`form-field ${className}`}>
             {label && (
-                <label className="block text-sm font-medium text-gray-600 mb-1.5">
+                <label className="block text-sm font-medium text-slate-600 mb-1.5">
                     {label}
                     {required && <span className="text-red-500 ml-1">*</span>}
                 </label>
@@ -256,14 +256,14 @@ export const FormTextarea = ({
                 className={`
                     w-full border rounded-[10px] px-4 py-2.5 text-sm resize-none
                     transition-all duration-200 ease-in-out
-                    placeholder:text-gray-400
+                    placeholder:text-slate-400
                     ${hasError
                         ? 'border-red-400 bg-red-50/50 focus:border-red-500'
                         : isValid
                             ? 'border-green-400 bg-green-50/30 focus:border-green-500'
-                            : 'border-gray-200 bg-white focus:border-orange-400'
+                            : 'border-slate-200 bg-white focus:border-orange-400'
                     }
-                    ${disabled ? 'bg-gray-100 cursor-not-allowed opacity-60' : ''}
+                    ${disabled ? 'bg-slate-100 cursor-not-allowed opacity-60' : ''}
                     focus:outline-none focus:ring-2 
                     ${hasError ? 'focus:ring-red-200' : 'focus:ring-orange-100'}
                 `}
@@ -276,7 +276,7 @@ export const FormTextarea = ({
                     <span></span>
                 )}
                 {showCharCount && maxLength && (
-                    <span className={`text-xs ${value?.length >= maxLength ? 'text-red-500' : 'text-gray-400'}`}>
+                    <span className={`text-xs ${value?.length >= maxLength ? 'text-red-500' : 'text-slate-400'}`}>
                         {value?.length || 0}/{maxLength}
                     </span>
                 )}
@@ -309,7 +309,7 @@ export const FormCheckbox = ({
                     className="sr-only peer"
                     {...props}
                 />
-                <div className="w-5 h-5 border-2 border-gray-300 rounded-md transition-all duration-200
+                <div className="w-5 h-5 border-2 border-slate-300 rounded-md transition-all duration-200
                     peer-checked:bg-orange-500 peer-checked:border-orange-500
                     peer-focus:ring-2 peer-focus:ring-orange-200
                     group-hover:border-orange-400
@@ -325,7 +325,7 @@ export const FormCheckbox = ({
                     </svg>
                 </div>
             </div>
-            {label && <span className="text-sm text-gray-700">{label}</span>}
+            {label && <span className="text-sm text-slate-700">{label}</span>}
         </label>
     );
 };
@@ -346,8 +346,8 @@ export const FormToggle = ({
     return (
         <div className={`flex items-center justify-between ${className}`}>
             <div>
-                {label && <span className="text-sm font-medium text-gray-700">{label}</span>}
-                {description && <p className="text-xs text-gray-400 mt-0.5">{description}</p>}
+                {label && <span className="text-sm font-medium text-slate-700">{label}</span>}
+                {description && <p className="text-xs text-slate-400 mt-0.5">{description}</p>}
             </div>
             <label className={`relative inline-flex items-center cursor-pointer ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`}>
                 <input
@@ -359,7 +359,7 @@ export const FormToggle = ({
                     className="sr-only peer"
                     {...props}
                 />
-                <div className="w-11 h-6 bg-gray-200 rounded-full peer 
+                <div className="w-11 h-6 bg-slate-200 rounded-full peer 
                     peer-checked:bg-green-500
                     peer-focus:ring-2 peer-focus:ring-green-200
                     transition-all duration-300
@@ -394,7 +394,7 @@ export const FormRadioGroup = ({
     return (
         <div className={`form-field ${className}`}>
             {label && (
-                <label className="block text-sm font-medium text-gray-600 mb-2">
+                <label className="block text-sm font-medium text-slate-600 mb-2">
                     {label}
                     {required && <span className="text-red-500 ml-1">*</span>}
                 </label>
@@ -412,9 +412,9 @@ export const FormRadioGroup = ({
                             checked={value === (opt.value ?? opt)}
                             onChange={onChange}
                             disabled={disabled}
-                            className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-400"
+                            className="w-4 h-4 text-orange-500 border-slate-300 focus:ring-orange-400"
                         />
-                        <span className="text-sm text-gray-700">{opt.label ?? opt}</span>
+                        <span className="text-sm text-slate-700">{opt.label ?? opt}</span>
                     </label>
                 ))}
             </div>

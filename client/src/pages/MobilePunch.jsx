@@ -130,14 +130,14 @@ const MobilePunch = () => {
     }
 
     return (
-        <div className="h-full flex flex-col p-4 bg-gray-50">
+        <div className="h-full flex flex-col bg-slate-50">
             <PageHeader
                 icon={MapPin}
                 title="Mobile Punch"
                 subtitle="GPS geofenced attendance punch"
             />
             <div className="flex-1 flex flex-col items-center justify-center">
-            <div className="w-full max-w-md bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+            <div className="w-full max-w-md bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-100">
 
                 {/* Header Map Placeholder */}
                 <div className="h-48 bg-blue-50 relative flex items-center justify-center">
@@ -154,7 +154,7 @@ const MobilePunch = () => {
                                 <MapPin className="text-white" size={32} />
                             </div>
                             <div className="mt-2 text-center">
-                                <p className="font-bold text-gray-800">{nearestFence?.name || 'Unknown Location'}</p>
+                                <p className="font-bold text-slate-800">{nearestFence?.name || 'Unknown Location'}</p>
                                 <p className={`text-sm font-medium ${status === 'ready' ? 'text-green-600' : 'text-red-500'}`}>
                                     {distance ? `${Math.round(distance)}m away` : '--'}
                                 </p>
@@ -168,7 +168,7 @@ const MobilePunch = () => {
                 {/* Content */}
                 <div className="p-6">
                     <div className="mb-6">
-                        <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Simulate Employee (Admin)</label>
+                        <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Simulate Employee (Admin)</label>
                         <select
                             className="input-base w-full"
                             value={selectedEmployeeId}
@@ -182,12 +182,12 @@ const MobilePunch = () => {
                         <div className="text-center py-8 animate-fade-in">
                             <CheckCircle className="mx-auto text-green-500 mb-4" size={64} />
                             <h2 className="text-2xl font-bold text-green-600">Punched In!</h2>
-                            <p className="text-gray-500 mt-2">Attendance recorded successfully.</p>
+                            <p className="text-slate-500 mt-2">Attendance recorded successfully.</p>
                         </div>
                     ) : status === 'error' ? (
                         <div className="text-center py-6 animate-fade-in">
                             <XCircle className="mx-auto text-red-500 mb-4" size={48} />
-                            <h3 className="text-lg font-bold text-gray-800">Punch Failed</h3>
+                            <h3 className="text-lg font-bold text-slate-800">Punch Failed</h3>
                             <p className="text-red-600 mt-2 mb-4 text-sm">{error}</p>
                             <Button variant="secondary" onClick={() => setStatus('ready')} className="w-full">
                                 Try Again
@@ -210,7 +210,7 @@ const MobilePunch = () => {
                                     flex items-center justify-center gap-2
                                     ${status === 'ready'
                                         ? 'bg-saffron-gradient text-white hover:shadow-orange-200'
-                                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'}
+                                        : 'bg-slate-200 text-slate-400 cursor-not-allowed'}
                                 `}
                             >
                                 {status === 'punching' ? (

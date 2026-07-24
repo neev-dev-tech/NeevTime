@@ -364,7 +364,7 @@ export default function Employees() {
                 setShowAppMenu(false);
                 setShowMoreMenu(false);
             }}
-            className={`block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 ${danger ? 'text-red-600' : 'text-gray-700'}`}
+            className={`block w-full text-left px-4 py-2 text-sm hover:bg-slate-100 ${danger ? 'text-red-600' : 'text-slate-700'}`}
         >
             {label}
         </button>
@@ -413,11 +413,11 @@ export default function Employees() {
     return (
         <div className="flex flex-col h-[calc(100vh-120px)] card-base overflow-hidden relative">
             {/* Toolbar */}
-            <div className="flex items-center gap-3 p-4 border-b border-gray-200 text-sm flex-wrap" style={{ backgroundColor: '#FFFFFF' }}>
+            <div className="flex items-center gap-3 p-4 border-b border-slate-200 text-sm flex-wrap bg-white">
                 <Button variant="primary" icon={Plus} onClick={() => setShowAddModal(true)}>
                     Add Employee
                 </Button>
-                <div className="h-8 w-px bg-gray-200 mx-2 hidden md:block"></div>
+                <div className="h-8 w-px bg-slate-200 mx-2 hidden md:block"></div>
                 <Button variant="danger" icon={Trash2} onClick={handleDelete}>
                     Delete
                 </Button>
@@ -465,7 +465,7 @@ export default function Employees() {
                     {showImportMenu && (
                         <>
                             <div className="fixed inset-0 z-10" onClick={() => setShowImportMenu(false)}></div>
-                            <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-gray-100 shadow-xl rounded-2xl z-20 overflow-hidden dropdown-menu">
+                            <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-slate-100 shadow-xl rounded-2xl z-20 overflow-hidden dropdown-menu">
                             <DropdownItem label="Import Employee (CSV)" onClick={() => setShowImportModal(true)} />
                         </div>
                         </>
@@ -492,7 +492,7 @@ export default function Employees() {
                         showTransferMenu && (
                             <>
                                 <div className="fixed inset-0 z-10" onClick={() => setShowTransferMenu(false)}></div>
-                                <div className="absolute top-full left-0 mt-2 w-56 bg-white border border-gray-100 shadow-xl rounded-2xl z-20 overflow-hidden dropdown-menu">
+                                <div className="absolute top-full left-0 mt-2 w-56 bg-white border border-slate-100 shadow-xl rounded-2xl z-20 overflow-hidden dropdown-menu">
                             <DropdownItem label="Department Transfer" onClick={() => handleTransfer('Department')} />
                             <DropdownItem label="Position Transfer" onClick={() => handleTransfer('Position')} />
                             <DropdownItem label="Move to New Area" onClick={() => handleTransfer('Area')} />
@@ -530,7 +530,7 @@ export default function Employees() {
                         showAppMenu && (
                             <>
                                 <div className="fixed inset-0 z-10" onClick={() => setShowAppMenu(false)}></div>
-                                <div className="absolute top-full left-0 mt-2 w-40 bg-white border border-gray-100 shadow-xl rounded-2xl z-20 overflow-hidden dropdown-menu">
+                                <div className="absolute top-full left-0 mt-2 w-40 bg-white border border-slate-100 shadow-xl rounded-2xl z-20 overflow-hidden dropdown-menu">
                             <DropdownItem label="Enable Access" onClick={() => handleAppAccess(true)} />
                             <DropdownItem label="Disable Access" onClick={() => handleAppAccess(false)} danger />
                         </div>
@@ -559,7 +559,7 @@ export default function Employees() {
                         showMoreMenu && (
                             <>
                                 <div className="fixed inset-0 z-10" onClick={() => setShowMoreMenu(false)}></div>
-                                <div className="absolute top-full left-0 mt-2 w-56 bg-white border border-gray-100 shadow-xl rounded-2xl z-20 overflow-hidden dropdown-menu">
+                                <div className="absolute top-full left-0 mt-2 w-56 bg-white border border-slate-100 shadow-xl rounded-2xl z-20 overflow-hidden dropdown-menu">
                             <DropdownItem label="Resynchronize to device" onClick={() => handleMoreSettings('push')} />
                             <DropdownItem label="Re-upload from device" onClick={() => handleMoreSettings('pull')} />
                             <DropdownItem label="Delete Biometric Template" onClick={() => handleMoreSettings('delete-bio')} danger />
@@ -582,7 +582,7 @@ export default function Employees() {
             </div >
 
             {/* Table */}
-            <div className="flex-1 overflow-auto custom-scrollbar" style={{ backgroundColor: '#FFFFFF' }}>
+            <div className="flex-1 overflow-auto custom-scrollbar bg-white">
                 {loading ? (
                     <SkeletonLoader rows={10} columns={10} showHeader={true} />
                 ) : (
@@ -592,7 +592,7 @@ export default function Employees() {
                             <th className="table-header w-12 text-center">
                                 <input
                                     type="checkbox"
-                                    className="rounded border-gray-300 text-saffron focus:ring-saffron"
+                                    className="rounded border-slate-300 text-saffron focus:ring-saffron"
                                     onChange={(e) => {
                                         if (e.target.checked) setSelectedIds(filteredEmployees.map(e => e.id));
                                         else setSelectedIds([]);
@@ -618,13 +618,13 @@ export default function Employees() {
                                         type="checkbox"
                                         checked={selectedIds.includes(emp.id)}
                                         onChange={() => toggleSelect(emp.id)}
-                                        className="rounded border-gray-300 text-saffron focus:ring-saffron"
+                                        className="rounded border-slate-300 text-saffron focus:ring-saffron"
                                     />
                                 </td>
-                                <td className="px-6 py-4 font-mono text-saffron font-medium cursor-pointer" style={{ color: '#F97316' }} onClick={() => navigate(`/employees/${emp.id}`)}>{emp.employee_code}</td>
-                                <td className="px-6 py-4 font-semibold cursor-pointer" style={{ color: '#1E293B', fontWeight: 600 }} onClick={() => navigate(`/employees/${emp.id}`)}>{emp.name}</td>
-                                <td className="px-6 py-4" style={{ color: '#475569' }}>{emp.department_name || '-'}</td>
-                                <td className="px-6 py-4 font-mono text-xs" style={{ color: '#475569' }}>{emp.mobile || '-'}</td>
+                                <td className="px-6 py-4 font-mono text-saffron font-medium cursor-pointer" onClick={() => navigate(`/employees/${emp.id}`)}>{emp.employee_code}</td>
+                                <td className="px-6 py-4 font-semibold cursor-pointer text-slate-800" onClick={() => navigate(`/employees/${emp.id}`)}>{emp.name}</td>
+                                <td className="px-6 py-4 text-slate-600">{emp.department_name || '-'}</td>
+                                <td className="px-6 py-4 font-mono text-xs text-slate-600">{emp.mobile || '-'}</td>
                                 <td className="px-6 py-4 text-center">
                                     <span className={`px-2.5 py-1 rounded-full text-xs font-medium uppercase tracking-wide ${emp.status === 'active' ? 'badge-success' : 'badge-inactive'}`}>
                                         {emp.status}
@@ -632,8 +632,8 @@ export default function Employees() {
                                 </td>
                                 <td className="px-6 py-4 text-center">
                                     <div className="flex items-center justify-center gap-2">
-                                        <Fingerprint size={18} className={emp.has_fingerprint ? "text-green-600" : "text-gray-300"} />
-                                        <ScanFace size={18} className={emp.has_face ? "text-green-600" : "text-gray-300"} />
+                                        <Fingerprint size={18} className={emp.has_fingerprint ? "text-green-600" : "text-slate-300"} />
+                                        <ScanFace size={18} className={emp.has_face ? "text-green-600" : "text-slate-300"} />
                                     </div>
                                 </td>
                                 <td className="px-6 py-4 text-center">
@@ -641,8 +641,8 @@ export default function Employees() {
                                         {emp.app_login_enabled ? 'Enabled' : 'Disabled'}
                                     </span>
                                 </td>
-                                <td className="px-6 py-4" style={{ color: '#475569' }}>{emp.designation || '-'}</td>
-                                <td className="px-6 py-4" style={{ color: '#475569' }}>{emp.area_name || '-'}</td>
+                                <td className="px-6 py-4 text-slate-600">{emp.designation || '-'}</td>
+                                <td className="px-6 py-4 text-slate-600">{emp.area_name || '-'}</td>
                             </tr>
                         ))}
                     </tbody>
@@ -650,7 +650,7 @@ export default function Employees() {
                 )}
             </div>
 
-            <div className="p-4 border-t border-gray-200 text-xs font-medium text-slate-grey flex justify-between items-center" style={{ backgroundColor: '#F8FAFC' }}>
+            <div className="p-4 border-t border-slate-200 text-xs font-medium text-slate-grey flex justify-between items-center bg-slate-50">
                 <span>Total <span className="text-charcoal font-bold">{filteredEmployees.length}</span> Records</span>
                 <div className="flex gap-2">
                     <span className="text-slate-grey">Selected: <span className="text-saffron font-bold text-sm">{selectedIds.length}</span></span>
@@ -670,13 +670,13 @@ export default function Employees() {
                                 background: 'linear-gradient(135deg, #FFF7ED 0%, #FFFFFF 100%)',
                                 borderColor: '#FED7AA'
                             }}>
-                                <h3 className="font-semibold text-xl" style={{ color: '#1E293B', fontWeight: 600 }}>Add Employee</h3>
-                            <button onClick={() => setShowAddModal(false)} className="p-2 hover:bg-gray-50 rounded-full text-slate-grey transition-colors"><X size={20} /></button>
+                                <h3 className="font-semibold text-xl text-slate-800">Add Employee</h3>
+                            <button onClick={() => setShowAddModal(false)} className="p-2 hover:bg-slate-50 rounded-full text-slate-grey transition-colors"><X size={20} /></button>
                         </div>
                             <form onSubmit={handleAddSubmit} className="p-8 overflow-y-auto max-h-[calc(90vh-80px)] custom-scrollbar" autoComplete="off">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 {/* Personal Details */}
-                                <div className="col-span-1 md:col-span-3 flex items-center gap-2 pb-2 mb-2 border-b border-gray-100">
+                                <div className="col-span-1 md:col-span-3 flex items-center gap-2 pb-2 mb-2 border-b border-slate-100">
                                     <div className="w-1 h-4 bg-saffron rounded-full"></div>
                                     <span className="text-sm font-bold text-charcoal uppercase tracking-wider">Personal Details</span>
                                 </div>
@@ -727,7 +727,7 @@ export default function Employees() {
                                 </div>
 
                                 {/* Work Details */}
-                                <div className="col-span-1 md:col-span-3 flex items-center gap-2 pb-2 mb-2 mt-4 border-b border-gray-100">
+                                <div className="col-span-1 md:col-span-3 flex items-center gap-2 pb-2 mb-2 mt-4 border-b border-slate-100">
                                     <div className="w-1 h-4 bg-saffron rounded-full"></div>
                                     <span className="text-sm font-bold text-charcoal uppercase tracking-wider">Work Details</span>
                                 </div>
@@ -782,7 +782,7 @@ export default function Employees() {
                                 </div>
 
                                 {/* System Access */}
-                                <div className="col-span-1 md:col-span-3 flex items-center gap-2 pb-2 mb-2 mt-4 border-b border-gray-100">
+                                <div className="col-span-1 md:col-span-3 flex items-center gap-2 pb-2 mb-2 mt-4 border-b border-slate-100">
                                     <div className="w-1 h-4 bg-saffron rounded-full"></div>
                                     <span className="text-sm font-bold text-charcoal uppercase tracking-wider">System & Device</span>
                                 </div>
@@ -799,7 +799,7 @@ export default function Employees() {
                                             autoComplete="new-password" />
                                 </div>
 
-                                <div className="col-span-1 md:col-span-3 flex justify-end gap-4 pt-6 border-t border-gray-100 mt-4">
+                                <div className="col-span-1 md:col-span-3 flex justify-end gap-4 pt-6 border-t border-slate-100 mt-4">
                                     <Button variant="secondary" onClick={() => setShowAddModal(false)}>Cancel</Button>
                                     <Button type="submit" variant="primary">Add Employee</Button>
                                 </div>
@@ -823,14 +823,14 @@ export default function Employees() {
                                 background: 'linear-gradient(135deg, #FFF7ED 0%, #FFFBF5 100%)',
                                 borderColor: '#FED7AA'
                             }}>
-                                <h3 className="font-semibold text-xl" style={{ color: '#1E293B', fontWeight: 600 }}>Import Employees</h3>
+                                <h3 className="font-semibold text-xl text-slate-800">Import Employees</h3>
                             <button onClick={() => setShowImportModal(false)} className="p-2 hover:bg-white rounded-full transition-colors"><X size={20} className="text-slate-grey" /></button>
                         </div>
 
                         <div className="p-8 text-center">
-                            <div className="border-2 border-dashed border-gray-200 rounded-2xl p-8 hover:bg-orange-50/50 hover:border-saffron/50 transition-all cursor-pointer group">
-                                <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                                    <Upload className="text-blue-500" size={28} />
+                            <div className="border-2 border-dashed border-slate-200 rounded-2xl p-8 hover:bg-orange-50/50 hover:border-saffron/50 transition-all cursor-pointer group">
+                                <div className="w-16 h-16 bg-orange-50 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                                    <Upload className="text-orange-500" size={28} />
                                 </div>
                                 <h4 className="text-lg font-bold text-charcoal mb-2">Upload CSV File</h4>
                                 <p className="text-sm text-slate-grey mb-6">Format: ID, Name, DeptID</p>
@@ -863,7 +863,7 @@ export default function Employees() {
                             <div className="w-12 h-12 bg-orange-50 rounded-full flex items-center justify-center mb-4">
                                 <ArrowRightLeft className="text-saffron" size={24} />
                             </div>
-                                <h3 className="font-semibold text-xl mb-1" style={{ color: '#1E293B', fontWeight: 600 }}>{transferType} Transfer</h3>
+                                <h3 className="font-semibold text-xl mb-1 text-slate-800">{transferType} Transfer</h3>
                             <p className="text-slate-grey text-sm">Move <span className="font-bold text-charcoal">{selectedIds.length}</span> employees to a new {transferType.toLowerCase()}.</p>
                         </div>
 
@@ -926,7 +926,7 @@ export default function Employees() {
                         <div className="mx-auto w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-6 shadow-sm">
                             <Trash2 className="text-red-500" size={32} />
                         </div>
-                            <h3 className="text-xl font-semibold mb-2" style={{ color: '#1E293B', fontWeight: 600 }}>Delete Employees?</h3>
+                            <h3 className="text-xl font-semibold mb-2 text-slate-800">Delete Employees?</h3>
                         <p className="text-slate-grey text-sm mb-8 leading-relaxed">
                             Are you sure you want to delete <span className="font-bold text-charcoal">{selectedIds.length}</span> selected employees? This action cannot be undone.
                         </p>
@@ -964,7 +964,7 @@ export default function Employees() {
                             <div className="w-12 h-12 bg-orange-50 rounded-full flex items-center justify-center mb-4">
                                 <Settings className="text-saffron" size={24} />
                             </div>
-                                <h3 className="font-semibold text-xl mb-1" style={{ color: '#1E293B', fontWeight: 600 }}>Confirm Action</h3>
+                                <h3 className="font-semibold text-xl mb-1 text-slate-800">Confirm Action</h3>
                             <p className="text-slate-grey text-sm">{confirmMessage}</p>
                         </div>
                         <div className="flex justify-end gap-3">
@@ -1000,7 +1000,7 @@ export default function Employees() {
                                 }
                                 setToast(null);
                             }}
-                            className="text-white hover:text-gray-200 focus:outline-none font-bold text-lg leading-none"
+                            className="text-white hover:text-slate-200 focus:outline-none font-bold text-lg leading-none"
                         >
                         ✕
                     </button>

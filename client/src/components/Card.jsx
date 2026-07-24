@@ -32,11 +32,11 @@ export function Card({
     const baseClasses = 'rounded-2xl transition-all duration-200';
 
     const variantClasses = {
-        default: 'bg-white border border-gray-100 shadow-sm',
+        default: 'bg-white border border-slate-100 shadow-sm',
         elevated: 'bg-white shadow-md hover:shadow-lg',
-        outlined: 'bg-white border-2 border-gray-200',
+        outlined: 'bg-white border-2 border-slate-200',
         glass: 'bg-white/80 backdrop-blur-sm border border-white/20 shadow-lg',
-        gradient: 'bg-gradient-to-br from-white to-gray-50 border border-gray-100 shadow-sm'
+        gradient: 'bg-gradient-to-br from-white to-slate-50 border border-slate-100 shadow-sm'
     };
 
     const sizeClasses = {
@@ -89,10 +89,10 @@ export function CardHeader({
                 )}
                 <div>
                     {title && (
-                        <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
+                        <h3 className="text-lg font-semibold text-slate-800">{title}</h3>
                     )}
                     {subtitle && (
-                        <p className="text-sm text-gray-500 mt-0.5">{subtitle}</p>
+                        <p className="text-sm text-slate-500 mt-0.5">{subtitle}</p>
                     )}
                     {children}
                 </div>
@@ -124,7 +124,7 @@ export function CardFooter({ children, className = '', separator = true }) {
     return (
         <div className={`
             mt-4 pt-4 
-            ${separator ? 'border-t border-gray-100' : ''} 
+            ${separator ? 'border-t border-slate-100' : ''} 
             ${className}
         `}>
             {children}
@@ -152,35 +152,35 @@ export function StatCard({
             border: 'border-l-4 border-l-orange-500',
             iconBg: 'bg-orange-100',
             iconColor: 'text-orange-500',
-            valueColor: 'text-gray-800'
+            valueColor: 'text-slate-800'
         },
         green: {
             bg: 'bg-gradient-to-br from-green-50 to-emerald-100',
             border: 'border-l-4 border-l-green-500',
             iconBg: 'bg-green-100',
             iconColor: 'text-green-500',
-            valueColor: 'text-gray-800'
+            valueColor: 'text-slate-800'
         },
         blue: {
             bg: 'bg-gradient-to-br from-blue-50 to-indigo-100',
             border: 'border-l-4 border-l-blue-500',
             iconBg: 'bg-blue-100',
             iconColor: 'text-blue-500',
-            valueColor: 'text-gray-800'
+            valueColor: 'text-slate-800'
         },
         red: {
             bg: 'bg-gradient-to-br from-red-50 to-rose-100',
             border: 'border-l-4 border-l-red-500',
             iconBg: 'bg-red-100',
             iconColor: 'text-red-500',
-            valueColor: 'text-gray-800'
+            valueColor: 'text-slate-800'
         },
         purple: {
             bg: 'bg-gradient-to-br from-purple-50 to-violet-100',
             border: 'border-l-4 border-l-purple-500',
             iconBg: 'bg-purple-100',
             iconColor: 'text-purple-500',
-            valueColor: 'text-gray-800'
+            valueColor: 'text-slate-800'
         }
     };
 
@@ -205,12 +205,12 @@ export function StatCard({
         >
             <div className="flex items-start justify-between">
                 <div>
-                    <p className="text-sm font-medium text-gray-500 mb-1">{label}</p>
+                    <p className="text-sm font-medium text-slate-500 mb-1">{label}</p>
                     <p className={`text-2xl font-bold ${styles.valueColor}`}>
                         {typeof value === 'number' ? value.toLocaleString() : value}
                     </p>
                     {trend && (
-                        <div className={`flex items-center gap-1 mt-2 text-sm ${trend === 'up' ? 'text-green-600' : trend === 'down' ? 'text-red-600' : 'text-gray-500'
+                        <div className={`flex items-center gap-1 mt-2 text-sm ${trend === 'up' ? 'text-green-600' : trend === 'down' ? 'text-red-600' : 'text-slate-500'
                             }`}>
                             {trend === 'up' && '↑'}
                             {trend === 'down' && '↓'}
@@ -243,11 +243,11 @@ export function SummaryCard({
             <div className="space-y-3">
                 {items.map((item, index) => (
                     <div key={index} className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">{item.label}</span>
+                        <span className="text-sm text-slate-600">{item.label}</span>
                         <span className={`font-semibold ${item.color === 'green' ? 'text-green-600' :
                                 item.color === 'red' ? 'text-red-600' :
                                     item.color === 'orange' ? 'text-orange-600' :
-                                        'text-gray-800'
+                                        'text-slate-800'
                             }`}>
                             {item.value}
                         </span>
@@ -281,8 +281,8 @@ export function ActionCard({
                     </div>
                 )}
                 <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-gray-800 mb-1">{title}</h4>
-                    <p className="text-sm text-gray-500 mb-3">{description}</p>
+                    <h4 className="font-semibold text-slate-800 mb-1">{title}</h4>
+                    <p className="text-sm text-slate-500 mb-3">{description}</p>
                     <button
                         onClick={onAction}
                         className="text-sm font-medium text-orange-600 hover:text-orange-700 
@@ -309,7 +309,7 @@ export function InfoCard({
     return (
         <Card variant="default" className={className}>
             {title && (
-                <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-3 border-b border-gray-100">
+                <h3 className="text-lg font-semibold text-slate-800 mb-4 pb-3 border-b border-slate-100">
                     {title}
                 </h3>
             )}
@@ -317,13 +317,13 @@ export function InfoCard({
                 {data.map((item, index) => (
                     <div key={index} className="flex items-start gap-3">
                         {item.icon && (
-                            <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
-                                {React.cloneElement(item.icon, { size: 16, className: 'text-gray-500' })}
+                            <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
+                                {React.cloneElement(item.icon, { size: 16, className: 'text-slate-500' })}
                             </div>
                         )}
                         <div>
-                            <p className="text-xs text-gray-500 uppercase tracking-wide">{item.key}</p>
-                            <p className="text-sm font-medium text-gray-800 mt-0.5">{item.value || '-'}</p>
+                            <p className="text-xs text-slate-500 uppercase tracking-wide">{item.key}</p>
+                            <p className="text-sm font-medium text-slate-800 mt-0.5">{item.value || '-'}</p>
                         </div>
                     </div>
                 ))}
@@ -363,14 +363,14 @@ export function FeatureCard({
                 )}
                 <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-semibold text-gray-800">{title}</h4>
+                        <h4 className="font-semibold text-slate-800">{title}</h4>
                         {badge && (
                             <span className="px-2 py-0.5 text-xs font-medium bg-orange-100 text-orange-600 rounded-full">
                                 {badge}
                             </span>
                         )}
                     </div>
-                    <p className="text-sm text-gray-500">{description}</p>
+                    <p className="text-sm text-slate-500">{description}</p>
                 </div>
             </div>
         </Card>
@@ -394,8 +394,8 @@ export function ListCard({
     return (
         <Card variant="default" padding={false} className={className}>
             {title && (
-                <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-                    <h3 className="font-semibold text-gray-800">{title}</h3>
+                <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                    <h3 className="font-semibold text-slate-800">{title}</h3>
                     {hasMore && (
                         <button
                             onClick={onViewAll}
@@ -407,22 +407,22 @@ export function ListCard({
                 </div>
             )}
             {displayItems.length === 0 ? (
-                <div className="px-6 py-8 text-center text-gray-500 text-sm">
+                <div className="px-6 py-8 text-center text-slate-500 text-sm">
                     {emptyMessage}
                 </div>
             ) : (
-                <div className="divide-y divide-gray-50">
+                <div className="divide-y divide-slate-50">
                     {displayItems.map((item, index) => (
-                        <div key={index} className="px-6 py-3 flex items-center gap-3 hover:bg-gray-50 transition-colors">
+                        <div key={index} className="px-6 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors">
                             {item.icon && (
-                                <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+                                <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0">
                                     {item.icon}
                                 </div>
                             )}
                             <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-gray-800 truncate">{item.primary}</p>
+                                <p className="text-sm font-medium text-slate-800 truncate">{item.primary}</p>
                                 {item.secondary && (
-                                    <p className="text-xs text-gray-500 truncate">{item.secondary}</p>
+                                    <p className="text-xs text-slate-500 truncate">{item.secondary}</p>
                                 )}
                             </div>
                             {item.action}

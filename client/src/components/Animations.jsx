@@ -97,9 +97,9 @@ export function RippleButton({
 }) {
     const variantClasses = {
         primary: 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 shadow-md hover:shadow-lg',
-        secondary: 'bg-gray-100 text-gray-700 hover:bg-gray-200',
+        secondary: 'bg-slate-100 text-slate-700 hover:bg-slate-200',
         outline: 'border-2 border-orange-500 text-orange-600 hover:bg-orange-50',
-        ghost: 'text-gray-600 hover:bg-gray-100',
+        ghost: 'text-slate-600 hover:bg-slate-100',
         danger: 'bg-gradient-to-r from-red-500 to-rose-600 text-white hover:from-red-600 hover:to-rose-700 shadow-md'
     };
 
@@ -367,7 +367,7 @@ export function Skeleton({
 
     return (
         <div
-            className={`bg-gray-200 animate-shimmer ${roundedClasses[rounded]} ${className}`}
+            className={`bg-slate-200 animate-shimmer ${roundedClasses[rounded]} ${className}`}
             style={{ width, height }}
         />
     );

@@ -171,7 +171,7 @@ export default function DatabaseTools() {
             />
             <div className="report-container">
                 {/* Database Stats Cards */}
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 p-6 border-b border-gray-100 bg-slate-50/30">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 p-6 border-b border-slate-100 bg-slate-50/30">
                     <div className="bg-white border border-blue-100 rounded-xl p-4 shadow-sm relative overflow-hidden group">
                         <div className="text-blue-600 text-xs font-bold uppercase tracking-wider mb-1">DB Size</div>
                         <div className="text-2xl font-bold text-slate-800 break-all">{dbStats?.database_size || '-'}</div>
@@ -254,7 +254,7 @@ export default function DatabaseTools() {
                                         <tr key={backup.id}>
                                             <td>
                                                 <div className="flex items-center gap-3">
-                                                    <div className="p-2 rounded bg-blue-50 text-blue-600">
+                                                    <div className="p-2 rounded bg-orange-50 text-orange-600">
                                                         <Database size={16} />
                                                     </div>
                                                     <span className="font-semibold text-slate-700 text-sm">{backup.name}</span>
@@ -279,7 +279,7 @@ export default function DatabaseTools() {
                                                 <div className="flex items-center justify-end gap-2">
                                                     <button
                                                         onClick={() => downloadBackup(backup)}
-                                                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-transparent hover:border-blue-100"
+                                                        className="p-1.5 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors border border-transparent hover:border-orange-100"
                                                         title="Download"
                                                     >
                                                         <Download size={16} />
@@ -313,7 +313,7 @@ export default function DatabaseTools() {
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                 <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
                     <h3 className="font-bold text-slate-800 flex items-center gap-2">
-                        <RefreshCw size={18} className="text-blue-500" />
+                        <RefreshCw size={18} className="text-orange-500" />
                         Automatic Backup Settings
                     </h3>
                 </div>

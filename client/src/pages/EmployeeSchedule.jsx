@@ -214,7 +214,7 @@ export default function EmployeeSchedule() {
             {/* Filters */}
             <div className="flex gap-4 flex-wrap">
                 <div className="flex-1 min-w-[200px] relative">
-                    <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
                     <input
                         type="text"
                         placeholder="Search employee..."
@@ -238,34 +238,34 @@ export default function EmployeeSchedule() {
             {/* Schedules Table */}
             <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
                 <table className="w-full">
-                    <thead className="bg-gray-50">
+                    <thead className="bg-slate-50">
                         <tr>
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Employee</th>
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Department</th>
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Shift</th>
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Effective Period</th>
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Type</th>
-                            <th className="px-4 py-3 text-center text-sm font-semibold text-gray-600">Actions</th>
+                            <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Employee</th>
+                            <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Department</th>
+                            <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Shift</th>
+                            <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Effective Period</th>
+                            <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Type</th>
+                            <th className="px-4 py-3 text-center text-sm font-semibold text-slate-600">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y">
                         {loading ? (
                             <tr>
-                                <td colSpan={6} className="px-4 py-8 text-center text-gray-500">Loading...</td>
+                                <td colSpan={6} className="px-4 py-8 text-center text-slate-500">Loading...</td>
                             </tr>
                         ) : filteredSchedules.length === 0 ? (
                             <tr>
-                                <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                                <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
                                     No employee schedules found.
                                 </td>
                             </tr>
                         ) : filteredSchedules.map(schedule => (
-                            <tr key={schedule.id} className="hover:bg-gray-50">
+                            <tr key={schedule.id} className="hover:bg-slate-50">
                                 <td className="px-4 py-3">
                                     <div className="font-medium">{schedule.employee_name}</div>
-                                    <div className="text-xs text-gray-500">{schedule.employee_code}</div>
+                                    <div className="text-xs text-slate-500">{schedule.employee_code}</div>
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-600">
+                                <td className="px-4 py-3 text-sm text-slate-600">
                                     {schedule.department_name || '-'}
                                 </td>
                                 <td className="px-4 py-3">
@@ -287,7 +287,7 @@ export default function EmployeeSchedule() {
                                     <div className="flex items-center justify-center gap-2">
                                         <button
                                             onClick={() => openEdit(schedule)}
-                                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded"
+                                            className="p-1.5 text-orange-600 hover:bg-orange-50 rounded"
                                         >
                                             <Edit2 size={16} />
                                         </button>
@@ -313,7 +313,7 @@ export default function EmployeeSchedule() {
                             <h2 className="text-lg font-semibold">
                                 {editingId ? 'Edit Employee Schedule' : 'Assign Employee Schedule'}
                             </h2>
-                            <button onClick={closeModal} className="p-2 hover:bg-gray-100 rounded-lg">
+                            <button onClick={closeModal} className="p-2 hover:bg-slate-100 rounded-lg">
                                 <X size={20} />
                             </button>
                         </div>
@@ -426,7 +426,7 @@ export default function EmployeeSchedule() {
                     <div className="bg-white rounded-xl shadow-lg w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
                         <div className="flex items-center justify-between p-4 border-b">
                             <h2 className="text-lg font-semibold">Bulk Assign Schedule</h2>
-                            <button onClick={() => { setShowBulkModal(false); setSelectedEmployees([]); }} className="p-2 hover:bg-gray-100 rounded-lg">
+                            <button onClick={() => { setShowBulkModal(false); setSelectedEmployees([]); }} className="p-2 hover:bg-slate-100 rounded-lg">
                                 <X size={20} />
                             </button>
                         </div>
@@ -435,13 +435,13 @@ export default function EmployeeSchedule() {
                             <div className="w-1/2 border-r p-4 overflow-auto">
                                 <div className="flex justify-between items-center mb-3">
                                     <h3 className="font-medium">Select Employees ({selectedEmployees.length})</h3>
-                                    <button onClick={selectAllFiltered} className="text-sm text-blue-600 hover:underline">
+                                    <button onClick={selectAllFiltered} className="text-sm text-orange-600 hover:underline">
                                         Select All
                                     </button>
                                 </div>
                                 <div className="space-y-1">
                                     {filteredEmployees.map(emp => (
-                                        <label key={emp.id} className="flex items-center gap-2 p-2 rounded hover:bg-gray-50 cursor-pointer">
+                                        <label key={emp.id} className="flex items-center gap-2 p-2 rounded hover:bg-slate-50 cursor-pointer">
                                             <input
                                                 type="checkbox"
                                                 checked={selectedEmployees.includes(emp.id)}
@@ -449,7 +449,7 @@ export default function EmployeeSchedule() {
                                                 className="w-4 h-4 text-green-600 rounded"
                                             />
                                             <span className="text-sm">{emp.name}</span>
-                                            <span className="text-xs text-gray-500">({emp.employee_code})</span>
+                                            <span className="text-xs text-slate-500">({emp.employee_code})</span>
                                         </label>
                                     ))}
                                 </div>

@@ -122,7 +122,7 @@ export default function MainLayout({ children }) {
                 <div className="w-9 h-9 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm ring-2 ring-orange-100">
                   {auth?.username?.charAt(0).toUpperCase() || 'U'}
                 </div>
-                <ChevronDown size={14} className={`text-gray-400 transition-transform ${showProfileMenu ? 'rotate-180' : ''}`} />
+                <ChevronDown size={14} className={`text-slate-400 transition-transform ${showProfileMenu ? 'rotate-180' : ''}`} />
               </button>
 
               <AnimatePresence>

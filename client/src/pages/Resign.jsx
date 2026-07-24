@@ -241,12 +241,12 @@ export default function Resign() {
     return (
         <div className="flex flex-col h-[calc(100vh-120px)] card-base overflow-hidden relative">
             {/* Toolbar */}
-            <div className="flex items-center gap-3 p-4 border-b border-gray-100 bg-white text-sm flex-wrap">
+            <div className="flex items-center gap-3 p-4 border-b border-slate-100 bg-white text-sm flex-wrap">
                 <Button variant="primary" icon={Plus} onClick={() => { resetForm(); setShowModal(true); }}>
                     Add Resignation
                 </Button>
 
-                <div className="h-8 w-px bg-gray-200 mx-2 hidden md:block"></div>
+                <div className="h-8 w-px bg-slate-200 mx-2 hidden md:block"></div>
 
                 <Button variant="danger" icon={Trash2} onClick={handleDelete}>
                     Delete
@@ -291,25 +291,25 @@ export default function Resign() {
             {/* Table */}
             <div className="flex-1 overflow-auto bg-white custom-scrollbar">
                 <table className="w-full text-left text-sm border-collapse">
-                    <thead className="bg-orange-50/50 text-charcoal font-semibold sticky top-0 z-10 border-b border-gray-100">
+                    <thead className="bg-orange-50/50 text-charcoal font-semibold sticky top-0 z-10 border-b border-slate-100">
                         <tr>
                             <th className="p-4 w-12 text-center">
                                 <input
                                     type="checkbox"
-                                    className="rounded border-gray-300 text-saffron focus:ring-saffron"
+                                    className="rounded border-slate-300 text-saffron focus:ring-saffron"
                                     checked={selectedIds.length === filteredItems.length && filteredItems.length > 0}
                                     onChange={toggleSelectAll}
                                 />
                             </th>
-                            <th className="p-4 border-b border-gray-100">Employee Id</th>
-                            <th className="p-4 border-b border-gray-100">Full Name</th>
-                            <th className="p-4 border-b border-gray-100">Department</th>
-                            <th className="p-4 border-b border-gray-100">Position</th>
-                            <th className="p-4 border-b border-gray-100">Area Name</th>
-                            <th className="p-4 border-b border-gray-100">Resign Type</th>
+                            <th className="p-4 border-b border-slate-100">Employee Id</th>
+                            <th className="p-4 border-b border-slate-100">Full Name</th>
+                            <th className="p-4 border-b border-slate-100">Department</th>
+                            <th className="p-4 border-b border-slate-100">Position</th>
+                            <th className="p-4 border-b border-slate-100">Area Name</th>
+                            <th className="p-4 border-b border-slate-100">Resign Type</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-50">
+                    <tbody className="divide-y divide-slate-50">
                         {loading ? (
                             <tr><td colSpan={7} className="p-8 text-center text-slate-grey">Loading...</td></tr>
                         ) : paginatedItems.length === 0 ? (
@@ -320,7 +320,7 @@ export default function Resign() {
                                     <td className="p-4 text-center">
                                         <input
                                             type="checkbox"
-                                            className="rounded border-gray-300 text-saffron focus:ring-saffron"
+                                            className="rounded border-slate-300 text-saffron focus:ring-saffron"
                                             checked={selectedIds.includes(emp.id)}
                                             onChange={() => toggleSelect(emp.id)}
                                         />
@@ -347,10 +347,10 @@ export default function Resign() {
 
             {/* Pagination Component */}
             {/* Pagination Component */}
-            <div className="p-3 border-t border-gray-100 flex items-center justify-between text-sm text-slate-grey bg-gray-50/50">
+            <div className="p-3 border-t border-slate-100 flex items-center justify-between text-sm text-slate-grey bg-slate-50/50">
                 {/* Left Side: Total Records */}
                 <div className="flex items-center gap-4">
-                    <span className="text-xs font-medium text-slate-grey bg-white border border-gray-200 px-3 py-1 rounded-full shadow-sm">
+                    <span className="text-xs font-medium text-slate-grey bg-white border border-slate-200 px-3 py-1 rounded-full shadow-sm">
                         Total Records: <span className="text-charcoal font-bold ml-1">{filteredItems.length}</span>
                     </span>
                 </div>
@@ -358,7 +358,7 @@ export default function Resign() {
                 {/* Right Side: Selected Count */}
                 <div className="flex items-center gap-4">
                     {selectedIds.length > 0 && (
-                        <span className="text-xs font-medium text-slate-grey bg-white border border-gray-200 px-3 py-1 rounded-full shadow-sm">
+                        <span className="text-xs font-medium text-slate-grey bg-white border border-slate-200 px-3 py-1 rounded-full shadow-sm">
                             Selected: <span className="text-charcoal font-bold ml-1">{selectedIds.length}</span>
                         </span>
                     )}
@@ -369,7 +369,7 @@ export default function Resign() {
             {showModal && (
                 <div className="fixed inset-0 bg-charcoal/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg border border-white/50 overflow-hidden">
-                        <div className="flex items-center justify-between p-5 border-b border-gray-100 bg-gray-50/50">
+                        <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50/50">
                             <h3 className="font-bold text-lg text-charcoal">Add Resignation</h3>
                             <button onClick={() => setShowModal(false)} className="p-2 hover:bg-white rounded-full text-slate-grey transition-colors">
                                 <X size={20} />
@@ -446,7 +446,7 @@ export default function Resign() {
                                     placeholder="Optional reason for resignation..."
                                 />
                             </div>
-                            <div className="flex justify-end gap-3 pt-4 border-t border-gray-50">
+                            <div className="flex justify-end gap-3 pt-4 border-t border-slate-50">
                                 <Button variant="secondary" onClick={() => setShowModal(false)}>
                                     Cancel
                                 </Button>
@@ -465,7 +465,7 @@ export default function Resign() {
                     <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm border border-white/50 text-center p-6">
                         <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 
                             ${confirmModal.type === 'danger' ? 'bg-red-100 text-red-500' :
-                                confirmModal.type === 'warning' ? 'bg-yellow-100 text-yellow-600' : 'bg-blue-100 text-blue-500'}`}>
+                                confirmModal.type === 'warning' ? 'bg-yellow-100 text-yellow-600' : 'bg-orange-100 text-orange-600'}`}>
                             {confirmModal.type === 'danger' ? <Trash2 size={24} /> :
                                 confirmModal.type === 'warning' ? <BellOff size={24} /> : <RotateCcw size={24} />}
                         </div>
@@ -479,7 +479,7 @@ export default function Resign() {
                                 onClick={confirmModal.action}
                                 className={`px-5 py-2.5 text-white rounded-full font-medium shadow-lg transition-all
                                     ${confirmModal.type === 'danger' ? 'bg-red-500 hover:bg-red-600 shadow-red-500/30' :
-                                        confirmModal.type === 'warning' ? 'bg-yellow-500 hover:bg-yellow-600 shadow-yellow-500/30' : 'bg-blue-500 hover:bg-blue-600 shadow-blue-500/30'}`}
+                                        confirmModal.type === 'warning' ? 'bg-yellow-500 hover:bg-yellow-600 shadow-yellow-500/30' : 'bg-orange-600 hover:bg-orange-700 shadow-orange-500/30'}`}
                             >
                                 Confirm
                             </button>

@@ -76,7 +76,7 @@ export default function GenericCrud({ title, endpoint, columns, icon: Icon }) {
                             <th className="px-6 py-4 font-semibold text-charcoal text-right text-sm">Actions</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-50">
+                    <tbody className="divide-y divide-slate-50">
                         {items.map((item) => (
                             <tr key={item.id} className="hover:bg-cream-50 transition-colors">
                                 <td className="px-6 py-4 text-slate-grey text-sm font-medium">#{item.id}</td>

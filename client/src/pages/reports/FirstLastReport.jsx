@@ -142,7 +142,7 @@ function FirstLastReport() {
                         <button
                             onClick={calculate}
                             disabled={loading}
-                            className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-sm shadow-blue-200 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+                            className="flex items-center gap-2 px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 font-medium shadow-sm shadow-orange-200 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
                         >
                             {loading ? <RefreshCw size={18} className="animate-spin" /> : <Calculator size={18} />}
                             {loading ? 'Calculating...' : 'Calculate'}

@@ -81,14 +81,14 @@ export default function EmployeeFormModal({ isOpen, onClose, employee = null, de
 
     const InputField = ({ label, required, value, onChange, type = 'text', options, placeholder }) => (
         <div className="flex items-center gap-2">
-            <label className="w-36 text-right text-gray-600 text-sm whitespace-nowrap">
+            <label className="w-36 text-right text-slate-600 text-sm whitespace-nowrap">
                 {label}{required && <span className="text-red-500">*</span>}:
             </label>
             {options ? (
                 <select
                     value={value}
                     onChange={e => onChange(e.target.value)}
-                    className="flex-1 border border-gray-300 rounded px-3 py-1.5 text-sm focus:border-green-500 focus:outline-none"
+                    className="flex-1 border border-slate-300 rounded px-3 py-1.5 text-sm focus:border-green-500 focus:outline-none"
                 >
                     <option value="">----------</option>
                     {options.map(opt => <option key={opt.value || opt} value={opt.value || opt}>{opt.label || opt}</option>)}
@@ -99,7 +99,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee = null, de
                     value={value}
                     onChange={e => onChange(e.target.value)}
                     placeholder={placeholder}
-                    className="flex-1 border border-gray-300 rounded px-3 py-1.5 text-sm focus:border-green-500 focus:outline-none"
+                    className="flex-1 border border-slate-300 rounded px-3 py-1.5 text-sm focus:border-green-500 focus:outline-none"
                 />
             )}
         </div>
@@ -107,10 +107,10 @@ export default function EmployeeFormModal({ isOpen, onClose, employee = null, de
 
     const Toggle = ({ label, checked, onChange }) => (
         <div className="flex items-center gap-2">
-            <label className="w-44 text-right text-gray-600 text-sm">{label}:</label>
+            <label className="w-44 text-right text-slate-600 text-sm">{label}:</label>
             <label className="flex items-center gap-2">
                 <input type="checkbox" checked={checked} onChange={e => onChange(e.target.checked)} className="rounded" />
-                <span className="text-sm text-gray-600">Enable</span>
+                <span className="text-sm text-slate-600">Enable</span>
             </label>
         </div>
     );
@@ -121,10 +121,10 @@ export default function EmployeeFormModal({ isOpen, onClose, employee = null, de
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
                 {/* Header */}
-                <div className="flex items-center justify-between p-4 border-b bg-gray-50">
-                    <h2 className="text-lg font-semibold text-gray-800">{isEdit ? 'Edit Employee' : 'Add Employee'}</h2>
-                    <button onClick={onClose} className="p-1 hover:bg-gray-200 rounded transition-colors">
-                        <X size={20} className="text-gray-500" />
+                <div className="flex items-center justify-between p-4 border-b bg-slate-50">
+                    <h2 className="text-lg font-semibold text-slate-800">{isEdit ? 'Edit Employee' : 'Add Employee'}</h2>
+                    <button onClick={onClose} className="p-1 hover:bg-slate-200 rounded transition-colors">
+                        <X size={20} className="text-slate-500" />
                     </button>
                 </div>
 
@@ -133,7 +133,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee = null, de
                     <div className="p-6">
                         {/* Profile Section */}
                         <div className="mb-6">
-                            <h3 className="text-sm font-medium text-gray-500 mb-4 pb-2 border-b">Profile</h3>
+                            <h3 className="text-sm font-medium text-slate-500 mb-4 pb-2 border-b">Profile</h3>
                             <div className="flex gap-8">
                                 {/* Form Fields - Left */}
                                 <div className="flex-1 grid grid-cols-2 gap-4">
@@ -153,17 +153,17 @@ export default function EmployeeFormModal({ isOpen, onClose, employee = null, de
 
                                 {/* Photo Upload - Right */}
                                 <div className="flex-shrink-0">
-                                    <div className="w-32 h-40 border-2 border-dashed border-gray-300 rounded flex flex-col items-center justify-center bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors">
+                                    <div className="w-32 h-40 border-2 border-dashed border-slate-300 rounded flex flex-col items-center justify-center bg-slate-50 cursor-pointer hover:bg-slate-100 transition-colors">
                                         {formData.photo_url ? (
                                             <img src={formData.photo_url} alt="Employee" className="w-full h-full object-cover rounded" />
                                         ) : (
                                             <>
-                                                <User size={48} className="text-gray-300 mb-2" />
-                                                <span className="text-xs text-gray-400">Photo</span>
+                                                <User size={48} className="text-slate-300 mb-2" />
+                                                <span className="text-xs text-slate-400">Photo</span>
                                             </>
                                         )}
                                     </div>
-                                    <button type="button" className="mt-2 w-full text-xs text-blue-600 hover:text-blue-700 flex items-center justify-center gap-1">
+                                    <button type="button" className="mt-2 w-full text-xs text-orange-600 hover:text-orange-700 flex items-center justify-center gap-1">
                                         <Camera size={12} /> Upload
                                     </button>
                                 </div>
@@ -180,7 +180,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee = null, de
                                         onClick={() => setActiveTab(tab.id)}
                                         className={`px-4 py-2 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${activeTab === tab.id
                                                 ? 'text-green-600 border-green-600'
-                                                : 'text-gray-500 border-transparent hover:text-gray-700'
+                                                : 'text-slate-500 border-transparent hover:text-slate-700'
                                             }`}
                                     >
                                         {tab.label}
@@ -209,12 +209,12 @@ export default function EmployeeFormModal({ isOpen, onClose, employee = null, de
                                 <InputField label="Nationality" value={formData.nationality} onChange={v => handleChange('nationality', v)} />
                                 <div className="col-span-2">
                                     <div className="flex items-start gap-2">
-                                        <label className="w-36 text-right text-gray-600 text-sm pt-1.5">Permanent Address:</label>
+                                        <label className="w-36 text-right text-slate-600 text-sm pt-1.5">Permanent Address:</label>
                                         <textarea
                                             value={formData.permanent_address}
                                             onChange={e => handleChange('permanent_address', e.target.value)}
                                             rows={2}
-                                            className="flex-1 border border-gray-300 rounded px-3 py-1.5 text-sm focus:border-green-500 focus:outline-none resize-none"
+                                            className="flex-1 border border-slate-300 rounded px-3 py-1.5 text-sm focus:border-green-500 focus:outline-none resize-none"
                                         />
                                     </div>
                                 </div>
@@ -227,21 +227,21 @@ export default function EmployeeFormModal({ isOpen, onClose, employee = null, de
                                 <InputField label="Device Privilege" value={formData.device_privilege} onChange={v => handleChange('device_privilege', v)}
                                     options={['Employee', 'Administrator', 'Super Administrator']} />
                                 <div className="flex items-center gap-4 mt-6 ml-40">
-                                    <button type="button" className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm">
+                                    <button type="button" className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 text-sm">
                                         Enroll Fingerprint
                                     </button>
-                                    <button type="button" className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm">
+                                    <button type="button" className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 text-sm">
                                         Enroll Face
                                     </button>
-                                    <button type="button" className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm">
+                                    <button type="button" className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 text-sm">
                                         Enroll Palm
                                     </button>
                                 </div>
-                                <div className="mt-4 p-4 bg-gray-50 rounded ml-40">
+                                <div className="mt-4 p-4 bg-slate-50 rounded ml-40">
                                     <div className="grid grid-cols-3 gap-4 text-sm">
-                                        <div><span className="text-gray-500">Fingerprint:</span> <span className={formData.has_fingerprint ? 'text-green-600' : 'text-gray-400'}>{formData.has_fingerprint ? 'Enrolled' : 'Not enrolled'}</span></div>
-                                        <div><span className="text-gray-500">Face:</span> <span className={formData.has_face ? 'text-green-600' : 'text-gray-400'}>{formData.has_face ? 'Enrolled' : 'Not enrolled'}</span></div>
-                                        <div><span className="text-gray-500">Palm:</span> <span className={formData.has_palm ? 'text-green-600' : 'text-gray-400'}>{formData.has_palm ? 'Enrolled' : 'Not enrolled'}</span></div>
+                                        <div><span className="text-slate-500">Fingerprint:</span> <span className={formData.has_fingerprint ? 'text-green-600' : 'text-slate-400'}>{formData.has_fingerprint ? 'Enrolled' : 'Not enrolled'}</span></div>
+                                        <div><span className="text-slate-500">Face:</span> <span className={formData.has_face ? 'text-green-600' : 'text-slate-400'}>{formData.has_face ? 'Enrolled' : 'Not enrolled'}</span></div>
+                                        <div><span className="text-slate-500">Palm:</span> <span className={formData.has_palm ? 'text-green-600' : 'text-slate-400'}>{formData.has_palm ? 'Enrolled' : 'Not enrolled'}</span></div>
                                     </div>
                                 </div>
                             </div>
@@ -252,8 +252,8 @@ export default function EmployeeFormModal({ isOpen, onClose, employee = null, de
                                 <Toggle label="Attendance Required" checked={formData.attendance_required} onChange={v => handleChange('attendance_required', v)} />
                                 <Toggle label="Overtime Allowed" checked={formData.overtime_allowed} onChange={v => handleChange('overtime_allowed', v)} />
                                 <div className="flex items-center gap-2">
-                                    <label className="w-44 text-right text-gray-600 text-sm">Default Shift:</label>
-                                    <select className="flex-1 max-w-xs border border-gray-300 rounded px-3 py-1.5 text-sm">
+                                    <label className="w-44 text-right text-slate-600 text-sm">Default Shift:</label>
+                                    <select className="flex-1 max-w-xs border border-slate-300 rounded px-3 py-1.5 text-sm">
                                         <option value="">----------</option>
                                         <option>General Shift (9:00 - 18:00)</option>
                                         <option>Morning Shift (6:00 - 14:00)</option>
@@ -261,7 +261,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee = null, de
                                     </select>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <label className="w-44 text-right text-gray-600 text-sm">Week Off:</label>
+                                    <label className="w-44 text-right text-slate-600 text-sm">Week Off:</label>
                                     <div className="flex gap-2">
                                         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, i) => (
                                             <label key={day} className="flex items-center gap-1">
@@ -278,7 +278,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee = null, de
                                                     }}
                                                     className="rounded"
                                                 />
-                                                <span className="text-xs text-gray-600">{day}</span>
+                                                <span className="text-xs text-slate-600">{day}</span>
                                             </label>
                                         ))}
                                     </div>
@@ -298,12 +298,12 @@ export default function EmployeeFormModal({ isOpen, onClose, employee = null, de
                             <div className="space-y-4">
                                 <Toggle label="WhatsApp Notifications" checked={formData.whatsapp_enabled} onChange={v => handleChange('whatsapp_enabled', v)} />
                                 <div className="flex items-center gap-2">
-                                    <label className="w-44 text-right text-gray-600 text-sm">WhatsApp Number:</label>
+                                    <label className="w-44 text-right text-slate-600 text-sm">WhatsApp Number:</label>
                                     <input
                                         type="tel"
                                         value={formData.whatsapp_number}
                                         onChange={e => handleChange('whatsapp_number', e.target.value)}
-                                        className="flex-1 max-w-xs border border-gray-300 rounded px-3 py-1.5 text-sm"
+                                        className="flex-1 max-w-xs border border-slate-300 rounded px-3 py-1.5 text-sm"
                                         placeholder="+91"
                                     />
                                 </div>
@@ -314,12 +314,12 @@ export default function EmployeeFormModal({ isOpen, onClose, employee = null, de
                             <div className="space-y-4">
                                 <Toggle label="SMS Notifications" checked={formData.sms_enabled} onChange={v => handleChange('sms_enabled', v)} />
                                 <div className="flex items-center gap-2">
-                                    <label className="w-44 text-right text-gray-600 text-sm">SMS Number:</label>
+                                    <label className="w-44 text-right text-slate-600 text-sm">SMS Number:</label>
                                     <input
                                         type="tel"
                                         value={formData.sms_number}
                                         onChange={e => handleChange('sms_number', e.target.value)}
-                                        className="flex-1 max-w-xs border border-gray-300 rounded px-3 py-1.5 text-sm"
+                                        className="flex-1 max-w-xs border border-slate-300 rounded px-3 py-1.5 text-sm"
                                         placeholder="+91"
                                     />
                                 </div>
@@ -328,11 +328,11 @@ export default function EmployeeFormModal({ isOpen, onClose, employee = null, de
                     </div>
 
                     {/* Footer */}
-                    <div className="flex justify-end gap-3 p-4 border-t bg-gray-50">
+                    <div className="flex justify-end gap-3 p-4 border-t bg-slate-50">
                         <button type="submit" className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors font-medium">
                             Confirm
                         </button>
-                        <button type="button" onClick={onClose} className="px-6 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors font-medium">
+                        <button type="button" onClick={onClose} className="px-6 py-2 bg-slate-200 text-slate-700 rounded hover:bg-slate-300 transition-colors font-medium">
                             Cancel
                         </button>
                     </div>

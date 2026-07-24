@@ -135,9 +135,9 @@ const Geofences = () => {
             />
 
             <div className="card-base p-0 flex flex-col flex-1 overflow-hidden">
-                <div className="p-4 border-b border-gray-100 flex gap-4 bg-gray-50/50">
+                <div className="p-4 border-b border-slate-100 flex gap-4 bg-slate-50/50">
                     <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={20} />
                         <input
                             type="text"
                             placeholder="Search locations..."
@@ -150,31 +150,31 @@ const Geofences = () => {
 
                 <div className="overflow-auto flex-1">
                     <table className="w-full text-left">
-                        <thead className="bg-gray-50 sticky top-0">
+                        <thead className="bg-slate-50 sticky top-0">
                             <tr>
-                                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Name</th>
-                                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Coordinates</th>
-                                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Radius</th>
-                                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Address</th>
-                                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase text-right">Actions</th>
+                                <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase">Name</th>
+                                <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase">Coordinates</th>
+                                <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase">Radius</th>
+                                <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase">Address</th>
+                                <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100">
+                        <tbody className="divide-y divide-slate-100">
                             {loading ? (
-                                <tr><td colSpan="5" className="p-8 text-center text-gray-500">Loading locations...</td></tr>
+                                <tr><td colSpan="5" className="p-8 text-center text-slate-500">Loading locations...</td></tr>
                             ) : filteredGeofences.length === 0 ? (
-                                <tr><td colSpan="5" className="p-8 text-center text-gray-500">No locations found</td></tr>
+                                <tr><td colSpan="5" className="p-8 text-center text-slate-500">No locations found</td></tr>
                             ) : (
                                 filteredGeofences.map(fence => (
-                                    <tr key={fence.id} className="hover:bg-gray-50 bg-white">
-                                        <td className="px-6 py-4 font-medium text-gray-900">{fence.name}</td>
-                                        <td className="px-6 py-4 text-gray-600 font-mono text-sm">
+                                    <tr key={fence.id} className="hover:bg-slate-50 bg-white">
+                                        <td className="px-6 py-4 font-medium text-slate-900">{fence.name}</td>
+                                        <td className="px-6 py-4 text-slate-600 font-mono text-sm">
                                             {Number(fence.latitude).toFixed(5)}, {Number(fence.longitude).toFixed(5)}
                                         </td>
-                                        <td className="px-6 py-4 text-gray-600">{fence.radius_meters}m</td>
-                                        <td className="px-6 py-4 text-gray-600">{fence.address || '-'}</td>
+                                        <td className="px-6 py-4 text-slate-600">{fence.radius_meters}m</td>
+                                        <td className="px-6 py-4 text-slate-600">{fence.address || '-'}</td>
                                         <td className="px-6 py-4 text-right space-x-2">
-                                            <button onClick={() => openModal(fence)} className="text-blue-600 hover:text-blue-800 p-1">
+                                            <button onClick={() => openModal(fence)} className="text-orange-600 hover:text-orange-800 p-1">
                                                 <Edit2 size={16} />
                                             </button>
                                             <button onClick={() => handleDelete(fence.id)} className="text-red-500 hover:text-red-700 p-1">
@@ -194,7 +194,7 @@ const Geofences = () => {
                 <div className="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-2xl shadow-xl w-full max-w-md border border-white/50 animate-fade-in" onClick={e => e.stopPropagation()}>
                         <div className="p-6">
-                            <h3 className="text-lg font-bold text-gray-900 mb-4">{editingGeofence ? 'Edit Location' : 'Add Location'}</h3>
+                            <h3 className="text-lg font-bold text-slate-900 mb-4">{editingGeofence ? 'Edit Location' : 'Add Location'}</h3>
 
                             {error && (
                                 <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm flex items-center gap-2">
@@ -204,7 +204,7 @@ const Geofences = () => {
 
                             <form onSubmit={handleSubmit} className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Location Name</label>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Location Name</label>
                                     <input
                                         required
                                         className="input-base"
@@ -216,7 +216,7 @@ const Geofences = () => {
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Latitude</label>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">Latitude</label>
                                         <input
                                             required
                                             type="number" step="any"
@@ -227,7 +227,7 @@ const Geofences = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Longitude</label>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">Longitude</label>
                                         <input
                                             required
                                             type="number" step="any"
@@ -239,13 +239,13 @@ const Geofences = () => {
                                     </div>
                                 </div>
 
-                                <button type="button" onClick={getCurrentLocation} className="text-sm text-blue-600 flex items-center gap-1 hover:underline">
+                                <button type="button" onClick={getCurrentLocation} className="text-sm text-orange-600 flex items-center gap-1 hover:underline">
                                     <Navigation size={14} /> Get Current Location
                                 </button>
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Radius (Meters)</label>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">Radius (Meters)</label>
                                         <input
                                             type="number"
                                             className="input-base"
@@ -256,7 +256,7 @@ const Geofences = () => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Address (Optional)</label>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Address (Optional)</label>
                                     <textarea
                                         className="input-base h-20 resize-none"
                                         placeholder="Full address..."

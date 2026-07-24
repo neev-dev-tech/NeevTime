@@ -574,7 +574,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                         </button>
                         <div>
                             <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                                <div className="p-2 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-100 text-blue-600 shadow-sm">
+                                <div className="p-2 bg-gradient-to-br from-orange-50 to-amber-50 rounded-lg border border-orange-100 text-orange-600 shadow-sm">
                                     <FileBarChart size={20} />
                                 </div>
                                 {getReportTitle()}
@@ -596,7 +596,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                                 </button>
                             </>
                         )}
-                        <button onClick={generateReport} disabled={loading} className="btn-primary shadow-lg shadow-blue-200/50">
+                        <button onClick={generateReport} disabled={loading} className="btn-primary shadow-lg shadow-orange-200/50">
                             {loading ? <RefreshCw size={18} className="animate-spin" /> : <Calculator size={18} />}
                             {loading ? 'Processing...' : 'Generate Report'}
                         </button>

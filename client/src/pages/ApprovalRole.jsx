@@ -126,7 +126,7 @@ export default function ApprovalRole() {
             />
             <div className="flex flex-col flex-1 card-base overflow-hidden relative">
             {/* Toolbar */}
-            <div className="flex items-center gap-3 p-4 border-b border-gray-100 bg-white text-sm flex-wrap">
+            <div className="flex items-center gap-3 p-4 border-b border-slate-100 bg-white text-sm flex-wrap">
                 <Button
                     variant="primary"
                     icon={Plus}
@@ -135,7 +135,7 @@ export default function ApprovalRole() {
                     Add Role
                 </Button>
 
-                <div className="h-8 w-px bg-gray-200 mx-2 hidden md:block"></div>
+                <div className="h-8 w-px bg-slate-200 mx-2 hidden md:block"></div>
 
                 <Button variant="danger" icon={Trash2} onClick={handleBulkDelete}>
                     Delete
@@ -168,24 +168,24 @@ export default function ApprovalRole() {
             {/* Table */}
             <div className="flex-1 overflow-auto bg-white custom-scrollbar">
                 <table className="w-full text-left text-sm border-collapse">
-                    <thead className="bg-orange-50/50 text-charcoal font-semibold sticky top-0 z-10 border-b border-gray-100">
+                    <thead className="bg-orange-50/50 text-charcoal font-semibold sticky top-0 z-10 border-b border-slate-100">
                         <tr>
                             <th className="p-4 w-12 text-center">
                                 <input
                                     type="checkbox"
-                                    className="rounded border-gray-300 text-saffron focus:ring-saffron"
+                                    className="rounded border-slate-300 text-saffron focus:ring-saffron"
                                     checked={selectedIds.length === filteredItems.length && filteredItems.length > 0}
                                     onChange={toggleSelectAll}
                                 />
                             </th>
-                            <th className="p-4 border-b border-gray-100">Role Code</th>
-                            <th className="p-4 border-b border-gray-100">Role Name</th>
-                            <th className="p-4 border-b border-gray-100">Description</th>
-                            <th className="p-4 border-b border-gray-100">Total Employees</th>
+                            <th className="p-4 border-b border-slate-100">Role Code</th>
+                            <th className="p-4 border-b border-slate-100">Role Name</th>
+                            <th className="p-4 border-b border-slate-100">Description</th>
+                            <th className="p-4 border-b border-slate-100">Total Employees</th>
                             <th className="p-4 w-24 text-center">Actions</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-50">
+                    <tbody className="divide-y divide-slate-50">
                         {loading ? (
                             <tr><td colSpan={6} className="p-8 text-center text-slate-grey">Loading...</td></tr>
                         ) : paginatedItems.length === 0 ? (
@@ -196,7 +196,7 @@ export default function ApprovalRole() {
                                     <td className="p-4 text-center">
                                         <input
                                             type="checkbox"
-                                            className="rounded border-gray-300 text-saffron focus:ring-saffron"
+                                            className="rounded border-slate-300 text-saffron focus:ring-saffron"
                                             checked={selectedIds.includes(role.id)}
                                             onChange={() => toggleSelect(role.id)}
                                         />
@@ -221,19 +221,19 @@ export default function ApprovalRole() {
             </div>
 
             {/* Pagination */}
-            <div className="p-3 border-t border-gray-100 flex items-center justify-between text-sm text-slate-grey bg-gray-50/50">
+            <div className="p-3 border-t border-slate-100 flex items-center justify-between text-sm text-slate-grey bg-slate-50/50">
                 <div className="flex items-center gap-3">
-                    <button onClick={fetchRoles} className="p-1.5 hover:bg-gray-200 rounded transition-colors" title="Refresh"><RefreshCw size={14} /></button>
-                    <select value={itemsPerPage} onChange={e => setItemsPerPage(Number(e.target.value))} className="border border-gray-200 rounded px-2 py-1 bg-white focus:outline-none focus:border-saffron">
+                    <button onClick={fetchRoles} className="p-1.5 hover:bg-slate-200 rounded transition-colors" title="Refresh"><RefreshCw size={14} /></button>
+                    <select value={itemsPerPage} onChange={e => setItemsPerPage(Number(e.target.value))} className="border border-slate-200 rounded px-2 py-1 bg-white focus:outline-none focus:border-saffron">
                         <option value={50}>50</option>
                         <option value={100}>100</option>
                     </select>
-                    <div className="flex items-center bg-white border border-gray-200 rounded-md">
-                        <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="p-1.5 hover:bg-gray-100 rounded-l disabled:opacity-50 transition-colors border-r border-gray-200">
+                    <div className="flex items-center bg-white border border-slate-200 rounded-md">
+                        <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="p-1.5 hover:bg-slate-100 rounded-l disabled:opacity-50 transition-colors border-r border-slate-200">
                             <ChevronLeft size={16} />
                         </button>
                         <span className="px-3 py-1 font-medium bg-green-600 text-white text-xs">{currentPage}</span>
-                        <button onClick={() => setCurrentPage(p => Math.min(totalPages || 1, p + 1))} disabled={currentPage === totalPages} className="p-1.5 hover:bg-gray-100 rounded-r disabled:opacity-50 transition-colors border-l border-gray-200">
+                        <button onClick={() => setCurrentPage(p => Math.min(totalPages || 1, p + 1))} disabled={currentPage === totalPages} className="p-1.5 hover:bg-slate-100 rounded-r disabled:opacity-50 transition-colors border-l border-slate-200">
                             <ChevronRight size={16} />
                         </button>
                     </div>
@@ -245,7 +245,7 @@ export default function ApprovalRole() {
             {(showModal === 'add' || showModal === 'edit') && (
                 <div className="fixed inset-0 bg-charcoal/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-2xl shadow-xl w-full max-w-md border border-white/50 overflow-hidden">
-                        <div className="flex items-center justify-between p-5 border-b border-gray-100 bg-gray-50/50">
+                        <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50/50">
                             <h3 className="font-bold text-lg text-charcoal">{editItem ? 'Edit Role' : 'Add Role'}</h3>
                             <button onClick={() => { setShowModal(null); setEditItem(null); }} className="p-2 hover:bg-white rounded-full text-slate-grey transition-colors">
                                 <X size={20} />
@@ -267,7 +267,7 @@ export default function ApprovalRole() {
                                 <textarea value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })}
                                     className="flex-1 input-base py-2 text-sm resize-none" rows={3} />
                             </div>
-                            <div className="flex justify-end gap-3 pt-4 border-t border-gray-50">
+                            <div className="flex justify-end gap-3 pt-4 border-t border-slate-50">
                                 <Button variant="secondary" onClick={() => { setShowModal(null); setEditItem(null); }}>
                                     Cancel
                                 </Button>

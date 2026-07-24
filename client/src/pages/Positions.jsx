@@ -200,7 +200,7 @@ export default function Positions() {
             />
 
             {/* Toolbar */}
-            <div className="flex items-center gap-2 p-2 border-b border-gray-200 bg-gray-50 text-sm flex-wrap">
+            <div className="flex items-center gap-2 p-2 border-b border-slate-200 bg-slate-50 text-sm flex-wrap">
                 <Button variant="danger" size="sm" icon={Trash2} onClick={handleBulkDelete}>
                     Delete
                 </Button>
@@ -209,7 +209,7 @@ export default function Positions() {
                 </Button>
 
                 {/* Separator */}
-                <div className="w-px h-6 bg-gray-300 mx-1" />
+                <div className="w-px h-6 bg-slate-300 mx-1" />
 
                 {/* Export Buttons */}
                 <ExportMenu
@@ -235,9 +235,9 @@ export default function Positions() {
                         placeholder="Search positions..."
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
-                        className="w-full pl-8 pr-3 py-1.5 border rounded text-sm focus:outline-none focus:border-blue-500"
+                        className="w-full pl-8 pr-3 py-1.5 border rounded text-sm focus:outline-none focus:border-orange-400"
                     />
-                    <Search size={14} className="absolute left-2.5 top-2 text-gray-400" />
+                    <Search size={14} className="absolute left-2.5 top-2 text-slate-400" />
                 </div>
             </div>
 
@@ -265,7 +265,7 @@ export default function Positions() {
                         <tbody>
                             {filteredPositions.length === 0 ? (
                                 <tr>
-                                    <td colSpan="5" className="px-6 py-8 text-center" style={{ color: '#64748B' }}>
+                                    <td colSpan="5" className="px-6 py-8 text-center text-slate-500">
                                         No positions found.
                                     </td>
                                 </tr>
@@ -279,15 +279,15 @@ export default function Positions() {
                                                 onChange={() => toggleSelect(pos.id)}
                                             />
                                         </td>
-                                        <td className="px-6 py-4" style={{ color: '#64748B' }}>#{pos.id}</td>
-                                        <td className="px-6 py-4 font-semibold" style={{ color: '#1E293B', fontWeight: 600 }}>{pos.name}</td>
-                                        <td className="px-6 py-4" style={{ color: '#475569' }}>{pos.description || '-'}</td>
+                                        <td className="px-6 py-4 text-slate-500">#{pos.id}</td>
+                                        <td className="px-6 py-4 font-semibold text-slate-800">{pos.name}</td>
+                                        <td className="px-6 py-4 text-slate-600">{pos.description || '-'}</td>
                                         <td className="px-6 py-4 sticky-action">
                                             <div className="flex items-center justify-center gap-2">
                                                 <button
                                                     type="button"
                                                     onClick={() => handleEdit(pos)}
-                                                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                                    className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
                                                     style={{ transition: 'all 200ms cubic-bezier(0.25, 0.8, 0.25, 1)' }}
                                                 >
                                                     <Edit2 size={16} />
@@ -313,15 +313,15 @@ export default function Positions() {
             {/* Add/Edit Modal */}
             {showModal && (
                 <div className="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-md border border-white/50" style={{ borderRadius: '16px' }}>
+                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-md border border-white/50">
                         <div className="flex items-center justify-between p-4 border-b">
-                            <h2 className="text-lg font-semibold" style={{ color: '#1E293B', fontWeight: 600 }}>
+                            <h2 className="text-lg font-semibold text-slate-800">
                                 {editItem ? 'Edit Position' : 'Add Position'}
                             </h2>
                             <button
                                 type="button"
                                 onClick={closeModal}
-                                className="p-2 hover:bg-gray-100 rounded-lg"
+                                className="p-2 hover:bg-slate-100 rounded-lg"
                             >
                                 <X size={20} />
                             </button>
@@ -365,10 +365,10 @@ export default function Positions() {
             {/* Delete Confirmation Modal */}
             {deleteConfirm && (
                 <div className="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4" onClick={() => setDeleteConfirm(null)}>
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm border border-white/50" style={{ borderRadius: '16px' }} onClick={(e) => e.stopPropagation()}>
+                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm border border-white/50" onClick={(e) => e.stopPropagation()}>
                         <div className="p-6">
-                            <h3 className="text-lg font-semibold mb-4" style={{ color: '#1E293B', fontWeight: 600 }}>Confirm Delete</h3>
-                            <p className="text-gray-600 mb-6">
+                            <h3 className="text-lg font-semibold mb-4 text-slate-800">Confirm Delete</h3>
+                            <p className="text-slate-600 mb-6">
                                 {deleteConfirm.type === 'single'
                                     ? 'Are you sure you want to delete this position? This action cannot be undone.'
                                     : `Are you sure you want to delete ${deleteConfirm.count} selected position(s)? This action cannot be undone.`
@@ -390,21 +390,21 @@ export default function Positions() {
             {/* Import Modal */}
             {showImportModal && (
                 <div className="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4" onClick={closeImportModal}>
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-md border border-white/50" style={{ borderRadius: '16px' }} onClick={(e) => e.stopPropagation()}>
+                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-md border border-white/50" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-between p-4 border-b">
-                            <h2 className="text-lg font-semibold" style={{ color: '#1E293B', fontWeight: 600 }}>
+                            <h2 className="text-lg font-semibold text-slate-800">
                                 Import Positions
                             </h2>
                             <button
                                 type="button"
                                 onClick={closeImportModal}
-                                className="p-2 hover:bg-gray-100 rounded-lg"
+                                className="p-2 hover:bg-slate-100 rounded-lg"
                             >
                                 <X size={20} />
                             </button>
                         </div>
                         <div className="p-6 space-y-4">
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-slate-600">
                                 Upload a CSV file with position names and descriptions. Format: name,description
                             </p>
 
@@ -412,13 +412,13 @@ export default function Positions() {
                             <button
                                 type="button"
                                 onClick={downloadTemplate}
-                                className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700"
+                                className="flex items-center gap-2 text-sm text-orange-600 hover:text-orange-700"
                             >
                                 <Download size={14} /> Download CSV Template
                             </button>
 
                             {/* File Input */}
-                            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-purple-400 transition-colors">
+                            <div className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-purple-400 transition-colors">
                                 <input
                                     ref={fileInputRef}
                                     type="file"
@@ -431,8 +431,8 @@ export default function Positions() {
                                     htmlFor="import-positions-file"
                                     className="cursor-pointer flex flex-col items-center gap-2"
                                 >
-                                    <Upload size={32} className="text-gray-400" />
-                                    <span className="text-sm text-gray-600">
+                                    <Upload size={32} className="text-slate-400" />
+                                    <span className="text-sm text-slate-600">
                                         {importing ? 'Importing...' : 'Click to select CSV file'}
                                     </span>
                                 </label>
@@ -448,10 +448,10 @@ export default function Positions() {
                                             <CheckCircle size={20} className="text-green-600 mt-0.5" />
                                         )}
                                         <div>
-                                            <p className="font-medium text-gray-800">
+                                            <p className="font-medium text-slate-800">
                                                 Import Complete
                                             </p>
-                                            <p className="text-sm text-gray-600 mt-1">
+                                            <p className="text-sm text-slate-600 mt-1">
                                                 {importResult.success} imported successfully
                                                 {importResult.failed > 0 && `, ${importResult.failed} failed`}
                                             </p>

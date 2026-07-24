@@ -219,7 +219,7 @@ export function DarkModeToggle({ className = '' }) {
             className={`
                 relative w-14 h-7 rounded-full p-1
                 transition-colors duration-300
-                ${isDarkMode ? 'bg-gray-700' : 'bg-orange-100'}
+                ${isDarkMode ? 'bg-slate-700' : 'bg-orange-100'}
                 ${className}
             `}
             title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
@@ -230,7 +230,7 @@ export function DarkModeToggle({ className = '' }) {
                     transform transition-all duration-300
                     flex items-center justify-center
                     ${isDarkMode
-                        ? 'translate-x-7 bg-gray-900'
+                        ? 'translate-x-7 bg-slate-900'
                         : 'translate-x-0 bg-orange-500'
                     }
                 `}
@@ -273,21 +273,21 @@ export function ThemePanel({ isOpen, onClose }) {
             />
 
             {/* Panel */}
-            <div className="fixed right-0 top-0 bottom-0 w-80 bg-white dark:bg-gray-900 shadow-2xl z-50 
+            <div className="fixed right-0 top-0 bottom-0 w-80 bg-white dark:bg-slate-900 shadow-2xl z-50 
                 transform transition-transform duration-300 overflow-hidden flex flex-col">
 
                 {/* Header */}
-                <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <Palette size={20} className="text-orange-500" />
-                            <h2 className="font-semibold text-gray-800 dark:text-white">Theme Settings</h2>
+                            <h2 className="font-semibold text-slate-800 dark:text-white">Theme Settings</h2>
                         </div>
                         <button
                             onClick={onClose}
-                            className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                            className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                         >
-                            <span className="text-xl text-gray-500">&times;</span>
+                            <span className="text-xl text-slate-500">&times;</span>
                         </button>
                     </div>
                 </div>
@@ -296,10 +296,10 @@ export function ThemePanel({ isOpen, onClose }) {
                 <div className="flex-1 overflow-y-auto p-6 space-y-6">
 
                     {/* Dark Mode Toggle */}
-                    <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+                    <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-xl">
                         <div>
-                            <p className="font-medium text-gray-800 dark:text-white">Dark Mode</p>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                            <p className="font-medium text-slate-800 dark:text-white">Dark Mode</p>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">
                                 {isDarkMode ? 'Currently dark' : 'Currently light'}
                             </p>
                         </div>
@@ -307,13 +307,13 @@ export function ThemePanel({ isOpen, onClose }) {
                     </div>
 
                     {/* Tab Switcher */}
-                    <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+                    <div className="flex bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
                         <button
                             onClick={() => setActiveTab('presets')}
                             className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors
                                 ${activeTab === 'presets'
-                                    ? 'bg-white dark:bg-gray-700 text-gray-800 dark:text-white shadow-sm'
-                                    : 'text-gray-500'
+                                    ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-white shadow-sm'
+                                    : 'text-slate-500'
                                 }`}
                         >
                             Presets
@@ -322,8 +322,8 @@ export function ThemePanel({ isOpen, onClose }) {
                             onClick={() => setActiveTab('custom')}
                             className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors
                                 ${activeTab === 'custom'
-                                    ? 'bg-white dark:bg-gray-700 text-gray-800 dark:text-white shadow-sm'
-                                    : 'text-gray-500'
+                                    ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-white shadow-sm'
+                                    : 'text-slate-500'
                                 }`}
                         >
                             Custom
@@ -340,8 +340,8 @@ export function ThemePanel({ isOpen, onClose }) {
                                     className={`
                                         relative p-4 rounded-xl border-2 transition-all
                                         ${currentTheme === key && !themeColors.name?.includes('Custom')
-                                            ? 'border-gray-800 dark:border-white'
-                                            : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                                            ? 'border-slate-800 dark:border-white'
+                                            : 'border-slate-200 dark:border-slate-700 hover:border-slate-300'
                                         }
                                     `}
                                 >
@@ -349,7 +349,7 @@ export function ThemePanel({ isOpen, onClose }) {
                                         className="w-8 h-8 rounded-full mb-2 mx-auto shadow-md"
                                         style={{ backgroundColor: preset.primary }}
                                     />
-                                    <p className="text-xs font-medium text-gray-700 dark:text-gray-300 text-center">
+                                    <p className="text-xs font-medium text-slate-700 dark:text-slate-300 text-center">
                                         {preset.name}
                                     </p>
                                     {currentTheme === key && !themeColors.name?.includes('Custom') && (
@@ -366,7 +366,7 @@ export function ThemePanel({ isOpen, onClose }) {
                     {activeTab === 'custom' && (
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                                     Primary Color
                                 </label>
                                 <div className="flex flex-wrap gap-2">
@@ -376,7 +376,7 @@ export function ThemePanel({ isOpen, onClose }) {
                                             onClick={() => setCustomColor('primary', color)}
                                             className={`
                                                 w-8 h-8 rounded-lg shadow-sm transition-transform hover:scale-110
-                                                ${themeColors.primary === color ? 'ring-2 ring-offset-2 ring-gray-400' : ''}
+                                                ${themeColors.primary === color ? 'ring-2 ring-offset-2 ring-slate-400' : ''}
                                             `}
                                             style={{ backgroundColor: color }}
                                         />
@@ -385,7 +385,7 @@ export function ThemePanel({ isOpen, onClose }) {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                                     Or enter custom color
                                 </label>
                                 <div className="flex gap-2">
@@ -399,17 +399,17 @@ export function ThemePanel({ isOpen, onClose }) {
                                         type="text"
                                         value={themeColors.primary}
                                         onChange={(e) => setCustomColor('primary', e.target.value)}
-                                        className="flex-1 px-3 py-2 border border-gray-200 dark:border-gray-700 
+                                        className="flex-1 px-3 py-2 border border-slate-200 dark:border-slate-700 
                                             rounded-lg text-sm font-mono
-                                            dark:bg-gray-800 dark:text-white"
+                                            dark:bg-slate-800 dark:text-white"
                                         placeholder="#F97316"
                                     />
                                 </div>
                             </div>
 
                             {/* Preview */}
-                            <div className="p-4 rounded-xl border border-gray-200 dark:border-gray-700">
-                                <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-3">Preview</p>
+                            <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                                <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-3">Preview</p>
                                 <div className="space-y-2">
                                     <button
                                         className="w-full py-2 rounded-lg text-white font-medium text-sm"
@@ -438,12 +438,12 @@ export function ThemePanel({ isOpen, onClose }) {
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-700">
                     <button
                         onClick={resetTheme}
                         className="w-full flex items-center justify-center gap-2 py-2.5 
-                            text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white
-                            border border-gray-200 dark:border-gray-700 rounded-xl
+                            text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white
+                            border border-slate-200 dark:border-slate-700 rounded-xl
                             transition-colors"
                     >
                         <RotateCcw size={16} />
@@ -467,8 +467,8 @@ export function ThemeButton({ className = '' }) {
             <button
                 onClick={() => setIsOpen(true)}
                 className={`
-                    p-2 rounded-lg border border-gray-200 dark:border-gray-700
-                    hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors
+                    p-2 rounded-lg border border-slate-200 dark:border-slate-700
+                    hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors
                     flex items-center gap-2
                     ${className}
                 `}
@@ -478,7 +478,7 @@ export function ThemeButton({ className = '' }) {
                     className="w-5 h-5 rounded-full shadow-inner"
                     style={{ backgroundColor: themeColors.primary }}
                 />
-                <Palette size={16} className="text-gray-500" />
+                <Palette size={16} className="text-slate-500" />
             </button>
             <ThemePanel isOpen={isOpen} onClose={() => setIsOpen(false)} />
         </>

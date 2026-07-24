@@ -118,13 +118,13 @@ export default function AddEmployeeModal({
                         <h3 className="font-semibold text-xl" style={{ color: '#1E293B', fontWeight: 600 }}>
                             Add Employee
                         </h3>
-                        <p className="text-sm text-gray-500 mt-0.5">
+                        <p className="text-sm text-slate-500 mt-0.5">
                             Fill in the details to create a new employee record
                         </p>
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 hover:bg-gray-50 rounded-full text-gray-500 transition-colors"
+                        className="p-2 hover:bg-slate-50 rounded-full text-slate-500 transition-colors"
                     >
                         <X size={20} />
                     </button>
@@ -138,11 +138,11 @@ export default function AddEmployeeModal({
                 >
                     {/* Personal Details Section */}
                     <div className="mb-8">
-                        <div className="flex items-center gap-2 pb-3 mb-6 border-b border-gray-100">
+                        <div className="flex items-center gap-2 pb-3 mb-6 border-b border-slate-100">
                             <div className="p-2 bg-orange-50 rounded-lg">
                                 <User size={18} className="text-orange-500" />
                             </div>
-                            <span className="text-sm font-bold text-gray-700 uppercase tracking-wider">
+                            <span className="text-sm font-bold text-slate-700 uppercase tracking-wider">
                                 Personal Details
                             </span>
                         </div>
@@ -208,11 +208,11 @@ export default function AddEmployeeModal({
 
                     {/* Work Details Section */}
                     <div className="mb-8">
-                        <div className="flex items-center gap-2 pb-3 mb-6 border-b border-gray-100">
+                        <div className="flex items-center gap-2 pb-3 mb-6 border-b border-slate-100">
                             <div className="p-2 bg-blue-50 rounded-lg">
                                 <Briefcase size={18} className="text-blue-500" />
                             </div>
-                            <span className="text-sm font-bold text-gray-700 uppercase tracking-wider">
+                            <span className="text-sm font-bold text-slate-700 uppercase tracking-wider">
                                 Work Details
                             </span>
                         </div>
@@ -271,11 +271,11 @@ export default function AddEmployeeModal({
 
                     {/* System Access Section */}
                     <div>
-                        <div className="flex items-center gap-2 pb-3 mb-6 border-b border-gray-100">
+                        <div className="flex items-center gap-2 pb-3 mb-6 border-b border-slate-100">
                             <div className="p-2 bg-purple-50 rounded-lg">
                                 <CreditCard size={18} className="text-purple-500" />
                             </div>
-                            <span className="text-sm font-bold text-gray-700 uppercase tracking-wider">
+                            <span className="text-sm font-bold text-slate-700 uppercase tracking-wider">
                                 System & Device
                             </span>
                         </div>
@@ -318,7 +318,7 @@ export default function AddEmployeeModal({
                         borderColor: '#E5E7EB'
                     }}
                 >
-                    <div className="text-sm text-gray-500">
+                    <div className="text-sm text-slate-500">
                         {!isValid && touched.employee_code && (
                             <span className="text-red-500">
                                 Please fix the validation errors above
@@ -329,7 +329,7 @@ export default function AddEmployeeModal({
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-6 py-2.5 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+                            className="px-6 py-2.5 rounded-lg border border-slate-300 text-slate-700 font-medium hover:bg-slate-50 transition-colors"
                         >
                             Cancel
                         </button>
@@ -341,7 +341,7 @@ export default function AddEmployeeModal({
                                 px-6 py-2.5 rounded-lg font-medium transition-all
                                 flex items-center gap-2
                                 ${isSubmitting
-                                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                    ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
                                     : 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 shadow-md hover:shadow-lg'
                                 }
                             `}

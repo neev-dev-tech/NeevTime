@@ -189,7 +189,7 @@ export default function EmployeeDocs() {
     };
 
     return (
-        <div>
+        <div className="space-y-6">
             {/* Header */}
             <PageHeader
                 icon={FileText}
@@ -208,7 +208,7 @@ export default function EmployeeDocs() {
 
             <div className="flex flex-col h-[calc(100vh-210px)] card-base overflow-hidden">
             {/* Search Bar */}
-            <div className="p-4 border-b border-gray-100 bg-white">
+            <div className="p-4 border-b border-slate-100 bg-white">
                 <div className="relative w-full max-w-md">
                     <input
                         type="text"
@@ -225,9 +225,9 @@ export default function EmployeeDocs() {
             <div className="flex-1 overflow-auto bg-white custom-scrollbar">
                 {filteredDocuments.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full p-12 text-center">
-                        <FileText size={64} className="text-gray-300 mb-4" />
-                        <p className="text-gray-500 text-lg font-medium">No documents found</p>
-                        <p className="text-sm text-gray-400 mt-2">
+                        <FileText size={64} className="text-slate-300 mb-4" />
+                        <p className="text-slate-500 text-lg font-medium">No documents found</p>
+                        <p className="text-sm text-slate-400 mt-2">
                             {searchQuery ? 'Try a different search term' : 'Upload your first document to get started'}
                         </p>
                     </div>
@@ -235,19 +235,19 @@ export default function EmployeeDocs() {
                     <table className="w-full text-left text-sm border-collapse">
                         <thead className="bg-orange-50/50 text-charcoal font-semibold sticky top-0 z-10">
                             <tr>
-                                <th className="p-4 border-b border-gray-100">Document Name</th>
-                                <th className="p-4 border-b border-gray-100">Employee</th>
-                                <th className="p-4 border-b border-gray-100">Employee Code</th>
-                                <th className="p-4 border-b border-gray-100">Uploaded Date</th>
-                                <th className="p-4 border-b border-gray-100 text-center">Actions</th>
+                                <th className="p-4 border-b border-slate-100">Document Name</th>
+                                <th className="p-4 border-b border-slate-100">Employee</th>
+                                <th className="p-4 border-b border-slate-100">Employee Code</th>
+                                <th className="p-4 border-b border-slate-100">Uploaded Date</th>
+                                <th className="p-4 border-b border-slate-100 text-center">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-50">
+                        <tbody className="divide-y divide-slate-50">
                             {filteredDocuments.map(doc => (
                                 <tr key={doc.id} className="hover:bg-cream-50 transition-colors">
                                     <td className="p-4">
                                         <div className="flex items-center gap-2">
-                                            <FileText size={18} className="text-blue-600" />
+                                            <FileText size={18} className="text-orange-600" />
                                             <span className="font-medium text-charcoal">{doc.doc_name}</span>
                                         </div>
                                     </td>
@@ -255,7 +255,7 @@ export default function EmployeeDocs() {
                                     <td className="p-4 font-mono text-saffron font-medium">{doc.employee_code}</td>
                                     <td className="p-4 text-slate-grey">
                                         <div className="flex items-center gap-2">
-                                            <Calendar size={14} className="text-gray-400" />
+                                            <Calendar size={14} className="text-slate-400" />
                                             {formatDate(doc.uploaded_at)}
                                         </div>
                                     </td>
@@ -285,7 +285,7 @@ export default function EmployeeDocs() {
             </div>
 
             {/* Footer */}
-            <div className="p-4 border-t border-gray-100 bg-gray-50/50 text-xs font-medium text-slate-grey flex justify-between items-center">
+            <div className="p-4 border-t border-slate-100 bg-slate-50/50 text-xs font-medium text-slate-grey flex justify-between items-center">
                 <span>Total <span className="text-charcoal font-bold">{filteredDocuments.length}</span> Documents</span>
             </div>
             </div>
@@ -306,7 +306,7 @@ export default function EmployeeDocs() {
                                         fileInputRef.current.value = '';
                                     }
                                 }}
-                                className="p-2 hover:bg-gray-50 rounded-full text-slate-grey transition-colors"
+                                className="p-2 hover:bg-slate-50 rounded-full text-slate-grey transition-colors"
                             >
                                 <X size={20} />
                             </button>
@@ -344,7 +344,7 @@ export default function EmployeeDocs() {
 
                             <div>
                                 <label className="block text-sm font-medium text-slate-grey mb-1.5">File *</label>
-                                <div className="border-2 border-dashed border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors">
+                                <div className="border-2 border-dashed border-slate-200 rounded-lg p-4 hover:border-orange-300 transition-colors">
                                     <input
                                         ref={fileInputRef}
                                         type="file"
@@ -358,21 +358,21 @@ export default function EmployeeDocs() {
                                         htmlFor="file-upload"
                                         className="cursor-pointer flex flex-col items-center justify-center"
                                     >
-                                        <Upload size={32} className="text-blue-500 mb-2" />
+                                        <Upload size={32} className="text-orange-500 mb-2" />
                                         <span className="text-sm text-slate-grey">
                                             {selectedFile ? selectedFile.name : 'Click to select file'}
                                         </span>
-                                        <span className="text-xs text-gray-400 mt-1">PDF, DOC, DOCX, JPG, PNG (Max 10MB)</span>
+                                        <span className="text-xs text-slate-400 mt-1">PDF, DOC, DOCX, JPG, PNG (Max 10MB)</span>
                                     </label>
                                 </div>
                                 {selectedFile && (
-                                    <p className="text-xs text-gray-500 mt-2">
+                                    <p className="text-xs text-slate-500 mt-2">
                                         Selected: {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
                                     </p>
                                 )}
                             </div>
 
-                            <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                            <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
                                 <Button
                                     variant="secondary"
                                     onClick={() => {
@@ -407,7 +407,7 @@ export default function EmployeeDocs() {
                                 clearTimeout(toastTimeoutRef.current);
                             }
                         }}
-                        className="text-white hover:text-gray-200"
+                        className="text-white hover:text-slate-200"
                     >
                         <X size={16} />
                     </button>

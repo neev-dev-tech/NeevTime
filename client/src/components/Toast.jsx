@@ -42,8 +42,8 @@ const TOAST_TYPES = {
     },
     loading: {
         icon: Loader2,
-        className: 'bg-gradient-to-r from-gray-600 to-gray-700',
-        progressColor: 'bg-gray-400'
+        className: 'bg-gradient-to-r from-slate-600 to-slate-700',
+        progressColor: 'bg-slate-400'
     }
 };
 

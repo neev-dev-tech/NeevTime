@@ -150,45 +150,45 @@ export default function UsersPage() {
             />
 
             {/* Users Table */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 <table className="w-full">
-                    <thead className="bg-gray-50 border-b border-gray-200">
+                    <thead className="bg-slate-50 border-b border-slate-200">
                         <tr>
-                            <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">ID</th>
-                            <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Username</th>
-                            <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Email</th>
-                            <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Role</th>
-                            <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Created</th>
-                            <th className="text-right px-6 py-3 text-xs font-medium text-gray-500 uppercase">Actions</th>
+                            <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase">ID</th>
+                            <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase">Username</th>
+                            <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase">Email</th>
+                            <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase">Role</th>
+                            <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase">Created</th>
+                            <th className="text-right px-6 py-3 text-xs font-medium text-slate-500 uppercase">Actions</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200">
+                    <tbody className="divide-y divide-slate-200">
                         {users.map(user => (
-                            <tr key={user.id} className="hover:bg-gray-50">
-                                <td className="px-6 py-4 text-sm text-gray-600">{user.id}</td>
+                            <tr key={user.id} className="hover:bg-slate-50">
+                                <td className="px-6 py-4 text-sm text-slate-600">{user.id}</td>
                                 <td className="px-6 py-4">
-                                    <span className="font-medium text-gray-900">{user.username}</span>
+                                    <span className="font-medium text-slate-900">{user.username}</span>
                                 </td>
-                                <td className="px-6 py-4 text-sm text-gray-600">{user.email || '-'}</td>
+                                <td className="px-6 py-4 text-sm text-slate-600">{user.email || '-'}</td>
                                 <td className="px-6 py-4">
                                     <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${user.role === 'admin'
                                             ? 'bg-red-100 text-red-700'
                                             : user.role === 'hr'
                                                 ? 'bg-blue-100 text-blue-700'
-                                                : 'bg-gray-100 text-gray-700'
+                                                : 'bg-slate-100 text-slate-700'
                                         }`}>
                                         <Shield size={12} />
                                         {user.role}
                                     </span>
                                 </td>
-                                <td className="px-6 py-4 text-sm text-gray-600">
+                                <td className="px-6 py-4 text-sm text-slate-600">
                                     {user.created_at ? new Date(user.created_at).toLocaleDateString() : '-'}
                                 </td>
                                 <td className="px-6 py-4 text-right">
                                     <div className="flex items-center justify-end gap-2">
                                         <button
                                             onClick={() => handleEdit(user)}
-                                            className="p-1.5 hover:bg-blue-100 rounded text-blue-600"
+                                            className="p-1.5 hover:bg-orange-100 rounded text-orange-600"
                                         >
                                             <Edit2 size={16} />
                                         </button>
@@ -204,7 +204,7 @@ export default function UsersPage() {
                         ))}
                         {users.length === 0 && (
                             <tr>
-                                <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                                <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
                                     No users found
                                 </td>
                             </tr>
@@ -221,7 +221,7 @@ export default function UsersPage() {
                             <h2 className="text-lg font-semibold">
                                 {editUser ? 'Edit User' : 'Add New User'}
                             </h2>
-                            <button onClick={() => setShowModal(false)} className="p-1 hover:bg-gray-100 rounded">
+                            <button onClick={() => setShowModal(false)} className="p-1 hover:bg-slate-100 rounded">
                                 <X size={20} />
                             </button>
                         </div>
@@ -233,7 +233,7 @@ export default function UsersPage() {
                             )}
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Username *</label>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">Username *</label>
                                 <input
                                     type="text"
                                     value={formData.username}
@@ -244,7 +244,7 @@ export default function UsersPage() {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label className="block text-sm font-medium text-slate-700 mb-1">
                                     Password {editUser ? '(leave blank to keep current)' : '*'}
                                 </label>
                                 <input
@@ -257,7 +257,7 @@ export default function UsersPage() {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
                                 <input
                                     type="email"
                                     value={formData.email}
@@ -267,7 +267,7 @@ export default function UsersPage() {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">Role</label>
                                 <select
                                     value={formData.role}
                                     onChange={(e) => setFormData({ ...formData, role: e.target.value })}
@@ -283,7 +283,7 @@ export default function UsersPage() {
                                 <button
                                     type="button"
                                     onClick={() => setShowModal(false)}
-                                    className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+                                    className="flex-1 px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200"
                                 >
                                     Cancel
                                 </button>
@@ -314,7 +314,7 @@ export default function UsersPage() {
                             }
                             setToast(null);
                         }} 
-                        className="text-white hover:text-gray-200 focus:outline-none font-bold text-lg leading-none"
+                        className="text-white hover:text-slate-200 focus:outline-none font-bold text-lg leading-none"
                     >
                         ✕
                     </button>
