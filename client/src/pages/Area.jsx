@@ -479,7 +479,7 @@ export default function Area() {
                             <Button variant="secondary" onClick={() => { setShowDeleteModal(false); setAreaToDelete(null); }}>
                                 Cancel
                             </Button>
-                            <Button variant="danger" onClick={confirmDelete}>
+                            <Button variant="dangerSolid" onClick={confirmDelete}>
                                 Yes, Delete
                             </Button>
                         </div>

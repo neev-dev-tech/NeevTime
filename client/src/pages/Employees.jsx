@@ -934,7 +934,7 @@ export default function Employees() {
                             <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
                                 Cancel
                             </Button>
-                            <Button variant="danger" onClick={confirmDelete}>
+                            <Button variant="dangerSolid" onClick={confirmDelete}>
                                 Delete
                             </Button>
                         </div>

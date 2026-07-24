@@ -77,6 +77,14 @@ export default function ConfirmDialog() {
 
     const scheme = colorSchemes[options.type] || colorSchemes.warning;
 
+    // Confirm button follows the dialog type unless explicitly overridden
+    const confirmColorByType = {
+        danger: 'bg-rose-600 hover:bg-rose-700',
+        warning: 'bg-orange-600 hover:bg-orange-700',
+        info: 'bg-blue-600 hover:bg-blue-700'
+    };
+    const confirmColor = options.confirmButtonColor || confirmColorByType[options.type] || confirmColorByType.warning;
+
     return (
         <>
             {/* Backdrop */}
@@ -119,7 +127,7 @@ export default function ConfirmDialog() {
                                 </button>
                                 <button
                                     onClick={handleConfirm}
-                                    className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors ${options.confirmButtonColor || 'bg-blue-600 hover:bg-blue-700'}`}
+                                    className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors ${confirmColor}`}
                                 >
                                     {options.confirmText}
                                 </button>

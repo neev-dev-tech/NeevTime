@@ -227,7 +227,7 @@ export default function EmployeePortal() {
 
                         <button
                             onClick={() => setShowApply(v => !v)}
-                            className="w-full flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2.5 rounded-lg transition-colors"
+                            className="w-full flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-700 text-white font-semibold py-2.5 rounded-lg transition-colors"
                         >
                             <Plus size={16} /> Apply for Leave
                         </button>
@@ -285,7 +285,7 @@ export default function EmployeePortal() {
                     <div className="space-y-4">
                         <button
                             onClick={() => setShowRegForm(v => !v)}
-                            className="w-full flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2.5 rounded-lg transition-colors"
+                            className="w-full flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-700 text-white font-semibold py-2.5 rounded-lg transition-colors"
                         >
                             <Plus size={16} /> Request Attendance Correction
                         </button>

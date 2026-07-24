@@ -378,7 +378,7 @@ export default function Positions() {
                                 <Button variant="secondary" onClick={() => setDeleteConfirm(null)}>
                                     Cancel
                                 </Button>
-                                <Button variant="danger" onClick={confirmDelete}>
+                                <Button variant="dangerSolid" onClick={confirmDelete}>
                                     Delete
                                 </Button>
                             </div>
