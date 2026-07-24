@@ -24,7 +24,7 @@ process.on('unhandledRejection', (reason) => {
 
 const app = express();
 const server = http.createServer(app);
-const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['http://localhost:5173', 'http://localhost:3000'];
+const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim()).filter(Boolean) : ['http://localhost:5173', 'http://localhost:3000'];
 const io = new Server(server, {
     cors: {
         origin: (origin, callback) => {
@@ -247,7 +247,19 @@ app.post('/api/attendance/manual', async (req, res) => {
 });
 
 // Middleware
-app.use(cors());
+// Same origin policy as Socket.IO: env-driven allowlist, no-origin requests
+// (ADMS devices, curl, mobile apps) always allowed.
+app.use(cors({
+    origin: (origin, callback) => {
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true
+}));
 app.use(bodyParser.json());
 // ADMS devices send raw text often
 app.use(bodyParser.text({ type: 'text/*' }));
@@ -269,7 +281,15 @@ app.use('/api', authenticateToken, personnelRouter);
 app.use('/api', authenticateToken, schedulingRouter);
 app.use('/api', authenticateToken, leavesRouter);
 app.use('/api', authenticateToken, approvalRouter);
-app.use('/api/settings', authenticateToken, settingsRouter);
+// Admin-only guard for system-level routers (user management is guarded inside auth.js)
+const requireAdmin = (req, res, next) => {
+    if (req.user?.role !== 'admin') {
+        return res.status(403).json({ error: 'Admin access required' });
+    }
+    next();
+};
+
+app.use('/api/settings', authenticateToken, requireAdmin, settingsRouter);
 app.use('/api', authenticateToken, schedulingExtRouter);
 const deviceSyncRouter = require('./routes/device_sync');
 const deviceDataRouter = require('./routes/device_data');
@@ -336,15 +356,15 @@ app.post('/api/device-messages', authenticateToken, async (req, res) => {
     }
 });
 const databaseRouter = require('./routes/database');
-app.use('/api/database', authenticateToken, databaseRouter);
+app.use('/api/database', authenticateToken, requireAdmin, databaseRouter);
 
 // System Logs Routes
 const systemLogsRouter = require('./routes/system_logs');
-app.use('/api/system-logs', authenticateToken, systemLogsRouter);
+app.use('/api/system-logs', authenticateToken, requireAdmin, systemLogsRouter);
 
 // HRMS Integrations Routes
 const integrationsRouter = require('./routes/integrations');
-app.use('/api/hrms', authenticateToken, integrationsRouter);
+app.use('/api/hrms', authenticateToken, requireAdmin, integrationsRouter);
 
 // Reports Routes
 const reportsRouter = require('./routes/reports');
@@ -1178,6 +1198,19 @@ app.post('/api/devices/:serial/test-connection', async (req, res) => {
 });
 
 // Helper for Generic CRUD
+// Column names come from the request body, so they must be strictly validated
+// before being interpolated into SQL.
+const SAFE_IDENTIFIER = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+const assertSafeColumns = (keys) => {
+    for (const key of keys) {
+        if (!SAFE_IDENTIFIER.test(key)) {
+            const err = new Error(`Invalid column name: ${key}`);
+            err.statusCode = 400;
+            throw err;
+        }
+    }
+};
+
 const createCrudRoutes = (table, path) => {
     // GET
     app.get(`/api/${path}`, async (req, res) => {
@@ -1191,12 +1224,13 @@ const createCrudRoutes = (table, path) => {
     app.post(`/api/${path}`, async (req, res) => {
         try {
             const keys = Object.keys(req.body);
+            assertSafeColumns(keys);
             const values = Object.values(req.body);
             const placeholders = keys.map((_, i) => `$${i + 1}`).join(', ');
             const query = `INSERT INTO ${table} (${keys.join(', ')}) VALUES (${placeholders}) RETURNING *`;
             const result = await db.query(query, values);
             res.json(result.rows[0]);
-        } catch (err) { res.status(500).json({ error: err.message }); }
+        } catch (err) { res.status(err.statusCode || 500).json({ error: err.message }); }
     });
 
     // PUT
@@ -1204,6 +1238,7 @@ const createCrudRoutes = (table, path) => {
         try {
             const { id } = req.params;
             const keys = Object.keys(req.body).filter(k => k !== 'id'); // Exclude id from body if present
+            assertSafeColumns(keys);
             const values = keys.map(k => req.body[k]);
             const setClause = keys.map((k, i) => `${k} = $${i + 1}`).join(', ');
 
@@ -1212,7 +1247,7 @@ const createCrudRoutes = (table, path) => {
             const query = `UPDATE ${table} SET ${setClause} WHERE id = $${keys.length + 1} RETURNING *`;
             const result = await db.query(query, [...values, id]);
             res.json(result.rows[0]);
-        } catch (err) { res.status(500).json({ error: err.message }); }
+        } catch (err) { res.status(err.statusCode || 500).json({ error: err.message }); }
     });
 
     // DELETE
@@ -1345,5 +1380,35 @@ server.listen(PORT, '0.0.0.0', () => {
         console.log('HRMS Scheduled Sync: Started (every 5 minutes)');
     } catch (err) {
         console.log('HRMS Scheduled Sync: Not available -', err.message);
+    }
+
+    // Device command queue: retry failed commands + purge old ones
+    try {
+        const commandQueue = require('./services/command-queue');
+        commandQueue.startRetryProcessor();
+        commandQueue.startPurgeJob();
+        console.log('Command Queue: retry processor + purge job started');
+    } catch (err) {
+        console.log('Command Queue jobs: Not available -', err.message);
+    }
+
+    // Device health monitor: pushes alerts to connected dashboards
+    try {
+        const healthMonitor = require('./services/health-monitor');
+        healthMonitor.startHealthMonitor((alerts) => {
+            io.emit('device_alerts', alerts);
+        });
+        console.log('Health Monitor: started (every 5 minutes)');
+    } catch (err) {
+        console.log('Health Monitor: Not available -', err.message);
+    }
+
+    // Scheduled reports: generate + email due reports
+    try {
+        const scheduledReports = require('./services/scheduled-reports');
+        scheduledReports.startScheduler();
+        console.log('Scheduled Reports: scheduler started (checks every minute)');
+    } catch (err) {
+        console.log('Scheduled Reports: Not available -', err.message);
     }
 });

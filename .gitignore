@@ -56,3 +56,9 @@ coverage/
 .cache/
 .parcel-cache/
 
+
+# Runtime DB backups (created by the app, never commit)
+server/backups/
+
+# Editor/backup file copies
+*.bak

@@ -50,6 +50,15 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
         }
     }, [searchParams]);
 
+    // Route-level type prop (e.g. /reports/late-coming) changes without a remount
+    useEffect(() => {
+        if (propType) {
+            setReportType(propType);
+            setGenerated(false);
+            setReportData([]);
+        }
+    }, [propType]);
+
     const fetchFilters = async () => {
         try {
             const [deptRes, empRes] = await Promise.all([
@@ -273,44 +282,115 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
         }
     };
 
+    // Accepts '09:05:00' strings and full timestamps, returns 'HH:MM'
+    const toHHMM = (v) => {
+        if (!v) return null;
+        if (typeof v === 'string' && /^\d{2}:\d{2}/.test(v)) return v.slice(0, 5);
+        const d = new Date(v);
+        return isNaN(d) ? null : d.toTimeString().slice(0, 5);
+    };
+
+    const minutesToHours = (mins) => (mins == null ? null : (mins / 60).toFixed(1));
+
+    const fetchDailySummary = async () => {
+        const res = await api.get('/api/attendance/summary', { params: { date: dateFrom } });
+        return (res.data || []).map(row => ({
+            ...row,
+            employee_name: row.name,
+            date: row.date ? String(row.date).split('T')[0] : dateFrom,
+            in_time: toHHMM(row.in_time),
+            out_time: toHHMM(row.out_time),
+            total_hours: minutesToHours(row.duration_minutes),
+            status: row.status || (row.in_time ? 'Present' : 'Absent')
+        }));
+    };
+
     const generateReport = async () => {
         setLoading(true);
         setGenerated(false);
         try {
             let data = [];
+            const range = { start_date: dateFrom, end_date: dateTo };
 
-            if (['transaction_log', 'mobile_trans', 'total_punches'].includes(reportType)) {
+            if (['transaction_log', 'mobile_trans', 'total_punches', 'transaction'].includes(reportType)) {
                 const logsRes = await api.get('/api/logs', { params: { limit: 500 } });
                 data = (logsRes.data || []).filter(log => {
                     const punchDate = new Date(log.punch_time).toISOString().split('T')[0];
                     return punchDate >= dateFrom && punchDate <= dateTo;
                 });
-            } else if (['daily_attendance', 'scheduled_log', 'daily_details', 'daily_summary'].includes(reportType)) {
-                const summaryRes = await api.get('/api/attendance/summary', { params: { date: dateFrom } });
-                data = summaryRes.data || [];
-            } else {
-                const emps = department ? employees.filter(e => e.department_id === parseInt(department)) : employees;
-                data = emps.map(emp => ({
-                    employee_name: emp.name,
-                    employee_code: emp.employee_code,
-                    department: emp.department_name,
-                    date: dateFrom,
-                    status: Math.random() > 0.2 ? 'Present' : 'Absent',
-                    in_time: '09:00',
-                    out_time: '18:00',
-                    total_hours: '9.0',
+            } else if (['daily_attendance', 'scheduled_log', 'time_card', 'daily_details', 'daily_summary', 'daily_status'].includes(reportType)) {
+                data = await fetchDailySummary();
+            } else if (['late_coming', 'early_leaving'].includes(reportType)) {
+                const res = await api.get('/api/reports/late-early', { params: range });
+                data = (res.data || []).map(row => ({
+                    employee_name: row.employee_name,
+                    employee_code: row.employee_code,
+                    department: row.department_name,
+                    date: row.attendance_date ? String(row.attendance_date).split('T')[0] : null,
                     scheduled_in: '09:00',
-                    actual_in: Math.random() > 0.1 ? '09:05' : '09:30',
-                    late_minutes: 15,
                     scheduled_out: '18:00',
-                    actual_out: '17:45',
-                    early_minutes: 15,
-                    present_days: 22,
-                    absent_days: 2,
-                    late_count: 3,
-                    overtime_hours: 5,
-                    remarks: 'N/A'
+                    actual_in: toHHMM(row.first_in),
+                    actual_out: toHHMM(row.last_out),
+                    late_minutes: row.late_minutes,
+                    early_minutes: row.early_minutes,
+                    status: reportType === 'late_coming' ? row.in_status : row.out_status
+                })).filter(row => reportType === 'late_coming' ? row.late_minutes > 0 : row.early_minutes > 0);
+            } else if (['absent_report'].includes(reportType)) {
+                const res = await api.get('/api/reports/absent', { params: range });
+                data = (res.data || []).map(row => ({
+                    employee_name: row.employee_name,
+                    employee_code: row.employee_code,
+                    department: row.department_name,
+                    date: row.absent_date ? String(row.absent_date).split('T')[0] : null,
+                    status: 'Absent'
                 }));
+            } else if (['missed_punch'].includes(reportType)) {
+                data = (await fetchDailySummary()).filter(row => !row.in_time || !row.out_time);
+            } else if (['half_day'].includes(reportType)) {
+                data = (await fetchDailySummary()).filter(row =>
+                    row.duration_minutes != null && row.duration_minutes > 0 && row.duration_minutes < 300
+                ).map(row => ({ ...row, required_hours: '8.0' }));
+            } else if (['overtime_report', 'ot_summary', 'work_duration', 'work_detailed'].includes(reportType)) {
+                const res = await api.get('/api/reports/overtime', { params: range });
+                data = (res.data || []).map(row => ({
+                    employee_name: row.employee_name,
+                    employee_code: row.employee_code,
+                    department: row.department_name,
+                    date: row.work_date ? String(row.work_date).split('T')[0] : null,
+                    regular_hours: '8.0',
+                    total_hours: row.total_hours != null ? Number(row.total_hours).toFixed(1) : null,
+                    overtime_hours: row.overtime_hours != null ? Number(row.overtime_hours).toFixed(1) : null
+                }));
+            } else if (['monthly_summary', 'basic_status', 'status_summary', 'att_summary', 'att_sheet', 'att_status'].includes(reportType)) {
+                const from = new Date(dateFrom);
+                const res = await api.get('/api/reports/monthly-summary', {
+                    params: { year: from.getFullYear(), month: from.getMonth() + 1 }
+                });
+                data = (res.data || []).map(row => ({
+                    employee_name: row.employee_name,
+                    employee_code: row.employee_code,
+                    department: row.department_name,
+                    present_days: row.days_present,
+                    avg_check_in_time: toHHMM(row.avg_check_in_time),
+                    avg_check_out_time: toHHMM(row.avg_check_out_time)
+                }));
+            } else if (reportType === 'birthday') {
+                const today = new Date();
+                data = employees.filter(e => e.dob).map(emp => {
+                    const dob = new Date(emp.dob);
+                    const next = new Date(today.getFullYear(), dob.getMonth(), dob.getDate());
+                    if (next < today) next.setFullYear(next.getFullYear() + 1);
+                    return {
+                        employee_name: emp.name,
+                        employee_code: emp.employee_code,
+                        department: emp.department_name,
+                        dob: String(emp.dob).split('T')[0],
+                        age: today.getFullYear() - dob.getFullYear(),
+                        upcoming: next.toISOString().split('T')[0]
+                    };
+                }).sort((a, b) => a.upcoming.localeCompare(b.upcoming));
+            } else {
+                data = await fetchDailySummary();
             }
 
             if (department) {

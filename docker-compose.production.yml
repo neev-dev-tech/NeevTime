@@ -43,7 +43,10 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
       ADMS_PORT: 8080
-      ALLOWED_ORIGINS: "*"
+      # Comma-separated list of browser origins allowed for API + Socket.IO,
+      # e.g. "https://attendance.example.com". "*" disables the check — do not
+      # use in production.
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-${SERVER_URL:-http://localhost}}
       LOG_LEVEL: ${LOG_LEVEL:-info}
     depends_on:
       db:

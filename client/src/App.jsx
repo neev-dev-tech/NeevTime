@@ -61,12 +61,37 @@ axios.interceptors.request.use(config => {
   return config;
 });
 
+// Expired/invalid session: clear credentials and return to login
+axios.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 function PrivateRoute({ children }) {
   const auth = useStore(state => state.auth);
   return auth ? children : <Navigate to="/login" />;
 }
 
 PrivateRoute.propTypes = {
+  children: PropTypes.node.isRequired,
+};
+
+function AdminRoute({ children }) {
+  const auth = useStore(state => state.auth);
+  if (!auth) return <Navigate to="/login" />;
+  return auth.role === 'admin' ? children : <Navigate to="/" />;
+}
+
+AdminRoute.propTypes = {
   children: PropTypes.node.isRequired,
 };
 
@@ -122,16 +147,45 @@ export default function App() {
                         <Route path="/reports" element={<ReportsDashboard />} />
                         <Route path="/reports/legacy" element={<ReportsLegacy />} />
                         <Route path="/reports/first-last" element={<FirstLastReport />} />
+                        {/* Report dashboard cards → legacy report engine, one route per card */}
+                        {Object.entries({
+                            '/reports/transactions': 'transaction_log',
+                            '/reports/mobile-transactions': 'mobile_trans',
+                            '/reports/total-punches': 'total_punches',
+                            '/reports/scheduled-log': 'scheduled_log',
+                            '/reports/time-card': 'time_card',
+                            '/reports/missed-punch': 'missed_punch',
+                            '/reports/late-coming': 'late_coming',
+                            '/reports/early-leaving': 'early_leaving',
+                            '/reports/birthday': 'birthday',
+                            '/reports/overtime': 'overtime_report',
+                            '/reports/absent': 'absent_report',
+                            '/reports/half-day': 'half_day',
+                            '/reports/daily-attendance': 'daily_attendance',
+                            '/reports/daily-details': 'daily_details',
+                            '/reports/daily-summary': 'daily_summary',
+                            '/reports/daily-status': 'daily_status',
+                            '/reports/basic-status': 'basic_status',
+                            '/reports/status-summary': 'status_summary',
+                            '/reports/ot-summary': 'ot_summary',
+                            '/reports/work-duration': 'work_duration',
+                            '/reports/work-detailed': 'work_detailed',
+                            '/reports/att-sheet': 'att_sheet',
+                            '/reports/att-status': 'att_status',
+                            '/reports/att-summary': 'att_summary',
+                        }).map(([path, type]) => (
+                            <Route key={path} path={path} element={<ReportsLegacy type={type} />} />
+                        ))}
                         <Route path="/export" element={<ExportCenter />} />
                         <Route path="/logs" element={<Logs />} />
                         <Route path="/attendance-register" element={<AttendanceRegister />} />
                         <Route path="/attendance-calendar" element={<AttendanceCalendar />} />
                         <Route path="/import" element={<ImportWizard />} />
-                        <Route path="/users" element={<UsersPage />} />
-                        <Route path="/database/backup" element={<DatabaseTools />} />
-                        <Route path="/system-logs" element={<SystemLogs />} />
-                        <Route path="/settings" element={<Settings />} />
-                        <Route path="/integrations" element={<Integrations />} />
+                        <Route path="/users" element={<AdminRoute><UsersPage /></AdminRoute>} />
+                        <Route path="/database/backup" element={<AdminRoute><DatabaseTools /></AdminRoute>} />
+                        <Route path="/system-logs" element={<AdminRoute><SystemLogs /></AdminRoute>} />
+                        <Route path="/settings" element={<AdminRoute><Settings /></AdminRoute>} />
+                        <Route path="/integrations" element={<AdminRoute><Integrations /></AdminRoute>} />
                         <Route path="/advanced-reports" element={<AdvancedReports />} />
                       </Routes>
                     </MainLayout>

@@ -26,18 +26,15 @@ router.post('/login', async (req, res) => {
 
         // For initial setup, if no user exists, please use reset_admin_password.js script
         if (!user) {
-            console.log(`[LOGIN FAILED] User not found: ${username}`);
-            return res.status(400).json({ error: 'User not found' });
+            return res.status(400).json({ error: 'Invalid username or password' });
         }
 
         const validPass = await bcrypt.compare(password, user.password_hash);
-        console.log(`[LOGIN DEBUG] Request for: ${username}`);
-        // Match result logging
-        console.log(`[LOGIN DEBUG] Match result: ${validPass}`);
+        if (!validPass) return res.status(400).json({ error: 'Invalid username or password' });
 
-        if (!validPass) return res.status(400).json({ error: 'Invalid password' });
-
-        const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET);
+        const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, {
+            expiresIn: process.env.JWT_EXPIRES_IN || '12h'
+        });
 
         // Log login event
         const ipAddress = req.ip || req.connection?.remoteAddress || req.headers?.['x-forwarded-for'];
@@ -61,7 +58,8 @@ const authenticateToken = (req, res, next) => {
     if (!token) return res.sendStatus(401);
 
     jwt.verify(token, JWT_SECRET, (err, user) => {
-        if (err) return res.sendStatus(403);
+        // 401 (not 403) so the client knows the session itself is invalid/expired
+        if (err) return res.sendStatus(401);
         req.user = user;
         next();
     });

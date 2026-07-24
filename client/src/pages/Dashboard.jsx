@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../api';
 import io from 'socket.io-client';
 import {
@@ -12,6 +13,7 @@ import { SkeletonStatCard } from '../components/SkeletonLoader';
 import { formatTimeShort } from '../utils/dateFormat';
 
 export default function Dashboard() {
+    const navigate = useNavigate();
     const [stats, setStats] = useState({
         employees: 0,
         newJoinees: 0,
@@ -269,19 +271,38 @@ export default function Dashboard() {
 
     const fetchAttendanceTrends = async () => {
         try {
-            // Generate last 7 days data
-            const days = [];
+            const start = new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+            const end = new Date().toISOString().split('T')[0];
+            const [lateEarlyRes, absentRes] = await Promise.all([
+                api.get('/api/reports/late-early', { params: { start_date: start, end_date: end } }),
+                api.get('/api/reports/absent', { params: { start_date: start, end_date: end } })
+            ]);
+
+            const byDate = {};
             for (let i = 6; i >= 0; i--) {
                 const date = new Date(Date.now() - i * 24 * 60 * 60 * 1000);
-                days.push({
+                const key = date.toISOString().split('T')[0];
+                byDate[key] = {
                     date: date.toLocaleDateString('en-US', { weekday: 'short' }),
-                    fullDate: date.toISOString().split('T')[0],
-                    late: Math.floor(Math.random() * 15),
-                    earlyLeave: Math.floor(Math.random() * 10),
-                    absent: Math.floor(Math.random() * 20)
-                });
+                    fullDate: key,
+                    late: 0,
+                    earlyLeave: 0,
+                    absent: 0
+                };
             }
-            setAttendanceTrends(days);
+
+            (lateEarlyRes.data || []).forEach(row => {
+                const key = row.attendance_date ? String(row.attendance_date).split('T')[0] : null;
+                if (!key || !byDate[key]) return;
+                if (row.late_minutes > 0) byDate[key].late += 1;
+                if (row.early_minutes > 0) byDate[key].earlyLeave += 1;
+            });
+            (absentRes.data || []).forEach(row => {
+                const key = row.absent_date ? String(row.absent_date).split('T')[0] : null;
+                if (key && byDate[key]) byDate[key].absent += 1;
+            });
+
+            setAttendanceTrends(Object.values(byDate));
         } catch (err) { console.error(err); }
     };
 
@@ -502,12 +523,11 @@ export default function Dashboard() {
                         <Clock className="text-blue-500" size={18} /> Today's Attendance Status
                     </h2>
                     <a
-                        href="#attendance"
+                        href="/attendance-register"
                         className="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900 transition-colors"
                         onClick={(e) => {
                             e.preventDefault();
-                            // Navigate to attendance register
-                            window.location.hash = 'attendance';
+                            navigate('/attendance-register');
                         }}
                     >
                         View Attendance Details
@@ -515,7 +535,14 @@ export default function Dashboard() {
                     </a>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                    <AttendanceStatusCard label="Present" value={stats.present} type="success" trend="↑ 100% vs yesterday" />
+                    <AttendanceStatusCard
+                        label="Present"
+                        value={stats.present}
+                        type="success"
+                        trend={yesterdayStats.present > 0
+                            ? `${stats.present >= yesterdayStats.present ? '↑' : '↓'} ${Math.abs(Math.round(((stats.present - yesterdayStats.present) / yesterdayStats.present) * 100))}% vs yesterday`
+                            : undefined}
+                    />
                     <AttendanceStatusCard label="Absent" value={stats.absent} type="error" />
                     <AttendanceStatusCard label="Late Arrival" value={stats.late} type="warning" />
                     <AttendanceStatusCard label="Early Leave" value={stats.earlyLeave} type="warning" />
@@ -531,11 +558,11 @@ export default function Dashboard() {
                             <Tablet className="text-saffron" size={18} /> Device Status
                         </h2>
                         <a
-                            href="#devices"
+                            href="/devices"
                             className="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900 transition-colors"
                             onClick={(e) => {
                                 e.preventDefault();
-                                window.location.hash = 'devices';
+                                navigate('/devices');
                             }}
                         >
                             Manage Devices
@@ -646,11 +673,11 @@ export default function Dashboard() {
                             <Clock className="text-green-500 animate-pulse" size={18} /> Real-Time Monitor
                         </h2>
                         <a
-                            href="#logs"
+                            href="/logs"
                             className="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900 transition-colors"
                             onClick={(e) => {
                                 e.preventDefault();
-                                window.location.hash = 'logs';
+                                navigate('/logs');
                             }}
                         >
                             Go to Live Monitor
