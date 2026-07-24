@@ -1,10 +1,22 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Database, FileCode, Image, ArrowRightLeft, FileX, Activity, AlertCircle, Upload as UploadIcon, RefreshCw } from 'lucide-react';
 import api from '../api';
 import { Button, ExportMenu } from '../components';
 
+const VALID_VIEWS = ['work-code', 'bio-template', 'bio-photo', 'transaction', 'unregistered', 'operation-log', 'error-log', 'upload-log'];
+
 export default function DeviceData() {
-    const [activeSection, setActiveSection] = useState('work-code');
+    const [searchParams] = useSearchParams();
+    const viewParam = searchParams.get('view');
+    const [activeSection, setActiveSection] = useState(
+        VALID_VIEWS.includes(viewParam) ? viewParam : 'work-code'
+    );
+
+    // Sidebar deep-links (/devices/data?view=...) change without a remount
+    useEffect(() => {
+        if (VALID_VIEWS.includes(viewParam)) setActiveSection(viewParam);
+    }, [viewParam]);
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(false);
 

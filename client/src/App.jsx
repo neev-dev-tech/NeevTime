@@ -42,6 +42,9 @@ import ReportsDashboard from './pages/ReportsDashboard';
 import FirstLastReport from './pages/reports/FirstLastReport';
 import AttendanceRules from './pages/AttendanceRules';
 import HolidayLocation from './pages/HolidayLocation';
+import LeaveTypes from './pages/LeaveTypes';
+import LeaveBalances from './pages/LeaveBalances';
+import DeviceMessages from './pages/DeviceMessages';
 import DeviceCommands from './pages/DeviceCommands';
 import SystemLogs from './pages/SystemLogs';
 import DatabaseTools from './pages/DatabaseTools';
@@ -153,6 +156,7 @@ export default function App() {
                         <Route path="/devices" element={<Devices />} />
                         <Route path="/devices/data" element={<DeviceData />} />
                         <Route path="/device-commands" element={<DeviceCommands />} />
+                        <Route path="/device-messages" element={<DeviceMessages />} />
                         <Route path="/attendance-rules" element={<AttendanceRules />} />
                         <Route path="/holiday-locations" element={<HolidayLocation />} />
                         <Route path="/geofences" element={<Geofences />} />
@@ -161,10 +165,15 @@ export default function App() {
                         <Route path="/shifts" element={<ShiftMaster />} />
                         <Route path="/schedule/department" element={<DepartmentSchedule />} />
                         <Route path="/schedule/employee" element={<EmployeeSchedule />} />
+                        {/* Temporary schedules are employee schedules flagged is_temporary */}
+                        <Route path="/schedule/temporary" element={<EmployeeSchedule />} />
                         <Route path="/schedule/calendar" element={<ScheduleCalendar />} />
                         <Route path="/attendance/manual" element={<ManualEntry />} />
                         <Route path="/leaves" element={<LeaveApplications />} />
                         <Route path="/regularizations" element={<Regularizations />} />
+                        <Route path="/holidays" element={<HolidayLocation initialTab="holidays" />} />
+                        <Route path="/leave-types" element={<LeaveTypes />} />
+                        <Route path="/leave-balance" element={<LeaveBalances />} />
                         <Route path="/mobile/punch" element={<MobilePunch />} />
                         <Route path="/reports" element={<ReportsDashboard />} />
                         <Route path="/reports/legacy" element={<ReportsLegacy />} />

@@ -65,11 +65,11 @@ export const deviceSidebar = [
     icon: Database,
     iconColor: '#7C3AED',
     items: [
-      { label: 'Work Code', path: '/devices?view=work-code', icon: Briefcase, iconColor: '#EA580C' },
-      { label: 'Bio-Template', path: '/devices?view=bio-template', icon: Fingerprint, iconColor: '#059669' },
-      { label: 'Bio-Photo', path: '/devices?view=bio-photo', icon: Camera, iconColor: '#DB2777' },
-      { label: 'Transaction', path: '/devices?view=transaction', icon: FileCheck, iconColor: '#2563EB' },
-      { label: 'Unregistered', path: '/devices?view=unregistered', icon: FileQuestion, iconColor: '#D97706' },
+      { label: 'Work Code', path: '/devices/data?view=work-code', icon: Briefcase, iconColor: '#EA580C' },
+      { label: 'Bio-Template', path: '/devices/data?view=bio-template', icon: Fingerprint, iconColor: '#059669' },
+      { label: 'Bio-Photo', path: '/devices/data?view=bio-photo', icon: Camera, iconColor: '#DB2777' },
+      { label: 'Transaction', path: '/devices/data?view=transaction', icon: FileCheck, iconColor: '#2563EB' },
+      { label: 'Unregistered', path: '/devices/data?view=unregistered', icon: FileQuestion, iconColor: '#D97706' },
     ]
   },
   {
@@ -77,9 +77,9 @@ export const deviceSidebar = [
     icon: Activity,
     iconColor: '#DC2626',
     items: [
-      { label: 'Operation Log', path: '/devices?view=operation-log', icon: Activity, iconColor: '#059669' },
-      { label: 'Error Log', path: '/devices?view=error-log', icon: AlertCircle, iconColor: '#DC2626' },
-      { label: 'Upload Log', path: '/devices?view=upload-log', icon: Upload, iconColor: '#2563EB' },
+      { label: 'Operation Log', path: '/devices/data?view=operation-log', icon: Activity, iconColor: '#059669' },
+      { label: 'Error Log', path: '/devices/data?view=error-log', icon: AlertCircle, iconColor: '#DC2626' },
+      { label: 'Upload Log', path: '/devices/data?view=upload-log', icon: Upload, iconColor: '#2563EB' },
     ]
   }
 ];

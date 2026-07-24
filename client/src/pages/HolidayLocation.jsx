@@ -3,14 +3,14 @@ import api from '../api';
 import { MapPin, Plus, Edit2, Trash2, X, Save, Calendar, Globe } from 'lucide-react';
 import { useToast, Button, PageHeader, ExportMenu } from '../components';
 
-export default function HolidayLocation() {
+export default function HolidayLocation({ initialTab = 'locations' }) {
     const toast = useToast();
     const [locations, setLocations] = useState([]);
     const [holidays, setHolidays] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editingId, setEditingId] = useState(null);
-    const [activeTab, setActiveTab] = useState('locations');
+    const [activeTab, setActiveTab] = useState(initialTab);
 
     const [form, setForm] = useState({
         name: '',
