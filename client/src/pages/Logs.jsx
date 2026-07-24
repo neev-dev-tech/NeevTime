@@ -2,14 +2,13 @@ import React, { useEffect, useState, useRef } from 'react';
 import api from '../api';
 import io from 'socket.io-client';
 import SkeletonLoader from '../components/SkeletonLoader';
-import { RefreshCw, FileText, FileSpreadsheet, Table2, Inbox, Fingerprint, Activity, Clock, LogIn, LogOut } from 'lucide-react';
-import { exportToExcel, exportToCSV } from '../utils/excelExport';
+import { RefreshCw, Inbox, Fingerprint, Clock, LogIn, LogOut } from 'lucide-react';
+import { Button, PageHeader, ExportMenu } from '../components';
 import { formatTimestamp } from '../utils/dateFormat';
 
 export default function Logs() {
     const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [exporting, setExporting] = useState(null);
     const [deviceMap, setDeviceMap] = useState({});
     const socketRef = useRef(null);
 
@@ -100,63 +99,6 @@ export default function Logs() {
         return 'IN';
     };
 
-    const handleExportCSV = async () => {
-        setExporting('csv');
-        try {
-            const dataToExport = logs.map(log => ({
-                ...log,
-                direction: getDirection(log)
-            }));
-
-            await exportToCSV({
-                data: dataToExport,
-                filename: `attendance_logs_${new Date().toISOString().split('T')[0]}`,
-                headers: [
-                    { key: 'employee_code', label: 'Employee Code' },
-                    { key: 'emp_name', label: 'Employee Name' },
-                    { key: 'punch_time', label: 'Time' },
-                    { key: 'direction', label: 'Direction' },
-                    { key: 'punch_state', label: 'State Code' },
-                    { key: 'device_serial', label: 'Device' },
-                    { key: 'verification_mode', label: 'Verification' }
-                ]
-            });
-        } catch (err) {
-            console.error(err);
-        } finally {
-            setExporting(null);
-        }
-    };
-
-    const handleExportXLSX = async () => {
-        setExporting('xlsx');
-        try {
-            const dataToExport = logs.map(log => ({
-                ...log,
-                direction: getDirection(log)
-            }));
-
-            await exportToExcel({
-                data: dataToExport,
-                filename: `attendance_logs_${new Date().toISOString().split('T')[0]}`,
-                sheetName: 'Attendance Logs',
-                headers: [
-                    { key: 'employee_code', label: 'Employee Code' },
-                    { key: 'emp_name', label: 'Employee Name' },
-                    { key: 'punch_time', label: 'Time' },
-                    { key: 'direction', label: 'Direction' },
-                    { key: 'punch_state', label: 'State Code' },
-                    { key: 'device_serial', label: 'Device' },
-                    { key: 'verification_mode', label: 'Verification' }
-                ]
-            });
-        } catch (err) {
-            console.error(err);
-        } finally {
-            setExporting(null);
-        }
-    };
-
     const renderDirection = (log) => {
         const dir = getDirection(log);
         const isOut = dir === 'OUT';
@@ -170,40 +112,39 @@ export default function Logs() {
 
     return (
         <div className="space-y-6">
-            <div className="report-container">
-                {/* Header */}
-                <div className="report-header">
-                    <div className="report-title">
-                        <div className="report-title-icon">
-                            <Clock size={24} />
-                        </div>
-                        Attendance Logs
-                    </div>
-
-                    <div className="report-meta">
-                        {!loading && (
-                            <div className="report-count">
-                                <Table2 size={14} />
-                                <span className="report-count-number">{logs.length}</span>
-                                records
-                            </div>
-                        )}
-                        {logs.length > 0 && (
-                            <div className="flex gap-2">
-                                <button onClick={handleExportCSV} disabled={exporting === 'csv'} className="btn-export btn-export-csv">
-                                    {exporting === 'csv' ? <RefreshCw size={14} className="animate-spin" /> : <FileText size={14} />} CSV
-                                </button>
-                                <button onClick={handleExportXLSX} disabled={exporting === 'xlsx'} className="btn-export btn-export-xlsx">
-                                    {exporting === 'xlsx' ? <RefreshCw size={14} className="animate-spin" /> : <FileSpreadsheet size={14} />} Excel
-                                </button>
-                            </div>
-                        )}
-                        <button onClick={() => { setLoading(true); fetchLogs(); fetchDevices(); }} className="btn-header-secondary" disabled={loading}>
+            {/* Header */}
+            <PageHeader
+                icon={Clock}
+                title="Attendance Logs"
+                subtitle={`${logs.length} records`}
+                actions={(
+                    <>
+                        <ExportMenu
+                            rows={logs}
+                            columns={[
+                                { key: 'employee_code', label: 'Employee Code' },
+                                { key: 'emp_name', label: 'Employee Name' },
+                                { key: 'punch_time', label: 'Time' },
+                                { key: 'direction', label: 'Direction' },
+                                { key: 'punch_state', label: 'State Code' },
+                                { key: 'device_serial', label: 'Device' },
+                                { key: 'verification_mode', label: 'Verification' }
+                            ]}
+                            filename="attendance_logs"
+                            title="Attendance Logs"
+                            mapRow={(log) => ({ ...log, direction: getDirection(log) })}
+                        />
+                        <Button
+                            variant="secondary"
+                            onClick={() => { setLoading(true); fetchLogs(); fetchDevices(); }}
+                            disabled={loading}
+                        >
                             <RefreshCw size={16} className={loading ? 'animate-spin' : ''} /> Refresh
-                        </button>
-                    </div>
-                </div>
-
+                        </Button>
+                    </>
+                )}
+            />
+            <div className="report-container">
                 {/* Content */}
                 {loading && logs.length === 0 ? (
                     <div className="p-6">

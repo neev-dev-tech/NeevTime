@@ -9,6 +9,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import ResignationModal from '../components/ResignationModal';
 import SkeletonLoader from '../components/SkeletonLoader';
+import { Button } from '../components';
 
 export default function Employees() {
     const [employees, setEmployees] = useState([]);
@@ -297,7 +298,7 @@ export default function Employees() {
                     return;
                 }
 
-                await axios.post('/api/employees/import', { employees: data });
+                await api.post('/api/employees/import', { employees: data });
                 setShowImportModal(false);
                 fetchEmployees();
                 showToast(`Imported ${data.length} records`, 'success');
@@ -312,7 +313,7 @@ export default function Employees() {
     const handleAppAccess = async (enabled) => {
         if (selectedIds.length === 0) return showToast('Select employees first', 'error');
         try {
-            await axios.put('/api/employees/app-access', { ids: selectedIds, enabled });
+            await api.put('/api/employees/app-access', { ids: selectedIds, enabled });
             fetchEmployees();
             showToast(`App Access ${enabled ? 'Enabled' : 'Disabled'} for ${selectedIds.length} employees`, 'success');
         } catch (err) { showToast('Update failed', 'error'); }
@@ -413,34 +414,16 @@ export default function Employees() {
         <div className="flex flex-col h-[calc(100vh-120px)] card-base overflow-hidden relative">
             {/* Toolbar */}
             <div className="flex items-center gap-3 p-4 border-b border-gray-200 text-sm flex-wrap" style={{ backgroundColor: '#FFFFFF' }}>
-                <button
-                    onClick={() => setShowAddModal(true)}
-                    className="btn-primary flex items-center gap-2 shadow-saffron"
-                >
-                    <Plus size={18} /> Add Employee
-                </button>
+                <Button variant="primary" icon={Plus} onClick={() => setShowAddModal(true)}>
+                    Add Employee
+                </Button>
                 <div className="h-8 w-px bg-gray-200 mx-2 hidden md:block"></div>
-                <button
-                    onClick={handleDelete}
-                    className="flex items-center gap-2 px-4 py-2 rounded-full font-semibold transition-all border-2 hover:shadow-lg"
-                    style={{ 
-                        backgroundColor: '#FFFFFF',
-                        borderColor: '#DC2626',
-                        color: '#DC2626'
-                    }}
-                    onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = '#FEE2E2';
-                        e.currentTarget.style.borderColor = '#DC2626';
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = '#FFFFFF';
-                        e.currentTarget.style.borderColor = '#DC2626';
-                    }}
-                >
-                    <Trash2 size={16} /> Delete
-                </button>
-                <button
-                    type="button"
+                <Button variant="danger" icon={Trash2} onClick={handleDelete}>
+                    Delete
+                </Button>
+                <Button
+                    variant="secondary"
+                    disabled={refreshing}
                     onClick={async (e) => {
                         e.preventDefault();
                         e.stopPropagation();
@@ -456,53 +439,18 @@ export default function Employees() {
                             setRefreshing(false);
                         }
                     }}
-                    disabled={refreshing}
-                    className={`relative flex items-center gap-2 px-4 py-2 rounded-full font-semibold transition-all border-2 ${refreshing ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:shadow-lg'}`}
-                    style={{ 
-                        backgroundColor: '#FFFFFF',
-                        borderColor: '#2563EB',
-                        color: '#2563EB',
-                        zIndex: 30,
-                        pointerEvents: 'auto'
-                    }}
-                    onMouseEnter={(e) => {
-                        if (!refreshing) {
-                            e.currentTarget.style.backgroundColor = '#DBEAFE';
-                            e.currentTarget.style.borderColor = '#2563EB';
-                        }
-                    }}
-                    onMouseLeave={(e) => {
-                        if (!refreshing) {
-                            e.currentTarget.style.backgroundColor = '#FFFFFF';
-                            e.currentTarget.style.borderColor = '#2563EB';
-                        }
-                    }}
                 >
                     <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} /> Refresh
-                </button>
-                <button
-                    onClick={handleExport}
-                    className="flex items-center gap-2 px-4 py-2 rounded-full font-semibold transition-all border-2 hover:shadow-lg"
-                    style={{ 
-                        backgroundColor: '#FFFFFF',
-                        borderColor: '#059669',
-                        color: '#059669'
-                    }}
-                    onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = '#D1FAE5';
-                        e.currentTarget.style.borderColor = '#059669';
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = '#FFFFFF';
-                        e.currentTarget.style.borderColor = '#059669';
-                    }}
-                >
-                    <Download size={16} /> Export
-                </button>
+                </Button>
+                <Button variant="secondary" icon={Download} onClick={handleExport}>
+                    Export
+                </Button>
 
                 {/* Import Dropdown */}
                 <div className="relative dropdown-container">
-                    <button
+                    <Button
+                        variant="secondary"
+                        icon={Upload}
                         onClick={(e) => {
                             e.stopPropagation();
                             setShowImportMenu(!showImportMenu);
@@ -511,23 +459,9 @@ export default function Employees() {
                             setShowAppMenu(false);
                             setShowMoreMenu(false);
                         }}
-                        className="flex items-center gap-2 px-4 py-2 rounded-full font-semibold transition-all border-2 hover:shadow-lg"
-                        style={{ 
-                            backgroundColor: '#FFFFFF',
-                            borderColor: '#3B82F6',
-                            color: '#3B82F6'
-                        }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = '#DBEAFE';
-                            e.currentTarget.style.borderColor = '#3B82F6';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = '#FFFFFF';
-                            e.currentTarget.style.borderColor = '#3B82F6';
-                        }}
                     >
-                        <Upload size={16} /> Import <ChevronDown size={14} className={showImportMenu ? 'rotate-180 transition-transform' : ''} />
-                    </button>
+                        Import <ChevronDown size={14} className={showImportMenu ? 'rotate-180 transition-transform' : ''} />
+                    </Button>
                     {showImportMenu && (
                         <>
                             <div className="fixed inset-0 z-10" onClick={() => setShowImportMenu(false)}></div>
@@ -540,7 +474,9 @@ export default function Employees() {
 
                 {/* Personnel Transfer Dropdown */}
                 <div className="relative dropdown-container">
-                    <button
+                    <Button
+                        variant="secondary"
+                        icon={ArrowRightLeft}
                         onClick={(e) => {
                             e.stopPropagation();
                             setShowTransferMenu(!showTransferMenu);
@@ -549,23 +485,9 @@ export default function Employees() {
                             setShowAppMenu(false);
                             setShowMoreMenu(false);
                         }}
-                        className="flex items-center gap-2 px-4 py-2 rounded-full font-semibold transition-all border-2 hover:shadow-lg"
-                        style={{ 
-                            backgroundColor: '#FFFFFF',
-                            borderColor: '#7C3AED',
-                            color: '#7C3AED'
-                        }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = '#EDE9FE';
-                            e.currentTarget.style.borderColor = '#7C3AED';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = '#FFFFFF';
-                            e.currentTarget.style.borderColor = '#7C3AED';
-                        }}
                     >
-                        <ArrowRightLeft size={16} /> Transfer <ChevronDown size={14} className={showTransferMenu ? 'rotate-180 transition-transform' : ''} />
-                    </button>
+                        Transfer <ChevronDown size={14} className={showTransferMenu ? 'rotate-180 transition-transform' : ''} />
+                    </Button>
                     {
                         showTransferMenu && (
                             <>
@@ -590,7 +512,9 @@ export default function Employees() {
 
                 {/* App Dropdown */}
                 <div className="relative dropdown-container">
-                    <button
+                    <Button
+                        variant="secondary"
+                        icon={Smartphone}
                         onClick={(e) => {
                             e.stopPropagation();
                             setShowAppMenu(!showAppMenu);
@@ -599,23 +523,9 @@ export default function Employees() {
                             setShowTransferMenu(false);
                             setShowMoreMenu(false);
                         }}
-                        className="flex items-center gap-2 px-4 py-2 rounded-full font-semibold transition-all border-2 hover:shadow-lg"
-                        style={{ 
-                            backgroundColor: '#FFFFFF',
-                            borderColor: '#0891B2',
-                            color: '#0891B2'
-                        }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = '#CFFAFE';
-                            e.currentTarget.style.borderColor = '#0891B2';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = '#FFFFFF';
-                            e.currentTarget.style.borderColor = '#0891B2';
-                        }}
                     >
-                        <Smartphone size={16} /> App Access <ChevronDown size={14} className={showAppMenu ? 'rotate-180 transition-transform' : ''} />
-                    </button>
+                        App Access <ChevronDown size={14} className={showAppMenu ? 'rotate-180 transition-transform' : ''} />
+                    </Button>
                     {
                         showAppMenu && (
                             <>
@@ -631,7 +541,9 @@ export default function Employees() {
 
                 {/* More Settings Dropdown */}
                 < div className="relative dropdown-container" >
-                    <button
+                    <Button
+                        variant="secondary"
+                        icon={Settings}
                         onClick={(e) => {
                             e.stopPropagation();
                             setShowMoreMenu(!showMoreMenu);
@@ -640,23 +552,9 @@ export default function Employees() {
                             setShowTransferMenu(false);
                             setShowAppMenu(false);
                         }}
-                        className="flex items-center gap-2 px-4 py-2 rounded-full font-semibold transition-all border-2 hover:shadow-lg"
-                        style={{ 
-                            backgroundColor: '#FFFFFF',
-                            borderColor: '#64748B',
-                            color: '#64748B'
-                        }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = '#F1F5F9';
-                            e.currentTarget.style.borderColor = '#64748B';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = '#FFFFFF';
-                            e.currentTarget.style.borderColor = '#64748B';
-                        }}
                     >
-                        <Settings size={16} /> More <ChevronDown size={14} className={showMoreMenu ? 'rotate-180 transition-transform' : ''} />
-                    </button>
+                        More <ChevronDown size={14} className={showMoreMenu ? 'rotate-180 transition-transform' : ''} />
+                    </Button>
                     {
                         showMoreMenu && (
                             <>
@@ -902,8 +800,8 @@ export default function Employees() {
                                 </div>
 
                                 <div className="col-span-1 md:col-span-3 flex justify-end gap-4 pt-6 border-t border-gray-100 mt-4">
-                                    <button type="button" onClick={() => setShowAddModal(false)} className="px-6 py-2.5 rounded-full text-slate-grey hover:bg-gray-50 font-medium transition-colors">Cancel</button>
-                                    <button type="submit" className="btn-primary px-8">Add Employee</button>
+                                    <Button variant="secondary" onClick={() => setShowAddModal(false)}>Cancel</Button>
+                                    <Button type="submit" variant="primary">Add Employee</Button>
                                 </div>
                             </div>
                         </form>
@@ -937,7 +835,7 @@ export default function Employees() {
                                 <h4 className="text-lg font-bold text-charcoal mb-2">Upload CSV File</h4>
                                 <p className="text-sm text-slate-grey mb-6">Format: ID, Name, DeptID</p>
                                 <div className="relative inline-block">
-                                    <button className="btn-secondary relative pointer-events-none">Select File</button>
+                                    <Button variant="secondary" className="relative pointer-events-none">Select File</Button>
                                     <input
                                         type="file"
                                         accept=".csv"
@@ -1008,8 +906,8 @@ export default function Employees() {
                         </div>
 
                         <div className="flex justify-end gap-3">
-                            <button onClick={() => setShowTransferModal(false)} className="px-6 py-2.5 rounded-full text-slate-grey hover:bg-gray-50 font-medium transition-colors">Cancel</button>
-                            <button onClick={submitTransfer} className="btn-primary">Confirm Transfer</button>
+                            <Button variant="secondary" onClick={() => setShowTransferModal(false)}>Cancel</Button>
+                            <Button variant="primary" onClick={submitTransfer}>Confirm Transfer</Button>
                         </div>
                     </div>
                 </div>
@@ -1033,18 +931,12 @@ export default function Employees() {
                             Are you sure you want to delete <span className="font-bold text-charcoal">{selectedIds.length}</span> selected employees? This action cannot be undone.
                         </p>
                         <div className="flex justify-center gap-4">
-                            <button
-                                onClick={() => setShowDeleteModal(false)}
-                                className="px-6 py-2.5 border border-gray-200 rounded-full text-slate-grey hover:bg-gray-50 font-medium transition-colors"
-                            >
+                            <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
                                 Cancel
-                            </button>
-                            <button
-                                onClick={confirmDelete}
-                                className="px-6 py-2.5 bg-red-500 text-white rounded-full hover:bg-red-600 shadow-lg shadow-red-200 font-bold transition-all"
-                            >
+                            </Button>
+                            <Button variant="danger" onClick={confirmDelete}>
                                 Delete
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </div>
@@ -1076,22 +968,19 @@ export default function Employees() {
                             <p className="text-slate-grey text-sm">{confirmMessage}</p>
                         </div>
                         <div className="flex justify-end gap-3">
-                            <button
+                            <Button
+                                variant="secondary"
                                 onClick={() => {
                                     setShowConfirmModal(false);
                                     setConfirmAction(null);
                                     setConfirmMessage('');
                                 }}
-                                className="px-6 py-2.5 rounded-full text-slate-grey hover:bg-gray-50 font-medium transition-colors border border-gray-200"
                             >
                                 Cancel
-                            </button>
-                            <button
-                                onClick={handleConfirmAction}
-                                className="btn-primary"
-                            >
+                            </Button>
+                            <Button variant="primary" onClick={handleConfirmAction}>
                                 Confirm
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </div>

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import api from '../api';
 import { Download, FileText, FileSpreadsheet, Loader, FileDown } from 'lucide-react';
 import { exportToPDF } from '../utils/pdfExport';
-import { useToast } from '../components';
+import { useToast, Button, PageHeader } from '../components';
 
 const EXPORT_TYPES = [
     { id: 'employees', label: 'Employee Master', endpoint: '/api/employees' },
@@ -88,7 +88,11 @@ export default function ExportCenter() {
 
     return (
         <div className="p-6 max-w-2xl mx-auto">
-            <h1 className="text-2xl font-bold mb-6 flex items-center gap-2"><Download /> Export Center</h1>
+            <PageHeader
+                icon={Download}
+                title="Export Center"
+                subtitle="Download your data as CSV, JSON or PDF"
+            />
 
             <div className="bg-white rounded-xl p-6 shadow-sm border space-y-6">
                 {/* Export Type */}
@@ -135,10 +139,10 @@ export default function ExportCenter() {
                 </div>
 
                 {/* Export Button */}
-                <button onClick={handleExport} disabled={exporting} className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2 disabled:opacity-50">
+                <Button size="lg" onClick={handleExport} disabled={exporting} className="w-full">
                     {exporting ? <Loader className="animate-spin" size={18} /> : <Download size={18} />}
                     {exporting ? 'Exporting...' : 'Export Data'}
-                </button>
+                </Button>
             </div>
         </div>
     );

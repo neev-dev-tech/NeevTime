@@ -4,7 +4,7 @@ import { Calendar, Clock, AlertTriangle, CheckCircle, XCircle, User, Filter, Dow
 import { exportToPDF } from '../utils/pdfExport';
 import { exportToExcel } from '../utils/excelExport';
 import SkeletonLoader from '../components/SkeletonLoader';
-import { useToast } from '../components';
+import { useToast, Button, PageHeader } from '../components';
 
 export default function AttendanceRegister() {
     const toast = useToast();
@@ -107,33 +107,25 @@ export default function AttendanceRegister() {
         <div className="space-y-6">
             <div className="report-container">
                 {/* Header */}
-                <div className="report-header flex-wrap gap-y-4">
-                    <div className="report-title">
-                        <div className="report-title-icon">
-                            <Calendar size={24} />
-                        </div>
-                        Attendance Register
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                        <input
-                            type="date"
-                            value={date}
-                            onChange={e => setDate(e.target.value)}
-                            className="input-premium py-1.5 px-3 bg-white/50 border-gray-200 text-sm"
-                        />
-                        <button className="btn-header-secondary">
-                            <Filter size={16} /> Filters
-                        </button>
-                        <div className="flex gap-2">
-                            <button onClick={handleExportPDF} className="btn-export btn-export-csv" title="Export PDF">
-                                <FileDown size={14} /> PDF
-                            </button>
-                            <button onClick={handleExportXLSX} className="btn-export btn-export-xlsx" title="Export Excel">
-                                <FileSpreadsheet size={14} /> XLSX
-                            </button>
-                        </div>
-                    </div>
+                <div className="px-6 pt-6 border-b border-gray-100">
+                    <PageHeader
+                        icon={Calendar}
+                        title="Attendance Register"
+                        subtitle="Daily attendance summary"
+                        actions={
+                            <>
+                                <input
+                                    type="date"
+                                    value={date}
+                                    onChange={e => setDate(e.target.value)}
+                                    className="input-premium py-1.5 px-3 bg-white/50 border-gray-200 text-sm"
+                                />
+                                <Button variant="secondary" icon={Filter}>Filters</Button>
+                                <Button variant="danger" size="sm" icon={FileDown} onClick={handleExportPDF} title="Export PDF">PDF</Button>
+                                <Button variant="success" size="sm" icon={FileSpreadsheet} onClick={handleExportXLSX} title="Export Excel">XLSX</Button>
+                            </>
+                        }
+                    />
                 </div>
 
                 {/* Summary Cards */}

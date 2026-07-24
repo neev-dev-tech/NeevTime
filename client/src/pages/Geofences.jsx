@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { MapPin, Plus, Search, Trash2, Edit2, AlertCircle, CheckCircle, Navigation } from 'lucide-react';
 import api from '../api';
+import { Button, PageHeader, ExportMenu } from '../components';
 
 const Geofences = () => {
     const [geofences, setGeofences] = useState([]);
@@ -110,16 +111,28 @@ const Geofences = () => {
 
     return (
         <div className="h-full flex flex-col space-y-6">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-800">Geofence Locations</h1>
-                    <p className="text-gray-500">Manage GPS boundaries for mobile attendance</p>
-                </div>
-                <button onClick={() => openModal()} className="btn-primary">
-                    <Plus size={20} />
-                    Add Location
-                </button>
-            </div>
+            <PageHeader
+                icon={MapPin}
+                title="Geofence Locations"
+                subtitle="Manage GPS boundaries for mobile attendance"
+                actions={
+                    <>
+                        <ExportMenu
+                            rows={filteredGeofences}
+                            columns={[
+                                { key: 'name', label: 'Name' },
+                                { key: 'latitude', label: 'Latitude' },
+                                { key: 'longitude', label: 'Longitude' },
+                                { key: 'radius_meters', label: 'Radius (m)' },
+                                { key: 'address', label: 'Address' }
+                            ]}
+                            filename="geofences"
+                            title="Geofence Locations"
+                        />
+                        <Button icon={Plus} onClick={() => openModal()}>Add Location</Button>
+                    </>
+                }
+            />
 
             <div className="card-base p-0 flex flex-col flex-1 overflow-hidden">
                 <div className="p-4 border-b border-gray-100 flex gap-4 bg-gray-50/50">
@@ -253,8 +266,8 @@ const Geofences = () => {
                                 </div>
 
                                 <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
-                                    <button type="button" onClick={closeModal} className="btn-secondary rounded-lg">Cancel</button>
-                                    <button type="submit" className="btn-primary rounded-lg">{editingGeofence ? 'Update' : 'Create'}</button>
+                                    <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+                                    <Button type="submit">{editingGeofence ? 'Update' : 'Create'}</Button>
                                 </div>
                             </form>
                         </div>

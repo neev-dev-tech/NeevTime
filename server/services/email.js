@@ -31,14 +31,31 @@ const log = (level, msg, data = {}) => {
  */
 const initTransporter = async () => {
     try {
-        const result = await db.query('SELECT * FROM email_settings WHERE is_active = true LIMIT 1');
+        // Primary source: Settings page (app_settings, category 'notifications').
+        // Fallback: legacy email_settings table.
+        const appRes = await db.query(`
+            SELECT setting_key, setting_value FROM app_settings
+            WHERE category = 'notifications'
+        `);
+        const appCfg = appRes.rows.reduce((acc, r) => { acc[r.setting_key] = r.setting_value; return acc; }, {});
 
-        if (result.rows.length === 0) {
-            log('WARN', 'No email settings configured');
-            return null;
+        if (appCfg.smtp_host) {
+            emailConfig = {
+                smtp_host: appCfg.smtp_host,
+                smtp_port: parseInt(appCfg.smtp_port) || 587,
+                smtp_user: appCfg.smtp_username,
+                smtp_password: appCfg.smtp_password,
+                from_email: appCfg.smtp_from_email || appCfg.smtp_username,
+                from_name: appCfg.smtp_from_name || 'NeevTime'
+            };
+        } else {
+            const result = await db.query('SELECT * FROM email_settings WHERE is_active = true LIMIT 1');
+            if (result.rows.length === 0) {
+                log('WARN', 'No email settings configured');
+                return null;
+            }
+            emailConfig = result.rows[0];
         }
-
-        emailConfig = result.rows[0];
 
         transporter = nodemailer.createTransport({
             host: emailConfig.smtp_host,

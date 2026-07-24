@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
 import { MapPin, Plus, Edit2, Trash2, X, Save, Calendar, Globe } from 'lucide-react';
-import { useToast } from '../components';
+import { useToast, Button, PageHeader, ExportMenu } from '../components';
 
 export default function HolidayLocation() {
     const toast = useToast();
@@ -150,19 +150,49 @@ export default function HolidayLocation() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold flex items-center gap-2">
-                    <MapPin className="text-red-500" />
-                    Holidays & Locations
-                </h1>
-                <button
-                    onClick={() => activeTab === 'locations' ? setShowModal(true) : setShowHolidayModal(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                >
-                    <Plus size={16} />
-                    {activeTab === 'locations' ? 'Add Location' : 'Add Holiday'}
-                </button>
-            </div>
+            <PageHeader
+                icon={MapPin}
+                title="Holidays & Locations"
+                actions={
+                    <>
+                        {activeTab === 'locations' ? (
+                            <ExportMenu
+                                rows={locations}
+                                columns={[
+                                    { key: 'name', label: 'Name' },
+                                    { key: 'description', label: 'Description' }
+                                ]}
+                                filename="holiday-locations"
+                                title="Holiday Locations"
+                            />
+                        ) : (
+                            <ExportMenu
+                                rows={holidays}
+                                columns={[
+                                    { key: 'name', label: 'Holiday Name' },
+                                    { key: 'date', label: 'Date' },
+                                    { key: 'holiday_type', label: 'Type' },
+                                    { key: 'is_optional', label: 'Optional' },
+                                    { key: 'description', label: 'Description' }
+                                ]}
+                                filename="holidays"
+                                title="Holidays"
+                                mapRow={h => ({
+                                    ...h,
+                                    date: h.date?.split('T')[0] || '',
+                                    is_optional: h.is_optional ? 'Yes' : 'No'
+                                })}
+                            />
+                        )}
+                        <Button
+                            icon={Plus}
+                            onClick={() => activeTab === 'locations' ? setShowModal(true) : setShowHolidayModal(true)}
+                        >
+                            {activeTab === 'locations' ? 'Add Location' : 'Add Holiday'}
+                        </Button>
+                    </>
+                }
+            />
 
             {/* Tabs */}
             <div className="flex gap-2">
@@ -354,13 +384,10 @@ export default function HolidayLocation() {
                                 />
                             </div>
                             <div className="flex justify-end gap-3 pt-4 border-t">
-                                <button type="button" onClick={closeModal} className="px-4 py-2 border rounded-lg hover:bg-gray-50">
-                                    Cancel
-                                </button>
-                                <button type="submit" className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
-                                    <Save size={16} />
+                                <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+                                <Button type="submit" icon={Save}>
                                     {editingId ? 'Update' : 'Create'}
-                                </button>
+                                </Button>
                             </div>
                         </form>
                     </div>
@@ -433,13 +460,10 @@ export default function HolidayLocation() {
                                 <span className="text-sm">Optional Holiday (Restricted)</span>
                             </label>
                             <div className="flex justify-end gap-3 pt-4 border-t">
-                                <button type="button" onClick={closeHolidayModal} className="px-4 py-2 border rounded-lg hover:bg-gray-50">
-                                    Cancel
-                                </button>
-                                <button type="submit" className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                                    <Save size={16} />
+                                <Button variant="secondary" onClick={closeHolidayModal}>Cancel</Button>
+                                <Button type="submit" icon={Save}>
                                     {editingHolidayId ? 'Update' : 'Create'}
-                                </button>
+                                </Button>
                             </div>
                         </form>
                     </div>

@@ -85,3 +85,8 @@ export { default as EmployeeFormModal } from './EmployeeFormModal';
 
 // Re-export validation hook for convenience
 export { useFormValidation, validators, PATTERNS } from '../hooks/useFormValidation';
+
+// Standard UI kit
+export { default as Button } from "./ui/Button";
+export { default as PageHeader } from "./ui/PageHeader";
+export { default as ExportMenu } from "./ExportMenu";

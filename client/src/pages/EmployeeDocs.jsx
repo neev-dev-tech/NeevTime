@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FileText, Upload, Download, Trash2, X, Search, RefreshCw, User, Calendar } from 'lucide-react';
 import api from '../api';
+import { Button, PageHeader } from '../components';
 
 export default function EmployeeDocs() {
     const [documents, setDocuments] = useState([]);
@@ -188,31 +189,24 @@ export default function EmployeeDocs() {
     };
 
     return (
-        <div className="flex flex-col h-[calc(100vh-120px)] card-base overflow-hidden">
+        <div>
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-white">
-                <div className="flex items-center gap-3">
-                    <FileText className="text-blue-600" size={24} />
-                    <h2 className="text-xl font-bold text-gray-800">Employee Documents</h2>
-                </div>
-                <div className="flex items-center gap-3">
-                    <button
-                        type="button"
-                        onClick={handleRefresh}
-                        disabled={refreshing}
-                        className={`flex items-center gap-2 px-4 py-2 text-slate-grey hover:bg-gray-50 rounded-full font-medium transition-colors border border-gray-200 bg-white ${refreshing ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    >
-                        <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} /> Refresh
-                    </button>
-                    <button
-                        onClick={() => setShowUploadModal(true)}
-                        className="btn-primary flex items-center gap-2"
-                    >
-                        <Upload size={18} /> Upload Document
-                    </button>
-                </div>
-            </div>
+            <PageHeader
+                icon={FileText}
+                title="Employee Documents"
+                actions={
+                    <>
+                        <Button variant="secondary" onClick={handleRefresh} disabled={refreshing}>
+                            <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} /> Refresh
+                        </Button>
+                        <Button variant="primary" icon={Upload} onClick={() => setShowUploadModal(true)}>
+                            Upload Document
+                        </Button>
+                    </>
+                }
+            />
 
+            <div className="flex flex-col h-[calc(100vh-210px)] card-base overflow-hidden">
             {/* Search Bar */}
             <div className="p-4 border-b border-gray-100 bg-white">
                 <div className="relative w-full max-w-md">
@@ -293,6 +287,7 @@ export default function EmployeeDocs() {
             {/* Footer */}
             <div className="p-4 border-t border-gray-100 bg-gray-50/50 text-xs font-medium text-slate-grey flex justify-between items-center">
                 <span>Total <span className="text-charcoal font-bold">{filteredDocuments.length}</span> Documents</span>
+            </div>
             </div>
 
             {/* Upload Modal */}
@@ -378,8 +373,8 @@ export default function EmployeeDocs() {
                             </div>
 
                             <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
-                                <button
-                                    type="button"
+                                <Button
+                                    variant="secondary"
                                     onClick={() => {
                                         setShowUploadModal(false);
                                         setSelectedEmployee('');
@@ -389,17 +384,12 @@ export default function EmployeeDocs() {
                                             fileInputRef.current.value = '';
                                         }
                                     }}
-                                    className="px-6 py-2.5 rounded-full text-slate-grey hover:bg-gray-50 font-medium transition-colors"
                                 >
                                     Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={uploading}
-                                    className="btn-primary px-8 disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
+                                </Button>
+                                <Button type="submit" variant="primary" disabled={uploading}>
                                     {uploading ? 'Uploading...' : 'Upload'}
-                                </button>
+                                </Button>
                             </div>
                         </form>
                     </div>

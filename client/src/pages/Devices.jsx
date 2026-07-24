@@ -9,7 +9,7 @@ import {
     FileQuestion, Database, AlertCircle, FileSpreadsheet, Table2, Inbox
 } from 'lucide-react';
 import SkeletonLoader from '../components/SkeletonLoader';
-import { useToast } from '../components';
+import { useToast, Button, PageHeader } from '../components';
 import { exportToExcel, exportToCSV } from '../utils/excelExport';
 
 // ==========================================
@@ -147,10 +147,11 @@ const DataView = ({ title, endpoint, columns, icon: Icon = Database }) => {
                         {/* Export Buttons */}
                         {data.length > 0 && (
                             <div className="flex gap-2">
-                                <button
+                                <Button
+                                    variant="secondary"
+                                    size="sm"
                                     onClick={handleExportCSV}
                                     disabled={exporting === 'csv'}
-                                    className="btn-export btn-export-csv"
                                 >
                                     {exporting === 'csv' ? (
                                         <RefreshCw size={14} className="animate-spin" />
@@ -158,11 +159,12 @@ const DataView = ({ title, endpoint, columns, icon: Icon = Database }) => {
                                         <FileText size={14} />
                                     )}
                                     CSV
-                                </button>
-                                <button
+                                </Button>
+                                <Button
+                                    variant="success"
+                                    size="sm"
                                     onClick={handleExportXLSX}
                                     disabled={exporting === 'xlsx'}
-                                    className="btn-export btn-export-xlsx"
                                 >
                                     {exporting === 'xlsx' ? (
                                         <RefreshCw size={14} className="animate-spin" />
@@ -170,24 +172,24 @@ const DataView = ({ title, endpoint, columns, icon: Icon = Database }) => {
                                         <FileSpreadsheet size={14} />
                                     )}
                                     Excel
-                                </button>
+                                </Button>
                             </div>
                         )}
 
                         {/* Refresh Button */}
-                        <button
+                        <Button
+                            variant="secondary"
+                            type="button"
                             onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
                                 fetchData();
                             }}
-                            className="btn-header-secondary"
-                            type="button"
                             disabled={loading}
                         >
                             <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
                             Refresh
-                        </button>
+                        </Button>
                     </div>
                 </div>
 
@@ -482,10 +484,13 @@ export default function Devices() {
             case 'devices':
                 return (
                     <div className="space-y-6">
-                        <div className="flex justify-between items-center">
-                            <h2 className="text-xl font-semibold" style={{ color: '#1E293B', fontWeight: 600 }}>Connected Devices</h2>
-                            <div className="flex gap-3">
-                                <button
+                        <PageHeader
+                            icon={TabletSmartphone}
+                            title="Connected Devices"
+                            actions={(
+                                <>
+                                <Button
+                                    variant="secondary"
                                     type="button"
                                     onClick={async (e) => {
                                         e.preventDefault();
@@ -502,14 +507,14 @@ export default function Devices() {
                                         }
                                     }}
                                     disabled={refreshing}
-                                    className={`btn-header-secondary ${refreshing ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 >
                                     <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} /> Refresh
-                                </button>
+                                </Button>
 
                                 {/* Sync All Devices Button */}
                                 <div className="relative" ref={syncAllMenuRef}>
-                                    <button
+                                    <Button
+                                        variant="success"
                                         type="button"
                                         onClick={(e) => {
                                             e.preventDefault();
@@ -518,12 +523,11 @@ export default function Devices() {
                                             setShowTransferMenu(false);
                                         }}
                                         disabled={syncingAll}
-                                        className={`btn-header-success ${syncingAll ? 'opacity-70' : ''}`}
                                     >
                                         {syncingAll ? <RefreshCw size={16} className="animate-spin" /> : <Upload size={16} />}
                                         Sync All Devices
                                         <ChevronDown size={14} className={`transition-transform duration-200 ${showSyncAllMenu ? 'rotate-180' : ''}`} />
-                                    </button>
+                                    </Button>
                                     {showSyncAllMenu && (
                                         <>
                                             <div className="fixed inset-0 z-10" onClick={() => setShowSyncAllMenu(false)}></div>
@@ -595,7 +599,8 @@ export default function Devices() {
 
                                 {/* Per-Device Data Transfer */}
                                 <div className="relative" ref={transferMenuRef}>
-                                    <button
+                                    <Button
+                                        variant="secondary"
                                         type="button"
                                         onClick={(e) => {
                                             e.preventDefault();
@@ -603,10 +608,9 @@ export default function Devices() {
                                             setShowTransferMenu(!showTransferMenu);
                                             setShowSyncAllMenu(false);
                                         }}
-                                        className="btn-header-purple"
                                     >
                                         Selected Devices <ChevronDown size={14} className={`transition-transform duration-200 ${showTransferMenu ? 'rotate-180' : ''}`} />
-                                    </button>
+                                    </Button>
                                     {showTransferMenu && (
                                         <>
                                             <div className="fixed inset-0 z-10" onClick={() => setShowTransferMenu(false)}></div>
@@ -631,14 +635,12 @@ export default function Devices() {
                                         </>
                                     )}
                                 </div>
-                                <button
-                                    onClick={() => setShowModal(true)}
-                                    className="btn-header-primary"
-                                >
-                                    <Plus size={16} /> Add Device
-                                </button>
-                            </div>
-                        </div>
+                                <Button variant="primary" icon={Plus} onClick={() => setShowModal(true)}>
+                                    Add Device
+                                </Button>
+                                </>
+                            )}
+                        />
 
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                             {devices.map(device => (

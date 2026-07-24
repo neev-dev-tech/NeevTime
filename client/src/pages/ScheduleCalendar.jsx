@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
 import { CalendarDays, ChevronLeft, ChevronRight, Users, Building2, Clock, Filter } from 'lucide-react';
+import { PageHeader } from '../components';
 
 export default function ScheduleCalendar() {
     const [currentDate, setCurrentDate] = useState(new Date());
@@ -126,43 +127,43 @@ export default function ScheduleCalendar() {
     return (
         <div className="space-y-4">
             {/* Header */}
-            <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold flex items-center gap-2">
-                    <CalendarDays className="text-blue-600" />
-                    Schedule Calendar
-                </h1>
-                <div className="flex items-center gap-3">
-                    {/* Department Filter */}
-                    <div className="flex items-center gap-2">
-                        <Filter size={16} className="text-gray-500" />
-                        <select
-                            value={selectedDepartment}
-                            onChange={(e) => setSelectedDepartment(e.target.value)}
-                            className="px-3 py-2 border rounded-lg text-sm"
-                        >
-                            <option value="">All Departments</option>
-                            {departments.map(d => (
-                                <option key={d.id} value={d.id}>{d.name}</option>
-                            ))}
-                        </select>
-                    </div>
-                    {/* View Mode Toggle */}
-                    <div className="flex bg-gray-100 rounded-lg p-1">
-                        <button
-                            onClick={() => setViewMode('week')}
-                            className={`px-3 py-1 rounded text-sm ${viewMode === 'week' ? 'bg-white shadow' : ''}`}
-                        >
-                            Week
-                        </button>
-                        <button
-                            onClick={() => setViewMode('month')}
-                            className={`px-3 py-1 rounded text-sm ${viewMode === 'month' ? 'bg-white shadow' : ''}`}
-                        >
-                            Month
-                        </button>
-                    </div>
-                </div>
-            </div>
+            <PageHeader
+                icon={CalendarDays}
+                title="Schedule Calendar"
+                actions={
+                    <>
+                        {/* Department Filter */}
+                        <div className="flex items-center gap-2">
+                            <Filter size={16} className="text-gray-500" />
+                            <select
+                                value={selectedDepartment}
+                                onChange={(e) => setSelectedDepartment(e.target.value)}
+                                className="px-3 py-2 border rounded-lg text-sm"
+                            >
+                                <option value="">All Departments</option>
+                                {departments.map(d => (
+                                    <option key={d.id} value={d.id}>{d.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                        {/* View Mode Toggle */}
+                        <div className="flex bg-gray-100 rounded-lg p-1">
+                            <button
+                                onClick={() => setViewMode('week')}
+                                className={`px-3 py-1 rounded text-sm ${viewMode === 'week' ? 'bg-white shadow' : ''}`}
+                            >
+                                Week
+                            </button>
+                            <button
+                                onClick={() => setViewMode('month')}
+                                className={`px-3 py-1 rounded text-sm ${viewMode === 'month' ? 'bg-white shadow' : ''}`}
+                            >
+                                Month
+                            </button>
+                        </div>
+                    </>
+                }
+            />
 
             {/* Calendar Navigation */}
             <div className="bg-white rounded-xl shadow-sm border p-4">

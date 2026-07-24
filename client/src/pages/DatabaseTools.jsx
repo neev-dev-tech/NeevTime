@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { toast } from '../components/ToastContainer';
 import { confirm } from '../components/ConfirmDialog';
+import { Button, PageHeader } from '../components';
 
 export default function DatabaseTools() {
     const [backups, setBackups] = useState([]);
@@ -148,38 +149,27 @@ export default function DatabaseTools() {
 
     return (
         <div className="space-y-6">
-            <div className="report-container">
-                {/* Header */}
-                <div className="report-header">
-                    <div className="report-title">
-                        <div className="report-title-icon">
-                            <Server size={24} />
-                        </div>
-                        Database Tools
-                    </div>
-                    <div className="flex gap-2">
-                        <button
-                            onClick={fetchData}
-                            className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 text-slate-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
-                        >
-                            <RefreshCw size={16} />
+            {/* Header */}
+            <PageHeader
+                icon={Server}
+                title="Database Tools"
+                actions={(
+                    <>
+                        <Button variant="secondary" icon={RefreshCw} onClick={fetchData}>
                             Refresh Stats
-                        </button>
-                        <button
-                            onClick={createBackup}
-                            disabled={creating}
-                            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-70 disabled:cursor-not-allowed font-semibold shadow-sm transition-all shadow-emerald-200"
-                        >
+                        </Button>
+                        <Button variant="primary" onClick={createBackup} disabled={creating}>
                             {creating ? (
                                 <RefreshCw size={16} className="animate-spin" />
                             ) : (
                                 <Download size={16} />
                             )}
                             {creating ? 'Backing up...' : 'Create Backup'}
-                        </button>
-                    </div>
-                </div>
-
+                        </Button>
+                    </>
+                )}
+            />
+            <div className="report-container">
                 {/* Database Stats Cards */}
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 p-6 border-b border-gray-100 bg-slate-50/30">
                     <div className="bg-white border border-blue-100 rounded-xl p-4 shadow-sm relative overflow-hidden group">
@@ -347,9 +337,9 @@ export default function DatabaseTools() {
                         </div>
                     </div>
                     <div className="mt-6 flex justify-end">
-                        <button className="flex items-center gap-2 px-6 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-900 font-medium transition-colors shadow-lg shadow-slate-200">
-                            <Save size={16} /> Save Settings
-                        </button>
+                        <Button variant="dark" icon={Save}>
+                            Save Settings
+                        </Button>
                     </div>
                 </div>
             </div>

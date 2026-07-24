@@ -4,7 +4,7 @@ import {
     TabletSmartphone, Send, RefreshCw, Users, Fingerprint, Database,
     Clock, Power, Trash2, Download, Upload, AlertTriangle, Wifi, WifiOff
 } from 'lucide-react';
-import { useToast } from '../components';
+import { useToast, Button, PageHeader, ExportMenu } from '../components';
 
 export default function DeviceCommands() {
     const toast = useToast();
@@ -126,49 +126,45 @@ export default function DeviceCommands() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold flex items-center gap-2">
-                    <TabletSmartphone className="text-blue-600" />
-                    Device Commands
-                </h1>
-                <button
-                    type="button"
-                    onClick={async (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setRefreshing(true);
-                        try {
-                            await Promise.all([fetchDevices(), fetchCommandHistory()]);
-                        } catch (err) {
-                            console.error('Refresh error:', err);
-                        } finally {
-                            setRefreshing(false);
-                        }
-                    }}
-                    disabled={refreshing}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full font-semibold transition-all border-2 ${refreshing ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-lg'}`}
-                    style={{ 
-                        backgroundColor: '#FFFFFF',
-                        borderColor: '#2563EB',
-                        color: '#2563EB'
-                    }}
-                    onMouseEnter={(e) => {
-                        if (!refreshing) {
-                            e.currentTarget.style.backgroundColor = '#DBEAFE';
-                            e.currentTarget.style.borderColor = '#2563EB';
-                        }
-                    }}
-                    onMouseLeave={(e) => {
-                        if (!refreshing) {
-                            e.currentTarget.style.backgroundColor = '#FFFFFF';
-                            e.currentTarget.style.borderColor = '#2563EB';
-                        }
-                    }}
-                >
-                    <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
-                    Refresh
-                </button>
-            </div>
+            <PageHeader
+                icon={TabletSmartphone}
+                title="Device Commands"
+                actions={(
+                    <>
+                        <ExportMenu
+                            rows={deviceCommands}
+                            columns={[
+                                { key: 'device_serial', label: 'Device' },
+                                { key: 'command', label: 'Command' },
+                                { key: 'status', label: 'Status' },
+                                { key: 'created_at', label: 'Time' }
+                            ]}
+                            filename="device_commands"
+                            title="Device Commands"
+                        />
+                        <Button
+                            variant="secondary"
+                            type="button"
+                            onClick={async (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setRefreshing(true);
+                                try {
+                                    await Promise.all([fetchDevices(), fetchCommandHistory()]);
+                                } catch (err) {
+                                    console.error('Refresh error:', err);
+                                } finally {
+                                    setRefreshing(false);
+                                }
+                            }}
+                            disabled={refreshing}
+                        >
+                            <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
+                            Refresh
+                        </Button>
+                    </>
+                )}
+            />
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Device Selection */}
@@ -307,17 +303,19 @@ export default function DeviceCommands() {
                     <div className="card-base p-4">
                         <div className="flex items-center justify-between mb-3">
                             <h3 className="font-semibold">Command History</h3>
-                            <button
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                icon={RefreshCw}
                                 type="button"
                                 onClick={async (e) => {
                                     e.preventDefault();
                                     e.stopPropagation();
                                     await fetchCommandHistory();
                                 }}
-                                className="text-sm text-blue-600 hover:underline flex items-center gap-1"
                             >
-                                <RefreshCw size={14} /> Refresh
-                            </button>
+                                Refresh
+                            </Button>
                         </div>
                         {deviceCommands.length === 0 ? (
                             <div className="text-center py-6 text-gray-500">

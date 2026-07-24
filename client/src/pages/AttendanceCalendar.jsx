@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../api';
 import { Calendar, ChevronLeft, ChevronRight, Clock, User, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 import SkeletonLoader from '../components/SkeletonLoader';
+import { PageHeader } from '../components';
 
 export default function AttendanceCalendar() {
     const [currentDate, setCurrentDate] = useState(new Date());
@@ -116,25 +117,25 @@ export default function AttendanceCalendar() {
         <div className="space-y-6">
             <div className="report-container">
                 {/* Header */}
-                <div className="report-header">
-                    <div className="report-title">
-                        <div className="report-title-icon">
-                            <Calendar size={24} />
-                        </div>
-                        Attendance Calendar
-                    </div>
-
-                    <div className="flex items-center bg-white border border-gray-200 rounded-lg p-1 shadow-sm">
-                        <button onClick={prevMonth} className="p-1.5 hover:bg-gray-100 rounded-md text-slate-500 hover:text-slate-800 transition-colors">
-                            <ChevronLeft size={20} />
-                        </button>
-                        <span className="w-48 text-center font-bold text-slate-800 text-sm py-1">
-                            {monthNames[month]} {year}
-                        </span>
-                        <button onClick={nextMonth} className="p-1.5 hover:bg-gray-100 rounded-md text-slate-500 hover:text-slate-800 transition-colors">
-                            <ChevronRight size={20} />
-                        </button>
-                    </div>
+                <div className="px-6 pt-6 border-b border-gray-100">
+                    <PageHeader
+                        icon={Calendar}
+                        title="Attendance Calendar"
+                        subtitle="Monthly attendance overview"
+                        actions={
+                            <div className="flex items-center bg-white border border-gray-200 rounded-lg p-1 shadow-sm">
+                                <button onClick={prevMonth} className="p-1.5 hover:bg-gray-100 rounded-md text-slate-500 hover:text-slate-800 transition-colors">
+                                    <ChevronLeft size={20} />
+                                </button>
+                                <span className="w-48 text-center font-bold text-slate-800 text-sm py-1">
+                                    {monthNames[month]} {year}
+                                </span>
+                                <button onClick={nextMonth} className="p-1.5 hover:bg-gray-100 rounded-md text-slate-500 hover:text-slate-800 transition-colors">
+                                    <ChevronRight size={20} />
+                                </button>
+                            </div>
+                        }
+                    />
                 </div>
 
                 {/* Legend */}

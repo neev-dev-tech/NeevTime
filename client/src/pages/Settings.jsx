@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Save, RefreshCw, Building2, Clock, Calendar, Bell, Shield, MessageSquare, Phone, FileText, Loader2, Building, Timer, CalendarDays, Mail, ShieldCheck, MessageCircle, PhoneCall, BarChart3, FileCheck } from 'lucide-react';
+import { Save, RefreshCw, Send, Loader2, Building, Timer, CalendarDays, Mail, ShieldCheck, MessageCircle, PhoneCall, BarChart3, FileCheck, Settings as SettingsIcon } from 'lucide-react';
 import api from '../api';
+import { Button, PageHeader, useToast } from '../components';
 
 const CATEGORIES = [
     { id: 'company', label: 'Company', icon: Building, iconColor: '#3B82F6' },
@@ -15,12 +16,14 @@ const CATEGORIES = [
 ];
 
 export default function Settings() {
+    const globalToast = useToast();
     const [activeTab, setActiveTab] = useState('company');
     const [settings, setSettings] = useState({});
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [toast, setToast] = useState(null);
     const [formData, setFormData] = useState({});
+    const [testEmail, setTestEmail] = useState('');
+    const [testingEmail, setTestingEmail] = useState(false);
 
     // Fetch all settings on mount
     useEffect(() => {
@@ -93,18 +96,24 @@ export default function Settings() {
         }
     };
 
-    const toastTimeoutRef = React.useRef(null);
     const showToast = (message, type = 'info') => {
-        // Clear any existing timeout
-        if (toastTimeoutRef.current) {
-            clearTimeout(toastTimeoutRef.current);
+        (globalToast[type] || globalToast.info)(message);
+    };
+
+    const handleTestEmail = async () => {
+        if (!testEmail) {
+            showToast('Enter a recipient address first', 'warning');
+            return;
         }
-        setToast({ message, type });
-        // Show toast for 8 seconds for better visibility
-        toastTimeoutRef.current = setTimeout(() => {
-            setToast(null);
-            toastTimeoutRef.current = null;
-        }, 8000);
+        setTestingEmail(true);
+        try {
+            const res = await api.post('/api/settings/test-email', { test_email: testEmail });
+            showToast(res.data.message || 'Test email sent', 'success');
+        } catch (err) {
+            showToast(err.response?.data?.message || err.response?.data?.error || 'Test email failed', 'error');
+        } finally {
+            setTestingEmail(false);
+        }
     };
 
     const getSortedSettings = () => {
@@ -230,13 +239,11 @@ export default function Settings() {
 
     return (
         <div className="space-y-6">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-semibold flex items-center gap-3" style={{ color: '#1E293B', fontWeight: 600 }}>Settings</h1>
-                    <p className="text-sm mt-1" style={{ color: '#475569' }}>Configure your application preferences</p>
-                </div>
-            </div>
+            <PageHeader
+                icon={SettingsIcon}
+                title="Settings"
+                subtitle="Configure your application preferences"
+            />
 
             {/* Tabs + Content */}
             <div className="card-premium overflow-hidden">
@@ -280,78 +287,36 @@ export default function Settings() {
                         )}
                     </div>
 
+                    {/* SMTP test — only on the Email tab */}
+                    {activeTab === 'notifications' && (
+                        <div className="mt-6 p-4 bg-slate-50 border border-slate-200 rounded-xl">
+                            <p className="text-sm font-semibold text-slate-700 mb-1">Test email delivery</p>
+                            <p className="text-xs text-slate-500 mb-3">Save your SMTP settings first, then send a test message.</p>
+                            <div className="flex gap-2 flex-wrap">
+                                <input
+                                    type="email"
+                                    value={testEmail}
+                                    onChange={e => setTestEmail(e.target.value)}
+                                    placeholder="recipient@example.com"
+                                    className="flex-1 min-w-[220px] text-sm border border-slate-200 rounded-lg px-3 py-2"
+                                />
+                                <Button variant="dark" icon={Send} onClick={handleTestEmail} disabled={testingEmail}>
+                                    {testingEmail ? 'Sending...' : 'Send Test Email'}
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Actions */}
                     <div className="flex items-center gap-3 mt-8 pt-6 border-t border-gray-100">
-                        <button
-                            onClick={handleSave}
-                            disabled={saving}
-                            className="flex items-center gap-2 px-4 py-2 rounded-full font-semibold transition-all border-2 hover:shadow-lg"
-                            style={{
-                                background: saving ? '#94A3B8' : 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)',
-                                borderColor: saving ? '#94A3B8' : '#F97316',
-                                color: '#FFFFFF',
-                                cursor: saving ? 'not-allowed' : 'pointer'
-                            }}
-                            onMouseEnter={(e) => {
-                                if (!saving) {
-                                    e.currentTarget.style.background = 'linear-gradient(135deg, #EA580C 0%, #C2410C 100%)';
-                                    e.currentTarget.style.borderColor = '#EA580C';
-                                }
-                            }}
-                            onMouseLeave={(e) => {
-                                if (!saving) {
-                                    e.currentTarget.style.background = 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)';
-                                    e.currentTarget.style.borderColor = '#F97316';
-                                }
-                            }}
-                        >
-                            {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-                            Save Changes
-                        </button>
-                        <button
-                            onClick={handleReset}
-                            className="flex items-center gap-2 px-4 py-2 rounded-full font-semibold transition-all border-2 hover:shadow-lg"
-                            style={{
-                                backgroundColor: '#FFFFFF',
-                                borderColor: '#64748B',
-                                color: '#64748B'
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = '#F1F5F9';
-                                e.currentTarget.style.borderColor = '#64748B';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = '#FFFFFF';
-                                e.currentTarget.style.borderColor = '#64748B';
-                            }}
-                        >
-                            <RefreshCw size={16} />
-                            Reset
-                        </button>
+                        <Button icon={saving ? Loader2 : Save} onClick={handleSave} disabled={saving}>
+                            {saving ? 'Saving...' : 'Save Changes'}
+                        </Button>
+                        <Button variant="secondary" icon={RefreshCw} onClick={handleReset}>Reset</Button>
                     </div>
                 </div>
             </div>
 
-            {/* Toast Notification */}
-            {toast && (
-                <div className={`fixed bottom-4 right-4 flex items-center px-4 py-3 rounded-lg shadow-xl text-white z-50 animate-in slide-in-from-bottom-5 duration-300 ${toast.type === 'success' ? 'bg-green-500' :
-                    toast.type === 'error' ? 'bg-red-500' : 'bg-blue-500'
-                    }`}>
-                    <span className="flex-1 pr-3">{toast.message}</span>
-                    <button
-                        onClick={() => {
-                            if (toastTimeoutRef.current) {
-                                clearTimeout(toastTimeoutRef.current);
-                                toastTimeoutRef.current = null;
-                            }
-                            setToast(null);
-                        }}
-                        className="text-white hover:text-gray-200 focus:outline-none font-bold text-lg leading-none"
-                    >
-                        ✕
-                    </button>
-                </div>
-            )}
         </div>
     );
 }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
 import { Clock, Plus, Edit2, Trash2, X, Save, CalendarDays, Coffee, Moon, Sun, Check } from 'lucide-react';
-import { useToast } from '../components';
+import { useToast, Button, PageHeader, ExportMenu } from '../components';
 
 export default function Timetable() {
     const toast = useToast();
@@ -157,19 +157,34 @@ export default function Timetable() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold flex items-center gap-2">
-                    <CalendarDays className="text-blue-600" />
-                    Timetable Management
-                </h1>
-                <button
-                    onClick={() => setShowModal(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                >
-                    <Plus size={16} />
-                    Add Timetable
-                </button>
-            </div>
+            <PageHeader
+                icon={CalendarDays}
+                title="Timetable Management"
+                actions={
+                    <>
+                        <ExportMenu
+                            rows={timetables}
+                            columns={[
+                                { key: 'name', label: 'Name' },
+                                { key: 'code', label: 'Code' },
+                                { key: 'check_in', label: 'Check In' },
+                                { key: 'check_out', label: 'Check Out' },
+                                { key: 'grace_period_minutes', label: 'Grace (min)' },
+                                { key: 'min_hours_for_full_day', label: 'Full Day Hours' },
+                                { key: 'min_hours_for_half_day', label: 'Half Day Hours' }
+                            ]}
+                            filename="timetables"
+                            title="Timetables"
+                            mapRow={t => ({
+                                ...t,
+                                check_in: t.check_in?.substring(0, 5) || '',
+                                check_out: t.check_out?.substring(0, 5) || ''
+                            })}
+                        />
+                        <Button icon={Plus} onClick={() => setShowModal(true)}>Add Timetable</Button>
+                    </>
+                }
+            />
 
             {/* Timetable Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -425,20 +440,10 @@ export default function Timetable() {
                             </div>
 
                             <div className="flex justify-end gap-3 pt-4 border-t">
-                                <button
-                                    type="button"
-                                    onClick={closeModal}
-                                    className="px-4 py-2 border rounded-lg hover:bg-gray-50"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-                                >
-                                    <Save size={16} />
+                                <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+                                <Button type="submit" icon={Save}>
                                     {editingId ? 'Update' : 'Create'}
-                                </button>
+                                </Button>
                             </div>
                         </form>
                     </div>
@@ -525,13 +530,9 @@ export default function Timetable() {
                                         />
                                         <span className="text-sm">Paid Break</span>
                                     </label>
-                                    <button
-                                        type="submit"
-                                        className="flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700"
-                                    >
-                                        <Plus size={16} />
+                                    <Button type="submit" icon={Plus}>
                                         Add Break
-                                    </button>
+                                    </Button>
                                 </div>
                             </form>
                         </div>

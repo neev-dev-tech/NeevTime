@@ -5,7 +5,7 @@ import {
     RefreshCw, Search, RotateCcw, BellOff, Download, X
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useToast } from '../components';
+import { useToast, Button } from '../components';
 
 export default function Resign() {
     const [resignations, setResignations] = useState([]);
@@ -242,54 +242,39 @@ export default function Resign() {
         <div className="flex flex-col h-[calc(100vh-120px)] card-base overflow-hidden relative">
             {/* Toolbar */}
             <div className="flex items-center gap-3 p-4 border-b border-gray-100 bg-white text-sm flex-wrap">
-                <button
-                    onClick={() => { resetForm(); setShowModal(true); }}
-                    className="btn-primary flex items-center gap-2 shadow-saffron"
-                >
-                    <Plus size={18} /> Add Resignation
-                </button>
+                <Button variant="primary" icon={Plus} onClick={() => { resetForm(); setShowModal(true); }}>
+                    Add Resignation
+                </Button>
 
                 <div className="h-8 w-px bg-gray-200 mx-2 hidden md:block"></div>
 
-                <button
-                    onClick={handleDelete}
-                    className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-full hover:bg-red-100 font-medium transition-colors"
-                >
-                    <Trash2 size={16} /> Delete
-                </button>
+                <Button variant="danger" icon={Trash2} onClick={handleDelete}>
+                    Delete
+                </Button>
 
-                <button
-                    onClick={handleRehire}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 font-medium transition-colors"
-                >
-                    <RotateCcw size={16} /> Rehire
-                </button>
+                <Button variant="secondary" icon={RotateCcw} onClick={handleRehire}>
+                    Rehire
+                </Button>
 
-                <button
+                <Button
+                    variant="secondary"
+                    icon={RefreshCw}
                     onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
                         fetchData();
                     }}
-                    className="flex items-center gap-2 px-4 py-2 text-slate-grey hover:bg-gray-50 rounded-full font-medium transition-colors border border-gray-200"
-                    type="button"
                 >
-                    <RefreshCw size={16} /> Refresh
-                </button>
+                    Refresh
+                </Button>
 
-                <button
-                    onClick={handleExport}
-                    className="flex items-center gap-2 px-4 py-2 text-slate-grey hover:bg-gray-50 rounded-full font-medium transition-colors border border-gray-200"
-                >
-                    <Download size={16} /> Export
-                </button>
+                <Button variant="secondary" icon={Download} onClick={handleExport}>
+                    Export
+                </Button>
 
-                <button
-                    onClick={handleDisableAttendance}
-                    className="flex items-center gap-2 px-4 py-2 bg-yellow-50 text-yellow-700 hover:bg-yellow-100 rounded-full font-medium transition-colors"
-                >
-                    <BellOff size={16} /> Disable Attendance
-                </button>
+                <Button variant="secondary" icon={BellOff} onClick={handleDisableAttendance}>
+                    Disable Attendance
+                </Button>
 
                 <div className="ml-auto w-72 relative">
                     <input
@@ -462,12 +447,12 @@ export default function Resign() {
                                 />
                             </div>
                             <div className="flex justify-end gap-3 pt-4 border-t border-gray-50">
-                                <button type="button" onClick={() => setShowModal(false)} className="px-5 py-2 rounded-full text-slate-grey hover:bg-gray-50 font-medium transition-colors border border-gray-200">
+                                <Button variant="secondary" onClick={() => setShowModal(false)}>
                                     Cancel
-                                </button>
-                                <button type="submit" className="px-6 py-2 bg-green-600 text-white rounded-full hover:bg-green-700 font-medium shadow-lg shadow-green-100 transition-all">
+                                </Button>
+                                <Button type="submit" variant="success">
                                     Confirm
-                                </button>
+                                </Button>
                             </div>
                         </form>
                     </div>
@@ -487,12 +472,9 @@ export default function Resign() {
                         <h3 className="text-lg font-bold text-charcoal mb-2">{confirmModal.title}</h3>
                         <p className="text-slate-grey mb-6">{confirmModal.message}</p>
                         <div className="flex justify-center gap-3">
-                            <button
-                                onClick={closeConfirmModal}
-                                className="px-5 py-2.5 text-slate-grey hover:bg-gray-50 rounded-full font-medium transition-colors"
-                            >
+                            <Button variant="secondary" onClick={closeConfirmModal}>
                                 Cancel
-                            </button>
+                            </Button>
                             <button
                                 onClick={confirmModal.action}
                                 className={`px-5 py-2.5 text-white rounded-full font-medium shadow-lg transition-all

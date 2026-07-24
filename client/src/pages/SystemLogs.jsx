@@ -4,6 +4,7 @@ import {
     Activity, RefreshCw, Filter, Download, User, Calendar,
     Database, Settings, Users, Clock, FileText, Search, ChevronDown, Monitor
 } from 'lucide-react';
+import { Button, PageHeader } from '../components';
 
 export default function SystemLogs() {
     const [logs, setLogs] = useState([]);
@@ -99,41 +100,32 @@ export default function SystemLogs() {
 
     return (
         <div className="space-y-6">
-            <div className="report-container">
-                {/* Header */}
-                <div className="report-header flex-wrap gap-y-4">
-                    <div className="report-title">
-                        <div className="report-title-icon">
-                            <Activity size={24} />
-                        </div>
-                        System Logs
-                    </div>
-                    <div className="flex gap-2">
-                        <button
+            {/* Header */}
+            <PageHeader
+                icon={Activity}
+                title="System Logs"
+                actions={(
+                    <>
+                        <Button
+                            variant="secondary"
+                            icon={Filter}
                             onClick={() => setShowFilters(!showFilters)}
-                            className={`flex items-center gap-2 px-3 py-2 border rounded-lg hover:bg-gray-50 transition-all ${showFilters ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-white text-slate-600'}`}
+                            className={showFilters ? 'bg-blue-50 border-blue-200 text-blue-700' : ''}
                         >
-                            <Filter size={16} />
                             Filters
                             <ChevronDown size={14} className={`transition-transform ${showFilters ? 'rotate-180' : ''}`} />
-                        </button>
-                        <button
-                            onClick={exportLogs}
-                            className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 text-slate-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
-                        >
-                            <Download size={16} />
+                        </Button>
+                        <Button variant="secondary" icon={Download} onClick={exportLogs}>
                             Export
-                        </button>
-                        <button
-                            onClick={fetchLogs}
-                            className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-sm transition-all"
-                        >
-                            {loading ? <RefreshCw size={16} className="animate-spin" /> : <RefreshCw size={16} />}
+                        </Button>
+                        <Button variant="primary" onClick={fetchLogs}>
+                            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
                             Refresh
-                        </button>
-                    </div>
-                </div>
-
+                        </Button>
+                    </>
+                )}
+            />
+            <div className="report-container">
                 {/* Filter Panel */}
                 {showFilters && (
                     <div className="bg-slate-50/50 border-b border-gray-200 p-4 animate-in fade-in slide-in-from-top-2">

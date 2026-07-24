@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import api from '../api';
-import { Upload, Download, FileSpreadsheet, AlertCircle, CheckCircle, X, ChevronRight, FileText, ArrowRight } from 'lucide-react';
+import { Upload, Download, FileSpreadsheet, AlertCircle, CheckCircle, X, ChevronRight, FileText, ArrowRight, RefreshCw } from 'lucide-react';
+import { Button, PageHeader } from '../components';
 
 const IMPORT_TYPES = [
     { id: 'employees', label: 'Employee Master', description: 'Import employee details, codes, and departments', endpoint: '/api/employees/import', templateColumns: ['employee_code', 'name', 'department_id'] },
@@ -76,10 +77,11 @@ export default function ImportWizard() {
 
     return (
         <div className="max-w-5xl mx-auto space-y-8 py-8">
-            <div className="text-center space-y-2">
-                <h1 className="text-3xl font-bold text-slate-800">Data Import Wizard</h1>
-                <p className="text-slate-500">Bulk upload your data in a few simple steps</p>
-            </div>
+            <PageHeader
+                icon={Upload}
+                title="Data Import Wizard"
+                subtitle="Bulk upload your data in a few simple steps"
+            />
 
             {/* Progress Steps */}
             <div className="relative flex items-center justify-between px-16">
@@ -154,10 +156,8 @@ export default function ImportWizard() {
                         </div>
 
                         <div className="flex justify-center gap-4">
-                            <button onClick={() => setStep(1)} className="px-6 py-2 text-slate-500 hover:text-slate-800 font-medium">Back</button>
-                            <button onClick={downloadTemplate} className="flex items-center gap-2 px-6 py-2 bg-white border border-gray-200 rounded-full text-slate-700 font-medium hover:bg-gray-50 transition-colors shadow-sm">
-                                <Download size={16} /> Download Template
-                            </button>
+                            <Button variant="ghost" onClick={() => setStep(1)}>Back</Button>
+                            <Button variant="secondary" icon={Download} onClick={downloadTemplate}>Download Template</Button>
                         </div>
                     </div>
                 )}
@@ -197,14 +197,10 @@ export default function ImportWizard() {
                         <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                             <div className="text-xs text-gray-400">Displaying first 50 rows only</div>
                             <div className="flex items-center gap-3">
-                                <button onClick={() => setStep(2)} className="px-6 py-2.5 rounded-lg border border-gray-200 text-slate-600 font-medium hover:bg-gray-50">Back</button>
-                                <button
-                                    onClick={handleImport}
-                                    disabled={importing}
-                                    className="px-8 py-2.5 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 shadow-md shadow-blue-200 disabled:opacity-70 flex items-center gap-2"
-                                >
+                                <Button variant="secondary" onClick={() => setStep(2)}>Back</Button>
+                                <Button variant="primary" onClick={handleImport} disabled={importing}>
                                     {importing ? <div className="flex items-center gap-2"><RefreshCw size={16} className="animate-spin" /> Importing...</div> : <>Confirm Import <ArrowRight size={16} /></>}
-                                </button>
+                                </Button>
                             </div>
                         </div>
 
@@ -222,9 +218,9 @@ export default function ImportWizard() {
                         </h2>
                         <p className="text-slate-500 mb-8 leading-relaxed">{result.message}</p>
 
-                        <button onClick={reset} className="w-full py-3 bg-slate-900 text-white rounded-xl font-semibold hover:bg-slate-800 transition-colors shadow-lg">
+                        <Button variant="dark" size="lg" onClick={reset} className="w-full">
                             Import Another File
-                        </button>
+                        </Button>
                     </div>
                 )}
             </div>

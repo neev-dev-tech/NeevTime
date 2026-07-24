@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
 import { UserCheck, Plus, Edit2, Trash2, X, Save, Users, Search, Filter } from 'lucide-react';
-import { useToast } from '../components';
+import { useToast, Button, PageHeader, ExportMenu } from '../components';
 
 export default function EmployeeSchedule() {
     const toast = useToast();
@@ -175,28 +175,41 @@ export default function EmployeeSchedule() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex items-center justify-between flex-wrap gap-4">
-                <h1 className="text-2xl font-bold flex items-center gap-2">
-                    <UserCheck className="text-green-600" />
-                    Employee Schedule
-                </h1>
-                <div className="flex gap-2">
-                    <button
-                        onClick={() => setShowBulkModal(true)}
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                        <Users size={16} />
-                        Bulk Assign
-                    </button>
-                    <button
-                        onClick={() => setShowModal(true)}
-                        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                    >
-                        <Plus size={16} />
-                        Assign Schedule
-                    </button>
-                </div>
-            </div>
+            <PageHeader
+                icon={UserCheck}
+                title="Employee Schedule"
+                actions={
+                    <>
+                        <ExportMenu
+                            rows={filteredSchedules}
+                            columns={[
+                                { key: 'employee_name', label: 'Employee' },
+                                { key: 'employee_code', label: 'Code' },
+                                { key: 'department_name', label: 'Department' },
+                                { key: 'shift_name', label: 'Shift' },
+                                { key: 'timetable_name', label: 'Timetable' },
+                                { key: 'effective_from', label: 'Effective From' },
+                                { key: 'effective_to', label: 'Effective To' },
+                                { key: 'is_temporary', label: 'Type' }
+                            ]}
+                            filename="employee-schedules"
+                            title="Employee Schedules"
+                            mapRow={s => ({
+                                ...s,
+                                effective_from: s.effective_from?.split('T')[0] || '',
+                                effective_to: s.effective_to?.split('T')[0] || 'Ongoing',
+                                is_temporary: s.is_temporary ? 'Temporary' : 'Regular'
+                            })}
+                        />
+                        <Button variant="secondary" icon={Users} onClick={() => setShowBulkModal(true)}>
+                            Bulk Assign
+                        </Button>
+                        <Button icon={Plus} onClick={() => setShowModal(true)}>
+                            Assign Schedule
+                        </Button>
+                    </>
+                }
+            />
 
             {/* Filters */}
             <div className="flex gap-4 flex-wrap">
@@ -397,13 +410,10 @@ export default function EmployeeSchedule() {
                             )}
 
                             <div className="flex justify-end gap-3 pt-4 border-t">
-                                <button type="button" onClick={closeModal} className="px-4 py-2 border rounded-lg hover:bg-gray-50">
-                                    Cancel
-                                </button>
-                                <button type="submit" className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
-                                    <Save size={16} />
+                                <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+                                <Button type="submit" icon={Save}>
                                     {editingId ? 'Update' : 'Assign'}
-                                </button>
+                                </Button>
                             </div>
                         </form>
                     </div>
@@ -492,14 +502,14 @@ export default function EmployeeSchedule() {
                                     />
                                 </div>
                                 <div className="pt-4 border-t">
-                                    <button
+                                    <Button
                                         type="submit"
+                                        icon={Users}
                                         disabled={selectedEmployees.length === 0}
-                                        className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                                        className="w-full"
                                     >
-                                        <Users size={16} />
                                         Assign to {selectedEmployees.length} Employees
-                                    </button>
+                                    </Button>
                                 </div>
                             </form>
                         </div>

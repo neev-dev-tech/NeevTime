@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Database, FileCode, Image, ArrowRightLeft, FileX, Activity, AlertCircle, Upload as UploadIcon } from 'lucide-react';
+import { Database, FileCode, Image, ArrowRightLeft, FileX, Activity, AlertCircle, Upload as UploadIcon, RefreshCw } from 'lucide-react';
 import api from '../api';
+import { Button, ExportMenu } from '../components';
 
 export default function DeviceData() {
     const [activeSection, setActiveSection] = useState('work-code');
@@ -72,13 +73,28 @@ export default function DeviceData() {
 
             {/* Main Content */}
             <main className="flex-1 card-base p-6 overflow-auto">
-                <div className="mb-6">
-                    <h2 className="text-2xl font-bold text-charcoal mb-2">
-                        {dataSections.find(s => s.id === activeSection)?.label}
-                    </h2>
-                    <p className="text-slate-grey text-sm">
-                        View and manage {dataSections.find(s => s.id === activeSection)?.label.toLowerCase()} records
-                    </p>
+                <div className="mb-6 flex items-center justify-between flex-wrap gap-3">
+                    <div>
+                        <h2 className="text-2xl font-bold text-charcoal mb-2">
+                            {dataSections.find(s => s.id === activeSection)?.label}
+                        </h2>
+                        <p className="text-slate-grey text-sm">
+                            View and manage {dataSections.find(s => s.id === activeSection)?.label.toLowerCase()} records
+                        </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Button variant="secondary" size="sm" icon={RefreshCw} onClick={fetchData}>Refresh</Button>
+                        <ExportMenu
+                            rows={data}
+                            filename={`device_${activeSection}`}
+                            title={dataSections.find(s => s.id === activeSection)?.label}
+                            mapRow={(item) => ({
+                                ID: item.id ?? '',
+                                Details: item.details || item.description || '',
+                                Timestamp: item.timestamp ? new Date(item.timestamp).toLocaleString() : ''
+                            })}
+                        />
+                    </div>
                 </div>
 
                 {loading ? (

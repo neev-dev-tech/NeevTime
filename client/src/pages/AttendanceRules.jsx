@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
 import { Scale, Plus, Edit2, Trash2, X, Save, Globe, Building2, Clock, AlertTriangle, CheckCircle, Calendar } from 'lucide-react';
-import { useToast } from '../components';
+import { useToast, Button, PageHeader } from '../components';
 
 export default function AttendanceRules() {
     const toast = useToast();
@@ -239,24 +239,14 @@ export default function AttendanceRules() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold flex items-center gap-3 text-slate-800">
-                        <div className="p-2 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-100 text-blue-600">
-                            <Scale size={24} />
-                        </div>
-                        Attendance Rules
-                    </h1>
-                    <p className="text-sm text-slate-500 mt-1 ml-14">Configure policies for late marks, overtime, and week offs</p>
-                </div>
-                <button
-                    onClick={() => setShowModal(true)}
-                    className="btn-primary"
-                >
-                    <Plus size={18} />
-                    Add Rule
-                </button>
-            </div>
+            <PageHeader
+                icon={Scale}
+                title="Attendance Rules"
+                subtitle="Configure policies for late marks, overtime, and week offs"
+                actions={
+                    <Button icon={Plus} onClick={() => setShowModal(true)}>Add Rule</Button>
+                }
+            />
 
             {/* Tabs */}
             <div className="flex gap-2 bg-slate-100/50 p-1 rounded-xl w-fit border border-slate-200">
@@ -543,21 +533,10 @@ export default function AttendanceRules() {
                             </form>
                         </div>
                         <div className="p-4 border-t bg-slate-50 flex justify-end gap-3">
-                            <button
-                                type="button"
-                                onClick={closeModal}
-                                className="px-6 py-2.5 rounded-lg font-semibold text-slate-600 hover:bg-slate-200 transition-colors"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleSubmit}
-                                type="button"
-                                className="btn-primary shadow-lg shadow-orange-200"
-                            >
-                                <Save size={18} />
+                            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+                            <Button icon={Save} onClick={handleSubmit}>
                                 {editingId ? 'Update Rule' : 'Create Rule'}
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </div>

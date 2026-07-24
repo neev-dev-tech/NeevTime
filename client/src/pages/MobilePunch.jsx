@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { MapPin, Navigation, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
 import api from '../api';
+import { Button, PageHeader } from '../components';
 
 const MobilePunch = () => {
     const [location, setLocation] = useState(null); // { lat, lng }
@@ -129,7 +130,13 @@ const MobilePunch = () => {
     }
 
     return (
-        <div className="h-full flex flex-col items-center justify-center p-4 bg-gray-50">
+        <div className="h-full flex flex-col p-4 bg-gray-50">
+            <PageHeader
+                icon={MapPin}
+                title="Mobile Punch"
+                subtitle="GPS geofenced attendance punch"
+            />
+            <div className="flex-1 flex flex-col items-center justify-center">
             <div className="w-full max-w-md bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
 
                 {/* Header Map Placeholder */}
@@ -182,9 +189,9 @@ const MobilePunch = () => {
                             <XCircle className="mx-auto text-red-500 mb-4" size={48} />
                             <h3 className="text-lg font-bold text-gray-800">Punch Failed</h3>
                             <p className="text-red-600 mt-2 mb-4 text-sm">{error}</p>
-                            <button onClick={() => setStatus('ready')} className="btn-secondary w-full justify-center">
+                            <Button variant="secondary" onClick={() => setStatus('ready')} className="w-full">
                                 Try Again
-                            </button>
+                            </Button>
                         </div>
                     ) : (
                         <div className="space-y-4">
@@ -215,6 +222,7 @@ const MobilePunch = () => {
                         </div>
                     )}
                 </div>
+            </div>
             </div>
         </div>
     );

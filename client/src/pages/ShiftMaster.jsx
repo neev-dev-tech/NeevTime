@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api';
 import { Plus, Edit2, Trash2, Clock, Sun, Moon, X } from 'lucide-react';
-import { useToast } from '../components';
+import { useToast, Button, PageHeader, ExportMenu } from '../components';
 
 export default function ShiftMaster() {
     const toast = useToast();
@@ -63,12 +63,36 @@ export default function ShiftMaster() {
 
     return (
         <div className="p-6">
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2"><Clock /> Shift Master</h1>
-                <button onClick={() => { setEditingShift(null); setShowModal(true); }} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                    <Plus size={18} /> Add Shift
-                </button>
-            </div>
+            <PageHeader
+                icon={Clock}
+                title="Shift Master"
+                actions={
+                    <>
+                        <ExportMenu
+                            rows={shifts}
+                            columns={[
+                                { key: 'name', label: 'Name' },
+                                { key: 'shift_type', label: 'Type' },
+                                { key: 'start_time', label: 'Start' },
+                                { key: 'end_time', label: 'End' },
+                                { key: 'grace_in_minutes', label: 'Grace (min)' },
+                                { key: 'late_threshold_minutes', label: 'Late After (min)' },
+                                { key: 'break_duration_minutes', label: 'Break (min)' },
+                                { key: 'is_night_shift', label: 'Night Shift' }
+                            ]}
+                            filename="shifts"
+                            title="Shift Master"
+                            mapRow={s => ({
+                                ...s,
+                                start_time: s.start_time?.substring(0, 5) || '',
+                                end_time: s.end_time?.substring(0, 5) || '',
+                                is_night_shift: s.is_night_shift ? 'Yes' : 'No'
+                            })}
+                        />
+                        <Button icon={Plus} onClick={() => { setEditingShift(null); setShowModal(true); }}>Add Shift</Button>
+                    </>
+                }
+            />
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {shifts.map(shift => (
@@ -153,8 +177,8 @@ export default function ShiftMaster() {
                                 <label htmlFor="nightShift" className="text-sm text-gray-700">Night Shift (crosses midnight)</label>
                             </div>
                             <div className="flex justify-end gap-3 pt-4 border-t">
-                                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 border rounded-lg text-gray-600 hover:bg-gray-50">Cancel</button>
-                                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">{editingShift ? 'Update' : 'Create'} Shift</button>
+                                <Button variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
+                                <Button type="submit">{editingShift ? 'Update' : 'Create'} Shift</Button>
                             </div>
                         </form>
                     </div>

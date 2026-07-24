@@ -1,9 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import api from '../api';
-import { Briefcase, Plus, Trash2, Edit2, Search, RefreshCw, X, Save, Download, Upload, FileText, FileSpreadsheet, AlertCircle, CheckCircle } from 'lucide-react';
+import { Briefcase, Plus, Trash2, Edit2, Search, RefreshCw, X, Save, Download, Upload, AlertCircle, CheckCircle } from 'lucide-react';
 import SkeletonLoader from '../components/SkeletonLoader';
-import { exportToExcel, exportToCSV } from '../utils/excelExport';
-import { useToast } from '../components';
+import { useToast, Button, PageHeader, ExportMenu } from '../components';
 
 export default function Positions() {
     const toast = useToast();
@@ -121,32 +120,6 @@ export default function Positions() {
         setFormData({ name: '', description: '' });
     };
 
-    // Export functions
-    const handleExportCSV = async () => {
-        await exportToCSV({
-            data: positions.map(p => ({ id: p.id, name: p.name, description: p.description || '' })),
-            filename: `positions_${new Date().toISOString().split('T')[0]}`,
-            headers: [
-                { key: 'id', label: 'ID' },
-                { key: 'name', label: 'Position Name' },
-                { key: 'description', label: 'Description' }
-            ]
-        });
-    };
-
-    const handleExportExcel = async () => {
-        await exportToExcel({
-            data: positions.map(p => ({ id: p.id, name: p.name, description: p.description || '' })),
-            filename: `positions_${new Date().toISOString().split('T')[0]}`,
-            sheetName: 'Positions',
-            headers: [
-                { key: 'id', label: 'ID' },
-                { key: 'name', label: 'Position Name' },
-                { key: 'description', label: 'Description' }
-            ]
-        });
-    };
-
     const downloadTemplate = () => {
         const template = 'name,description\nSoftware Engineer,Develops software applications\nProject Manager,Manages project timelines\nHR Manager,Handles human resources';
         const blob = new Blob([template], { type: 'text/csv' });
@@ -212,65 +185,49 @@ export default function Positions() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-semibold flex items-center gap-2" style={{ color: '#1E293B', fontWeight: 600 }}>
-                    <Briefcase className="text-purple-500" />
-                    Positions
-                </h1>
-                <button
-                    type="button"
-                    onClick={() => { setShowModal(true); setFormData({ name: '', description: '' }); setEditItem(null); }}
-                    className="btn-primary"
-                >
-                    <Plus size={16} />
-                    Add Position
-                </button>
-            </div>
+            <PageHeader
+                icon={Briefcase}
+                title="Positions"
+                actions={
+                    <Button
+                        variant="primary"
+                        icon={Plus}
+                        onClick={() => { setShowModal(true); setFormData({ name: '', description: '' }); setEditItem(null); }}
+                    >
+                        Add Position
+                    </Button>
+                }
+            />
 
             {/* Toolbar */}
             <div className="flex items-center gap-2 p-2 border-b border-gray-200 bg-gray-50 text-sm flex-wrap">
-                <button
-                    type="button"
-                    onClick={handleBulkDelete}
-                    className="flex items-center gap-1 px-3 py-1.5 bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 transition-colors"
-                >
-                    <Trash2 size={14} /> Delete
-                </button>
-                <button
-                    type="button"
-                    onClick={fetchPositions}
-                    className="btn-secondary"
-                >
-                    <RefreshCw size={14} /> Refresh
-                </button>
+                <Button variant="danger" size="sm" icon={Trash2} onClick={handleBulkDelete}>
+                    Delete
+                </Button>
+                <Button variant="secondary" size="sm" icon={RefreshCw} onClick={fetchPositions}>
+                    Refresh
+                </Button>
 
                 {/* Separator */}
                 <div className="w-px h-6 bg-gray-300 mx-1" />
 
                 {/* Export Buttons */}
-                <button
-                    type="button"
-                    onClick={handleExportCSV}
-                    className="flex items-center gap-1 px-3 py-1.5 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded hover:bg-emerald-100 transition-colors"
-                >
-                    <FileText size={14} /> Export CSV
-                </button>
-                <button
-                    type="button"
-                    onClick={handleExportExcel}
-                    className="flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-600 border border-blue-200 rounded hover:bg-blue-100 transition-colors"
-                >
-                    <FileSpreadsheet size={14} /> Export Excel
-                </button>
+                <ExportMenu
+                    rows={positions}
+                    columns={[
+                        { key: 'id', label: 'ID' },
+                        { key: 'name', label: 'Position Name' },
+                        { key: 'description', label: 'Description' }
+                    ]}
+                    mapRow={(p) => ({ ...p, description: p.description || '' })}
+                    filename={`positions_${new Date().toISOString().split('T')[0]}`}
+                    title="Positions"
+                />
 
                 {/* Import Button */}
-                <button
-                    type="button"
-                    onClick={() => setShowImportModal(true)}
-                    className="flex items-center gap-1 px-3 py-1.5 bg-purple-50 text-purple-600 border border-purple-200 rounded hover:bg-purple-100 transition-colors"
-                >
-                    <Upload size={14} /> Import
-                </button>
+                <Button variant="secondary" size="sm" icon={Upload} onClick={() => setShowImportModal(true)}>
+                    Import
+                </Button>
 
                 <div className="ml-auto w-64 relative">
                     <input
@@ -393,20 +350,12 @@ export default function Positions() {
                                 />
                             </div>
                             <div className="flex justify-end gap-3 pt-4 border-t">
-                                <button
-                                    type="button"
-                                    onClick={closeModal}
-                                    className="btn-secondary rounded-full"
-                                >
+                                <Button variant="secondary" onClick={closeModal}>
                                     Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="btn-primary flex items-center gap-2"
-                                >
-                                    <Save size={16} />
+                                </Button>
+                                <Button type="submit" variant="primary" icon={Save}>
                                     {editItem ? 'Update' : 'Create'}
-                                </button>
+                                </Button>
                             </div>
                         </form>
                     </div>
@@ -426,20 +375,12 @@ export default function Positions() {
                                 }
                             </p>
                             <div className="flex justify-end gap-3">
-                                <button
-                                    type="button"
-                                    onClick={() => setDeleteConfirm(null)}
-                                    className="px-4 py-2 border rounded-lg hover:bg-gray-50"
-                                >
+                                <Button variant="secondary" onClick={() => setDeleteConfirm(null)}>
                                     Cancel
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={confirmDelete}
-                                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-                                >
+                                </Button>
+                                <Button variant="danger" onClick={confirmDelete}>
                                     Delete
-                                </button>
+                                </Button>
                             </div>
                         </div>
                     </div>
@@ -530,13 +471,9 @@ export default function Positions() {
                             )}
 
                             <div className="flex justify-end pt-4 border-t">
-                                <button
-                                    type="button"
-                                    onClick={closeImportModal}
-                                    className="btn-secondary rounded-full"
-                                >
+                                <Button variant="secondary" onClick={closeImportModal}>
                                     Close
-                                </button>
+                                </Button>
                             </div>
                         </div>
                     </div>

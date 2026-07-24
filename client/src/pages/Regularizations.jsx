@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { CheckCircle, XCircle, Clock, RefreshCw, Filter } from 'lucide-react';
 import api from '../api';
-import { useToast } from '../components';
+import { useToast, Button, PageHeader } from '../components';
 
 export default function Regularizations() {
     const toast = useToast();
@@ -45,28 +45,28 @@ export default function Regularizations() {
 
     return (
         <div className="p-6 space-y-4">
-            <div className="flex items-center justify-between flex-wrap gap-3">
-                <div>
-                    <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                        <Clock className="text-orange-500" size={22} /> Attendance Regularization
-                    </h1>
-                    <p className="text-sm text-slate-500">Review missed-punch correction requests from employees</p>
-                </div>
-                <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1.5 bg-white border rounded-lg px-2 py-1.5">
-                        <Filter size={14} className="text-slate-400" />
-                        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="text-sm border-none focus:ring-0">
-                            <option value="pending">Pending</option>
-                            <option value="approved">Approved</option>
-                            <option value="rejected">Rejected</option>
-                            <option value="">All</option>
-                        </select>
-                    </div>
-                    <button onClick={fetchRequests} className="p-2 bg-white border rounded-lg text-slate-500 hover:bg-slate-50">
-                        <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-                    </button>
-                </div>
-            </div>
+            <PageHeader
+                icon={Clock}
+                title="Attendance Regularization"
+                subtitle="Review missed-punch correction requests from employees"
+                className="mb-0"
+                actions={
+                    <>
+                        <div className="flex items-center gap-1.5 bg-white border rounded-lg px-2 py-1.5">
+                            <Filter size={14} className="text-slate-400" />
+                            <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="text-sm border-none focus:ring-0">
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
+                                <option value="">All</option>
+                            </select>
+                        </div>
+                        <Button variant="secondary" onClick={fetchRequests} title="Refresh">
+                            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+                        </Button>
+                    </>
+                }
+            />
 
             <div className="bg-white border rounded-xl divide-y">
                 {requests.length === 0 ? (
@@ -101,18 +101,12 @@ export default function Regularizations() {
                                     onChange={e => setComment(c => ({ ...c, [req.id]: e.target.value }))}
                                     className="text-xs border rounded-lg px-2 py-1.5 w-40"
                                 />
-                                <button
-                                    onClick={() => review(req.id, 'approved')}
-                                    className="flex items-center gap-1 px-3 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-bold hover:bg-emerald-100"
-                                >
-                                    <CheckCircle size={13} /> Approve
-                                </button>
-                                <button
-                                    onClick={() => review(req.id, 'rejected')}
-                                    className="flex items-center gap-1 px-3 py-1.5 bg-rose-50 text-rose-700 border border-rose-200 rounded-lg text-xs font-bold hover:bg-rose-100"
-                                >
-                                    <XCircle size={13} /> Reject
-                                </button>
+                                <Button variant="success" size="sm" icon={CheckCircle} onClick={() => review(req.id, 'approved')}>
+                                    Approve
+                                </Button>
+                                <Button variant="danger" size="sm" icon={XCircle} onClick={() => review(req.id, 'rejected')}>
+                                    Reject
+                                </Button>
                             </div>
                         )}
                     </div>

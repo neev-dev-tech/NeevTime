@@ -4,7 +4,7 @@ import {
     GitBranch, Plus, Trash2, Edit, ChevronLeft, ChevronRight,
     RefreshCw, Search, Check, X
 } from 'lucide-react';
-import { useToast } from '../components';
+import { useToast, Button, PageHeader } from '../components';
 
 export default function ApprovalFlow() {
     const toast = useToast();
@@ -142,36 +142,40 @@ export default function ApprovalFlow() {
     const requestTypes = ['Leave', 'Overtime', 'Attendance Correction'];
 
     return (
-        <div className="flex flex-col h-[calc(100vh-120px)] card-base overflow-hidden relative">
+        <div className="flex flex-col h-[calc(100vh-120px)]">
+            <PageHeader
+                icon={GitBranch}
+                title="Approval Flows"
+                subtitle="Configure multi-step approval workflows"
+            />
+            <div className="flex flex-col flex-1 card-base overflow-hidden relative">
             {/* Toolbar */}
             <div className="flex items-center gap-3 p-4 border-b border-gray-100 bg-white text-sm flex-wrap">
-                <button
+                <Button
+                    variant="primary"
+                    icon={Plus}
                     onClick={() => { resetForm(); setShowModal('add'); setEditItem(null); }}
-                    className="btn-primary flex items-center gap-2 shadow-saffron"
                 >
-                    <Plus size={18} /> Add Flow
-                </button>
+                    Add Flow
+                </Button>
 
                 <div className="h-8 w-px bg-gray-200 mx-2 hidden md:block"></div>
 
-                <button
-                    onClick={handleBulkDelete}
-                    className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-full hover:bg-red-100 font-medium transition-colors"
-                >
-                    <Trash2 size={16} /> Delete
-                </button>
+                <Button variant="danger" icon={Trash2} onClick={handleBulkDelete}>
+                    Delete
+                </Button>
 
-                <button
+                <Button
+                    variant="secondary"
+                    icon={RefreshCw}
                     onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
                         fetchData();
                     }}
-                    className="flex items-center gap-2 px-4 py-2 text-slate-grey hover:bg-gray-50 rounded-full font-medium transition-colors border border-gray-200"
-                    type="button"
                 >
-                    <RefreshCw size={16} /> Refresh
-                </button>
+                    Refresh
+                </Button>
 
                 <div className="ml-auto w-72 relative">
                     <input
@@ -320,9 +324,9 @@ export default function ApprovalFlow() {
                             <div className="mt-8 pt-6 border-t border-gray-100">
                                 <div className="flex justify-between items-center mb-4">
                                     <h4 className="font-bold text-charcoal">Approval Nodes</h4>
-                                    <button type="button" onClick={addNode} className="px-4 py-2 bg-green-50 text-green-700 rounded-full text-sm hover:bg-green-100 flex items-center gap-1 font-medium transition-colors">
-                                        <Plus size={16} /> Add Node
-                                    </button>
+                                    <Button variant="success" size="sm" icon={Plus} onClick={addNode}>
+                                        Add Node
+                                    </Button>
                                 </div>
 
                                 <div className="border border-gray-200 rounded-xl overflow-hidden">
@@ -366,12 +370,13 @@ export default function ApprovalFlow() {
                             </div>
                         </form>
                         <div className="flex justify-end gap-3 p-5 border-t border-gray-100 bg-gray-50/50">
-                            <button type="button" onClick={() => { setShowModal(null); setEditItem(null); resetForm(); }} className="px-5 py-2.5 rounded-full text-slate-grey hover:bg-gray-200 font-medium transition-colors">Cancel</button>
-                            <button type="submit" onClick={handleSubmit} className="px-6 py-2.5 bg-green-600 text-white rounded-full hover:bg-green-700 font-medium shadow-lg shadow-green-100 transition-all">Confirm</button>
+                            <Button variant="secondary" onClick={() => { setShowModal(null); setEditItem(null); resetForm(); }}>Cancel</Button>
+                            <Button variant="primary" type="submit" onClick={handleSubmit}>Confirm</Button>
                         </div>
                     </div>
                 </div>
             )}
+            </div>
         </div>
     );
 }

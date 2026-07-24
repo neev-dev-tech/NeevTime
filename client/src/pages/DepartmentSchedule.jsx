@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
 import { Building2, Plus, Edit2, Trash2, X, Save, Calendar, Clock } from 'lucide-react';
-import { useToast } from '../components';
+import { useToast, Button, PageHeader } from '../components';
 
 export default function DepartmentSchedule() {
     const toast = useToast();
@@ -120,19 +120,13 @@ export default function DepartmentSchedule() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold flex items-center gap-2">
-                    <Building2 className="text-blue-600" />
-                    Department Schedule
-                </h1>
-                <button
-                    onClick={() => setShowModal(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                >
-                    <Plus size={16} />
-                    Assign Schedule
-                </button>
-            </div>
+            <PageHeader
+                icon={Building2}
+                title="Department Schedule"
+                actions={
+                    <Button icon={Plus} onClick={() => setShowModal(true)}>Assign Schedule</Button>
+                }
+            />
 
             {/* Schedules Table */}
             <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
@@ -308,20 +302,10 @@ export default function DepartmentSchedule() {
                             </div>
 
                             <div className="flex justify-end gap-3 pt-4 border-t">
-                                <button
-                                    type="button"
-                                    onClick={closeModal}
-                                    className="px-4 py-2 border rounded-lg hover:bg-gray-50"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-                                >
-                                    <Save size={16} />
+                                <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+                                <Button type="submit" icon={Save}>
                                     {editingId ? 'Update' : 'Assign'}
-                                </button>
+                                </Button>
                             </div>
                         </form>
                     </div>

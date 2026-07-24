@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
 import { ClipboardEdit, Search, Calendar, Clock, User, AlertCircle, CheckCircle } from 'lucide-react';
-import { useToast } from '../components';
+import { useToast, Button, PageHeader } from '../components';
 
 export default function ManualEntry() {
     const toast = useToast();
@@ -56,7 +56,11 @@ export default function ManualEntry() {
 
     return (
         <div className="p-6 max-w-2xl mx-auto">
-            <h1 className="text-2xl font-bold mb-6 flex items-center gap-2"><ClipboardEdit /> Manual Attendance Entry</h1>
+            <PageHeader
+                icon={ClipboardEdit}
+                title="Manual Attendance Entry"
+                subtitle="Add a missed punch record for an employee"
+            />
 
             {result && (
                 <div className={`mb-4 p-4 rounded-lg flex items-center gap-2 ${result.success ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
@@ -129,9 +133,9 @@ export default function ManualEntry() {
                     <textarea className="w-full border rounded-lg px-4 py-2" rows={3} placeholder="Reason for manual entry..." value={form.reason} onChange={e => setForm({ ...form, reason: e.target.value })} required />
                 </div>
 
-                <button type="submit" disabled={submitting || !selectedEmployee} className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
+                <Button type="submit" size="lg" disabled={submitting || !selectedEmployee} className="w-full">
                     {submitting ? 'Submitting...' : 'Submit Manual Entry'}
-                </button>
+                </Button>
             </form>
         </div>
     );

@@ -121,11 +121,31 @@ router.put('/:category', async (req, res) => {
         }, {});
 
         res.json({ success: true, settings });
+
+        // SMTP config changed — rebuild the cached transporter
+        if (category === 'notifications') {
+            require('../services/email').initTransporter().catch(() => {});
+        }
     } catch (err) {
         await client.query('ROLLBACK');
         res.status(500).json({ error: err.message });
     } finally {
         client.release();
+    }
+});
+
+// ================= SEND TEST EMAIL (uses saved SMTP settings) =================
+router.post('/test-email', async (req, res) => {
+    try {
+        const { test_email } = req.body;
+        if (!test_email) {
+            return res.status(400).json({ error: 'test_email required' });
+        }
+        const emailService = require('../services/email');
+        const result = await emailService.testEmailConfig(test_email);
+        res.status(result.success ? 200 : 400).json(result);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
 });
 

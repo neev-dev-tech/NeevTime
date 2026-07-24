@@ -6,7 +6,7 @@ import {
     Upload, RefreshCw, LayoutList,
     ArrowRightLeft, X, Download, Search, Map
 } from 'lucide-react';
-import { useToast } from '../components';
+import { useToast, Button, PageHeader } from '../components';
 
 const AreaTreeItem = ({ area, areas, onSelect, selectedId, level = 0 }) => {
     const [expanded, setExpanded] = useState(true);
@@ -225,12 +225,7 @@ export default function Area() {
     return (
         <div className="space-y-6">
             {/* Page Header */}
-            <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-charcoal flex items-center gap-2">
-                    <Map className="text-saffron" />
-                    Areas
-                </h2>
-            </div>
+            <PageHeader icon={Map} title="Areas" />
 
             <div className="flex gap-6 h-[calc(100vh-12rem)]">
                 {/* Tree View Sidebar */}
@@ -263,19 +258,19 @@ export default function Area() {
                     {/* Toolbar */}
                     <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-white flex-wrap gap-3">
                         <div className="flex items-center gap-2">
-                            <button onClick={() => { setFormData({}); setShowModal(true); }} className="btn-primary flex items-center gap-2">
-                                <Plus size={18} /> Add
-                            </button>
-                            <button onClick={handleBulkDelete} className="px-4 py-2 border border-gray-200 rounded-full text-slate-grey hover:bg-gray-50 hover:text-red-500 transition-colors flex items-center gap-2 font-medium">
-                                <Trash2 size={16} /> Delete
-                            </button>
+                            <Button variant="primary" icon={Plus} onClick={() => { setFormData({}); setShowModal(true); }}>
+                                Add
+                            </Button>
+                            <Button variant="danger" icon={Trash2} onClick={handleBulkDelete}>
+                                Delete
+                            </Button>
                             <div className="h-6 w-px bg-gray-200 mx-2"></div>
-                            <button onClick={() => setShowImportModal(true)} className="px-4 py-2 border border-gray-200 rounded-full text-slate-grey hover:bg-gray-50 transition-colors flex items-center gap-2 font-medium">
-                                <Upload size={16} /> Import
-                            </button>
-                            <button onClick={() => setShowTransferModal(true)} className="px-4 py-2 border border-gray-200 rounded-full text-slate-grey hover:bg-gray-50 transition-colors flex items-center gap-2 font-medium">
-                                <ArrowRightLeft size={16} /> Personnel Transfer
-                            </button>
+                            <Button variant="secondary" icon={Upload} onClick={() => setShowImportModal(true)}>
+                                Import
+                            </Button>
+                            <Button variant="secondary" icon={ArrowRightLeft} onClick={() => setShowTransferModal(true)}>
+                                Personnel Transfer
+                            </Button>
                         </div>
                         <div className="relative w-64">
                             <input
@@ -381,8 +376,8 @@ export default function Area() {
                                 />
                             </div>
                             <div className="flex justify-end gap-3 pt-4">
-                                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2.5 text-slate-grey hover:bg-gray-50 rounded-full font-medium transition-colors">Cancel</button>
-                                <button type="submit" className="btn-primary">Save</button>
+                                <Button variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
+                                <Button type="submit" variant="primary">Save</Button>
                             </div>
                         </form>
                     </div>
@@ -416,8 +411,8 @@ export default function Area() {
                                 </button>
                             </div>
                             <div className="flex justify-end gap-3 pt-4">
-                                <button type="button" onClick={() => setShowImportModal(false)} className="px-4 py-2.5 text-slate-grey hover:bg-gray-50 rounded-full font-medium transition-colors">Cancel</button>
-                                <button type="submit" className="btn-primary">Import</button>
+                                <Button variant="secondary" onClick={() => setShowImportModal(false)}>Cancel</Button>
+                                <Button type="submit" variant="primary">Import</Button>
                             </div>
                         </form>
                     </div>
@@ -461,8 +456,8 @@ export default function Area() {
                                 <strong>Note:</strong> This will transfer personnel from the source area to the destination area.
                             </div>
                             <div className="flex justify-end gap-3 pt-4">
-                                <button type="button" onClick={() => setShowTransferModal(false)} className="px-4 py-2.5 text-slate-grey hover:bg-gray-50 rounded-full font-medium transition-colors">Cancel</button>
-                                <button type="submit" className="btn-primary">Transfer</button>
+                                <Button variant="secondary" onClick={() => setShowTransferModal(false)}>Cancel</Button>
+                                <Button type="submit" variant="primary">Transfer</Button>
                             </div>
                         </form>
                     </div>
@@ -481,18 +476,12 @@ export default function Area() {
                             Are you sure you want to delete <span className="font-bold text-charcoal">{areaToDelete?.name || 'these items'}</span>? This action cannot be undone.
                         </p>
                         <div className="flex justify-center gap-3">
-                            <button
-                                onClick={() => { setShowDeleteModal(false); setAreaToDelete(null); }}
-                                className="px-5 py-2.5 text-slate-grey hover:bg-gray-50 rounded-full font-medium transition-colors"
-                            >
+                            <Button variant="secondary" onClick={() => { setShowDeleteModal(false); setAreaToDelete(null); }}>
                                 Cancel
-                            </button>
-                            <button
-                                onClick={confirmDelete}
-                                className="px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-full font-medium shadow-lg shadow-red-500/30 transition-all"
-                            >
+                            </Button>
+                            <Button variant="danger" onClick={confirmDelete}>
                                 Yes, Delete
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </div>

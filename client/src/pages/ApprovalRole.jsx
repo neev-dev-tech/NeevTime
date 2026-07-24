@@ -4,7 +4,7 @@ import {
     Shield, Plus, Trash2, Edit, ChevronLeft, ChevronRight,
     RefreshCw, Search, Users, X
 } from 'lucide-react';
-import { useToast } from '../components';
+import { useToast, Button, PageHeader } from '../components';
 
 export default function ApprovalRole() {
     const toast = useToast();
@@ -118,36 +118,40 @@ export default function ApprovalRole() {
     const paginatedItems = filteredItems.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
     return (
-        <div className="flex flex-col h-[calc(100vh-120px)] card-base overflow-hidden relative">
+        <div className="flex flex-col h-[calc(100vh-120px)]">
+            <PageHeader
+                icon={Shield}
+                title="Approval Roles"
+                subtitle="Define approver roles for approval workflows"
+            />
+            <div className="flex flex-col flex-1 card-base overflow-hidden relative">
             {/* Toolbar */}
             <div className="flex items-center gap-3 p-4 border-b border-gray-100 bg-white text-sm flex-wrap">
-                <button
+                <Button
+                    variant="primary"
+                    icon={Plus}
                     onClick={() => { setShowModal('add'); setFormData({ role_code: '', role_name: '', description: '' }); setEditItem(null); }}
-                    className="btn-primary flex items-center gap-2 shadow-saffron"
                 >
-                    <Plus size={18} /> Add Role
-                </button>
+                    Add Role
+                </Button>
 
                 <div className="h-8 w-px bg-gray-200 mx-2 hidden md:block"></div>
 
-                <button
-                    onClick={handleBulkDelete}
-                    className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-full hover:bg-red-100 font-medium transition-colors"
-                >
-                    <Trash2 size={16} /> Delete
-                </button>
+                <Button variant="danger" icon={Trash2} onClick={handleBulkDelete}>
+                    Delete
+                </Button>
 
-                <button
+                <Button
+                    variant="secondary"
+                    icon={RefreshCw}
                     onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
                         fetchRoles();
                     }}
-                    className="flex items-center gap-2 px-4 py-2 text-slate-grey hover:bg-gray-50 rounded-full font-medium transition-colors border border-gray-200"
-                    type="button"
                 >
-                    <RefreshCw size={16} /> Refresh
-                </button>
+                    Refresh
+                </Button>
 
                 <div className="ml-auto w-72 relative">
                     <input
@@ -264,17 +268,18 @@ export default function ApprovalRole() {
                                     className="flex-1 input-base py-2 text-sm resize-none" rows={3} />
                             </div>
                             <div className="flex justify-end gap-3 pt-4 border-t border-gray-50">
-                                <button type="button" onClick={() => { setShowModal(null); setEditItem(null); }} className="px-5 py-2 rounded-full text-slate-grey hover:bg-gray-50 font-medium transition-colors border border-gray-200">
+                                <Button variant="secondary" onClick={() => { setShowModal(null); setEditItem(null); }}>
                                     Cancel
-                                </button>
-                                <button type="submit" className="px-6 py-2 bg-green-600 text-white rounded-full hover:bg-green-700 font-medium shadow-lg shadow-green-100 transition-all">
+                                </Button>
+                                <Button variant="primary" type="submit">
                                     Confirm
-                                </button>
+                                </Button>
                             </div>
                         </form>
                     </div>
                 </div>
             )}
+            </div>
         </div>
     );
 }

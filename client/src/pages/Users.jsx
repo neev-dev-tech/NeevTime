@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Edit2, X, Check, RefreshCw, Users, Shield, Loader2 } from 'lucide-react';
 import api from '../api';
+import { Button, PageHeader, ExportMenu } from '../components';
 
 const ROLES = ['admin', 'hr', 'user'];
 
@@ -114,35 +115,39 @@ export default function UsersPage() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                        <Users className="text-green-600" />
-                        User Management
-                    </h1>
-                    <p className="text-gray-500">Manage system users and their roles</p>
-                </div>
-                <div className="flex gap-2">
-                    <button
-                        onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            fetchUsers();
-                        }}
-                        className="flex items-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
-                        type="button"
-                    >
-                        <RefreshCw size={16} />
-                    </button>
-                    <button
-                        onClick={openNewModal}
-                        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-                    >
-                        <Plus size={16} />
-                        Add User
-                    </button>
-                </div>
-            </div>
+            <PageHeader
+                icon={Users}
+                title="User Management"
+                subtitle="Manage system users and their roles"
+                actions={(
+                    <>
+                        <ExportMenu
+                            rows={users}
+                            columns={[
+                                { key: 'username', label: 'Username' },
+                                { key: 'role', label: 'Role' },
+                                { key: 'email', label: 'Email' }
+                            ]}
+                            filename="users"
+                            title="Users"
+                        />
+                        <Button
+                            variant="secondary"
+                            icon={RefreshCw}
+                            type="button"
+                            aria-label="Refresh"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                fetchUsers();
+                            }}
+                        />
+                        <Button variant="primary" icon={Plus} onClick={openNewModal}>
+                            Add User
+                        </Button>
+                    </>
+                )}
+            />
 
             {/* Users Table */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">

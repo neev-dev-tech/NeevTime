@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api';
-import { Calendar, Plus, Check, X, Clock, User, FileText, Search, RefreshCw, Filter, ChevronDown } from 'lucide-react';
-import { useToast } from '../components';
+import { Calendar, Plus, Check, X, User, Search, RefreshCw, ChevronDown } from 'lucide-react';
+import { useToast, Button, PageHeader, ExportMenu } from '../components';
 
 export default function LeaveApplications() {
     const toast = useToast();
@@ -67,16 +67,42 @@ export default function LeaveApplications() {
         return <span className={`px-2 py-0.5 rounded text-xs font-medium ${colors[status] || 'bg-gray-100'}`}>{status}</span>;
     };
 
+    const exportColumns = [
+        { key: 'employee_name', label: 'Employee' },
+        { key: 'leave_type_name', label: 'Leave Type' },
+        { key: 'from_date', label: 'From' },
+        { key: 'to_date', label: 'To' },
+        { key: 'total_days', label: 'Days' },
+        { key: 'status', label: 'Status' }
+    ];
+
     return (
-        <div className="flex flex-col h-[calc(100vh-120px)] bg-white border border-gray-200 shadow-sm rounded-md overflow-hidden relative">
+        <div className="flex flex-col h-[calc(100vh-120px)]">
+            <PageHeader
+                icon={Calendar}
+                title="Leave Applications"
+                subtitle="Apply and review employee leave requests"
+                actions={
+                    <>
+                        <ExportMenu
+                            rows={filteredApps}
+                            columns={exportColumns}
+                            filename="leave_applications"
+                            title="Leave Applications"
+                            mapRow={app => ({
+                                ...app,
+                                from_date: new Date(app.from_date).toLocaleDateString(),
+                                to_date: new Date(app.to_date).toLocaleDateString()
+                            })}
+                        />
+                        <Button variant="secondary" icon={RefreshCw} onClick={fetchData}>Refresh</Button>
+                        <Button variant="primary" icon={Plus} onClick={() => setShowApply(true)}>Apply Leave</Button>
+                    </>
+                }
+            />
+            <div className="flex flex-col flex-1 bg-white border border-gray-200 shadow-sm rounded-md overflow-hidden relative">
             {/* Toolbar */}
             <div className="flex items-center gap-2 p-2 border-b border-gray-200 bg-gray-50 text-sm flex-wrap">
-                <button
-                    onClick={() => setShowApply(true)}
-                    className="flex items-center gap-1 px-3 py-1.5 bg-blue-50 border border-blue-200 hover:bg-blue-100 rounded text-blue-700"
-                >
-                    <Plus size={14} /> Apply Leave
-                </button>
                 <div className="relative">
                     <select
                         value={statusFilter}
@@ -90,12 +116,6 @@ export default function LeaveApplications() {
                     </select>
                     <ChevronDown size={14} className="absolute right-2 top-2.5 text-gray-500 pointer-events-none" />
                 </div>
-                <button
-                    onClick={fetchData}
-                    className="flex items-center gap-1 px-3 py-1.5 bg-gray-200 hover:bg-gray-300 rounded text-gray-700"
-                >
-                    <RefreshCw size={14} /> Refresh
-                </button>
 
                 <div className="ml-auto w-64 relative">
                     <input
@@ -197,12 +217,13 @@ export default function LeaveApplications() {
                             <textarea required className="w-full border rounded-lg px-3 py-2" rows={2} value={form.reason} onChange={e => setForm({ ...form, reason: e.target.value })} />
                         </div>
                         <div className="flex justify-end gap-3 pt-2">
-                            <button type="button" onClick={() => setShowApply(false)} className="px-4 py-2 border rounded-lg">Cancel</button>
-                            <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg">Submit</button>
+                            <Button variant="secondary" onClick={() => setShowApply(false)}>Cancel</Button>
+                            <Button variant="primary" type="submit">Submit</Button>
                         </div>
                     </form>
                 </div>
             )}
+            </div>
         </div>
     );
 }
