@@ -1,11 +1,13 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ChevronDown, ChevronRight, LogOut, Info, HelpCircle, Globe, Activity } from 'lucide-react';
+import { ChevronDown, ChevronRight, LogOut, Info, HelpCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import PropTypes from 'prop-types';
 import { modules, personnelSidebar, deviceSidebar, attendanceSidebar, systemSidebar } from '../config/navigation';
 import { ThemeButton } from '../components';
 import GlobalSearch from '../components/GlobalSearch';
+import NotificationCenter from '../components/NotificationCenter';
+import VersionDisplay from '../components/VersionDisplay';
 import useStore from '../store/useStore';
 
 export default function MainLayout({ children }) {
@@ -15,6 +17,8 @@ export default function MainLayout({ children }) {
   const [activeModule, setActiveModule] = useState('Dashboard');
   const [expandedGroups, setExpandedGroups] = useState({});
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showAbout, setShowAbout] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
 
   const toggleGroup = (groupName) => {
     setExpandedGroups(prev => ({
@@ -109,9 +113,7 @@ export default function MainLayout({ children }) {
 
           <div className="flex items-center gap-3">
             <ThemeButton className="hidden sm:flex" />
-            <button className="p-2 rounded-full hover:bg-orange-50 text-slate-400 hover:text-orange-500 transition-colors">
-              <Activity size={20} />
-            </button>
+            <NotificationCenter />
 
             <div className="relative">
               <button
@@ -139,14 +141,11 @@ export default function MainLayout({ children }) {
                         <p className="text-xs text-slate-500">{auth?.role}</p>
                       </div>
                       <div className="py-2">
-                        <button className="w-full px-4 py-2 text-left text-sm text-slate-600 hover:bg-orange-50 flex items-center gap-3">
+                        <button onClick={() => { setShowProfileMenu(false); setShowAbout(true); }} className="w-full px-4 py-2 text-left text-sm text-slate-600 dark:text-slate-300 hover:bg-orange-50 dark:hover:bg-slate-700 flex items-center gap-3">
                           <Info size={16} /> <span>About</span>
                         </button>
-                        <button className="w-full px-4 py-2 text-left text-sm text-slate-600 hover:bg-orange-50 flex items-center gap-3">
+                        <button onClick={() => { setShowProfileMenu(false); setShowHelp(true); }} className="w-full px-4 py-2 text-left text-sm text-slate-600 dark:text-slate-300 hover:bg-orange-50 dark:hover:bg-slate-700 flex items-center gap-3">
                           <HelpCircle size={16} /> <span>Help</span>
-                        </button>
-                        <button className="w-full px-4 py-2 text-left text-sm text-slate-600 hover:bg-orange-50 flex items-center gap-3">
-                          <Globe size={16} /> <span>Language</span>
                         </button>
                       </div>
                       <div className="border-t border-orange-50">
@@ -208,6 +207,44 @@ export default function MainLayout({ children }) {
             ))}
           </aside>
         )}
+        {showAbout && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4" onClick={() => setShowAbout(false)}>
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-sm text-center" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <span className="text-3xl font-bold text-slate-800 dark:text-slate-100">Neev</span>
+                <span className="text-3xl font-bold text-orange-500">Time</span>
+              </div>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Simplicity Attendance — biometric attendance management</p>
+              <div className="flex justify-center mb-4"><VersionDisplay /></div>
+              <button onClick={() => setShowAbout(false)} className="w-full py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-semibold rounded-lg">Close</button>
+            </div>
+          </div>
+        )}
+
+        {showHelp && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4" onClick={() => setShowHelp(false)}>
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
+              <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4">Quick Help</h3>
+              <div className="space-y-3 text-sm text-slate-600 dark:text-slate-300">
+                <div className="flex items-center justify-between">
+                  <span>Global search (employees, devices, pages)</span>
+                  <kbd className="px-2 py-0.5 bg-slate-100 dark:bg-slate-700 border dark:border-slate-600 rounded text-xs font-mono">Ctrl / ⌘ + K</kbd>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Close dialogs</span>
+                  <kbd className="px-2 py-0.5 bg-slate-100 dark:bg-slate-700 border dark:border-slate-600 rounded text-xs font-mono">Esc</kbd>
+                </div>
+                <hr className="dark:border-slate-700" />
+                <p><b className="text-slate-800 dark:text-slate-100">Modules:</b> switch with the pills in the top bar; each module has its own sidebar.</p>
+                <p><b className="text-slate-800 dark:text-slate-100">Reports:</b> Attendance → Reports → All Reports. Every report exports CSV / Excel / PDF.</p>
+                <p><b className="text-slate-800 dark:text-slate-100">Employee portal:</b> employees sign in at <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded">/portal/login</code> after HR sets a portal password on their profile.</p>
+                <p><b className="text-slate-800 dark:text-slate-100">Theme:</b> palette icon in the top bar toggles dark mode.</p>
+              </div>
+              <button onClick={() => setShowHelp(false)} className="mt-5 w-full py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-semibold rounded-lg">Got it</button>
+            </div>
+          </div>
+        )}
+
         <main className="flex-1 overflow-auto bg-slate-50/50 dark:bg-slate-900">
           <AnimatePresence mode="wait">
             <motion.div

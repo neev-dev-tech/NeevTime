@@ -99,8 +99,10 @@ export default function ApprovalFlow() {
         if (selectedIds.length === 0) return toast.warning('Select flows to delete');
         if (!confirm(`Delete ${selectedIds.length} flows?`)) return;
         try {
-            // await Promise.all(selectedIds.map(id => api.delete(`/api/approval/flows/${id}`))); // Assuming endpoint exists
-            toast.info('Bulk delete not implemented for flows yet');
+            await Promise.all(selectedIds.map(id => api.delete(`/api/approval/flows/${id}`)));
+            toast.success(`Deleted ${selectedIds.length} flow${selectedIds.length > 1 ? 's' : ''}`);
+            setSelectedIds([]);
+            fetchData();
         } catch (err) {
             toast.error('Delete failed');
         }

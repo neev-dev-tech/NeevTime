@@ -379,6 +379,24 @@ app.use('/api/reports', authenticateToken, reportsRouter);
 const mobileAttendanceRouter = require('./routes/mobile_attendance');
 app.use('/api/mobile', authenticateToken, mobileAttendanceRouter);
 
+// Pending-work summary for the notification bell
+app.get('/api/notifications/summary', authenticateToken, async (req, res) => {
+    try {
+        const [leave, reg, offline] = await Promise.all([
+            db.query(`SELECT COUNT(*)::int AS n FROM leave_applications WHERE LOWER(status) = 'pending'`),
+            db.query(`SELECT COUNT(*)::int AS n FROM attendance_regularizations WHERE status = 'pending'`),
+            db.query(`SELECT COUNT(*)::int AS n FROM devices WHERE status = 'offline'`)
+        ]);
+        res.json({
+            pending_leave: leave.rows[0].n,
+            pending_regularizations: reg.rows[0].n,
+            devices_offline: offline.rows[0].n
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Attendance regularization review (admin/HR)
 const regularizationsRouter = require('./routes/regularizations');
 app.use('/api/regularizations', authenticateToken, regularizationsRouter);
