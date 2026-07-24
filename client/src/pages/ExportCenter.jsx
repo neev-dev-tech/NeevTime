@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import api from '../api';
 import { Download, FileText, FileSpreadsheet, Loader, FileDown } from 'lucide-react';
 import { exportToPDF } from '../utils/pdfExport';
+import { useToast } from '../components';
 
 const EXPORT_TYPES = [
     { id: 'employees', label: 'Employee Master', endpoint: '/api/employees' },
@@ -11,6 +12,7 @@ const EXPORT_TYPES = [
 ];
 
 export default function ExportCenter() {
+    const toast = useToast();
     const [exportType, setExportType] = useState('employees');
     const [format, setFormat] = useState('csv');
     const [dateRange, setDateRange] = useState({ start: '', end: '' });
@@ -36,14 +38,14 @@ export default function ExportCenter() {
                 downloadPDF(data, type.label);
             }
         } catch (err) {
-            alert('Export failed: ' + (err.response?.data?.error || err.message));
+            toast.error('Export failed: ' + (err.response?.data?.error || err.message));
         }
         setExporting(false);
     };
 
     const downloadPDF = (data, label) => {
         if (!Array.isArray(data) || data.length === 0) {
-            alert('No data to export');
+            toast.warning('No data to export');
             return;
         }
 
@@ -62,7 +64,7 @@ export default function ExportCenter() {
 
     const downloadCSV = (data, filename) => {
         if (!Array.isArray(data) || data.length === 0) {
-            alert('No data to export');
+            toast.warning('No data to export');
             return;
         }
         const headers = Object.keys(data[0]);

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
 import { UserCheck, Plus, Edit2, Trash2, X, Save, Users, Search, Filter } from 'lucide-react';
+import { useToast } from '../components';
 
 export default function EmployeeSchedule() {
+    const toast = useToast();
     const [schedules, setSchedules] = useState([]);
     const [employees, setEmployees] = useState([]);
     const [departments, setDepartments] = useState([]);
@@ -71,14 +73,14 @@ export default function EmployeeSchedule() {
             closeModal();
         } catch (err) {
             console.error('Error saving schedule:', err);
-            alert('Error saving schedule');
+            toast.error('Error saving schedule');
         }
     };
 
     const handleBulkSubmit = async (e) => {
         e.preventDefault();
         if (selectedEmployees.length === 0) {
-            alert('Please select at least one employee');
+            toast.warning('Please select at least one employee');
             return;
         }
         try {
@@ -95,7 +97,7 @@ export default function EmployeeSchedule() {
             setSelectedEmployees([]);
         } catch (err) {
             console.error('Error bulk assigning:', err);
-            alert('Error assigning schedules');
+            toast.error('Error assigning schedules');
         }
     };
 

@@ -4,8 +4,10 @@ import { Calendar, Clock, AlertTriangle, CheckCircle, XCircle, User, Filter, Dow
 import { exportToPDF } from '../utils/pdfExport';
 import { exportToExcel } from '../utils/excelExport';
 import SkeletonLoader from '../components/SkeletonLoader';
+import { useToast } from '../components';
 
 export default function AttendanceRegister() {
+    const toast = useToast();
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -46,7 +48,7 @@ export default function AttendanceRegister() {
     };
 
     const handleExportPDF = () => {
-        if (data.length === 0) return alert('No data to export');
+        if (data.length === 0) return toast.warning('No data to export');
         const filterObj = {};
         if (filters.status) filterObj.status = filters.status;
         if (filters.department) filterObj.department = filters.department;
@@ -71,7 +73,7 @@ export default function AttendanceRegister() {
     };
 
     const handleExportXLSX = () => {
-        if (data.length === 0) return alert('No data to export');
+        if (data.length === 0) return toast.warning('No data to export');
         const filterObj = {};
         if (filters.status) filterObj.status = filters.status;
         if (filters.department) filterObj.department = filters.department;

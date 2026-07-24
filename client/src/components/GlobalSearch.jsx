@@ -2,6 +2,25 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Search, X, Clock, Users, TabletSmartphone, FileBarChart, Settings2, ArrowRight, Command } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import keyboardShortcuts from '../utils/keyboardShortcuts';
+import api from '../api';
+
+// Static navigable pages included in search results
+const PAGE_INDEX = [
+    { id: 'page-dashboard', type: 'settings', title: 'Dashboard', subtitle: 'Overview & live monitor', path: '/' },
+    { id: 'page-employees', type: 'employees', title: 'Employees', subtitle: 'Personnel management', path: '/employees' },
+    { id: 'page-devices', type: 'devices', title: 'Devices', subtitle: 'Biometric device management', path: '/devices' },
+    { id: 'page-reports', type: 'reports', title: 'Reports', subtitle: 'All attendance reports', path: '/reports' },
+    { id: 'page-daily-att', type: 'reports', title: 'Daily Attendance Report', subtitle: 'Reports', path: '/reports/daily-attendance' },
+    { id: 'page-late', type: 'reports', title: 'Late Coming Report', subtitle: 'Reports', path: '/reports/late-coming' },
+    { id: 'page-absent', type: 'reports', title: 'Absent Report', subtitle: 'Reports', path: '/reports/absent' },
+    { id: 'page-overtime', type: 'reports', title: 'Overtime Report', subtitle: 'Reports', path: '/reports/overtime' },
+    { id: 'page-monthly', type: 'reports', title: 'Monthly Summary', subtitle: 'Reports', path: '/reports/att-summary' },
+    { id: 'page-first-last', type: 'reports', title: 'First & Last Report', subtitle: 'Reports', path: '/reports/first-last' },
+    { id: 'page-device-health', type: 'reports', title: 'Device Health Report', subtitle: 'Reports', path: '/reports/device-health' },
+    { id: 'page-register', type: 'reports', title: 'Attendance Register', subtitle: 'Day-wise register', path: '/attendance-register' },
+    { id: 'page-leave', type: 'settings', title: 'Leave Applications', subtitle: 'Leave management', path: '/leaves' },
+    { id: 'page-settings', type: 'settings', title: 'Settings', subtitle: 'System settings', path: '/settings' },
+];
 
 const searchCategories = {
     employees: {
@@ -38,33 +57,53 @@ export default function GlobalSearch() {
     const [recentSearches, setRecentSearches] = useState([]);
     const inputRef = useRef(null);
     const navigate = useNavigate();
+    const indexRef = useRef(null); // cached searchable records for this open session
+
+    // Load employees + devices once per open, merge with static page index
+    const loadIndex = async () => {
+        if (indexRef.current) return indexRef.current;
+        try {
+            const [empRes, devRes] = await Promise.all([
+                api.get('/api/employees'),
+                api.get('/api/devices')
+            ]);
+            const employees = (empRes.data || []).map(emp => ({
+                id: `emp-${emp.id}`,
+                type: 'employees',
+                title: emp.name,
+                subtitle: `${emp.employee_code}${emp.department_name ? ' · ' + emp.department_name : ''}`,
+                path: `/employees/${emp.id}`
+            }));
+            const devices = (devRes.data || []).map(dev => ({
+                id: `dev-${dev.serial_number}`,
+                type: 'devices',
+                title: dev.device_name || dev.serial_number,
+                subtitle: `${dev.serial_number}${dev.status ? ' · ' + dev.status : ''}`,
+                path: '/devices'
+            }));
+            indexRef.current = [...employees, ...devices, ...PAGE_INDEX];
+        } catch (err) {
+            console.error('Search index load failed:', err);
+            indexRef.current = [...PAGE_INDEX];
+        }
+        return indexRef.current;
+    };
 
     // Debounce search for performance
     const debouncedSearch = React.useMemo(
         () => {
             const searchFn = async (searchQuery) => {
-                if (!searchQuery.trim()) {
+                const q = searchQuery.trim().toLowerCase();
+                if (!q) {
                     setResults([]);
                     return;
                 }
-
-                // TODO: Replace with actual API calls
-                // Mock results for now
-                const mockResults = [
-                    {
-                        id: 'emp-1',
-                        type: 'employees',
-                        title: 'John Doe',
-                        subtitle: 'Employee Code: EMP001',
-                        path: '/employees/1',
-                        icon: Users
-                    }
-                ].filter(item =>
-                    item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    item.subtitle.toLowerCase().includes(searchQuery.toLowerCase())
-                );
-
-                setResults(mockResults);
+                const index = await loadIndex();
+                const matches = index.filter(item =>
+                    item.title?.toLowerCase().includes(q) ||
+                    item.subtitle?.toLowerCase().includes(q)
+                ).slice(0, 12);
+                setResults(matches);
                 setSelectedIndex(0);
             };
 
@@ -76,6 +115,11 @@ export default function GlobalSearch() {
         },
         []
     );
+
+    // Refresh the index each time the palette opens
+    useEffect(() => {
+        if (isOpen) indexRef.current = null;
+    }, [isOpen]);
 
     // Load recent searches from localStorage
     useEffect(() => {
@@ -137,9 +181,10 @@ export default function GlobalSearch() {
     }, [isOpen, results, selectedIndex]);
 
     const handleSelectResult = (result) => {
-        // Save to recent searches
+        // Save to recent searches (icon is a React component — not serializable)
+        const { icon: _icon, ...serializable } = result;
         const updated = [
-            { ...result, timestamp: Date.now() },
+            { ...serializable, timestamp: Date.now() },
             ...recentSearches.filter(r => r.id !== result.id)
         ].slice(0, 5);
         setRecentSearches(updated);

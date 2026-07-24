@@ -4,8 +4,10 @@ import {
     TabletSmartphone, Send, RefreshCw, Users, Fingerprint, Database,
     Clock, Power, Trash2, Download, Upload, AlertTriangle, Wifi, WifiOff
 } from 'lucide-react';
+import { useToast } from '../components';
 
 export default function DeviceCommands() {
+    const toast = useToast();
     const [devices, setDevices] = useState([]);
     const [selectedDevice, setSelectedDevice] = useState(null);
     const [commands, setCommands] = useState([]);
@@ -54,7 +56,7 @@ export default function DeviceCommands() {
 
     const sendCommand = async (commandId) => {
         if (!selectedDevice) {
-            alert('Please select a device');
+            toast.warning('Please select a device');
             return;
         }
 
@@ -84,7 +86,7 @@ export default function DeviceCommands() {
 
         } catch (err) {
             console.error('Error sending command:', err);
-            alert('Error sending command: ' + (err.response?.data?.error || err.message));
+            toast.error('Error sending command: ' + (err.response?.data?.error || err.message));
         } finally {
             setSending(prev => ({ ...prev, [commandId]: false }));
         }

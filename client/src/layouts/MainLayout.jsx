@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import PropTypes from 'prop-types';
 import { modules, personnelSidebar, deviceSidebar, attendanceSidebar, systemSidebar } from '../config/navigation';
 import { ThemeButton } from '../components';
+import GlobalSearch from '../components/GlobalSearch';
 import useStore from '../store/useStore';
 
 export default function MainLayout({ children }) {
@@ -62,6 +63,7 @@ export default function MainLayout({ children }) {
 
   return (
     <div className="flex flex-col min-h-screen font-sans" style={{ backgroundColor: '#FAFBFC' }}>
+      <GlobalSearch />
       {/* Top Navigation */}
       <motion.header 
         initial={{ y: -20, opacity: 0 }}

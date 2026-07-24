@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
 import { Scale, Plus, Edit2, Trash2, X, Save, Globe, Building2, Clock, AlertTriangle, CheckCircle, Calendar } from 'lucide-react';
+import { useToast } from '../components';
 
 export default function AttendanceRules() {
+    const toast = useToast();
     const [rules, setRules] = useState([]);
     const [departments, setDepartments] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -70,7 +72,7 @@ export default function AttendanceRules() {
             closeModal();
         } catch (err) {
             console.error('Error saving rule:', err);
-            alert('Error saving rule');
+            toast.error('Error saving rule');
         }
     };
 

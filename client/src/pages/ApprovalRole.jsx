@@ -4,8 +4,10 @@ import {
     Shield, Plus, Trash2, Edit, ChevronLeft, ChevronRight,
     RefreshCw, Search, Users, X
 } from 'lucide-react';
+import { useToast } from '../components';
 
 export default function ApprovalRole() {
+    const toast = useToast();
     const [roles, setRoles] = useState([]);
     const [employees, setEmployees] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -64,7 +66,7 @@ export default function ApprovalRole() {
             setEditItem(null);
             fetchRoles();
         } catch (err) {
-            alert('Failed to save role');
+            toast.error('Failed to save role');
         }
     };
 
@@ -84,19 +86,19 @@ export default function ApprovalRole() {
             await api.delete(`/api/approval/roles/${id}`);
             fetchRoles();
         } catch (err) {
-            alert('Failed to delete');
+            toast.error('Failed to delete');
         }
     };
 
     const handleBulkDelete = async () => {
-        if (selectedIds.length === 0) return alert('Select roles to delete');
+        if (selectedIds.length === 0) return toast.warning('Select roles to delete');
         if (!confirm(`Delete ${selectedIds.length} roles?`)) return;
         try {
             await Promise.all(selectedIds.map(id => api.delete(`/api/approval/roles/${id}`)));
             setSelectedIds([]);
             fetchRoles();
         } catch (err) {
-            alert('Delete failed');
+            toast.error('Delete failed');
         }
     };
 

@@ -2,10 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../api';
 import { User, Mail, Phone, Building, Briefcase, Calendar, Clock, ArrowLeft, Edit2, Trash2, X } from 'lucide-react';
+import { useToast } from '../components';
 
 export default function EmployeeProfile() {
     const { id } = useParams();
     const navigate = useNavigate();
+    const toast = useToast();
     const [employee, setEmployee] = useState(null);
     const [attendance, setAttendance] = useState([]);
     const [activeTab, setActiveTab] = useState('overview');
@@ -59,7 +61,7 @@ export default function EmployeeProfile() {
         try {
             await api.delete(`/api/employees/${id}`);
             navigate('/employees');
-        } catch (err) { alert('Delete failed'); }
+        } catch (err) { toast.error('Delete failed'); }
     };
 
     const handleEditSubmit = async (e) => {
@@ -68,10 +70,10 @@ export default function EmployeeProfile() {
             const res = await api.put(`/api/employees/${id}`, editForm);
             setEmployee(res.data);
             setShowEditModal(false);
-            alert('Employee updated successfully');
+            toast.success('Employee updated successfully');
         } catch (err) {
             console.error(err);
-            alert('Update failed');
+            toast.error('Update failed');
         }
     };
 

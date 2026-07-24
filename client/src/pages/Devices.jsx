@@ -9,6 +9,7 @@ import {
     FileQuestion, Database, AlertCircle, FileSpreadsheet, Table2, Inbox
 } from 'lucide-react';
 import SkeletonLoader from '../components/SkeletonLoader';
+import { useToast } from '../components';
 import { exportToExcel, exportToCSV } from '../utils/excelExport';
 
 // ==========================================
@@ -245,6 +246,7 @@ const DataView = ({ title, endpoint, columns, icon: Icon = Database }) => {
 // ==========================================
 
 export default function Devices() {
+    const toastApi = useToast();
     const location = useLocation();
     const searchParams = new URLSearchParams(location.search);
     const activeView = searchParams.get('view') || 'devices';
@@ -404,7 +406,7 @@ export default function Devices() {
             else await api.post('/api/devices', form);
             fetchDevices();
             closeModal();
-        } catch (err) { alert(err.response?.data?.error); }
+        } catch (err) { toastApi.error(err.response?.data?.error); }
     };
 
     const handleDelete = (serial) => {
@@ -840,7 +842,7 @@ export default function Devices() {
     };
 
     const initiateDataTransfer = (action) => {
-        if (selectedDevices.length === 0) return alert('Select devices first');
+        if (selectedDevices.length === 0) return toastApi.warning('Select devices first');
         setConfirmation({ show: true, action, title: 'Confirm Action', message: `Proceed with ${action}?` });
     };
 

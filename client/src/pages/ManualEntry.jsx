@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
 import { ClipboardEdit, Search, Calendar, Clock, User, AlertCircle, CheckCircle } from 'lucide-react';
+import { useToast } from '../components';
 
 export default function ManualEntry() {
+    const toast = useToast();
     const [employees, setEmployees] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedEmployee, setSelectedEmployee] = useState(null);
@@ -31,8 +33,8 @@ export default function ManualEntry() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!selectedEmployee) return alert('Select an employee');
-        if (!form.reason.trim()) return alert('Reason is required');
+        if (!selectedEmployee) return toast.warning('Select an employee');
+        if (!form.reason.trim()) return toast.warning('Reason is required');
 
         setSubmitting(true);
         try {

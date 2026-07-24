@@ -4,9 +4,11 @@ import { Search, Calculator, ArrowLeft, Printer, FileSpreadsheet, RefreshCw, Loa
 import { useNavigate } from 'react-router-dom';
 import { exportToPDF } from '../../utils/pdfExport';
 import { exportToExcel as exportToExcelUtil } from '../../utils/excelExport';
+import { useToast } from '../../components';
 
 function FirstLastReport() {
     const navigate = useNavigate();
+    const toast = useToast();
     const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0].substring(0, 8) + '01'); // First of month
     const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
     const [employeeId, setEmployeeId] = useState('');
@@ -27,7 +29,7 @@ function FirstLastReport() {
             setCalculated(true);
         } catch (err) {
             console.error(err);
-            alert('Error generating report');
+            toast.error('Error generating report');
         } finally {
             setLoading(false);
         }
@@ -35,7 +37,7 @@ function FirstLastReport() {
 
     const handleExportPDF = () => {
         if (data.length === 0) {
-            alert('No data to export');
+            toast.warning('No data to export');
             return;
         }
 
@@ -66,7 +68,7 @@ function FirstLastReport() {
 
     const handleExportExcel = async () => {
         if (data.length === 0) {
-            alert('No data to export. Please generate the report first.');
+            toast.warning('No data to export. Please generate the report first.');
             return;
         }
 
@@ -99,12 +101,12 @@ function FirstLastReport() {
                     console.log(`✅ Export successful: ${filename} (${recordCount} records)`);
                 },
                 onError: (err) => {
-                    alert(`❌ Export failed: ${err.message}`);
+                    toast.error(`❌ Export failed: ${err.message}`);
                 }
             });
         } catch (err) {
             console.error('Excel export error:', err);
-            alert(`Failed to export Excel: ${err.message}`);
+            toast.error(`Failed to export Excel: ${err.message}`);
         } finally {
             setExporting(false);
             setExportProgress(0);

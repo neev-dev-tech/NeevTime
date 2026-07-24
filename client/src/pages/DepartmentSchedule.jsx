@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
 import { Building2, Plus, Edit2, Trash2, X, Save, Calendar, Clock } from 'lucide-react';
+import { useToast } from '../components';
 
 export default function DepartmentSchedule() {
+    const toast = useToast();
     const [schedules, setSchedules] = useState([]);
     const [departments, setDepartments] = useState([]);
     const [shifts, setShifts] = useState([]);
@@ -62,7 +64,7 @@ export default function DepartmentSchedule() {
             closeModal();
         } catch (err) {
             console.error('Error saving schedule:', err);
-            alert('Error saving schedule');
+            toast.error('Error saving schedule');
         }
     };
 

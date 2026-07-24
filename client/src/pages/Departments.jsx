@@ -2,9 +2,11 @@ import React, { useEffect, useState, useRef } from 'react';
 import api from '../api';
 import { Building2, Plus, Trash2, Edit2, Search, RefreshCw, X, Save, Download, Upload, FileText, FileSpreadsheet, AlertCircle, CheckCircle } from 'lucide-react';
 import SkeletonLoader from '../components/SkeletonLoader';
+import { useToast } from '../components';
 import { exportToExcel, exportToCSV } from '../utils/excelExport';
 
 export default function Departments() {
+    const toast = useToast();
     const [departments, setDepartments] = useState([]);
     const [filteredDepartments, setFilteredDepartments] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -60,7 +62,7 @@ export default function Departments() {
             setEditingId(null);
             fetchDepartments();
         } catch (err) {
-            alert('Failed to save department');
+            toast.error('Failed to save department');
         }
     };
 
@@ -90,7 +92,7 @@ export default function Departments() {
             fetchDepartments();
         } catch (err) {
             console.error('Delete failed:', err);
-            alert('Failed to delete');
+            toast.error('Failed to delete');
             setDeleteConfirm(null);
         }
     };
@@ -99,7 +101,7 @@ export default function Departments() {
         e.preventDefault();
         e.stopPropagation();
         if (selectedIds.length === 0) {
-            alert('Please select items to delete');
+            toast.warning('Please select items to delete');
             return;
         }
         setDeleteConfirm({ type: 'bulk', id: null, count: selectedIds.length });

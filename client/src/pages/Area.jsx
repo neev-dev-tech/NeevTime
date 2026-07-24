@@ -6,6 +6,7 @@ import {
     Upload, RefreshCw, LayoutList,
     ArrowRightLeft, X, Download, Search, Map
 } from 'lucide-react';
+import { useToast } from '../components';
 
 const AreaTreeItem = ({ area, areas, onSelect, selectedId, level = 0 }) => {
     const [expanded, setExpanded] = useState(true);
@@ -45,6 +46,7 @@ const AreaTreeItem = ({ area, areas, onSelect, selectedId, level = 0 }) => {
 
 // Force rebuild for HMR
 export default function Area() {
+    const toast = useToast();
     const [areas, setAreas] = useState([]);
     const [selectedArea, setSelectedArea] = useState(null);
     const [showModal, setShowModal] = useState(false);
@@ -79,7 +81,7 @@ export default function Area() {
             setFormData({});
             fetchAreas();
         } catch (err) {
-            alert(err.response?.data?.error || 'Failed to save area');
+            toast.error(err.response?.data?.error || 'Failed to save area');
         }
     };
 
@@ -92,7 +94,7 @@ export default function Area() {
 
     const handleBulkDelete = () => {
         if (selectedRows.length === 0) {
-            alert('Please select areas to delete');
+            toast.warning('Please select areas to delete');
             return;
         }
         setAreaToDelete(null);
@@ -113,7 +115,7 @@ export default function Area() {
             setShowDeleteModal(false);
             setAreaToDelete(null);
         } catch (err) {
-            alert('Failed to delete areas. Check for dependencies.');
+            toast.error('Failed to delete areas. Check for dependencies.');
             setShowDeleteModal(false);
         }
     };
@@ -121,7 +123,7 @@ export default function Area() {
     const handleImport = async (e) => {
         e.preventDefault();
         if (!importFile) {
-            alert('Please select a file');
+            toast.warning('Please select a file');
             return;
         }
 
@@ -148,12 +150,12 @@ export default function Area() {
                     } catch (e) { console.error('Row import error:', e); }
                 }
 
-                alert(`Imported ${imported} areas successfully`);
+                toast.success(`Imported ${imported} areas successfully`);
                 setShowImportModal(false);
                 setImportFile(null);
                 fetchAreas();
             } catch (err) {
-                alert('Failed to parse CSV file');
+                toast.error('Failed to parse CSV file');
             }
         };
         reader.readAsText(importFile);
@@ -162,11 +164,11 @@ export default function Area() {
     const handleTransfer = async (e) => {
         e.preventDefault();
         if (!transferData.fromArea || !transferData.toArea) {
-            alert('Please select both source and destination areas');
+            toast.warning('Please select both source and destination areas');
             return;
         }
         if (transferData.fromArea === transferData.toArea) {
-            alert('Source and destination areas must be different');
+            toast.warning('Source and destination areas must be different');
             return;
         }
 
@@ -178,12 +180,12 @@ export default function Area() {
                 mode: 'bulk_area'
             });
 
-            alert('Personnel transferred successfully');
+            toast.success('Personnel transferred successfully');
             setShowTransferModal(false);
             setTransferData({ fromArea: '', toArea: '' });
             fetchAreas(); // Refresh to show new counts
         } catch (err) {
-            alert(err.response?.data?.error || 'Failed to transfer personnel');
+            toast.error(err.response?.data?.error || 'Failed to transfer personnel');
         }
     };
 

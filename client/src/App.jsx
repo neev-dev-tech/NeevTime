@@ -6,7 +6,6 @@ import PropTypes from 'prop-types';
 // Layout & Components
 import MainLayout from './layouts/MainLayout';
 import { ToastProvider, ThemeProvider as EnhancedThemeProvider } from './components';
-import { ThemeProvider } from './contexts/ThemeContext';
 import ErrorBoundary from './components/ErrorBoundary';
 
 // Pages
@@ -108,7 +107,6 @@ export default function App() {
   return (
     <EnhancedThemeProvider>
       <ToastProvider position="top-right" maxToasts={5}>
-        <ThemeProvider>
           <ErrorBoundary>
             <BrowserRouter>
               <Routes>
@@ -196,7 +194,6 @@ export default function App() {
               </Routes>
             </BrowserRouter>
           </ErrorBoundary>
-        </ThemeProvider>
       </ToastProvider>
     </EnhancedThemeProvider>
   );

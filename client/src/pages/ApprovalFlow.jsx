@@ -4,8 +4,10 @@ import {
     GitBranch, Plus, Trash2, Edit, ChevronLeft, ChevronRight,
     RefreshCw, Search, Check, X
 } from 'lucide-react';
+import { useToast } from '../components';
 
 export default function ApprovalFlow() {
+    const toast = useToast();
     const [flows, setFlows] = useState([]);
     const [nodes, setNodes] = useState([]);
     const [departments, setDepartments] = useState([]);
@@ -72,7 +74,7 @@ export default function ApprovalFlow() {
             }
             setShowModal(null); setEditItem(null); resetForm();
             fetchData();
-        } catch (err) { alert('Failed to save flow'); }
+        } catch (err) { toast.error('Failed to save flow'); }
     };
 
     const handleEdit = (flow) => {
@@ -90,17 +92,17 @@ export default function ApprovalFlow() {
     const handleDelete = async (id) => {
         if (!confirm('Delete this flow?')) return;
         try { await api.delete(`/api/approval/flows/${id}`); fetchData(); }
-        catch (err) { alert('Delete failed'); }
+        catch (err) { toast.error('Delete failed'); }
     };
 
     const handleBulkDelete = async () => {
-        if (selectedIds.length === 0) return alert('Select flows to delete');
+        if (selectedIds.length === 0) return toast.warning('Select flows to delete');
         if (!confirm(`Delete ${selectedIds.length} flows?`)) return;
         try {
             // await Promise.all(selectedIds.map(id => api.delete(`/api/approval/flows/${id}`))); // Assuming endpoint exists
-            alert('Bulk delete not implemented for flows yet');
+            toast.info('Bulk delete not implemented for flows yet');
         } catch (err) {
-            alert('Delete failed');
+            toast.error('Delete failed');
         }
     };
 

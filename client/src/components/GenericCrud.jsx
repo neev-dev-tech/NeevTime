@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api';
 import { Plus, Trash2, Edit } from 'lucide-react';
+import { useToast } from './Toast';
 
 export default function GenericCrud({ title, endpoint, columns, icon: Icon }) {
+    const toast = useToast();
     const [items, setItems] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const [formData, setFormData] = useState({});
@@ -29,7 +31,7 @@ export default function GenericCrud({ title, endpoint, columns, icon: Icon }) {
             setFormData({});
             setEditingId(null);
             fetchItems();
-        } catch (err) { alert('Operation failed'); }
+        } catch (err) { toast.error('Operation failed'); }
     };
 
     const handleEdit = (item) => {
@@ -51,7 +53,7 @@ export default function GenericCrud({ title, endpoint, columns, icon: Icon }) {
             await api.delete(`${endpoint}/${deleteId}`);
             setDeleteId(null);
             fetchItems();
-        } catch (err) { alert('Delete failed: ' + (err.response?.data?.error || err.message)); }
+        } catch (err) { toast.error('Delete failed: ' + (err.response?.data?.error || err.message)); }
     };
 
     return (

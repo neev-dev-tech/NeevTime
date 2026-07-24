@@ -25,8 +25,10 @@ import {
     CloudSync as CloudSyncIcon, Link as LinkIcon, LinkOff as LinkOffIcon
 } from '@mui/icons-material';
 import { integrationsAPI } from '../api';
+import { useToast } from '../components';
 
 const Integrations = () => {
+    const toast = useToast();
     const [integrations, setIntegrations] = useState([]);
     const [integrationTypes, setIntegrationTypes] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -215,10 +217,10 @@ const Integrations = () => {
             } else {
                 response = await integrationsAPI.syncAttendance(id);
             }
-            alert(`Sync completed: ${JSON.stringify(response.data.stats || response.data.results)}`);
+            toast.success(`Sync completed: ${JSON.stringify(response.data.stats || response.data.results)}`);
             fetchIntegrations();
         } catch (err) {
-            alert(`Sync failed: ${err.message}`);
+            toast.error(`Sync failed: ${err.message}`);
         } finally {
             setSyncing(null);
         }

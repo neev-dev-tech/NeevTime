@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
 import { MapPin, Plus, Edit2, Trash2, X, Save, Calendar, Globe } from 'lucide-react';
+import { useToast } from '../components';
 
 export default function HolidayLocation() {
+    const toast = useToast();
     const [locations, setLocations] = useState([]);
     const [holidays, setHolidays] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -57,7 +59,7 @@ export default function HolidayLocation() {
             closeModal();
         } catch (err) {
             console.error('Error saving location:', err);
-            alert('Error saving location');
+            toast.error('Error saving location');
         }
     };
 
@@ -99,7 +101,7 @@ export default function HolidayLocation() {
             closeHolidayModal();
         } catch (err) {
             console.error('Error saving holiday:', err);
-            alert('Error saving holiday');
+            toast.error('Error saving holiday');
         }
     };
 

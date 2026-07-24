@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api';
 import { Calendar, Plus, Check, X, Clock, User, FileText, Search, RefreshCw, Filter, ChevronDown } from 'lucide-react';
+import { useToast } from '../components';
 
 export default function LeaveApplications() {
+    const toast = useToast();
     const [applications, setApplications] = useState([]);
     const [filteredApps, setFilteredApps] = useState([]);
     const [leaveTypes, setLeaveTypes] = useState([]);
@@ -21,9 +23,9 @@ export default function LeaveApplications() {
     const fetchData = async () => {
         try {
             const [apps, types, emps] = await Promise.all([
-                axios.get('/api/leave-applications'),
-                axios.get('/api/leave-types'),
-                axios.get('/api/employees')
+                api.get('/api/leave-applications'),
+                api.get('/api/leave-types'),
+                api.get('/api/employees')
             ]);
             setApplications(apps.data);
             setFilteredApps(apps.data);
@@ -46,18 +48,18 @@ export default function LeaveApplications() {
     const handleApply = async (e) => {
         e.preventDefault();
         try {
-            await axios.post('/api/leave-applications', form);
+            await api.post('/api/leave-applications', form);
             setShowApply(false);
             setForm({ employee_code: '', leave_type_id: '', from_date: '', to_date: '', is_half_day: false, reason: '' });
             fetchData();
-        } catch (err) { alert(err.response?.data?.error || 'Failed to apply'); }
+        } catch (err) { toast.error(err.response?.data?.error || 'Failed to apply'); }
     };
 
     const handleAction = async (id, status) => {
         try {
-            await axios.put(`/api/leave-applications/${id}/status`, { status });
+            await api.put(`/api/leave-applications/${id}/status`, { status });
             fetchData();
-        } catch (err) { alert('Action failed'); }
+        } catch (err) { toast.error('Action failed'); }
     };
 
     const getStatusBadge = (status) => {

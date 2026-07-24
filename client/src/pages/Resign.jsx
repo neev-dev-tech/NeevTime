@@ -5,6 +5,7 @@ import {
     RefreshCw, Search, RotateCcw, BellOff, Download, X
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '../components';
 
 export default function Resign() {
     const [resignations, setResignations] = useState([]);
@@ -16,6 +17,7 @@ export default function Resign() {
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(50);
     const navigate = useNavigate();
+    const toast = useToast();
 
     // Resignation Form State
     const [formData, setFormData] = useState({
@@ -78,12 +80,12 @@ export default function Resign() {
 
     const handleResignSubmit = async (e) => {
         e.preventDefault();
-        if (!formData.selectedEmployee) return alert('Please select an employee');
+        if (!formData.selectedEmployee) return toast.warning('Please select an employee');
 
         try {
             // Find the employee code
             const emp = employees.find(e => e.id === Number(formData.selectedEmployee));
-            if (!emp) return alert('Invalid employee selected');
+            if (!emp) return toast.error('Invalid employee selected');
 
             await api.post('/api/employees/resign', {
                 employee_code: emp.employee_code,
@@ -97,9 +99,9 @@ export default function Resign() {
             setShowModal(false);
             resetForm();
             fetchData();
-            alert('Resignation processed successfully');
+            toast.success('Resignation processed successfully');
         } catch (err) {
-            alert('Action failed: ' + (err.response?.data?.error || err.message));
+            toast.error('Action failed: ' + (err.response?.data?.error || err.message));
         }
     };
 
@@ -115,7 +117,7 @@ export default function Resign() {
     const closeConfirmModal = () => setConfirmModal(prev => ({ ...prev, show: false }));
 
     const handleExport = () => {
-        if (filteredItems.length === 0) return alert('No records to export');
+        if (filteredItems.length === 0) return toast.warning('No records to export');
 
         const headers = ['Employee ID', 'Name', 'Department', 'Position', 'Area', 'Resignation Date', 'Type', 'Reason'];
         const rows = filteredItems.map(item => [
@@ -145,7 +147,7 @@ export default function Resign() {
     };
 
     const handleDisableAttendance = () => {
-        if (selectedIds.length === 0) return alert('Select employees to disable attendance');
+        if (selectedIds.length === 0) return toast.warning('Select employees to disable attendance');
 
         setConfirmModal({
             show: true,
@@ -157,12 +159,12 @@ export default function Resign() {
                     await Promise.all(selectedIds.map(id =>
                         api.patch(`/api/employees/${id}`, { attendance_enabled: false })
                     ));
-                    alert('Attendance disabled successfully');
+                    toast.success('Attendance disabled successfully');
                     closeConfirmModal();
                     fetchData();
                     setSelectedIds([]);
                 } catch (err) {
-                    alert('Failed to disable attendance');
+                    toast.error('Failed to disable attendance');
                     closeConfirmModal();
                 }
             }
@@ -170,7 +172,7 @@ export default function Resign() {
     };
 
     const handleDelete = () => {
-        if (selectedIds.length === 0) return alert('Select records to delete');
+        if (selectedIds.length === 0) return toast.warning('Select records to delete');
 
         setConfirmModal({
             show: true,
@@ -180,12 +182,12 @@ export default function Resign() {
             action: async () => {
                 try {
                     await Promise.all(selectedIds.map(id => api.delete(`/api/employees?id=${id}`))); // Adjusted based on standard API patterns
-                    alert('Records deleted successfully');
+                    toast.success('Records deleted successfully');
                     closeConfirmModal();
                     fetchData();
                     setSelectedIds([]);
                 } catch (err) {
-                    alert('Delete failed');
+                    toast.error('Delete failed');
                     closeConfirmModal();
                 }
             }
@@ -193,7 +195,7 @@ export default function Resign() {
     };
 
     const handleRehire = () => {
-        if (selectedIds.length === 0) return alert('Select employees to rehire');
+        if (selectedIds.length === 0) return toast.warning('Select employees to rehire');
 
         setConfirmModal({
             show: true,
@@ -205,12 +207,12 @@ export default function Resign() {
                     await Promise.all(selectedIds.map(id =>
                         api.post('/api/employees/rehire', { employee_id: id })
                     ));
-                    alert('Employees rehired successfully');
+                    toast.success('Employees rehired successfully');
                     closeConfirmModal();
                     fetchData();
                     setSelectedIds([]);
                 } catch (err) {
-                    alert('Rehire failed: ' + (err.response?.data?.error || err.message));
+                    toast.error('Rehire failed: ' + (err.response?.data?.error || err.message));
                     closeConfirmModal();
                 }
             }

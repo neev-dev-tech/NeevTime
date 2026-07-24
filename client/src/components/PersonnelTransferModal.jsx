@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { X, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useToast } from './Toast';
 
 export default function PersonnelTransferModal({ isOpen, onClose, transferType = 'Department', employees = [], departments = [], positions = [], areas = [], onConfirm }) {
+    const toast = useToast();
     const [selectedDept, setSelectedDept] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedEmployees, setSelectedEmployees] = useState([]);
@@ -43,8 +45,8 @@ export default function PersonnelTransferModal({ isOpen, onClose, transferType =
     };
 
     const handleConfirm = () => {
-        if (selectedEmployees.length === 0) return alert('Please select employees');
-        if (!targetValue) return alert(`Please select target ${transferType}`);
+        if (selectedEmployees.length === 0) return toast.warning('Please select employees');
+        if (!targetValue) return toast.warning(`Please select target ${transferType}`);
         onConfirm({ employeeIds: selectedEmployees, targetId: targetValue, remarks });
         onClose();
     };

@@ -314,7 +314,9 @@ export function useToast() {
     if (!context) {
         throw new Error('useToast must be used within a ToastProvider');
     }
-    return context;
+    // Return the toast function (with .success/.error/.warning/.info/.loading/.promise
+    // attached) so `const toast = useToast(); toast.error(...)` works as used across the app.
+    return context.toast;
 }
 
 export default ToastProvider;

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
 import { Clock, Plus, Edit2, Trash2, X, Save, CalendarDays, Coffee, Moon, Sun, Check } from 'lucide-react';
+import { useToast } from '../components';
 
 export default function Timetable() {
+    const toast = useToast();
     const [timetables, setTimetables] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -71,7 +73,7 @@ export default function Timetable() {
             closeModal();
         } catch (err) {
             console.error('Error saving timetable:', err);
-            alert('Error saving timetable');
+            toast.error('Error saving timetable');
         }
     };
 

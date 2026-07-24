@@ -3,8 +3,10 @@ import api from '../api';
 import { Briefcase, Plus, Trash2, Edit2, Search, RefreshCw, X, Save, Download, Upload, FileText, FileSpreadsheet, AlertCircle, CheckCircle } from 'lucide-react';
 import SkeletonLoader from '../components/SkeletonLoader';
 import { exportToExcel, exportToCSV } from '../utils/excelExport';
+import { useToast } from '../components';
 
 export default function Positions() {
+    const toast = useToast();
     const [positions, setPositions] = useState([]);
     const [filteredPositions, setFilteredPositions] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -61,7 +63,7 @@ export default function Positions() {
             setEditItem(null);
             fetchPositions();
         } catch (err) {
-            alert('Failed to save position');
+            toast.error('Failed to save position');
         }
     };
 
@@ -94,7 +96,7 @@ export default function Positions() {
             fetchPositions();
         } catch (err) {
             console.error('Delete failed:', err);
-            alert('Failed to delete');
+            toast.error('Failed to delete');
             setDeleteConfirm(null);
         }
     };
@@ -103,7 +105,7 @@ export default function Positions() {
         e.preventDefault();
         e.stopPropagation();
         if (selectedIds.length === 0) {
-            alert('Please select items to delete');
+            toast.warning('Please select items to delete');
             return;
         }
         setDeleteConfirm({ type: 'bulk', id: null, count: selectedIds.length });

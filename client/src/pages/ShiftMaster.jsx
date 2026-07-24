@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api';
 import { Plus, Edit2, Trash2, Clock, Sun, Moon, X } from 'lucide-react';
+import { useToast } from '../components';
 
 export default function ShiftMaster() {
+    const toast = useToast();
     const [shifts, setShifts] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const [editingShift, setEditingShift] = useState(null);
@@ -32,7 +34,7 @@ export default function ShiftMaster() {
             setEditingShift(null);
             setForm({ name: '', start_time: '09:00', end_time: '18:00', shift_type: 'Fixed', grace_in_minutes: 15, late_threshold_minutes: 15, break_duration_minutes: 60, is_night_shift: false });
             fetchShifts();
-        } catch (err) { alert('Failed to save shift'); }
+        } catch (err) { toast.error('Failed to save shift'); }
     };
 
     const handleEdit = (shift) => {
@@ -56,7 +58,7 @@ export default function ShiftMaster() {
         try {
             await api.delete(`/api/shifts/${id}`);
             fetchShifts();
-        } catch (err) { alert('Delete failed'); }
+        } catch (err) { toast.error('Delete failed'); }
     };
 
     return (

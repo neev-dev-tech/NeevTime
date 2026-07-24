@@ -4,8 +4,10 @@ import {
     CircleDot, Plus, Trash2, Edit, ChevronLeft, ChevronRight,
     RefreshCw, Search, X
 } from 'lucide-react';
+import { useToast } from '../components';
 
 export default function ApprovalNode() {
+    const toast = useToast();
     const [nodes, setNodes] = useState([]);
     const [employees, setEmployees] = useState([]);
     const [roles, setRoles] = useState([]);
@@ -68,7 +70,7 @@ export default function ApprovalNode() {
             }
             setShowModal(null); setEditItem(null); resetForm();
             fetchData();
-        } catch (err) { alert('Failed to save node'); }
+        } catch (err) { toast.error('Failed to save node'); }
     };
 
     const handleEdit = (node) => {
@@ -84,18 +86,18 @@ export default function ApprovalNode() {
     const handleDelete = async (id) => {
         if (!confirm('Delete this node?')) return;
         try { await api.delete(`/api/approval/nodes/${id}`); fetchData(); }
-        catch (err) { alert('Delete failed'); }
+        catch (err) { toast.error('Delete failed'); }
     };
 
     const handleBulkDelete = async () => {
-        if (selectedIds.length === 0) return alert('Select nodes to delete');
+        if (selectedIds.length === 0) return toast.warning('Select nodes to delete');
         if (!confirm(`Delete ${selectedIds.length} nodes?`)) return;
         try {
             await Promise.all(selectedIds.map(id => api.delete(`/api/approval/nodes/${id}`)));
             setSelectedIds([]);
             fetchData();
         } catch (err) {
-            alert('Delete failed');
+            toast.error('Delete failed');
         }
     };
 
