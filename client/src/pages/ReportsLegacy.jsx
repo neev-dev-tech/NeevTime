@@ -277,10 +277,33 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                     { key: 'overtime_hours', label: 'OT Hrs' }
                 ];
 
+            case 'device_health':
+                return [
+                    { key: 'device_name', label: 'Device' },
+                    { key: 'serial_number', label: 'Serial', type: 'code' },
+                    { key: 'device_model', label: 'Model' },
+                    { key: 'status', label: 'Status', type: 'status' },
+                    { key: 'health_score', label: 'Health', type: 'number' },
+                    { key: 'log_count_7d', label: 'Punches (7d)', type: 'number' },
+                    { key: 'unique_users_7d', label: 'Users (7d)', type: 'number' },
+                    { key: 'cmd_failed', label: 'Failed Cmds', type: 'number', className: 'text-rose-600 font-bold' }
+                ];
+
+            case 'biometric_summary':
+                return [
+                    ...commonEmployeeCols,
+                    { key: 'face_count', label: 'Face Templates', type: 'number' },
+                    { key: 'fingerprint_count', label: 'Fingerprints', type: 'number' },
+                    { key: 'last_updated', label: 'Last Updated', type: 'date' }
+                ];
+
             default:
                 return null;
         }
     };
+
+    // Report endpoints return {summary, data: rows}; older ones return bare arrays
+    const rowsOf = (res) => (Array.isArray(res.data) ? res.data : (res.data?.data || []));
 
     // Accepts '09:05:00' strings and full timestamps, returns 'HH:MM'
     const toHHMM = (v) => {
@@ -294,7 +317,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
 
     const fetchDailySummary = async () => {
         const res = await api.get('/api/attendance/summary', { params: { date: dateFrom } });
-        return (res.data || []).map(row => ({
+        return rowsOf(res).map(row => ({
             ...row,
             employee_name: row.name,
             date: row.date ? String(row.date).split('T')[0] : dateFrom,
@@ -322,7 +345,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                 data = await fetchDailySummary();
             } else if (['late_coming', 'early_leaving'].includes(reportType)) {
                 const res = await api.get('/api/reports/late-early', { params: range });
-                data = (res.data || []).map(row => ({
+                data = rowsOf(res).map(row => ({
                     employee_name: row.employee_name,
                     employee_code: row.employee_code,
                     department: row.department_name,
@@ -337,7 +360,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                 })).filter(row => reportType === 'late_coming' ? row.late_minutes > 0 : row.early_minutes > 0);
             } else if (['absent_report'].includes(reportType)) {
                 const res = await api.get('/api/reports/absent', { params: range });
-                data = (res.data || []).map(row => ({
+                data = rowsOf(res).map(row => ({
                     employee_name: row.employee_name,
                     employee_code: row.employee_code,
                     department: row.department_name,
@@ -352,7 +375,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                 ).map(row => ({ ...row, required_hours: '8.0' }));
             } else if (['overtime_report', 'ot_summary', 'work_duration', 'work_detailed'].includes(reportType)) {
                 const res = await api.get('/api/reports/overtime', { params: range });
-                data = (res.data || []).map(row => ({
+                data = rowsOf(res).map(row => ({
                     employee_name: row.employee_name,
                     employee_code: row.employee_code,
                     department: row.department_name,
@@ -366,13 +389,23 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                 const res = await api.get('/api/reports/monthly-summary', {
                     params: { year: from.getFullYear(), month: from.getMonth() + 1 }
                 });
-                data = (res.data || []).map(row => ({
+                data = rowsOf(res).map(row => ({
                     employee_name: row.employee_name,
                     employee_code: row.employee_code,
                     department: row.department_name,
                     present_days: row.days_present,
                     avg_check_in_time: toHHMM(row.avg_check_in_time),
                     avg_check_out_time: toHHMM(row.avg_check_out_time)
+                }));
+            } else if (reportType === 'device_health') {
+                const res = await api.get('/api/reports/device-health');
+                data = rowsOf(res);
+            } else if (reportType === 'biometric_summary') {
+                const res = await api.get('/api/reports/biometric-summary');
+                data = rowsOf(res).map(row => ({
+                    ...row,
+                    department: row.department_name,
+                    last_updated: row.last_updated ? String(row.last_updated).split('T')[0] : null
                 }));
             } else if (reportType === 'birthday') {
                 const today = new Date();
@@ -419,9 +452,73 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
         }
     };
 
+    const EXTRA_TITLES = {
+        total_punches: 'Total Punches', scheduled_log: 'Scheduled Log', time_card: 'Total Time Card',
+        missed_punch: 'Missed Punch Report', birthday: 'Birthday Report', overtime_report: 'Overtime Report',
+        half_day: 'Half Day Report', daily_details: 'Daily Details', daily_summary: 'Daily Summary',
+        daily_status: 'Daily Status', basic_status: 'Basic Status', status_summary: 'Status Summary',
+        ot_summary: 'OT Summary', work_duration: 'Work Duration', work_detailed: 'Work Detailed',
+        att_sheet: 'ATT Sheet Summary', att_status: 'Attendance Status', att_summary: 'Attendance Summary',
+        device_health: 'Device Health Report', biometric_summary: 'Biometric Summary'
+    };
+
     const getReportTitle = () => {
         const typeObj = reportTypes.find(t => t.id === reportType);
-        return typeObj ? typeObj.name : 'Report';
+        return typeObj ? typeObj.name : (EXTRA_TITLES[reportType] || 'Report');
+    };
+
+    // Flatten current rows into {Label: value} objects for CSV/Excel/PDF export
+    const buildExportRows = () => {
+        const cols = getColumnDefs(reportType) || [];
+        return reportData.map(row => {
+            const out = {};
+            cols.forEach(col => {
+                if (col.key) {
+                    out[col.label] = row[col.key] ?? '';
+                } else if (col.label === 'Employee') {
+                    const name = row.employee_name || row.emp_name || 'Unknown';
+                    out['Employee'] = `${name} (${row.employee_code || ''})`;
+                } else if (col.label === 'Time') {
+                    out['Time'] = row.punch_time ? new Date(row.punch_time).toLocaleString() : '';
+                } else if (col.label === 'Type') {
+                    out['Type'] = getDirection(row);
+                }
+            });
+            return out;
+        });
+    };
+
+    const exportFilename = () => `${getReportTitle().replace(/\s+/g, '_')}_${dateFrom}_${dateTo}`;
+
+    const handleExportCSV = () => {
+        const rows = buildExportRows();
+        if (rows.length === 0) return;
+        const headers = Object.keys(rows[0]);
+        const escape = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+        const csv = [headers.map(escape).join(','), ...rows.map(r => headers.map(h => escape(r[h])).join(','))].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `${exportFilename()}.csv`;
+        link.click();
+        URL.revokeObjectURL(link.href);
+    };
+
+    const handleExportExcel = () => {
+        const rows = buildExportRows();
+        if (rows.length === 0) return;
+        exportToExcelUtil({ data: rows, filename: exportFilename(), sheetName: getReportTitle().slice(0, 31) });
+    };
+
+    const handleExportPDF = () => {
+        const rows = buildExportRows();
+        if (rows.length === 0) return;
+        exportToPDF({
+            data: rows,
+            filename: `${exportFilename()}.pdf`,
+            title: getReportTitle(),
+            dateRange: { from: dateFrom, to: dateTo }
+        });
     };
 
     const reportTypes = [
@@ -486,6 +583,19 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                         </div>
                     </div>
                     <div className="flex gap-3">
+                        {generated && reportData.length > 0 && (
+                            <>
+                                <button onClick={handleExportCSV} className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-slate-600 bg-white border rounded-lg shadow-sm hover:bg-slate-50 transition-colors">
+                                    <Download size={15} /> CSV
+                                </button>
+                                <button onClick={handleExportExcel} className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg shadow-sm hover:bg-emerald-100 transition-colors">
+                                    <Download size={15} /> Excel
+                                </button>
+                                <button onClick={handleExportPDF} className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded-lg shadow-sm hover:bg-rose-100 transition-colors">
+                                    <Download size={15} /> PDF
+                                </button>
+                            </>
+                        )}
                         <button onClick={generateReport} disabled={loading} className="btn-primary shadow-lg shadow-blue-200/50">
                             {loading ? <RefreshCw size={18} className="animate-spin" /> : <Calculator size={18} />}
                             {loading ? 'Processing...' : 'Generate Report'}

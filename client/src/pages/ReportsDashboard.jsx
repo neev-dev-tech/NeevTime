@@ -111,6 +111,15 @@ export default function ReportsDashboard() {
                 { id: 'att_status', name: "Attendance Status", icon: CheckSquare, path: "/reports/att-status", description: "Monthly attendance status", tier: 'secondary' },
                 { id: 'att_summary', name: "Attendance Summary", icon: Calendar, path: "/reports/att-summary", description: "Complete attendance summary", tier: 'primary' }
             ]
+        },
+        {
+            title: "System Reports",
+            description: "Device & biometric health",
+            category: 'log',
+            items: [
+                { id: 'device_health', name: "Device Health", icon: Activity, path: "/reports/device-health", description: "Device uptime, activity and command success", tier: 'primary' },
+                { id: 'biometric_summary', name: "Biometric Summary", icon: FileBarChart, path: "/reports/biometric-summary", description: "Enrolled face and fingerprint templates per employee", tier: 'secondary' }
+            ]
         }
     ];
 

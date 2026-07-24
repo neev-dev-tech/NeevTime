@@ -291,13 +291,15 @@ export default function Dashboard() {
                 };
             }
 
-            (lateEarlyRes.data || []).forEach(row => {
+            // Report endpoints wrap rows in {summary, data}
+            const rowsOf = (res) => (Array.isArray(res.data) ? res.data : (res.data?.data || []));
+            rowsOf(lateEarlyRes).forEach(row => {
                 const key = row.attendance_date ? String(row.attendance_date).split('T')[0] : null;
                 if (!key || !byDate[key]) return;
                 if (row.late_minutes > 0) byDate[key].late += 1;
                 if (row.early_minutes > 0) byDate[key].earlyLeave += 1;
             });
-            (absentRes.data || []).forEach(row => {
+            rowsOf(absentRes).forEach(row => {
                 const key = row.absent_date ? String(row.absent_date).split('T')[0] : null;
                 if (key && byDate[key]) byDate[key].absent += 1;
             });

@@ -188,7 +188,7 @@ export const systemSidebar = [
     icon: BarChart3,
     iconColor: '#7C3AED',
     items: [
-      { label: 'Advanced Reports', path: '/advanced-reports', icon: TrendingUp, iconColor: '#7C3AED' },
+      { label: 'All Reports', path: '/reports', icon: TrendingUp, iconColor: '#7C3AED' },
     ]
   },
   {
