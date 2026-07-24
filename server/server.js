@@ -379,6 +379,10 @@ app.use('/api/reports', authenticateToken, reportsRouter);
 const mobileAttendanceRouter = require('./routes/mobile_attendance');
 app.use('/api/mobile', authenticateToken, mobileAttendanceRouter);
 
+// Attendance regularization review (admin/HR)
+const regularizationsRouter = require('./routes/regularizations');
+app.use('/api/regularizations', authenticateToken, regularizationsRouter);
+
 // Admin sets/resets an employee's portal password
 const bcryptPortal = require('bcryptjs');
 app.put('/api/employees/:id/portal-password', authenticateToken, requireAdmin, async (req, res) => {

@@ -50,6 +50,7 @@ import Integrations from './pages/Integrations';
 import Geofences from './pages/Geofences';
 import MobilePunch from './pages/MobilePunch';
 
+import Regularizations from './pages/Regularizations';
 import PortalLogin from './pages/portal/PortalLogin';
 import EmployeePortal from './pages/portal/EmployeePortal';
 
@@ -163,6 +164,7 @@ export default function App() {
                         <Route path="/schedule/calendar" element={<ScheduleCalendar />} />
                         <Route path="/attendance/manual" element={<ManualEntry />} />
                         <Route path="/leaves" element={<LeaveApplications />} />
+                        <Route path="/regularizations" element={<Regularizations />} />
                         <Route path="/mobile/punch" element={<MobilePunch />} />
                         <Route path="/reports" element={<ReportsDashboard />} />
                         <Route path="/reports/legacy" element={<ReportsLegacy />} />

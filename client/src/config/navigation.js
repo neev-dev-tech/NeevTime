@@ -124,7 +124,7 @@ export const attendanceSidebar = [
       { label: 'Manual Log', path: '/attendance/manual', icon: FileCheck, iconColor: '#2563EB' },
       { label: 'Mobile Entry', path: '/mobile/punch', icon: TabletSmartphone, iconColor: '#DB2777' },
       { label: 'Leave', path: '/leaves', icon: Plane, iconColor: '#059669' },
-      { label: 'Overtime', path: '/approvals/overtime', icon: Clock, iconColor: '#D97706' },
+      { label: 'Regularization', path: '/regularizations', icon: FileCheck, iconColor: '#D97706' },
     ]
   },
   {

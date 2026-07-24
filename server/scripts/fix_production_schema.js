@@ -443,6 +443,22 @@ async function fixProductionSchema() {
         )
     `, 'leave_types table');
 
+    await runQuery(`
+        CREATE TABLE IF NOT EXISTS attendance_regularizations (
+            id SERIAL PRIMARY KEY,
+            employee_code VARCHAR(50) NOT NULL,
+            date DATE NOT NULL,
+            requested_in_time TIME,
+            requested_out_time TIME,
+            reason TEXT NOT NULL,
+            status VARCHAR(20) DEFAULT 'pending',
+            reviewed_by VARCHAR(100),
+            reviewed_at TIMESTAMP,
+            review_comment TEXT,
+            created_at TIMESTAMP DEFAULT NOW()
+        )
+    `, 'attendance_regularizations table');
+
     // Seed standard Indian leave types on fresh installs only (table empty)
     await runQuery(`
         INSERT INTO leave_types (code, name, annual_quota, carry_forward, color)

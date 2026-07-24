@@ -24,6 +24,9 @@ export default function EmployeePortal() {
     const [showApply, setShowApply] = useState(false);
     const [form, setForm] = useState({ leave_type_id: '', from_date: '', to_date: '', reason: '' });
     const [message, setMessage] = useState(null);
+    const [regularizations, setRegularizations] = useState([]);
+    const [showRegForm, setShowRegForm] = useState(false);
+    const [regForm, setRegForm] = useState({ date: '', requested_in_time: '', requested_out_time: '', reason: '' });
 
     useEffect(() => {
         api.get('/api/portal/me').then(res => setProfile(res.data)).catch(() => {});
@@ -38,6 +41,28 @@ export default function EmployeePortal() {
 
     const fetchLeave = () => {
         api.get('/api/portal/leave').then(res => setLeave(res.data)).catch(() => {});
+    };
+
+    const fetchRegularizations = () => {
+        api.get('/api/portal/regularizations').then(res => setRegularizations(res.data || [])).catch(() => {});
+    };
+
+    useEffect(() => {
+        if (tab === 'requests') fetchRegularizations();
+    }, [tab]);
+
+    const submitRegularization = async (e) => {
+        e.preventDefault();
+        setMessage(null);
+        try {
+            await api.post('/api/portal/regularizations', regForm);
+            setShowRegForm(false);
+            setRegForm({ date: '', requested_in_time: '', requested_out_time: '', reason: '' });
+            setMessage({ type: 'success', text: 'Regularization request submitted' });
+            fetchRegularizations();
+        } catch (err) {
+            setMessage({ type: 'error', text: err.response?.data?.error || 'Failed to submit request' });
+        }
     };
 
     const applyLeave = async (e) => {
@@ -127,6 +152,12 @@ export default function EmployeePortal() {
                         className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-md text-sm font-semibold transition-colors ${tab === 'leave' ? 'bg-orange-500 text-white' : 'text-slate-500 hover:bg-slate-50'}`}
                     >
                         <Calendar size={15} /> My Leave
+                    </button>
+                    <button
+                        onClick={() => setTab('requests')}
+                        className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-md text-sm font-semibold transition-colors ${tab === 'requests' ? 'bg-orange-500 text-white' : 'text-slate-500 hover:bg-slate-50'}`}
+                    >
+                        <Send size={15} /> Requests
                     </button>
                 </div>
 
@@ -243,6 +274,69 @@ export default function EmployeePortal() {
                                     </div>
                                     <span className={`text-xs font-bold px-2 py-1 rounded-full border capitalize ${statusBadge(app.status)}`}>
                                         {app.status || 'pending'}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {tab === 'requests' && (
+                    <div className="space-y-4">
+                        <button
+                            onClick={() => setShowRegForm(v => !v)}
+                            className="w-full flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2.5 rounded-lg transition-colors"
+                        >
+                            <Plus size={16} /> Request Attendance Correction
+                        </button>
+
+                        {showRegForm && (
+                            <form onSubmit={submitRegularization} className="bg-white rounded-xl border p-4 space-y-3">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Date</label>
+                                    <input type="date" value={regForm.date} max={today()} onChange={e => setRegForm(f => ({ ...f, date: e.target.value }))} className="w-full text-sm border rounded-lg px-3 py-2" required />
+                                </div>
+                                <div className="flex gap-2">
+                                    <div className="flex-1">
+                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Correct In Time</label>
+                                        <input type="time" value={regForm.requested_in_time} onChange={e => setRegForm(f => ({ ...f, requested_in_time: e.target.value }))} className="w-full text-sm border rounded-lg px-3 py-2" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Correct Out Time</label>
+                                        <input type="time" value={regForm.requested_out_time} onChange={e => setRegForm(f => ({ ...f, requested_out_time: e.target.value }))} className="w-full text-sm border rounded-lg px-3 py-2" />
+                                    </div>
+                                </div>
+                                <textarea
+                                    value={regForm.reason}
+                                    onChange={e => setRegForm(f => ({ ...f, reason: e.target.value }))}
+                                    placeholder="Reason (e.g. forgot to punch out)"
+                                    rows={2}
+                                    className="w-full text-sm border rounded-lg px-3 py-2"
+                                    required
+                                />
+                                <button type="submit" className="w-full flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-900 text-white font-semibold py-2 rounded-lg transition-colors">
+                                    <Send size={14} /> Submit Request
+                                </button>
+                            </form>
+                        )}
+
+                        <div className="bg-white rounded-xl border divide-y">
+                            {regularizations.length === 0 ? (
+                                <p className="px-4 py-8 text-center text-slate-400 text-sm">No correction requests yet</p>
+                            ) : regularizations.map(reg => (
+                                <div key={reg.id} className="px-4 py-3 flex items-center justify-between gap-3">
+                                    <div className="min-w-0">
+                                        <p className="text-sm font-semibold text-slate-700">{reg.date}</p>
+                                        <p className="text-xs text-slate-500 truncate">
+                                            {reg.requested_in_time && `In ${reg.requested_in_time}`}
+                                            {reg.requested_in_time && reg.requested_out_time && ' · '}
+                                            {reg.requested_out_time && `Out ${reg.requested_out_time}`}
+                                            {' — '}{reg.reason}
+                                        </p>
+                                        {reg.review_comment && <p className="text-xs text-slate-400 italic">"{reg.review_comment}"</p>}
+                                    </div>
+                                    <span className={`text-xs font-bold px-2 py-1 rounded-full border capitalize ${statusBadge(reg.status)}`}>
+                                        {reg.status}
                                     </span>
                                 </div>
                             ))}

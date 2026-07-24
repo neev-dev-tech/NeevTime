@@ -15,9 +15,25 @@ const db = require('../db');
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
-// Ensure the portal password column exists (no migration framework in this repo)
+// Ensure portal schema pieces exist (no migration framework in this repo;
+// fix_production_schema.js covers Docker installs, this covers bare restarts)
 db.query('ALTER TABLE employees ADD COLUMN IF NOT EXISTS portal_password_hash TEXT')
     .catch(err => console.error('portal_password_hash column check failed:', err.message));
+db.query(`
+    CREATE TABLE IF NOT EXISTS attendance_regularizations (
+        id SERIAL PRIMARY KEY,
+        employee_code VARCHAR(50) NOT NULL,
+        date DATE NOT NULL,
+        requested_in_time TIME,
+        requested_out_time TIME,
+        reason TEXT NOT NULL,
+        status VARCHAR(20) DEFAULT 'pending',
+        reviewed_by VARCHAR(100),
+        reviewed_at TIMESTAMP,
+        review_comment TEXT,
+        created_at TIMESTAMP DEFAULT NOW()
+    )
+`).catch(err => console.error('attendance_regularizations table check failed:', err.message));
 
 // ==========================================
 // AUTH
@@ -183,6 +199,59 @@ router.post('/leave', async (req, res) => {
                 (employee_code, leave_type_id, from_date, to_date, is_half_day, half_day_type, total_days, reason)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
             [req.employee_code, leave_type_id, from_date, to_date, is_half_day || false, half_day_type || null, days, reason || null]
+        );
+        res.json(result.rows[0]);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ==========================================
+// MY REGULARIZATION REQUESTS (missed punch correction)
+// ==========================================
+
+router.get('/regularizations', async (req, res) => {
+    try {
+        const result = await db.query(
+            `SELECT id, to_char(date, 'YYYY-MM-DD') AS date,
+                    to_char(requested_in_time, 'HH24:MI') AS requested_in_time,
+                    to_char(requested_out_time, 'HH24:MI') AS requested_out_time,
+                    reason, status, review_comment, created_at
+             FROM attendance_regularizations
+             WHERE employee_code = $1
+             ORDER BY created_at DESC LIMIT 50`,
+            [req.employee_code]
+        );
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.post('/regularizations', async (req, res) => {
+    try {
+        const { date, requested_in_time, requested_out_time, reason } = req.body;
+        if (!date || !reason || (!requested_in_time && !requested_out_time)) {
+            return res.status(400).json({ error: 'Date, reason and at least one time required' });
+        }
+        if (new Date(date) > new Date()) {
+            return res.status(400).json({ error: 'Cannot regularize a future date' });
+        }
+
+        const existing = await db.query(
+            `SELECT id FROM attendance_regularizations
+             WHERE employee_code = $1 AND date = $2 AND status = 'pending'`,
+            [req.employee_code, date]
+        );
+        if (existing.rows.length > 0) {
+            return res.status(400).json({ error: 'A pending request already exists for this date' });
+        }
+
+        const result = await db.query(
+            `INSERT INTO attendance_regularizations
+                (employee_code, date, requested_in_time, requested_out_time, reason)
+             VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+            [req.employee_code, date, requested_in_time || null, requested_out_time || null, reason]
         );
         res.json(result.rows[0]);
     } catch (err) {
