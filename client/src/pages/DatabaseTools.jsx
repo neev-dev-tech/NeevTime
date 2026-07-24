@@ -79,10 +79,15 @@ export default function DatabaseTools() {
 
             if (!result) return;
 
-            // Note: Restore is not implemented via API for safety
-            toast.warning('Restore functionality requires manual server-side operation for safety. Please contact your administrator.');
+            toast.info('Restoring database — this can take a few minutes...');
+            const res = await api.post('/api/database/restore', {
+                filename: backup.name,
+                confirm: 'RESTORE'
+            });
+            toast.success(res.data.message || 'Database restored');
+            fetchData();
         } catch (err) {
-            console.error('Error in restore confirmation:', err);
+            toast.error(err.response?.data?.details || err.response?.data?.error || 'Restore failed');
         }
     };
 

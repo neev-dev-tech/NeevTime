@@ -129,10 +129,38 @@ router.delete('/backups/:filename(*)', (req, res) => {
     }
 });
 
-// Restore Backup (Optional/Advanced)
+// Restore Backup — DESTRUCTIVE: replaces current data with the backup.
+// Requires explicit confirm phrase in the body.
 router.post('/restore', (req, res) => {
-    // Implementation skipped for safety, usually requires disconnecting users
-    res.status(501).json({ error: 'Not implemented via API for safety' });
+    const { filename, confirm } = req.body || {};
+
+    if (confirm !== 'RESTORE') {
+        return res.status(400).json({ error: 'Confirmation required: pass confirm="RESTORE"' });
+    }
+    if (!filename || !/^[a-zA-Z0-9._-]+\.sql$/.test(filename)) {
+        return res.status(400).json({ error: 'Invalid filename' });
+    }
+
+    const filepath = path.join(BACKUP_DIR, path.basename(filename));
+    if (!fs.existsSync(filepath)) {
+        return res.status(404).json({ error: 'Backup not found' });
+    }
+
+    const { DB_USER, DB_HOST, DB_NAME, DB_PASSWORD, DB_PORT } = process.env;
+    const env = { ...process.env, PGPASSWORD: DB_PASSWORD };
+    // Backups are pg_dump custom format (-F c); --clean drops objects before
+    // recreating them, --if-exists keeps that quiet on fresh databases.
+    const cmd = `pg_restore --clean --if-exists -h ${DB_HOST || 'localhost'} -U ${DB_USER || 'postgres'} -p ${DB_PORT || 5432} -d ${DB_NAME || 'attendance_db'} "${filepath}"`;
+
+    console.warn(`DATABASE RESTORE started from ${filename} by user ${req.user?.username || req.user?.id}`);
+    exec(cmd, { env, timeout: 10 * 60 * 1000 }, (error, stdout, stderr) => {
+        if (error) {
+            console.error(`Restore error: ${error.message}`);
+            return res.status(500).json({ error: 'Restore failed', details: stderr?.slice(0, 500) || error.message });
+        }
+        console.warn(`DATABASE RESTORE completed from ${filename}`);
+        res.json({ success: true, message: `Database restored from ${filename}. Restart the server to refresh all connections.` });
+    });
 });
 
 module.exports = router;
