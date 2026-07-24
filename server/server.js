@@ -247,16 +247,14 @@ app.post('/api/attendance/manual', async (req, res) => {
 });
 
 // Middleware
-// Same origin policy as Socket.IO: env-driven allowlist, no-origin requests
-// (ADMS devices, curl, mobile apps) always allowed.
+// Same origin policy as Socket.IO: env-driven allowlist. Disallowed origins are
+// soft-failed (no CORS headers, browser blocks the response) rather than
+// erroring, so same-origin and dev-proxy requests keep working. No-origin
+// requests (ADMS devices, curl, mobile apps) are always allowed.
 app.use(cors({
     origin: (origin, callback) => {
-        if (!origin) return callback(null, true);
-        if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
+        const allowed = !origin || allowedOrigins.includes(origin) || allowedOrigins.includes('*');
+        callback(null, allowed);
     },
     credentials: true
 }));
@@ -276,6 +274,12 @@ const settingsRouter = require('./routes/settings');
 const schedulingExtRouter = require('./routes/scheduling_extended');
 
 app.use('/api', authRouter);
+
+// Employee self-service portal — own auth realm, must mount before the
+// authenticateToken-wrapped /api routers below (their middleware runs for
+// every /api/* path, which would 401 the public portal login).
+const portalRouter = require('./routes/portal');
+app.use('/api/portal', portalRouter);
 app.use('/api', authenticateToken, orgRouter);
 app.use('/api', authenticateToken, personnelRouter);
 app.use('/api', authenticateToken, schedulingRouter);
@@ -374,10 +378,6 @@ app.use('/api/reports', authenticateToken, reportsRouter);
 // Mobile Attendance Routes (Phase 3)
 const mobileAttendanceRouter = require('./routes/mobile_attendance');
 app.use('/api/mobile', authenticateToken, mobileAttendanceRouter);
-
-// Employee self-service portal (own auth realm — login is public, rest guarded inside)
-const portalRouter = require('./routes/portal');
-app.use('/api/portal', portalRouter);
 
 // Admin sets/resets an employee's portal password
 const bcryptPortal = require('bcryptjs');

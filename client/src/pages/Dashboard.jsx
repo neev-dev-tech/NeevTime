@@ -9,7 +9,6 @@ import {
     Activity, Target, Zap, BarChart3, TrendingDown, Brain, Info, ExternalLink,
     ChevronRight, Circle
 } from 'lucide-react';
-import { SkeletonStatCard } from '../components/SkeletonLoader';
 import { formatTimeShort } from '../utils/dateFormat';
 
 export default function Dashboard() {

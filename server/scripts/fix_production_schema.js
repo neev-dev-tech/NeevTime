@@ -443,6 +443,18 @@ async function fixProductionSchema() {
         )
     `, 'leave_types table');
 
+    // Seed standard Indian leave types on fresh installs only (table empty)
+    await runQuery(`
+        INSERT INTO leave_types (code, name, annual_quota, carry_forward, color)
+        SELECT * FROM (VALUES
+            ('CL', 'Casual Leave', 12, false, '#3b82f6'),
+            ('SL', 'Sick Leave', 12, false, '#f59e0b'),
+            ('PL', 'Privilege Leave', 15, true, '#22c55e'),
+            ('LWP', 'Leave Without Pay', 0, false, '#94a3b8')
+        ) AS seed(code, name, annual_quota, carry_forward, color)
+        WHERE NOT EXISTS (SELECT 1 FROM leave_types)
+    `, 'default leave types seed');
+
     await runQuery(`ALTER TABLE leave_types ADD COLUMN IF NOT EXISTS annual_quota INTEGER DEFAULT 0`, 'leave_types.annual_quota');
     await runQuery(`ALTER TABLE leave_types ADD COLUMN IF NOT EXISTS carry_forward BOOLEAN DEFAULT FALSE`, 'leave_types.carry_forward');
     await runQuery(`ALTER TABLE leave_types ADD COLUMN IF NOT EXISTS color VARCHAR(20) DEFAULT '#3b82f6'`, 'leave_types.color');

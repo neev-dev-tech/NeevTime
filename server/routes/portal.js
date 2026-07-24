@@ -138,9 +138,9 @@ router.get('/leave', async (req, res) => {
     try {
         const [apps, balances, types] = await Promise.all([
             db.query(
-                `SELECT la.*, lt.name AS leave_type_name, lt.color
+                `SELECT la.*, COALESCE(lt.name, 'Unknown') AS leave_type_name, lt.color
                  FROM leave_applications la
-                 JOIN leave_types lt ON la.leave_type_id = lt.id
+                 LEFT JOIN leave_types lt ON la.leave_type_id = lt.id
                  WHERE la.employee_code = $1
                  ORDER BY la.created_at DESC LIMIT 50`,
                 [req.employee_code]
@@ -171,6 +171,12 @@ router.post('/leave', async (req, res) => {
             ? 0.5
             : Math.round((new Date(to_date) - new Date(from_date)) / 86400000) + 1;
         if (days <= 0) return res.status(400).json({ error: 'Invalid date range' });
+
+        // No FK on leave_type_id in this schema — validate explicitly
+        const typeCheck = await db.query('SELECT id FROM leave_types WHERE id = $1', [leave_type_id]);
+        if (typeCheck.rows.length === 0) {
+            return res.status(400).json({ error: 'Unknown leave type' });
+        }
 
         const result = await db.query(
             `INSERT INTO leave_applications
