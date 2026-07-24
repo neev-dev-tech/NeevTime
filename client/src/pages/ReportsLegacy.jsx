@@ -88,7 +88,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
             const uniqueUsers = new Set(reportData.map(r => r.employee_code)).size;
             const locations = new Set(reportData.map(r => r.device_serial)).size;
             return [
-                { label: 'Total Punches', value: total, icon: Hash, color: 'blue' },
+                { label: 'Total Punches', value: total, icon: Hash, color: 'orange' },
                 { label: 'Unique Users', value: uniqueUsers, icon: Users, color: 'emerald' },
                 { label: 'Locations', value: locations, icon: MapPin, color: 'rose' },
                 { label: 'Latest', value: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), icon: Clock, color: 'amber' }
@@ -101,7 +101,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
         const late = reportData.filter(r => r.status === 'Late' || r.late_minutes > 0 || r.late_count > 0).length;
 
         return [
-            { label: 'Total Records', value: total, icon: FileText, color: 'blue' },
+            { label: 'Total Records', value: total, icon: FileText, color: 'orange' },
             { label: 'Present', value: present, icon: UserCheck, color: 'emerald' },
             { label: 'Absent', value: absent, icon: UserX, color: 'rose' },
             { label: 'Late', value: late, icon: AlertTriangle, color: 'amber' }
@@ -168,7 +168,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                         label: 'Mode',
                         render: (row) => (
                             <div className="flex items-center gap-1.5 text-xs text-slate-600">
-                                <Fingerprint size={12} className="text-purple-500" />
+                                <Fingerprint size={12} className="text-orange-500" />
                                 {row.verification_mode || '15'}
                             </div>
                         )
@@ -217,7 +217,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                     ...commonEmployeeCols,
                     { key: 'dob', label: 'Date of Birth', type: 'date' },
                     { key: 'age', label: 'Age', type: 'number' },
-                    { key: 'upcoming', label: 'Upcoming Birthday', type: 'date', className: 'text-purple-600 font-bold' }
+                    { key: 'upcoming', label: 'Upcoming Birthday', type: 'date', className: 'text-orange-600 font-bold' }
                 ];
 
             case 'half_day':

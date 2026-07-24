@@ -129,7 +129,7 @@ function FirstLastReport() {
                         </button>
                         <div>
                             <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                                <span className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
+                                <span className="p-2 bg-orange-50 text-orange-600 rounded-lg">
                                     <Search size={20} />
                                 </span>
                                 First & Last Punch

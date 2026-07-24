@@ -23,28 +23,29 @@ export default function ReportsDashboard() {
         return 'secondary';
     };
 
-    // Color discipline: 1 color per category with refined gradients
+    // Color discipline: 1 color per category, all within the brand family.
+    // Red stays reserved for destructive/error UI, blue for semantic info.
     const getCategoryColor = (category) => {
         const colors = {
-            'attendance': { 
-                color: '#059669', 
+            'attendance': {
+                color: '#059669',
                 bgColor: 'linear-gradient(135deg, rgba(5, 150, 105, 0.10) 0%, rgba(20, 184, 166, 0.20) 100%)',
                 hoverGradient: 'linear-gradient(135deg, rgba(5, 150, 105, 0.15) 0%, rgba(20, 184, 166, 0.25) 100%)'
             },
-            'time': { 
-                color: '#EA580C', 
+            'time': {
+                color: '#EA580C',
                 bgColor: 'linear-gradient(135deg, rgba(234, 88, 12, 0.10) 0%, rgba(251, 146, 60, 0.20) 100%)',
                 hoverGradient: 'linear-gradient(135deg, rgba(234, 88, 12, 0.15) 0%, rgba(251, 146, 60, 0.25) 100%)'
             },
-            'exception': { 
-                color: '#DC2626', 
-                bgColor: 'linear-gradient(135deg, rgba(220, 38, 38, 0.10) 0%, rgba(239, 68, 68, 0.20) 100%)',
-                hoverGradient: 'linear-gradient(135deg, rgba(220, 38, 38, 0.15) 0%, rgba(239, 68, 68, 0.25) 100%)'
+            'exception': {
+                color: '#D97706',
+                bgColor: 'linear-gradient(135deg, rgba(217, 119, 6, 0.10) 0%, rgba(245, 158, 11, 0.20) 100%)',
+                hoverGradient: 'linear-gradient(135deg, rgba(217, 119, 6, 0.15) 0%, rgba(245, 158, 11, 0.25) 100%)'
             },
-            'log': { 
-                color: '#2563EB', 
-                bgColor: 'linear-gradient(135deg, rgba(37, 99, 235, 0.10) 0%, rgba(99, 102, 241, 0.20) 100%)',
-                hoverGradient: 'linear-gradient(135deg, rgba(37, 99, 235, 0.15) 0%, rgba(99, 102, 241, 0.25) 100%)'
+            'log': {
+                color: '#475569',
+                bgColor: 'linear-gradient(135deg, rgba(71, 85, 105, 0.08) 0%, rgba(100, 116, 139, 0.16) 100%)',
+                hoverGradient: 'linear-gradient(135deg, rgba(71, 85, 105, 0.12) 0%, rgba(100, 116, 139, 0.22) 100%)'
             },
             'utility': { 
                 color: '#6B7280', 
