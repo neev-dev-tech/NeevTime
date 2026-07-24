@@ -414,7 +414,7 @@ export default function Employees() {
         <div className="flex flex-col h-[calc(100vh-120px)] card-base overflow-hidden relative">
             {/* Toolbar */}
             <div className="flex items-center gap-3 p-4 border-b border-slate-200 text-sm flex-wrap bg-white">
-                <Button variant="primary" icon={Plus} onClick={() => setShowAddModal(true)}>
+                <Button variant="successSolid" icon={Plus} onClick={() => setShowAddModal(true)}>
                     Add Employee
                 </Button>
                 <div className="h-8 w-px bg-slate-200 mx-2 hidden md:block"></div>

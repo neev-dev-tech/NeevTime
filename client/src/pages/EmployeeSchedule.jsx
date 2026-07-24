@@ -204,7 +204,7 @@ export default function EmployeeSchedule() {
                         <Button variant="secondary" icon={Users} onClick={() => setShowBulkModal(true)}>
                             Bulk Assign
                         </Button>
-                        <Button icon={Plus} onClick={() => setShowModal(true)}>
+                        <Button variant="successSolid" icon={Plus} onClick={() => setShowModal(true)}>
                             Assign Schedule
                         </Button>
                     </>

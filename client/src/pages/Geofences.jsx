@@ -129,7 +129,7 @@ const Geofences = () => {
                             filename="geofences"
                             title="Geofence Locations"
                         />
-                        <Button icon={Plus} onClick={() => openModal()}>Add Location</Button>
+                        <Button variant="successSolid" icon={Plus} onClick={() => openModal()}>Add Location</Button>
                     </>
                 }
             />

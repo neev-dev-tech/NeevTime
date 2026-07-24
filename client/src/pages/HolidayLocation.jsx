@@ -184,7 +184,7 @@ export default function HolidayLocation() {
                                 })}
                             />
                         )}
-                        <Button
+                        <Button variant="successSolid"
                             icon={Plus}
                             onClick={() => activeTab === 'locations' ? setShowModal(true) : setShowHolidayModal(true)}
                         >

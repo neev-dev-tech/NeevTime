@@ -63,7 +63,7 @@ export default function GenericCrud({ title, endpoint, columns, icon: Icon }) {
                 <h2 className="text-xl font-bold text-charcoal flex items-center gap-2">
                     {Icon && <Icon className="text-saffron" />} {title}
                 </h2>
-                <Button variant="primary" icon={Plus} onClick={() => setShowModal(true)}>
+                <Button variant="successSolid" icon={Plus} onClick={() => setShowModal(true)}>
                     Add {title}
                 </Button>
             </div>

@@ -142,7 +142,7 @@ export default function UsersPage() {
                                 fetchUsers();
                             }}
                         />
-                        <Button variant="primary" icon={Plus} onClick={openNewModal}>
+                        <Button variant="successSolid" icon={Plus} onClick={openNewModal}>
                             Add User
                         </Button>
                     </>

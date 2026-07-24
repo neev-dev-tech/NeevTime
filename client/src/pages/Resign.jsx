@@ -242,7 +242,7 @@ export default function Resign() {
         <div className="flex flex-col h-[calc(100vh-120px)] card-base overflow-hidden relative">
             {/* Toolbar */}
             <div className="flex items-center gap-3 p-4 border-b border-slate-100 bg-white text-sm flex-wrap">
-                <Button variant="primary" icon={Plus} onClick={() => { resetForm(); setShowModal(true); }}>
+                <Button variant="successSolid" icon={Plus} onClick={() => { resetForm(); setShowModal(true); }}>
                     Add Resignation
                 </Button>
 

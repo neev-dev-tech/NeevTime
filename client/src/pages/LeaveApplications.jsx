@@ -96,7 +96,7 @@ export default function LeaveApplications() {
                             })}
                         />
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchData}>Refresh</Button>
-                        <Button variant="primary" icon={Plus} onClick={() => setShowApply(true)}>Apply Leave</Button>
+                        <Button variant="successSolid" icon={Plus} onClick={() => setShowApply(true)}>Apply Leave</Button>
                     </>
                 }
             />

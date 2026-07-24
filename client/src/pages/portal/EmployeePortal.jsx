@@ -225,7 +225,7 @@ export default function EmployeePortal() {
                         )}
 
                         <Button
-                            variant="primary"
+                            variant="successSolid"
                             size="lg"
                             icon={Plus}
                             className="w-full"
@@ -286,7 +286,7 @@ export default function EmployeePortal() {
                 {tab === 'requests' && (
                     <div className="space-y-4">
                         <Button
-                            variant="primary"
+                            variant="successSolid"
                             size="lg"
                             icon={Plus}
                             className="w-full"

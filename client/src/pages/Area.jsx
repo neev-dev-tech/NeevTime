@@ -258,7 +258,7 @@ export default function Area() {
                     {/* Toolbar */}
                     <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-white flex-wrap gap-3">
                         <div className="flex items-center gap-2">
-                            <Button variant="primary" icon={Plus} onClick={() => { setFormData({}); setShowModal(true); }}>
+                            <Button variant="successSolid" icon={Plus} onClick={() => { setFormData({}); setShowModal(true); }}>
                                 Add
                             </Button>
                             <Button variant="danger" icon={Trash2} onClick={handleBulkDelete}>

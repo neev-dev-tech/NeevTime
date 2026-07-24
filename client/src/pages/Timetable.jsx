@@ -181,7 +181,7 @@ export default function Timetable() {
                                 check_out: t.check_out?.substring(0, 5) || ''
                             })}
                         />
-                        <Button icon={Plus} onClick={() => setShowModal(true)}>Add Timetable</Button>
+                        <Button variant="successSolid" icon={Plus} onClick={() => setShowModal(true)}>Add Timetable</Button>
                     </>
                 }
             />

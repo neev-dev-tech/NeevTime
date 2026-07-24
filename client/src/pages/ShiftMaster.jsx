@@ -89,7 +89,7 @@ export default function ShiftMaster() {
                                 is_night_shift: s.is_night_shift ? 'Yes' : 'No'
                             })}
                         />
-                        <Button icon={Plus} onClick={() => { setEditingShift(null); setShowModal(true); }}>Add Shift</Button>
+                        <Button variant="successSolid" icon={Plus} onClick={() => { setEditingShift(null); setShowModal(true); }}>Add Shift</Button>
                     </>
                 }
             />

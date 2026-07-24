@@ -190,7 +190,7 @@ export default function Positions() {
                 title="Positions"
                 actions={
                     <Button
-                        variant="primary"
+                        variant="successSolid"
                         icon={Plus}
                         onClick={() => { setShowModal(true); setFormData({ name: '', description: '' }); setEditItem(null); }}
                     >

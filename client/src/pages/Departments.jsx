@@ -179,7 +179,7 @@ export default function Departments() {
                 title="Departments"
                 actions={
                     <Button
-                        variant="primary"
+                        variant="successSolid"
                         icon={Plus}
                         onClick={() => { setShowModal(true); setEditingId(null); setName(''); }}
                     >

@@ -17,6 +17,8 @@ const VARIANTS = {
     // Solid red — reserve for the FINAL destructive confirm ("Yes, Delete")
     dangerSolid: 'bg-rose-600 hover:bg-rose-700 text-white border border-transparent shadow-sm',
     success: 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200',
+    // Solid green — the "Add / Create new thing" action app-wide
+    successSolid: 'bg-emerald-600 hover:bg-emerald-700 text-white border border-transparent shadow-sm',
     ghost: 'bg-transparent hover:bg-slate-100 text-slate-600 border border-transparent',
     dark: 'bg-slate-800 hover:bg-slate-900 text-white border border-transparent shadow-sm'
 };

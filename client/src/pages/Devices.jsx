@@ -635,7 +635,7 @@ export default function Devices() {
                                         </>
                                     )}
                                 </div>
-                                <Button variant="primary" icon={Plus} onClick={() => setShowModal(true)}>
+                                <Button variant="successSolid" icon={Plus} onClick={() => setShowModal(true)}>
                                     Add Device
                                 </Button>
                                 </>

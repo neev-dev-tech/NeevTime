@@ -388,7 +388,7 @@ const Integrations = () => {
                         Connect with external HR systems: ERPNext, Odoo, Horilla, SAP SuccessFactors, Workday, BambooHR, Zoho People, and Webhooks
                     </Typography>
                 </Box>
-                <Button type="button" variant="primary" onClick={() => handleOpenDialog()}>
+                <Button type="button" variant="successSolid" onClick={() => handleOpenDialog()}>
                     <AddIcon sx={{ fontSize: 18 }} /> Add Integration
                 </Button>
             </Box>

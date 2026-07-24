@@ -124,7 +124,7 @@ export default function DepartmentSchedule() {
                 icon={Building2}
                 title="Department Schedule"
                 actions={
-                    <Button icon={Plus} onClick={() => setShowModal(true)}>Assign Schedule</Button>
+                    <Button variant="successSolid" icon={Plus} onClick={() => setShowModal(true)}>Assign Schedule</Button>
                 }
             />
 

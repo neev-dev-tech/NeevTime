@@ -232,7 +232,7 @@ export default function AttendanceRules() {
                 title="Attendance Rules"
                 subtitle="Configure policies for late marks, overtime, and week offs"
                 actions={
-                    <Button icon={Plus} onClick={() => setShowModal(true)}>Add Rule</Button>
+                    <Button variant="successSolid" icon={Plus} onClick={() => setShowModal(true)}>Add Rule</Button>
                 }
             />
 
