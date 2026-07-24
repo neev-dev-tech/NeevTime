@@ -671,7 +671,7 @@ export default function Employees() {
                                 borderColor: '#FED7AA'
                             }}>
                                 <h3 className="font-semibold text-xl text-slate-800">Add Employee</h3>
-                            <button onClick={() => setShowAddModal(false)} className="p-2 hover:bg-slate-50 rounded-full text-slate-grey transition-colors"><X size={20} /></button>
+                            <Button variant="ghost" size="sm" icon={X} iconSize={20} aria-label="Close" onClick={() => setShowAddModal(false)} />
                         </div>
                             <form onSubmit={handleAddSubmit} className="p-8 overflow-y-auto max-h-[calc(90vh-80px)] custom-scrollbar" autoComplete="off">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -824,7 +824,7 @@ export default function Employees() {
                                 borderColor: '#FED7AA'
                             }}>
                                 <h3 className="font-semibold text-xl text-slate-800">Import Employees</h3>
-                            <button onClick={() => setShowImportModal(false)} className="p-2 hover:bg-white rounded-full transition-colors"><X size={20} className="text-slate-grey" /></button>
+                            <Button variant="ghost" size="sm" icon={X} iconSize={20} aria-label="Close" onClick={() => setShowImportModal(false)} />
                         </div>
 
                         <div className="p-8 text-center">

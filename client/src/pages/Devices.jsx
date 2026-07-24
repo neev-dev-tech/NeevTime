@@ -707,23 +707,28 @@ export default function Devices() {
 
                                     {/* Action Button Bar */}
                                     <div className="action-button-bar">
-                                        <button
+                                        <Button
+                                            variant="secondary"
+                                            size="sm"
                                             onClick={() => syncDevice(device.serial_number, 'INFO')}
                                             disabled={syncing[device.serial_number]}
-                                            className="btn-sync"
                                         >
                                             {syncing[device.serial_number]
                                                 ? <RefreshCw className="animate-spin" size={16} />
                                                 : <RefreshCw size={16} />
                                             }
                                             {syncing[device.serial_number] ? 'Syncing...' : 'Sync'}
-                                        </button>
+                                        </Button>
 
                                         {/* Diagnostic Tools for Offline Devices */}
                                         {device.status === 'offline' && (
                                             <>
-                                                <button
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    icon={Activity}
                                                     title="Test Network Connection"
+                                                    aria-label="Test Network Connection"
                                                     onClick={async () => {
                                                         const btn = document.getElementById(`test-${device.serial_number}`);
                                                         try {
@@ -737,14 +742,15 @@ export default function Devices() {
                                                             if (btn) btn.classList.remove('animate-pulse');
                                                         }
                                                     }}
-                                                    className="btn-icon-premium diagnostic"
                                                     id={`test-${device.serial_number}`}
-                                                >
-                                                    <Activity size={18} className="text-purple-500" />
-                                                </button>
+                                                />
 
-                                                <button
+                                                <Button
+                                                    variant="success"
+                                                    size="sm"
+                                                    icon={Power}
                                                     title="Force Online"
+                                                    aria-label="Force Online"
                                                     onClick={async () => {
                                                         try {
                                                             await api.post(`/api/devices/${device.serial_number}/force-online`);
@@ -754,25 +760,24 @@ export default function Devices() {
                                                             showToast('Failed to force online', 'error');
                                                         }
                                                     }}
-                                                    className="btn-icon-premium power"
-                                                >
-                                                    <Power size={18} className="text-emerald-500" />
-                                                </button>
+                                                />
                                             </>
                                         )}
 
-                                        <button
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            icon={Edit2}
+                                            aria-label="Edit"
                                             onClick={() => { setEditingDevice(device); setForm({ ...defaultForm, ...device }); setShowModal(true); }}
-                                            className="btn-icon-premium edit"
-                                        >
-                                            <Edit2 size={18} className="text-slate-500" />
-                                        </button>
-                                        <button
+                                        />
+                                        <Button
+                                            variant="danger"
+                                            size="sm"
+                                            icon={Trash2}
+                                            aria-label="Delete"
                                             onClick={() => handleDelete(device.serial_number)}
-                                            className="btn-icon-premium delete"
-                                        >
-                                            <Trash2 size={18} className="text-red-400" />
-                                        </button>
+                                        />
                                     </div>
                                 </div>
                             ))}
@@ -874,8 +879,8 @@ export default function Devices() {
                                 <option value="both">Both</option>
                             </select>
                             <div className="flex justify-end gap-2 mt-4">
-                                <button type="button" onClick={closeModal} className="btn-secondary rounded-full">Cancel</button>
-                                <button type="submit" className="btn-primary">Save</button>
+                                <Button variant="secondary" type="button" onClick={closeModal}>Cancel</Button>
+                                <Button variant="primary" type="submit">Save</Button>
                             </div>
                         </form>
                     </div>
@@ -891,8 +896,8 @@ export default function Devices() {
                         <h3 className="font-semibold" style={{ color: '#1E293B', fontWeight: 600 }}>{confirmation.title}</h3>
                         <p className="my-2 text-sm text-slate-500">{confirmation.message}</p>
                         <div className="flex justify-center gap-2 mt-4">
-                            <button onClick={() => setConfirmation({ show: false, action: null })} className="btn-secondary rounded-full">Cancel</button>
-                            <button onClick={processDataTransfer} className="btn-primary">Confirm</button>
+                            <Button variant="secondary" onClick={() => setConfirmation({ show: false, action: null })}>Cancel</Button>
+                            <Button variant={confirmation.action === 'delete' ? 'dangerSolid' : 'primary'} onClick={processDataTransfer}>Confirm</Button>
                         </div>
                     </div>
                 </div>

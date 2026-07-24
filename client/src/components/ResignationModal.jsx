@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, Calendar, FileText, AlertTriangle } from 'lucide-react';
+import Button from './ui/Button';
 
 export default function ResignationModal({ isOpen, onClose, selectedCount, onConfirm }) {
     const today = new Date().toISOString().split('T')[0];
@@ -26,12 +27,7 @@ export default function ResignationModal({ isOpen, onClose, selectedCount, onCon
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
                     <h3 className="font-bold text-lg text-charcoal">Resignation</h3>
-                    <button
-                        onClick={onClose}
-                        className="p-2 hover:bg-white rounded-full text-slate-grey hover:text-charcoal transition-colors hover:shadow-sm"
-                    >
-                        <X size={18} />
-                    </button>
+                    <Button variant="ghost" size="sm" icon={X} onClick={onClose} aria-label="Close" />
                 </div>
 
                 <form onSubmit={handleSubmit} className="p-6 overflow-y-auto">
@@ -120,19 +116,12 @@ export default function ResignationModal({ isOpen, onClose, selectedCount, onCon
 
                     {/* Footer */}
                     <div className="flex justify-end gap-3 mt-8 pt-4 border-t border-slate-100">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="px-6 py-2 border border-slate-200 rounded-md text-slate-grey hover:bg-slate-50 font-medium transition-colors text-sm"
-                        >
+                        <Button type="button" variant="secondary" onClick={onClose}>
                             Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            className="px-6 py-2 bg-saffron-gradient text-white rounded-md font-bold shadow-soft-orange hover:shadow-lg transition-all text-sm"
-                        >
+                        </Button>
+                        <Button type="submit" variant="primary">
                             Confirm
-                        </button>
+                        </Button>
                     </div>
                 </form>
             </div>

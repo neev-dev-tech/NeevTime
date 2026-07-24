@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../api';
 import { Calendar, ChevronLeft, ChevronRight, Clock, User, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 import SkeletonLoader from '../components/SkeletonLoader';
-import { PageHeader } from '../components';
+import { Button, PageHeader } from '../components';
 
 export default function AttendanceCalendar() {
     const [currentDate, setCurrentDate] = useState(new Date());
@@ -124,15 +124,11 @@ export default function AttendanceCalendar() {
                         subtitle="Monthly attendance overview"
                         actions={
                             <div className="flex items-center bg-white border border-slate-200 rounded-lg p-1 shadow-sm">
-                                <button onClick={prevMonth} className="p-1.5 hover:bg-slate-100 rounded-md text-slate-500 hover:text-slate-800 transition-colors">
-                                    <ChevronLeft size={20} />
-                                </button>
+                                <Button variant="ghost" size="sm" icon={ChevronLeft} iconSize={20} aria-label="Previous month" onClick={prevMonth} />
                                 <span className="w-48 text-center font-bold text-slate-800 text-sm py-1">
                                     {monthNames[month]} {year}
                                 </span>
-                                <button onClick={nextMonth} className="p-1.5 hover:bg-slate-100 rounded-md text-slate-500 hover:text-slate-800 transition-colors">
-                                    <ChevronRight size={20} />
-                                </button>
+                                <Button variant="ghost" size="sm" icon={ChevronRight} iconSize={20} aria-label="Next month" onClick={nextMonth} />
                             </div>
                         }
                     />

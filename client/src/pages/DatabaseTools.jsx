@@ -277,27 +277,30 @@ export default function DatabaseTools() {
                                             </td>
                                             <td>
                                                 <div className="flex items-center justify-end gap-2">
-                                                    <button
-                                                        onClick={() => downloadBackup(backup)}
-                                                        className="p-1.5 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors border border-transparent hover:border-orange-100"
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        icon={Download}
+                                                        aria-label="Download backup"
                                                         title="Download"
-                                                    >
-                                                        <Download size={16} />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => restoreBackup(backup)}
-                                                        className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors border border-transparent hover:border-emerald-100"
+                                                        onClick={() => downloadBackup(backup)}
+                                                    />
+                                                    <Button
+                                                        variant="success"
+                                                        size="sm"
+                                                        icon={Upload}
+                                                        aria-label="Restore backup"
                                                         title="Restore"
-                                                    >
-                                                        <Upload size={16} />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => deleteBackup(backup)}
-                                                        className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors border border-transparent hover:border-rose-100"
+                                                        onClick={() => restoreBackup(backup)}
+                                                    />
+                                                    <Button
+                                                        variant="danger"
+                                                        size="sm"
+                                                        icon={Trash2}
+                                                        aria-label="Delete backup"
                                                         title="Delete"
-                                                    >
-                                                        <Trash2 size={16} />
-                                                    </button>
+                                                        onClick={() => deleteBackup(backup)}
+                                                    />
                                                 </div>
                                             </td>
                                         </tr>

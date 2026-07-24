@@ -264,18 +264,20 @@ export default function HolidayLocation() {
                                     </div>
                                 </div>
                                 <div className="flex gap-1">
-                                    <button
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        icon={Edit2}
+                                        aria-label="Edit"
                                         onClick={() => openEdit(loc)}
-                                        className="p-1.5 text-orange-600 hover:bg-orange-50 rounded"
-                                    >
-                                        <Edit2 size={16} />
-                                    </button>
-                                    <button
+                                    />
+                                    <Button
+                                        variant="danger"
+                                        size="sm"
+                                        icon={Trash2}
+                                        aria-label="Delete"
                                         onClick={() => handleDelete(loc.id)}
-                                        className="p-1.5 text-red-600 hover:bg-red-50 rounded"
-                                    >
-                                        <Trash2 size={16} />
-                                    </button>
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -328,18 +330,20 @@ export default function HolidayLocation() {
                                     </td>
                                     <td className="px-4 py-3">
                                         <div className="flex items-center justify-center gap-2">
-                                            <button
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                icon={Edit2}
+                                                aria-label="Edit"
                                                 onClick={() => openHolidayEdit(h)}
-                                                className="p-1.5 text-orange-600 hover:bg-orange-50 rounded"
-                                            >
-                                                <Edit2 size={16} />
-                                            </button>
-                                            <button
+                                            />
+                                            <Button
+                                                variant="danger"
+                                                size="sm"
+                                                icon={Trash2}
+                                                aria-label="Delete"
                                                 onClick={() => handleHolidayDelete(h.id)}
-                                                className="p-1.5 text-red-600 hover:bg-red-50 rounded"
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
+                                            />
                                         </div>
                                     </td>
                                 </tr>
@@ -357,9 +361,7 @@ export default function HolidayLocation() {
                             <h2 className="text-lg font-semibold">
                                 {editingId ? 'Edit Location' : 'Add Location'}
                             </h2>
-                            <button onClick={closeModal} className="p-2 hover:bg-slate-100 rounded-lg">
-                                <X size={20} />
-                            </button>
+                            <Button variant="ghost" size="sm" icon={X} aria-label="Close" onClick={closeModal} />
                         </div>
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             <div>
@@ -402,9 +404,7 @@ export default function HolidayLocation() {
                             <h2 className="text-lg font-semibold">
                                 {editingHolidayId ? 'Edit Holiday' : 'Add Holiday'}
                             </h2>
-                            <button onClick={closeHolidayModal} className="p-2 hover:bg-slate-100 rounded-lg">
-                                <X size={20} />
-                            </button>
+                            <Button variant="ghost" size="sm" icon={X} aria-label="Close" onClick={closeHolidayModal} />
                         </div>
                         <form onSubmit={handleHolidaySubmit} className="p-6 space-y-4">
                             <div>

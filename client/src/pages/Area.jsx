@@ -325,13 +325,14 @@ export default function Area() {
                                             <td className="px-6 py-4 text-slate-grey">{area.face_count || 0}</td>
                                             <td className="px-6 py-4 text-slate-grey">{area.card_count || 0}</td>
                                             <td className="px-6 py-4">
-                                                <button
-                                                    onClick={() => handleDelete(area.id)}
-                                                    className="p-2 text-slate-grey hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                                                <Button
+                                                    variant="danger"
+                                                    size="sm"
+                                                    icon={Trash2}
                                                     title="Delete Area"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
+                                                    aria-label="Delete Area"
+                                                    onClick={() => handleDelete(area.id)}
+                                                />
                                             </td>
                                         </tr>
                                     ))
@@ -349,7 +350,7 @@ export default function Area() {
                     <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm border border-white/50">
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="text-lg font-bold text-charcoal">Add Area</h3>
-                            <button onClick={() => setShowModal(false)} className="text-slate-grey hover:text-charcoal"><X size={20} /></button>
+                            <Button variant="ghost" size="sm" icon={X} aria-label="Close" onClick={() => setShowModal(false)} />
                         </div>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
@@ -390,7 +391,7 @@ export default function Area() {
                     <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md border border-white/50">
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="text-lg font-bold text-charcoal">Import Areas</h3>
-                            <button onClick={() => setShowImportModal(false)} className="text-slate-grey hover:text-charcoal"><X size={20} /></button>
+                            <Button variant="ghost" size="sm" icon={X} aria-label="Close" onClick={() => setShowImportModal(false)} />
                         </div>
                         <form onSubmit={handleImport} className="space-y-4">
                             <div>
@@ -406,9 +407,9 @@ export default function Area() {
                             <div className="bg-orange-50/50 p-4 rounded-xl border border-orange-100 text-sm text-slate-grey">
                                 <p className="font-bold text-saffron mb-1">CSV Format:</p>
                                 <code className="block bg-white p-2 rounded border border-orange-100 mb-2">Area Name, Area Code</code>
-                                <button type="button" onClick={downloadTemplate} className="flex items-center gap-2 text-saffron hover:underline font-medium">
-                                    <Download size={14} /> Download Template
-                                </button>
+                                <Button variant="secondary" size="sm" icon={Download} type="button" onClick={downloadTemplate}>
+                                    Download Template
+                                </Button>
                             </div>
                             <div className="flex justify-end gap-3 pt-4">
                                 <Button variant="secondary" onClick={() => setShowImportModal(false)}>Cancel</Button>
@@ -425,7 +426,7 @@ export default function Area() {
                     <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md border border-white/50">
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="text-lg font-bold text-charcoal">Personnel Transfer</h3>
-                            <button onClick={() => setShowTransferModal(false)} className="text-slate-grey hover:text-charcoal"><X size={20} /></button>
+                            <Button variant="ghost" size="sm" icon={X} aria-label="Close" onClick={() => setShowTransferModal(false)} />
                         </div>
                         <form onSubmit={handleTransfer} className="space-y-4">
                             <div>

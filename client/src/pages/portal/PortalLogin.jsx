@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Fingerprint, LogIn } from 'lucide-react';
 import api from '../../api';
 import useStore from '../../store/useStore';
+import { Button } from '../../components';
 
 export default function PortalLogin() {
     const [employeeCode, setEmployeeCode] = useState('');
@@ -71,14 +72,16 @@ export default function PortalLogin() {
                         <div className="text-sm text-rose-600 bg-rose-50 border border-rose-100 rounded-lg px-3 py-2">{error}</div>
                     )}
 
-                    <button
+                    <Button
                         type="submit"
+                        variant="primary"
+                        size="lg"
+                        icon={LogIn}
                         disabled={loading}
-                        className="w-full flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-700 disabled:opacity-60 text-white font-semibold py-2.5 rounded-lg transition-colors"
+                        className="w-full"
                     >
-                        <LogIn size={16} />
                         {loading ? 'Signing in...' : 'Sign In'}
-                    </button>
+                    </Button>
                 </form>
 
                 <p className="text-center text-xs text-slate-400 mt-6">

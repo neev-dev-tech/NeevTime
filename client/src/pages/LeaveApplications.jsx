@@ -161,8 +161,8 @@ export default function LeaveApplications() {
                                 <td className="p-3 text-center">
                                     {app.status === 'Pending' && (
                                         <div className="flex justify-center gap-1">
-                                            <button onClick={() => handleAction(app.id, 'Approved')} className="p-1.5 bg-green-100 hover:bg-green-200 rounded text-green-700" title="Approve"><Check size={16} /></button>
-                                            <button onClick={() => handleAction(app.id, 'Rejected')} className="p-1.5 bg-red-100 hover:bg-red-200 rounded text-red-700" title="Reject"><X size={16} /></button>
+                                            <Button variant="success" size="sm" icon={Check} aria-label="Approve" title="Approve" onClick={() => handleAction(app.id, 'Approved')} />
+                                            <Button variant="danger" size="sm" icon={X} aria-label="Reject" title="Reject" onClick={() => handleAction(app.id, 'Rejected')} />
                                         </div>
                                     )}
                                 </td>

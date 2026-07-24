@@ -284,22 +284,20 @@ export default function Positions() {
                                         <td className="px-6 py-4 text-slate-600">{pos.description || '-'}</td>
                                         <td className="px-6 py-4 sticky-action">
                                             <div className="flex items-center justify-center gap-2">
-                                                <button
-                                                    type="button"
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    icon={Edit2}
+                                                    aria-label="Edit position"
                                                     onClick={() => handleEdit(pos)}
-                                                    className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
-                                                    style={{ transition: 'all 200ms cubic-bezier(0.25, 0.8, 0.25, 1)' }}
-                                                >
-                                                    <Edit2 size={16} />
-                                                </button>
-                                                <button
-                                                    type="button"
+                                                />
+                                                <Button
+                                                    variant="danger"
+                                                    size="sm"
+                                                    icon={Trash2}
+                                                    aria-label="Delete position"
                                                     onClick={(e) => handleDelete(e, pos.id)}
-                                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                    style={{ transition: 'all 200ms cubic-bezier(0.25, 0.8, 0.25, 1)' }}
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
+                                                />
                                             </div>
                                         </td>
                                     </tr>
@@ -318,13 +316,14 @@ export default function Positions() {
                             <h2 className="text-lg font-semibold text-slate-800">
                                 {editItem ? 'Edit Position' : 'Add Position'}
                             </h2>
-                            <button
-                                type="button"
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                icon={X}
+                                iconSize={20}
+                                aria-label="Close"
                                 onClick={closeModal}
-                                className="p-2 hover:bg-slate-100 rounded-lg"
-                            >
-                                <X size={20} />
-                            </button>
+                            />
                         </div>
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             <div>
@@ -395,13 +394,14 @@ export default function Positions() {
                             <h2 className="text-lg font-semibold text-slate-800">
                                 Import Positions
                             </h2>
-                            <button
-                                type="button"
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                icon={X}
+                                iconSize={20}
+                                aria-label="Close"
                                 onClick={closeImportModal}
-                                className="p-2 hover:bg-slate-100 rounded-lg"
-                            >
-                                <X size={20} />
-                            </button>
+                            />
                         </div>
                         <div className="p-6 space-y-4">
                             <p className="text-sm text-slate-600">
@@ -409,13 +409,14 @@ export default function Positions() {
                             </p>
 
                             {/* Download Template */}
-                            <button
-                                type="button"
+                            <Button
+                                variant="secondary"
+                                size="sm"
+                                icon={Download}
                                 onClick={downloadTemplate}
-                                className="flex items-center gap-2 text-sm text-orange-600 hover:text-orange-700"
                             >
-                                <Download size={14} /> Download CSV Template
-                            </button>
+                                Download CSV Template
+                            </Button>
 
                             {/* File Input */}
                             <div className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-purple-400 transition-colors">

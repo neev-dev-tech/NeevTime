@@ -1,6 +1,7 @@
 import React from 'react';
 import { Info } from 'lucide-react';
 import { APP_VERSION, BUILD_DATE } from '../constants/version';
+import Button from './ui/Button';
 
 /**
  * Version Display Component
@@ -69,12 +70,9 @@ export function VersionInfoModal({ isOpen, onClose }) {
                             </span>
                         </div>
                     </div>
-                    <button
-                        onClick={onClose}
-                        className="mt-6 w-full px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
-                    >
+                    <Button variant="primary" onClick={onClose} className="mt-6 w-full">
                         Close
-                    </button>
+                    </Button>
                 </div>
             </div>
         </>

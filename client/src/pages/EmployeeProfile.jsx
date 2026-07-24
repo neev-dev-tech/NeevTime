@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../api';
 import { User, Mail, Phone, Building, Briefcase, Calendar, Clock, ArrowLeft, Edit2, Trash2, X } from 'lucide-react';
-import { useToast } from '../components';
+import { useToast, Button } from '../components';
 
 export default function EmployeeProfile() {
     const { id } = useParams();
@@ -140,8 +140,8 @@ export default function EmployeeProfile() {
                                 </div>
                             </div>
                             <div className="flex gap-2">
-                                <button onClick={() => setShowEditModal(true)} className="p-2 border rounded-lg hover:bg-slate-50 text-slate-600 transition-colors"><Edit2 size={18} /></button>
-                                <button onClick={handleDelete} className="p-2 border rounded-lg hover:bg-red-50 text-red-500 transition-colors"><Trash2 size={18} /></button>
+                                <Button variant="ghost" size="sm" icon={Edit2} aria-label="Edit" onClick={() => setShowEditModal(true)} />
+                                <Button variant="danger" size="sm" icon={Trash2} aria-label="Delete" onClick={handleDelete} />
                             </div>
                         </div>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
@@ -217,13 +217,13 @@ export default function EmployeeProfile() {
                                         placeholder="New portal password (min 6 chars)"
                                         className="flex-1 text-sm border rounded-lg px-3 py-2"
                                     />
-                                    <button
+                                    <Button
+                                        variant="primary"
                                         onClick={handleSetPortalPassword}
                                         disabled={settingPortalPw}
-                                        className="px-4 py-2 bg-orange-600 hover:bg-orange-700 disabled:opacity-60 text-white text-sm font-semibold rounded-lg transition-colors"
                                     >
                                         {settingPortalPw ? 'Saving...' : 'Set Password'}
-                                    </button>
+                                    </Button>
                                 </div>
                             </div>
                         </div>
@@ -248,7 +248,7 @@ export default function EmployeeProfile() {
                     <div className="text-center py-12 border-2 border-dashed border-slate-200 rounded-lg">
                         <User className="mx-auto text-slate-300 mb-2" size={48} />
                         <p className="text-slate-500 text-sm">No documents uploaded yet.</p>
-                        <button className="mt-4 px-4 py-2 bg-orange-50 text-orange-600 rounded text-sm font-medium hover:bg-orange-100">Upload Document</button>
+                        <Button variant="primary" className="mt-4 mx-auto">Upload Document</Button>
                     </div>
                 )}
             </div>
@@ -263,8 +263,8 @@ export default function EmployeeProfile() {
                         <h3 className="text-lg font-bold mb-2">Delete Employee?</h3>
                         <p className="text-slate-500 text-sm mb-6">Are you sure you want to delete <span className="font-bold">{employee.name}</span>? This action cannot be undone.</p>
                         <div className="flex justify-center gap-3">
-                            <button onClick={() => setDeleteModalOpen(false)} className="px-4 py-2 border rounded-lg text-slate-700 hover:bg-slate-50">Cancel</button>
-                            <button onClick={confirmDelete} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">Delete</button>
+                            <Button variant="secondary" onClick={() => setDeleteModalOpen(false)}>Cancel</Button>
+                            <Button variant="dangerSolid" onClick={confirmDelete}>Delete</Button>
                         </div>
                     </div>
                 </div>
@@ -276,7 +276,7 @@ export default function EmployeeProfile() {
                     <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
                         <div className="px-6 py-4 border-b flex justify-between items-center bg-slate-50 sticky top-0">
                             <h3 className="font-bold text-lg">Edit Employee</h3>
-                            <button onClick={() => setShowEditModal(false)}><X className="text-slate-400 hover:text-red-500" /></button>
+                            <Button variant="ghost" size="sm" icon={X} aria-label="Close" onClick={() => setShowEditModal(false)} />
                         </div>
                         <form onSubmit={handleEditSubmit} className="p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
                             {/* Similar Form Fields to Add Modal */}
@@ -323,8 +323,8 @@ export default function EmployeeProfile() {
                             </div>
 
                             <div className="col-span-1 md:col-span-3 flex justify-end gap-3 pt-4 border-t mt-4">
-                                <button type="button" onClick={() => setShowEditModal(false)} className="px-4 py-2 border rounded hover:bg-slate-50">Cancel</button>
-                                <button type="submit" className="px-6 py-2 bg-orange-600 text-white rounded hover:bg-orange-700">Save Changes</button>
+                                <Button variant="secondary" type="button" onClick={() => setShowEditModal(false)}>Cancel</Button>
+                                <Button variant="primary" type="submit">Save Changes</Button>
                             </div>
                         </form>
                     </div>

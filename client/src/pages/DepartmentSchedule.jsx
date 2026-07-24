@@ -183,18 +183,8 @@ export default function DepartmentSchedule() {
                                 </td>
                                 <td className="px-4 py-3">
                                     <div className="flex items-center justify-center gap-2">
-                                        <button
-                                            onClick={() => openEdit(schedule)}
-                                            className="p-1.5 text-orange-600 hover:bg-orange-50 rounded"
-                                        >
-                                            <Edit2 size={16} />
-                                        </button>
-                                        <button
-                                            onClick={() => handleDelete(schedule.id)}
-                                            className="p-1.5 text-red-600 hover:bg-red-50 rounded"
-                                        >
-                                            <Trash2 size={16} />
-                                        </button>
+                                        <Button variant="ghost" size="sm" icon={Edit2} iconSize={16} onClick={() => openEdit(schedule)} aria-label="Edit schedule" />
+                                        <Button variant="danger" size="sm" icon={Trash2} iconSize={16} onClick={() => handleDelete(schedule.id)} aria-label="Delete schedule" />
                                     </div>
                                 </td>
                             </tr>
@@ -211,9 +201,7 @@ export default function DepartmentSchedule() {
                             <h2 className="text-lg font-semibold">
                                 {editingId ? 'Edit Department Schedule' : 'Assign Department Schedule'}
                             </h2>
-                            <button onClick={closeModal} className="p-2 hover:bg-slate-100 rounded-lg">
-                                <X size={20} />
-                            </button>
+                            <Button variant="ghost" icon={X} iconSize={20} onClick={closeModal} aria-label="Close" />
                         </div>
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             <div>

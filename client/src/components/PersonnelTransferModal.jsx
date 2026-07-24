@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useToast } from './Toast';
+import Button from './ui/Button';
 
 export default function PersonnelTransferModal({ isOpen, onClose, transferType = 'Department', employees = [], departments = [], positions = [], areas = [], onConfirm }) {
     const toast = useToast();
@@ -59,9 +60,7 @@ export default function PersonnelTransferModal({ isOpen, onClose, transferType =
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-slate-100">
                     <h3 className="text-xl font-bold text-charcoal">{transferType} Transfer</h3>
-                    <button onClick={onClose} className="p-2 hover:bg-slate-50 rounded-full transition-colors text-slate-grey hover:text-charcoal">
-                        <X size={20} />
-                    </button>
+                    <Button variant="ghost" size="sm" icon={X} onClick={onClose} aria-label="Close" />
                 </div>
 
                 {/* Content */}
@@ -209,12 +208,12 @@ export default function PersonnelTransferModal({ isOpen, onClose, transferType =
 
                 {/* Footer */}
                 <div className="flex justify-end gap-3 p-6 border-t border-slate-100 bg-slate-50/30">
-                    <button onClick={onClose} className="px-6 py-2.5 text-slate-grey hover:bg-slate-100 rounded-full font-medium transition-colors">
+                    <Button variant="secondary" onClick={onClose}>
                         Cancel
-                    </button>
-                    <button onClick={handleConfirm} className="btn-primary px-8">
+                    </Button>
+                    <Button variant="primary" onClick={handleConfirm}>
                         Confirm Transfer
-                    </button>
+                    </Button>
                 </div>
             </div>
         </div>

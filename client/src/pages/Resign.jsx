@@ -371,9 +371,7 @@ export default function Resign() {
                     <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg border border-white/50 overflow-hidden">
                         <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50/50">
                             <h3 className="font-bold text-lg text-charcoal">Add Resignation</h3>
-                            <button onClick={() => setShowModal(false)} className="p-2 hover:bg-white rounded-full text-slate-grey transition-colors">
-                                <X size={20} />
-                            </button>
+                            <Button variant="ghost" size="sm" icon={X} iconSize={20} aria-label="Close" onClick={() => setShowModal(false)} />
                         </div>
                         <form onSubmit={handleResignSubmit} className="p-6 space-y-4">
                             <div className="flex items-center gap-3">
@@ -475,14 +473,12 @@ export default function Resign() {
                             <Button variant="secondary" onClick={closeConfirmModal}>
                                 Cancel
                             </Button>
-                            <button
+                            <Button
+                                variant={confirmModal.type === 'danger' ? 'dangerSolid' : 'primary'}
                                 onClick={confirmModal.action}
-                                className={`px-5 py-2.5 text-white rounded-full font-medium shadow-lg transition-all
-                                    ${confirmModal.type === 'danger' ? 'bg-red-500 hover:bg-red-600 shadow-red-500/30' :
-                                        confirmModal.type === 'warning' ? 'bg-yellow-500 hover:bg-yellow-600 shadow-yellow-500/30' : 'bg-orange-600 hover:bg-orange-700 shadow-orange-500/30'}`}
                             >
                                 Confirm
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </div>

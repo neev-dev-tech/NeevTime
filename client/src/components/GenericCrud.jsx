@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import api from '../api';
 import { Plus, Trash2, Edit } from 'lucide-react';
 import { useToast } from './Toast';
+import Button from './ui/Button';
 
 export default function GenericCrud({ title, endpoint, columns, icon: Icon }) {
     const toast = useToast();
@@ -62,9 +63,9 @@ export default function GenericCrud({ title, endpoint, columns, icon: Icon }) {
                 <h2 className="text-xl font-bold text-charcoal flex items-center gap-2">
                     {Icon && <Icon className="text-saffron" />} {title}
                 </h2>
-                <button onClick={() => setShowModal(true)} className="btn-primary flex items-center gap-2">
-                    <Plus size={18} /> Add {title}
-                </button>
+                <Button variant="primary" icon={Plus} onClick={() => setShowModal(true)}>
+                    Add {title}
+                </Button>
             </div>
 
             <div className="card-base overflow-hidden">
@@ -114,8 +115,8 @@ export default function GenericCrud({ title, endpoint, columns, icon: Icon }) {
                                 </div>
                             ))}
                             <div className="flex justify-end gap-3 pt-2">
-                                <button type="button" onClick={() => setShowModal(false)} className="btn-secondary rounded-full">Cancel</button>
-                                <button type="submit" className="btn-primary">Save</button>
+                                <Button type="button" variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
+                                <Button type="submit" variant="primary">Save</Button>
                             </div>
                         </form>
                     </div>
@@ -132,8 +133,8 @@ export default function GenericCrud({ title, endpoint, columns, icon: Icon }) {
                         <h3 className="text-lg font-bold mb-2 text-charcoal">Delete {title}?</h3>
                         <p className="text-slate-grey text-sm mb-6">Are you sure you want to delete this {title.toLowerCase()}? This action cannot be undone.</p>
                         <div className="flex justify-center gap-3">
-                            <button onClick={() => setDeleteId(null)} className="btn-secondary rounded-full">Cancel</button>
-                            <button onClick={handleDelete} className="btn-ghost-red rounded-full bg-red-50 hover:bg-red-100 text-red-600 font-medium px-5 py-2.5">Delete</button>
+                            <Button variant="secondary" onClick={() => setDeleteId(null)}>Cancel</Button>
+                            <Button variant="dangerSolid" onClick={handleDelete}>Delete</Button>
                         </div>
                     </div>
                 </div>

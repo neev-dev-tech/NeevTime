@@ -174,12 +174,8 @@ const Geofences = () => {
                                         <td className="px-6 py-4 text-slate-600">{fence.radius_meters}m</td>
                                         <td className="px-6 py-4 text-slate-600">{fence.address || '-'}</td>
                                         <td className="px-6 py-4 text-right space-x-2">
-                                            <button onClick={() => openModal(fence)} className="text-orange-600 hover:text-orange-800 p-1">
-                                                <Edit2 size={16} />
-                                            </button>
-                                            <button onClick={() => handleDelete(fence.id)} className="text-red-500 hover:text-red-700 p-1">
-                                                <Trash2 size={16} />
-                                            </button>
+                                            <Button variant="ghost" size="sm" icon={Edit2} aria-label="Edit geofence" onClick={() => openModal(fence)} />
+                                            <Button variant="danger" size="sm" icon={Trash2} aria-label="Delete geofence" onClick={() => handleDelete(fence.id)} />
                                         </td>
                                     </tr>
                                 ))
@@ -239,9 +235,9 @@ const Geofences = () => {
                                     </div>
                                 </div>
 
-                                <button type="button" onClick={getCurrentLocation} className="text-sm text-orange-600 flex items-center gap-1 hover:underline">
-                                    <Navigation size={14} /> Get Current Location
-                                </button>
+                                <Button variant="secondary" size="sm" icon={Navigation} onClick={getCurrentLocation}>
+                                    Get Current Location
+                                </Button>
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>

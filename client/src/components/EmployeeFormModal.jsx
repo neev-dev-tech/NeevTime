@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, User, Upload, Camera } from 'lucide-react';
+import Button from './ui/Button';
 
 export default function EmployeeFormModal({ isOpen, onClose, employee = null, departments = [], positions = [], areas = [], onSave }) {
     const isEdit = !!employee;
@@ -123,9 +124,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee = null, de
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 border-b bg-slate-50">
                     <h2 className="text-lg font-semibold text-slate-800">{isEdit ? 'Edit Employee' : 'Add Employee'}</h2>
-                    <button onClick={onClose} className="p-1 hover:bg-slate-200 rounded transition-colors">
-                        <X size={20} className="text-slate-500" />
-                    </button>
+                    <Button variant="ghost" size="sm" icon={X} onClick={onClose} aria-label="Close" />
                 </div>
 
                 {/* Content */}
@@ -227,15 +226,15 @@ export default function EmployeeFormModal({ isOpen, onClose, employee = null, de
                                 <InputField label="Device Privilege" value={formData.device_privilege} onChange={v => handleChange('device_privilege', v)}
                                     options={['Employee', 'Administrator', 'Super Administrator']} />
                                 <div className="flex items-center gap-4 mt-6 ml-40">
-                                    <button type="button" className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 text-sm">
+                                    <Button type="button" variant="primary">
                                         Enroll Fingerprint
-                                    </button>
-                                    <button type="button" className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 text-sm">
+                                    </Button>
+                                    <Button type="button" variant="primary">
                                         Enroll Face
-                                    </button>
-                                    <button type="button" className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 text-sm">
+                                    </Button>
+                                    <Button type="button" variant="primary">
                                         Enroll Palm
-                                    </button>
+                                    </Button>
                                 </div>
                                 <div className="mt-4 p-4 bg-slate-50 rounded ml-40">
                                     <div className="grid grid-cols-3 gap-4 text-sm">
@@ -329,12 +328,12 @@ export default function EmployeeFormModal({ isOpen, onClose, employee = null, de
 
                     {/* Footer */}
                     <div className="flex justify-end gap-3 p-4 border-t bg-slate-50">
-                        <button type="submit" className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors font-medium">
+                        <Button type="submit" variant="primary">
                             Confirm
-                        </button>
-                        <button type="button" onClick={onClose} className="px-6 py-2 bg-slate-200 text-slate-700 rounded hover:bg-slate-300 transition-colors font-medium">
+                        </Button>
+                        <Button type="button" variant="secondary" onClick={onClose}>
                             Cancel
-                        </button>
+                        </Button>
                     </div>
                 </form>
             </div>

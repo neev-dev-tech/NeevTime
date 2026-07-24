@@ -11,7 +11,7 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-    Box, Typography, Paper, Grid, Button, IconButton, Chip, Dialog,
+    Box, Typography, Paper, Grid, IconButton, Chip, Dialog,
     DialogTitle, DialogContent, DialogActions, TextField, FormControl,
     InputLabel, Select, MenuItem, Switch, FormControlLabel, Table,
     TableBody, TableCell, TableContainer, TableHead, TableRow,
@@ -25,7 +25,7 @@ import {
     CloudSync as CloudSyncIcon, Link as LinkIcon, LinkOff as LinkOffIcon
 } from '@mui/icons-material';
 import { integrationsAPI } from '../api';
-import { useToast } from '../components';
+import { Button, useToast } from '../components';
 
 const Integrations = () => {
     const toast = useToast();
@@ -388,26 +388,9 @@ const Integrations = () => {
                         Connect with external HR systems: ERPNext, Odoo, Horilla, SAP SuccessFactors, Workday, BambooHR, Zoho People, and Webhooks
                     </Typography>
                 </Box>
-                <button
-                    type="button"
-                    onClick={() => handleOpenDialog()}
-                    className="flex items-center gap-2 px-4 py-2 rounded-full font-semibold transition-all border-2 hover:shadow-lg"
-                    style={{
-                        background: 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)',
-                        borderColor: '#F97316',
-                        color: '#FFFFFF'
-                    }}
-                    onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'linear-gradient(135deg, #EA580C 0%, #C2410C 100%)';
-                        e.currentTarget.style.borderColor = '#EA580C';
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)';
-                        e.currentTarget.style.borderColor = '#F97316';
-                    }}
-                >
+                <Button type="button" variant="primary" onClick={() => handleOpenDialog()}>
                     <AddIcon sx={{ fontSize: 18 }} /> Add Integration
-                </button>
+                </Button>
             </Box>
 
             {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>{error}</Alert>}
@@ -425,26 +408,9 @@ const Integrations = () => {
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
                         Connect your attendance system with external HRMS
                     </Typography>
-                    <button
-                        type="button"
-                        onClick={() => handleOpenDialog()}
-                        className="flex items-center gap-2 px-4 py-2 rounded-full font-semibold transition-all border-2 hover:shadow-lg"
-                        style={{
-                            background: 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)',
-                            borderColor: '#F97316',
-                            color: '#FFFFFF'
-                        }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.background = 'linear-gradient(135deg, #EA580C 0%, #C2410C 100%)';
-                            e.currentTarget.style.borderColor = '#EA580C';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.background = 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)';
-                            e.currentTarget.style.borderColor = '#F97316';
-                        }}
-                    >
+                    <Button type="button" variant="primary" className="mx-auto" onClick={() => handleOpenDialog()}>
                         <AddIcon sx={{ fontSize: 18 }} /> Add Your First Integration
-                    </button>
+                    </Button>
                 </Paper>
             ) : (
                 <Grid container spacing={3}>
@@ -721,30 +687,15 @@ const Integrations = () => {
                                 {/* Test Connection Button */}
                                 {selectedIntegration && (
                                     <Grid size={{ xs: 12 }}>
-                                        <button
+                                        <Button
                                             type="button"
+                                            variant="secondary"
                                             onClick={() => handleTest(selectedIntegration.id)}
                                             disabled={testing}
-                                            className="flex items-center gap-2 px-4 py-2 rounded-full font-semibold transition-all border-2 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                                            style={{
-                                                backgroundColor: testing ? '#9CA3AF' : '#FFFFFF',
-                                                borderColor: '#2563EB',
-                                                color: '#2563EB'
-                                            }}
-                                            onMouseEnter={(e) => {
-                                                if (!testing) {
-                                                    e.currentTarget.style.backgroundColor = '#DBEAFE';
-                                                }
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                if (!testing) {
-                                                    e.currentTarget.style.backgroundColor = '#FFFFFF';
-                                                }
-                                            }}
                                         >
                                             {testing ? <CircularProgress size={16} /> : <CheckIcon sx={{ fontSize: 16 }} />}
                                             Test Connection
-                                        </button>
+                                        </Button>
                                         {testResult && (
                                             <Alert severity={testResult.success ? 'success' : 'error'} sx={{ mt: 2 }}>
                                                 {testResult.message}
@@ -837,48 +788,12 @@ const Integrations = () => {
                     )}
                 </DialogContent>
                 <DialogActions>
-                    <button
-                        type="button"
-                        onClick={handleCloseDialog}
-                        className="flex items-center gap-2 px-4 py-2 rounded-full font-semibold transition-all border-2 hover:shadow-lg"
-                        style={{
-                            backgroundColor: '#FFFFFF',
-                            borderColor: '#6B7280',
-                            color: '#6B7280'
-                        }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = '#F3F4F6';
-                            e.currentTarget.style.borderColor = '#4B5563';
-                            e.currentTarget.style.color = '#4B5563';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = '#FFFFFF';
-                            e.currentTarget.style.borderColor = '#6B7280';
-                            e.currentTarget.style.color = '#6B7280';
-                        }}
-                    >
+                    <Button type="button" variant="secondary" onClick={handleCloseDialog}>
                         Cancel
-                    </button>
-                    <button
-                        type="button"
-                        onClick={handleSave}
-                        className="flex items-center gap-2 px-4 py-2 rounded-full font-semibold transition-all border-2 hover:shadow-lg"
-                        style={{
-                            background: 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)',
-                            borderColor: '#F97316',
-                            color: '#FFFFFF'
-                        }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.background = 'linear-gradient(135deg, #EA580C 0%, #C2410C 100%)';
-                            e.currentTarget.style.borderColor = '#EA580C';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.background = 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)';
-                            e.currentTarget.style.borderColor = '#F97316';
-                        }}
-                    >
+                    </Button>
+                    <Button type="button" variant="primary" onClick={handleSave}>
                         {selectedIntegration ? 'Update' : 'Create'}
-                    </button>
+                    </Button>
                 </DialogActions>
             </Dialog>
 
@@ -932,28 +847,9 @@ const Integrations = () => {
                     </TableContainer>
                 </DialogContent>
                 <DialogActions>
-                    <button
-                        type="button"
-                        onClick={() => setLogsDialogOpen(false)}
-                        className="flex items-center gap-2 px-4 py-2 rounded-full font-semibold transition-all border-2 hover:shadow-lg"
-                        style={{
-                            backgroundColor: '#FFFFFF',
-                            borderColor: '#6B7280',
-                            color: '#6B7280'
-                        }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = '#F3F4F6';
-                            e.currentTarget.style.borderColor = '#4B5563';
-                            e.currentTarget.style.color = '#4B5563';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = '#FFFFFF';
-                            e.currentTarget.style.borderColor = '#6B7280';
-                            e.currentTarget.style.color = '#6B7280';
-                        }}
-                    >
+                    <Button type="button" variant="secondary" onClick={() => setLogsDialogOpen(false)}>
                         Close
-                    </button>
+                    </Button>
                 </DialogActions>
             </Dialog>
         </Box>

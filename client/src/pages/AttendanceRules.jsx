@@ -163,20 +163,8 @@ export default function AttendanceRules() {
                     </span>
                 </div>
                 <div className="flex gap-1 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                        onClick={() => openEdit(rule)}
-                        className="p-2 text-slate-400 hover:bg-orange-50 hover:text-orange-600 rounded-lg transition-colors"
-                        title="Edit Rule"
-                    >
-                        <Edit2 size={16} />
-                    </button>
-                    <button
-                        onClick={() => handleDelete(rule.id)}
-                        className="p-2 text-slate-400 hover:bg-rose-50 hover:text-rose-600 rounded-lg transition-colors"
-                        title="Delete Rule"
-                    >
-                        <Trash2 size={16} />
-                    </button>
+                    <Button variant="ghost" size="sm" icon={Edit2} iconSize={16} onClick={() => openEdit(rule)} title="Edit Rule" aria-label="Edit Rule" />
+                    <Button variant="danger" size="sm" icon={Trash2} iconSize={16} onClick={() => handleDelete(rule.id)} title="Delete Rule" aria-label="Delete Rule" />
                 </div>
             </div>
 
@@ -303,7 +291,7 @@ export default function AttendanceRules() {
                                 </div>
                                 <h3 className="text-lg font-semibold text-slate-700">No Global Rules</h3>
                                 <p className="text-slate-500 max-w-sm mx-auto mt-1">Create a global rule to set the default attendance policy for your organization.</p>
-                                <button onClick={() => setShowModal(true)} className="mt-4 text-orange-600 font-semibold hover:underline">Create Now</button>
+                                <Button variant="primary" className="mt-4" onClick={() => setShowModal(true)}>Create Now</Button>
                             </div>
                         ) : (
                             globalRules.map(rule => <RuleCard key={rule.id} rule={rule} />)
@@ -332,9 +320,7 @@ export default function AttendanceRules() {
                             <h2 className="text-lg font-bold text-slate-800">
                                 {editingId ? 'Edit Attendance Rule' : 'Add Attendance Rule'}
                             </h2>
-                            <button onClick={closeModal} className="p-2 hover:bg-slate-200 rounded-full transition-colors text-slate-500">
-                                <X size={20} />
-                            </button>
+                            <Button variant="ghost" icon={X} iconSize={20} onClick={closeModal} aria-label="Close" />
                         </div>
                         <div className="overflow-y-auto p-6 scrollbar-thin">
                             <form id="ruleForm" onSubmit={handleSubmit} className="space-y-6">

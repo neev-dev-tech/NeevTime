@@ -215,12 +215,8 @@ export default function ApprovalNode() {
                                     <td className="p-4"><span className="px-2.5 py-1 bg-teal-50 text-teal-700 rounded-full text-xs font-bold">{node.approver_type || '-'}</span></td>
                                     <td className="p-4 text-slate-grey">{node.description || '-'}</td>
                                     <td className="p-4 flex justify-center gap-2">
-                                        <button onClick={() => handleEdit(node)} className="text-green-600 hover:text-green-700 p-1 rounded hover:bg-green-50 transition-colors">
-                                            <Edit size={16} />
-                                        </button>
-                                        <button onClick={() => handleDelete(node.id)} className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 transition-colors">
-                                            <Trash2 size={16} />
-                                        </button>
+                                        <Button variant="ghost" size="sm" icon={Edit} iconSize={16} onClick={() => handleEdit(node)} aria-label="Edit node" />
+                                        <Button variant="danger" size="sm" icon={Trash2} iconSize={16} onClick={() => handleDelete(node.id)} aria-label="Delete node" />
                                     </td>
                                 </tr>
                             ))
@@ -232,7 +228,7 @@ export default function ApprovalNode() {
             {/* Pagination */}
             <div className="p-3 border-t border-slate-100 flex items-center justify-between text-sm text-slate-grey bg-slate-50/50">
                 <div className="flex items-center gap-3">
-                    <button onClick={fetchData} className="p-1.5 hover:bg-slate-200 rounded transition-colors" title="Refresh"><RefreshCw size={14} /></button>
+                    <Button variant="ghost" size="sm" icon={RefreshCw} onClick={fetchData} title="Refresh" aria-label="Refresh" />
                     <select value={itemsPerPage} onChange={e => setItemsPerPage(Number(e.target.value))} className="border border-slate-200 rounded px-2 py-1 bg-white focus:outline-none focus:border-saffron">
                         <option value={50}>50</option>
                         <option value={100}>100</option>
@@ -256,9 +252,7 @@ export default function ApprovalNode() {
                     <div className="bg-white rounded-2xl shadow-xl w-full max-w-md border border-white/50 overflow-hidden">
                         <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50/50">
                             <h3 className="font-bold text-lg text-charcoal">{editItem ? 'Edit Node' : 'Add Node'}</h3>
-                            <button onClick={() => { setShowModal(null); setEditItem(null); resetForm(); }} className="p-2 hover:bg-white rounded-full text-slate-grey transition-colors">
-                                <X size={20} />
-                            </button>
+                            <Button variant="ghost" icon={X} iconSize={20} onClick={() => { setShowModal(null); setEditItem(null); resetForm(); }} aria-label="Close" />
                         </div>
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             <div className="flex flex-col gap-1.5">

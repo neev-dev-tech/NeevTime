@@ -15,6 +15,7 @@ import React, { useEffect } from 'react';
 import { X, User, Briefcase, CreditCard } from 'lucide-react';
 import { useFormValidation, validators } from '../hooks/useFormValidation';
 import { FormInput, FormSelect, FormTextarea } from './FormInputs';
+import Button from './ui/Button';
 
 // Validation rules for employee form
 const employeeValidationRules = {
@@ -122,12 +123,7 @@ export default function AddEmployeeModal({
                             Fill in the details to create a new employee record
                         </p>
                     </div>
-                    <button
-                        onClick={onClose}
-                        className="p-2 hover:bg-slate-50 rounded-full text-slate-500 transition-colors"
-                    >
-                        <X size={20} />
-                    </button>
+                    <Button variant="ghost" size="sm" icon={X} onClick={onClose} aria-label="Close" />
                 </div>
 
                 {/* Form */}
@@ -326,25 +322,18 @@ export default function AddEmployeeModal({
                         )}
                     </div>
                     <div className="flex gap-3">
-                        <button
+                        <Button
                             type="button"
+                            variant="secondary"
                             onClick={onClose}
-                            className="px-6 py-2.5 rounded-lg border border-slate-300 text-slate-700 font-medium hover:bg-slate-50 transition-colors"
                         >
                             Cancel
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                             type="submit"
+                            variant="primary"
                             onClick={handleSubmit(onFormSubmit)}
                             disabled={isSubmitting}
-                            className={`
-                                px-6 py-2.5 rounded-lg font-medium transition-all
-                                flex items-center gap-2
-                                ${isSubmitting
-                                    ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
-                                    : 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 shadow-md hover:shadow-lg'
-                                }
-                            `}
                         >
                             {isSubmitting ? (
                                 <>
@@ -354,7 +343,7 @@ export default function AddEmployeeModal({
                             ) : (
                                 'Add Employee'
                             )}
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </div>

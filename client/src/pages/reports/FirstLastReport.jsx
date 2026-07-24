@@ -4,7 +4,7 @@ import { Search, Calculator, ArrowLeft, Printer, FileSpreadsheet, RefreshCw, Loa
 import { useNavigate } from 'react-router-dom';
 import { exportToPDF } from '../../utils/pdfExport';
 import { exportToExcel as exportToExcelUtil } from '../../utils/excelExport';
-import { useToast } from '../../components';
+import { Button, useToast } from '../../components';
 
 function FirstLastReport() {
     const navigate = useNavigate();
@@ -124,9 +124,7 @@ function FirstLastReport() {
                 {/* Top Bar */}
                 <div className="px-6 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <button onClick={() => navigate('/reports')} className="p-2 hover:bg-slate-100 rounded-full text-slate-500 transition-colors">
-                            <ArrowLeft size={20} />
-                        </button>
+                        <Button variant="ghost" size="sm" icon={ArrowLeft} iconSize={20} onClick={() => navigate('/reports')} aria-label="Back to reports" />
                         <div>
                             <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                                 <span className="p-2 bg-orange-50 text-orange-600 rounded-lg">
@@ -139,14 +137,14 @@ function FirstLastReport() {
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <button
+                        <Button
+                            variant="primary"
                             onClick={calculate}
                             disabled={loading}
-                            className="flex items-center gap-2 px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 font-medium shadow-sm shadow-orange-200 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
                         >
                             {loading ? <RefreshCw size={18} className="animate-spin" /> : <Calculator size={18} />}
                             {loading ? 'Calculating...' : 'Calculate'}
-                        </button>
+                        </Button>
                     </div>
                 </div>
 
@@ -257,18 +255,18 @@ function FirstLastReport() {
                         Total {data.length} Records
                     </div>
                     <div className="flex gap-2">
-                        <button
+                        <Button
+                            variant="danger"
                             onClick={handleExportPDF}
                             disabled={exporting || data.length === 0}
-                            className="flex items-center gap-2 px-4 py-2 bg-white border border-rose-200 text-rose-700 rounded-lg hover:bg-rose-50 font-semibold transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {exporting ? <Loader size={16} className="animate-spin" /> : <Printer size={16} />}
                             {exporting ? 'Exporting...' : 'PDF Export'}
-                        </button>
-                        <button
+                        </Button>
+                        <Button
+                            variant="success"
                             onClick={exportToExcel}
                             disabled={exporting || data.length === 0}
-                            className="flex items-center gap-2 px-4 py-2 bg-white border border-emerald-200 text-emerald-700 rounded-lg hover:bg-emerald-50 font-semibold transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {exporting ? (
                                 <>
@@ -279,7 +277,7 @@ function FirstLastReport() {
                                 <FileSpreadsheet size={16} />
                             )}
                             {exporting ? 'Exporting...' : 'Excel Export'}
-                        </button>
+                        </Button>
                     </div>
                 </div>
             )}

@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { exportToPDF } from '../utils/pdfExport';
 import { exportToExcel as exportToExcelUtil } from '../utils/excelExport';
+import { Button } from '../components';
 
 export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
     const [searchParams] = useSearchParams();
@@ -569,9 +570,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
             <div className="bg-white border-b sticky top-0 z-30 shadow-sm">
                 <div className="px-6 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <button onClick={() => navigate('/reports')} className="p-2 hover:bg-slate-100 rounded-full text-slate-500 transition-colors">
-                            <ArrowLeft size={20} />
-                        </button>
+                        <Button variant="ghost" size="sm" icon={ArrowLeft} iconSize={20} onClick={() => navigate('/reports')} aria-label="Back to reports" />
                         <div>
                             <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                                 <div className="p-2 bg-gradient-to-br from-orange-50 to-amber-50 rounded-lg border border-orange-100 text-orange-600 shadow-sm">
@@ -585,21 +584,15 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                     <div className="flex gap-3">
                         {generated && reportData.length > 0 && (
                             <>
-                                <button onClick={handleExportCSV} className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-slate-600 bg-white border rounded-lg shadow-sm hover:bg-slate-50 transition-colors">
-                                    <Download size={15} /> CSV
-                                </button>
-                                <button onClick={handleExportExcel} className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg shadow-sm hover:bg-emerald-100 transition-colors">
-                                    <Download size={15} /> Excel
-                                </button>
-                                <button onClick={handleExportPDF} className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded-lg shadow-sm hover:bg-rose-100 transition-colors">
-                                    <Download size={15} /> PDF
-                                </button>
+                                <Button variant="secondary" icon={Download} iconSize={15} onClick={handleExportCSV}>CSV</Button>
+                                <Button variant="success" icon={Download} iconSize={15} onClick={handleExportExcel}>Excel</Button>
+                                <Button variant="danger" icon={Download} iconSize={15} onClick={handleExportPDF}>PDF</Button>
                             </>
                         )}
-                        <button onClick={generateReport} disabled={loading} className="btn-primary shadow-lg shadow-orange-200/50">
+                        <Button variant="primary" onClick={generateReport} disabled={loading} className="shadow-lg shadow-orange-200/50">
                             {loading ? <RefreshCw size={18} className="animate-spin" /> : <Calculator size={18} />}
                             {loading ? 'Processing...' : 'Generate Report'}
-                        </button>
+                        </Button>
                     </div>
                 </div>
                 {/* Filters */}

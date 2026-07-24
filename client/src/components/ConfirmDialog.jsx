@@ -1,5 +1,6 @@
 import React from 'react';
 import { AlertTriangle, X } from 'lucide-react';
+import Button from './ui/Button';
 
 let resolveCallback = null;
 let rejectCallback = null;
@@ -119,12 +120,9 @@ export default function ConfirmDialog() {
                                 {options.message}
                             </p>
                             <div className="flex gap-3 justify-end">
-                                <button
-                                    onClick={handleCancel}
-                                    className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors"
-                                >
+                                <Button variant="secondary" onClick={handleCancel}>
                                     {options.cancelText}
-                                </button>
+                                </Button>
                                 <button
                                     onClick={handleConfirm}
                                     className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors ${confirmColor}`}
@@ -133,13 +131,14 @@ export default function ConfirmDialog() {
                                 </button>
                             </div>
                         </div>
-                        <button
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            icon={X}
                             onClick={handleCancel}
-                            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors flex-shrink-0"
+                            className="flex-shrink-0"
                             aria-label="Close dialog"
-                        >
-                            <X size={20} aria-hidden="true" />
-                        </button>
+                        />
                     </div>
                 </div>
             </div>

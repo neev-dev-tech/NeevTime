@@ -260,26 +260,31 @@ export default function Timetable() {
 
                             {/* Actions */}
                             <div className="flex gap-2 pt-3 border-t">
-                                <button
+                                <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    icon={Coffee}
+                                    className="flex-1"
                                     onClick={() => openBreakModal(tt)}
-                                    className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-100 text-sm"
                                 >
-                                    <Coffee size={14} />
                                     Breaks
-                                </button>
-                                <button
+                                </Button>
+                                <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    icon={Edit2}
+                                    className="flex-1"
                                     onClick={() => openEdit(tt)}
-                                    className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100 text-sm"
                                 >
-                                    <Edit2 size={14} />
                                     Edit
-                                </button>
-                                <button
+                                </Button>
+                                <Button
+                                    variant="danger"
+                                    size="sm"
+                                    icon={Trash2}
+                                    aria-label="Delete"
                                     onClick={() => handleDelete(tt.id)}
-                                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
-                                >
-                                    <Trash2 size={14} />
-                                </button>
+                                />
                             </div>
                         </div>
                     </div>
@@ -294,9 +299,7 @@ export default function Timetable() {
                             <h2 className="text-lg font-semibold">
                                 {editingId ? 'Edit Timetable' : 'Add Timetable'}
                             </h2>
-                            <button onClick={closeModal} className="p-2 hover:bg-slate-100 rounded-lg">
-                                <X size={20} />
-                            </button>
+                            <Button variant="ghost" size="sm" icon={X} aria-label="Close" onClick={closeModal} />
                         </div>
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             <div className="grid grid-cols-2 gap-4">
@@ -459,12 +462,7 @@ export default function Timetable() {
                                 <Coffee className="text-amber-600" />
                                 Break Times - {selectedTimetable.name}
                             </h2>
-                            <button
-                                onClick={() => setShowBreakModal(false)}
-                                className="p-2 hover:bg-slate-100 rounded-lg"
-                            >
-                                <X size={20} />
-                            </button>
+                            <Button variant="ghost" size="sm" icon={X} aria-label="Close" onClick={() => setShowBreakModal(false)} />
                         </div>
 
                         <div className="p-4">
@@ -481,12 +479,13 @@ export default function Timetable() {
                                                 {b.is_paid && <span className="ml-2 text-green-600">(Paid)</span>}
                                             </div>
                                         </div>
-                                        <button
+                                        <Button
+                                            variant="danger"
+                                            size="sm"
+                                            icon={Trash2}
+                                            aria-label="Delete break"
                                             onClick={() => deleteBreak(b.id)}
-                                            className="p-2 text-red-500 hover:bg-red-50 rounded"
-                                        >
-                                            <Trash2 size={16} />
-                                        </button>
+                                        />
                                     </div>
                                 ))}
                             </div>

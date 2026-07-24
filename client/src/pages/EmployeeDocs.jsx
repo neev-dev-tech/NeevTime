@@ -261,20 +261,22 @@ export default function EmployeeDocs() {
                                     </td>
                                     <td className="p-4">
                                         <div className="flex items-center justify-center gap-2">
-                                            <button
-                                                onClick={() => handleDownload(doc)}
-                                                className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                icon={Download}
+                                                aria-label="Download document"
                                                 title="Download"
-                                            >
-                                                <Download size={18} />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(doc.id)}
-                                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                onClick={() => handleDownload(doc)}
+                                            />
+                                            <Button
+                                                variant="danger"
+                                                size="sm"
+                                                icon={Trash2}
+                                                aria-label="Delete document"
                                                 title="Delete"
-                                            >
-                                                <Trash2 size={18} />
-                                            </button>
+                                                onClick={() => handleDelete(doc.id)}
+                                            />
                                         </div>
                                     </td>
                                 </tr>
@@ -296,7 +298,12 @@ export default function EmployeeDocs() {
                     <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 border border-white/50">
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="font-bold text-xl text-charcoal">Upload Document</h3>
-                            <button
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                icon={X}
+                                iconSize={20}
+                                aria-label="Close"
                                 onClick={() => {
                                     setShowUploadModal(false);
                                     setSelectedEmployee('');
@@ -306,10 +313,7 @@ export default function EmployeeDocs() {
                                         fileInputRef.current.value = '';
                                     }
                                 }}
-                                className="p-2 hover:bg-slate-50 rounded-full text-slate-grey transition-colors"
-                            >
-                                <X size={20} />
-                            </button>
+                            />
                         </div>
 
                         <form onSubmit={handleUpload} className="space-y-4">

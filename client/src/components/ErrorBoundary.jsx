@@ -1,5 +1,6 @@
 import React from 'react';
 import { AlertTriangle, RefreshCw, Home, X } from 'lucide-react';
+import Button from './ui/Button';
 
 class ErrorBoundary extends React.Component {
     constructor(props) {
@@ -103,27 +104,15 @@ class ErrorBoundary extends React.Component {
 
                             {/* Actions */}
                             <div className="flex flex-wrap gap-3 mt-6">
-                                <button
-                                    onClick={this.handleReset}
-                                    className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-sm font-medium"
-                                >
-                                    <RefreshCw size={16} />
+                                <Button variant="primary" icon={RefreshCw} onClick={this.handleReset}>
                                     Try Again
-                                </button>
-                                <button
-                                    onClick={this.handleReload}
-                                    className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors text-sm font-medium"
-                                >
-                                    <RefreshCw size={16} />
+                                </Button>
+                                <Button variant="secondary" icon={RefreshCw} onClick={this.handleReload}>
                                     Reload Page
-                                </button>
-                                <button
-                                    onClick={this.handleGoHome}
-                                    className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors text-sm font-medium"
-                                >
-                                    <Home size={16} />
+                                </Button>
+                                <Button variant="secondary" icon={Home} onClick={this.handleGoHome}>
                                     Go Home
-                                </button>
+                                </Button>
                             </div>
 
                             {/* Help Text */}

@@ -186,18 +186,20 @@ export default function UsersPage() {
                                 </td>
                                 <td className="px-6 py-4 text-right">
                                     <div className="flex items-center justify-end gap-2">
-                                        <button
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            icon={Edit2}
+                                            aria-label="Edit"
                                             onClick={() => handleEdit(user)}
-                                            className="p-1.5 hover:bg-orange-100 rounded text-orange-600"
-                                        >
-                                            <Edit2 size={16} />
-                                        </button>
-                                        <button
+                                        />
+                                        <Button
+                                            variant="danger"
+                                            size="sm"
+                                            icon={Trash2}
+                                            aria-label="Delete"
                                             onClick={() => handleDelete(user)}
-                                            className="p-1.5 hover:bg-red-100 rounded text-red-600"
-                                        >
-                                            <Trash2 size={16} />
-                                        </button>
+                                        />
                                     </div>
                                 </td>
                             </tr>
@@ -221,9 +223,7 @@ export default function UsersPage() {
                             <h2 className="text-lg font-semibold">
                                 {editUser ? 'Edit User' : 'Add New User'}
                             </h2>
-                            <button onClick={() => setShowModal(false)} className="p-1 hover:bg-slate-100 rounded">
-                                <X size={20} />
-                            </button>
+                            <Button variant="ghost" size="sm" icon={X} aria-label="Close" onClick={() => setShowModal(false)} />
                         </div>
                         <form onSubmit={handleSubmit} className="p-4 space-y-4">
                             {error && (
@@ -280,20 +280,22 @@ export default function UsersPage() {
                             </div>
 
                             <div className="flex gap-2 pt-4">
-                                <button
+                                <Button
+                                    variant="secondary"
                                     type="button"
                                     onClick={() => setShowModal(false)}
-                                    className="flex-1 px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200"
+                                    className="flex-1"
                                 >
                                     Cancel
-                                </button>
-                                <button
+                                </Button>
+                                <Button
+                                    variant="primary"
                                     type="submit"
-                                    className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center gap-2"
+                                    icon={Check}
+                                    className="flex-1"
                                 >
-                                    <Check size={16} />
                                     {editUser ? 'Update' : 'Create'}
-                                </button>
+                                </Button>
                             </div>
                         </form>
                     </div>

@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import api from '../../api';
 import useStore from '../../store/useStore';
+import { Button } from '../../components';
 
 const firstOfMonth = () => {
     const now = new Date();
@@ -107,9 +108,7 @@ export default function EmployeePortal() {
                     </div>
                     <div className="flex items-center gap-3">
                         <span className="text-sm text-slate-600 hidden sm:block">{profile?.name || auth?.name}</span>
-                        <button onClick={handleLogout} className="p-2 text-slate-400 hover:text-rose-600 transition-colors" title="Logout">
-                            <LogOut size={18} />
-                        </button>
+                        <Button variant="ghost" size="sm" icon={LogOut} iconSize={18} onClick={handleLogout} title="Logout" />
                     </div>
                 </div>
             </header>
@@ -225,12 +224,15 @@ export default function EmployeePortal() {
                             </div>
                         )}
 
-                        <button
+                        <Button
+                            variant="primary"
+                            size="lg"
+                            icon={Plus}
+                            className="w-full"
                             onClick={() => setShowApply(v => !v)}
-                            className="w-full flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-700 text-white font-semibold py-2.5 rounded-lg transition-colors"
                         >
-                            <Plus size={16} /> Apply for Leave
-                        </button>
+                            Apply for Leave
+                        </Button>
 
                         {showApply && (
                             <form onSubmit={applyLeave} className="bg-white rounded-xl border p-4 space-y-3">
@@ -254,9 +256,9 @@ export default function EmployeePortal() {
                                     rows={2}
                                     className="w-full text-sm border rounded-lg px-3 py-2"
                                 />
-                                <button type="submit" className="w-full flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-900 text-white font-semibold py-2 rounded-lg transition-colors">
-                                    <Send size={14} /> Submit
-                                </button>
+                                <Button type="submit" variant="primary" icon={Send} iconSize={14} className="w-full">
+                                    Submit
+                                </Button>
                             </form>
                         )}
 
@@ -283,12 +285,15 @@ export default function EmployeePortal() {
 
                 {tab === 'requests' && (
                     <div className="space-y-4">
-                        <button
+                        <Button
+                            variant="primary"
+                            size="lg"
+                            icon={Plus}
+                            className="w-full"
                             onClick={() => setShowRegForm(v => !v)}
-                            className="w-full flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-700 text-white font-semibold py-2.5 rounded-lg transition-colors"
                         >
-                            <Plus size={16} /> Request Attendance Correction
-                        </button>
+                            Request Attendance Correction
+                        </Button>
 
                         {showRegForm && (
                             <form onSubmit={submitRegularization} className="bg-white rounded-xl border p-4 space-y-3">
@@ -314,9 +319,9 @@ export default function EmployeePortal() {
                                     className="w-full text-sm border rounded-lg px-3 py-2"
                                     required
                                 />
-                                <button type="submit" className="w-full flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-900 text-white font-semibold py-2 rounded-lg transition-colors">
-                                    <Send size={14} /> Submit Request
-                                </button>
+                                <Button type="submit" variant="primary" icon={Send} iconSize={14} className="w-full">
+                                    Submit Request
+                                </Button>
                             </form>
                         )}
 
