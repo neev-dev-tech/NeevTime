@@ -12,7 +12,8 @@ const VARIANTS = {
     // orange-600: white text passes contrast far better than orange-500 while
     // staying on-brand
     primary: 'bg-orange-600 hover:bg-orange-700 text-white border border-transparent shadow-sm',
-    secondary: 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-sm',
+    // Filled neutral — no white buttons in the app
+    secondary: 'bg-slate-500 hover:bg-slate-600 text-white border border-transparent shadow-sm',
     danger: 'bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200',
     // Solid red — reserve for the FINAL destructive confirm ("Yes, Delete")
     dangerSolid: 'bg-rose-600 hover:bg-rose-700 text-white border border-transparent shadow-sm',
