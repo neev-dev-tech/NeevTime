@@ -11,6 +11,33 @@ import { Button, PageHeader } from '../components';
 export default function DatabaseTools() {
     const [backups, setBackups] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [recomputeRange, setRecomputeRange] = useState(() => {
+        const today = new Date().toISOString().split('T')[0];
+        return { start: today, end: today };
+    });
+    const [recomputing, setRecomputing] = useState(false);
+
+    const handleRecompute = async () => {
+        const ok = await confirm({
+            title: 'Recompute Attendance',
+            message: `Rebuild attendance summaries from ${recomputeRange.start} to ${recomputeRange.end}? Manual corrections in this range may be overwritten by recalculated values.`,
+            confirmText: 'Recompute',
+            type: 'warning'
+        });
+        if (!ok) return;
+        setRecomputing(true);
+        try {
+            const res = await api.post('/api/attendance/process', {
+                startDate: recomputeRange.start,
+                endDate: recomputeRange.end
+            });
+            toast.success(`Recomputed ${res.data.processed} attendance records`);
+        } catch (err) {
+            toast.error(err.response?.data?.error || 'Recompute failed');
+        } finally {
+            setRecomputing(false);
+        }
+    };
     const [creating, setCreating] = useState(false);
     const [dbStats, setDbStats] = useState(null);
 
@@ -314,6 +341,32 @@ export default function DatabaseTools() {
                             </tbody>
                         </table>
                     </div>
+                </div>
+            </div>
+
+            {/* Attendance Maintenance */}
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+                <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50">
+                    <h3 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                        <RefreshCw size={18} className="text-orange-500" />
+                        Recompute Attendance Summaries
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                        Rebuilds daily summaries from raw punches for a date range — run after imports, device re-syncs or rule changes. Manual entries and regularizations may be recalculated.
+                    </p>
+                </div>
+                <div className="p-6 flex flex-wrap items-end gap-3">
+                    <div>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">From</label>
+                        <input type="date" value={recomputeRange.start} onChange={e => setRecomputeRange(r => ({ ...r, start: e.target.value }))} className="text-sm border rounded-lg px-3 py-2 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100" />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">To</label>
+                        <input type="date" value={recomputeRange.end} onChange={e => setRecomputeRange(r => ({ ...r, end: e.target.value }))} className="text-sm border rounded-lg px-3 py-2 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100" />
+                    </div>
+                    <Button variant="primary" icon={RefreshCw} onClick={handleRecompute} disabled={recomputing}>
+                        {recomputing ? 'Processing...' : 'Recompute'}
+                    </Button>
                 </div>
             </div>
 
