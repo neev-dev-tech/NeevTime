@@ -21,10 +21,15 @@ api.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error.response && error.response.status === 401) {
+            let loginPath = '/login';
+            try {
+                const user = JSON.parse(localStorage.getItem('user'));
+                if (user?.role === 'employee') loginPath = '/portal/login';
+            } catch { /* fall back to admin login */ }
             localStorage.removeItem('token');
             localStorage.removeItem('user');
-            if (window.location.pathname !== '/login') {
-                window.location.href = '/login';
+            if (window.location.pathname !== loginPath) {
+                window.location.href = loginPath;
             }
         }
         return Promise.reject(error);

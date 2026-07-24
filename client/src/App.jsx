@@ -50,6 +50,9 @@ import Integrations from './pages/Integrations';
 import Geofences from './pages/Geofences';
 import MobilePunch from './pages/MobilePunch';
 
+import PortalLogin from './pages/portal/PortalLogin';
+import EmployeePortal from './pages/portal/EmployeePortal';
+
 import useStore from './store/useStore';
 
 // Setup Axios Interceptor for Token
@@ -64,10 +67,15 @@ axios.interceptors.response.use(
   response => response,
   error => {
     if (error.response && error.response.status === 401) {
+      let loginPath = '/login';
+      try {
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (user?.role === 'employee') loginPath = '/portal/login';
+      } catch { /* fall back to admin login */ }
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login';
+      if (window.location.pathname !== loginPath) {
+        window.location.href = loginPath;
       }
     }
     return Promise.reject(error);
@@ -76,8 +84,21 @@ axios.interceptors.response.use(
 
 function PrivateRoute({ children }) {
   const auth = useStore(state => state.auth);
-  return auth ? children : <Navigate to="/login" />;
+  if (!auth) return <Navigate to="/login" />;
+  // Employees belong in the self-service portal, not the admin app
+  if (auth.role === 'employee') return <Navigate to="/portal" />;
+  return children;
 }
+
+function EmployeeRoute({ children }) {
+  const auth = useStore(state => state.auth);
+  if (!auth) return <Navigate to="/portal/login" />;
+  return auth.role === 'employee' ? children : <Navigate to="/" />;
+}
+
+EmployeeRoute.propTypes = {
+  children: PropTypes.node.isRequired,
+};
 
 PrivateRoute.propTypes = {
   children: PropTypes.node.isRequired,
@@ -111,6 +132,8 @@ export default function App() {
             <BrowserRouter>
               <Routes>
                 <Route path="/login" element={<Login setAuth={setAuth} />} />
+                <Route path="/portal/login" element={<PortalLogin />} />
+                <Route path="/portal" element={<EmployeeRoute><EmployeePortal /></EmployeeRoute>} />
                 <Route path="*" element={
                   <PrivateRoute>
                     <MainLayout>

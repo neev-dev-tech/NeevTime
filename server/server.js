@@ -375,6 +375,30 @@ app.use('/api/reports', authenticateToken, reportsRouter);
 const mobileAttendanceRouter = require('./routes/mobile_attendance');
 app.use('/api/mobile', authenticateToken, mobileAttendanceRouter);
 
+// Employee self-service portal (own auth realm — login is public, rest guarded inside)
+const portalRouter = require('./routes/portal');
+app.use('/api/portal', portalRouter);
+
+// Admin sets/resets an employee's portal password
+const bcryptPortal = require('bcryptjs');
+app.put('/api/employees/:id/portal-password', authenticateToken, requireAdmin, async (req, res) => {
+    try {
+        const { password } = req.body;
+        if (!password || password.length < 6) {
+            return res.status(400).json({ error: 'Password must be at least 6 characters' });
+        }
+        const hash = await bcryptPortal.hash(password, 10);
+        const result = await db.query(
+            'UPDATE employees SET portal_password_hash = $1, app_login_enabled = true WHERE id = $2 RETURNING id, employee_code',
+            [hash, req.params.id]
+        );
+        if (result.rows.length === 0) return res.status(404).json({ error: 'Employee not found' });
+        res.json({ success: true, employee_code: result.rows[0].employee_code });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // ================= ADMS Routes =================
 // These are called by the biometric devices
 // Support both standard and .aspx paths (common in some firmwares)

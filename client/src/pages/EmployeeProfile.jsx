@@ -64,6 +64,27 @@ export default function EmployeeProfile() {
         } catch (err) { toast.error('Delete failed'); }
     };
 
+    // Portal password (employee self-service login)
+    const [portalPassword, setPortalPassword] = useState('');
+    const [settingPortalPw, setSettingPortalPw] = useState(false);
+
+    const handleSetPortalPassword = async () => {
+        if (!portalPassword || portalPassword.length < 6) {
+            toast.warning('Portal password must be at least 6 characters');
+            return;
+        }
+        setSettingPortalPw(true);
+        try {
+            await api.put(`/api/employees/${id}/portal-password`, { password: portalPassword });
+            setPortalPassword('');
+            toast.success('Portal password set. Employee can now log in at /portal/login');
+        } catch (err) {
+            toast.error(err.response?.data?.error || 'Failed to set portal password');
+        } finally {
+            setSettingPortalPw(false);
+        }
+    };
+
     const handleEditSubmit = async (e) => {
         e.preventDefault();
         try {
@@ -183,6 +204,28 @@ export default function EmployeeProfile() {
                                 <div className="grid grid-cols-3 border-b border-gray-50 pb-2"><dt className="text-gray-500">Employment Type</dt><dd className="col-span-2">{employee.employment_type || 'Permanent'}</dd></div>
                                 <div className="grid grid-cols-3 border-b border-gray-50 pb-2"><dt className="text-gray-500">App Access</dt><dd className="col-span-2">{employee.app_login_enabled ? 'Enabled' : 'Disabled'}</dd></div>
                             </dl>
+
+                            {/* Self-service portal access */}
+                            <div className="mt-6 p-4 bg-orange-50/60 border border-orange-100 rounded-xl">
+                                <h4 className="text-sm font-semibold text-gray-700 mb-1">Employee Portal Access</h4>
+                                <p className="text-xs text-gray-500 mb-3">Set a password so this employee can view their attendance and apply for leave at <code className="bg-white px-1 rounded border">/portal/login</code>.</p>
+                                <div className="flex gap-2">
+                                    <input
+                                        type="password"
+                                        value={portalPassword}
+                                        onChange={e => setPortalPassword(e.target.value)}
+                                        placeholder="New portal password (min 6 chars)"
+                                        className="flex-1 text-sm border rounded-lg px-3 py-2"
+                                    />
+                                    <button
+                                        onClick={handleSetPortalPassword}
+                                        disabled={settingPortalPw}
+                                        className="px-4 py-2 bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white text-sm font-semibold rounded-lg transition-colors"
+                                    >
+                                        {settingPortalPw ? 'Saving...' : 'Set Password'}
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 )}

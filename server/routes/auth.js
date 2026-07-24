@@ -60,6 +60,8 @@ const authenticateToken = (req, res, next) => {
     jwt.verify(token, JWT_SECRET, (err, user) => {
         // 401 (not 403) so the client knows the session itself is invalid/expired
         if (err) return res.sendStatus(401);
+        // Employee portal tokens are a separate realm — not valid for admin APIs
+        if (user.role === 'employee') return res.sendStatus(403);
         req.user = user;
         next();
     });
