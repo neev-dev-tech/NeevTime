@@ -2635,11 +2635,11 @@ body {
 .app-bg__veil {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(250, 251, 252, 0.55) 0%, rgba(250, 251, 252, 0.68) 55%, rgba(250, 251, 252, 0.80) 100%);
+  background: linear-gradient(180deg, rgba(250, 251, 252, 0.20) 0%, rgba(250, 251, 252, 0.30) 55%, rgba(250, 251, 252, 0.42) 100%);
 }
 
 .dark .app-bg__veil {
-  background: linear-gradient(180deg, rgba(15, 23, 42, 0.72) 0%, rgba(15, 23, 42, 0.84) 55%, rgba(15, 23, 42, 0.92) 100%);
+  background: linear-gradient(180deg, rgba(16, 16, 18, 0.34) 0%, rgba(16, 16, 18, 0.46) 55%, rgba(16, 16, 18, 0.58) 100%);
 }
 
 /* App chrome sits above the background layer */
@@ -2664,10 +2664,10 @@ body {
 .card-tier-1,
 .card-tier-2,
 .card-premium {
-  background: rgba(255, 255, 255, 0.94);
-  backdrop-filter: blur(20px) saturate(150%);
-  -webkit-backdrop-filter: blur(16px) saturate(140%);
-  border: 1px solid rgba(255, 255, 255, 0.65);
+  background: rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.55);
   border-radius: 18px;
   box-shadow:
     0 1px 2px rgba(15, 23, 42, 0.04),
@@ -2689,8 +2689,8 @@ body {
 .dark .card-tier-1,
 .dark .card-tier-2,
 .dark .card-premium {
-  background: rgba(30, 41, 59, 0.94);
-  border-color: rgba(148, 163, 184, 0.16);
+  background: rgba(28, 28, 31, 0.58);
+  border-color: rgba(255, 255, 255, 0.08);
   box-shadow:
     0 1px 2px rgba(0, 0, 0, 0.30),
     0 16px 40px -16px rgba(0, 0, 0, 0.60);
@@ -2706,20 +2706,20 @@ body {
 
 /* Any page-level white panel picks up the same glass treatment */
 .app-shell .bg-white {
-  background-color: rgba(255, 255, 255, 0.94);
+  background-color: rgba(255, 255, 255, 0.62);
   backdrop-filter: blur(14px) saturate(140%);
   -webkit-backdrop-filter: blur(14px) saturate(140%);
 }
 
 .dark .app-shell .bg-white {
-  background-color: rgba(30, 41, 59, 0.94);
+  background-color: rgba(28, 28, 31, 0.58);
 }
 
 /* Tables — lighter chrome, stronger data hierarchy */
 .table-premium th,
 .table-header {
-  background: rgba(248, 250, 252, 0.92);
-  border-bottom: 1px solid #E2E8F0;
+  background: rgba(248, 250, 252, 0.66);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
   font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 0.09em;
@@ -2730,8 +2730,8 @@ body {
 
 .dark .table-premium th,
 .dark .table-header {
-  background: rgba(15, 23, 42, 0.92);
-  border-bottom-color: #334155;
+  background: rgba(19, 19, 21, 0.6);
+  border-bottom-color: #2E2E33;
   color: #94A3B8;
 }
 
@@ -2826,10 +2826,10 @@ body {
 
 /* Report surfaces get the same treatment as cards */
 .report-container {
-  background: rgba(255, 255, 255, 0.94);
-  backdrop-filter: blur(20px) saturate(150%);
-  -webkit-backdrop-filter: blur(16px) saturate(140%);
-  border: 1px solid rgba(255, 255, 255, 0.65);
+  background: rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.55);
   border-radius: 18px;
   box-shadow:
     0 1px 2px rgba(15, 23, 42, 0.04),
@@ -2837,8 +2837,8 @@ body {
 }
 
 .dark .report-container {
-  background: rgba(30, 41, 59, 0.94);
-  border-color: rgba(148, 163, 184, 0.16);
+  background: rgba(28, 28, 31, 0.58);
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
 .report-header {
@@ -2852,8 +2852,8 @@ body {
 
 /* Sticky action column keeps a solid backing over the glass */
 .sticky-action {
-  background: rgba(255, 255, 255, 0.94) !important;
-  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.80) !important;
+  backdrop-filter: blur(18px);
 }
 
 .dark .sticky-action {
@@ -2878,14 +2878,14 @@ body {
 }
 
 .dark .app-bg__veil {
-  background: linear-gradient(180deg, rgba(16, 16, 18, 0.72) 0%, rgba(16, 16, 18, 0.84) 55%, rgba(16, 16, 18, 0.92) 100%);
+  background: linear-gradient(180deg, rgba(16, 16, 18, 0.34) 0%, rgba(16, 16, 18, 0.46) 55%, rgba(16, 16, 18, 0.58) 100%);
 }
 
 /* Surfaces */
-.dark .dark\:bg-slate-900 { background-color: #131315 !important; }
+.dark .dark\:bg-slate-900 { background-color: rgba(19, 19, 21, 0.62) !important; }
 .dark .dark\:bg-slate-900\/50 { background-color: rgba(19, 19, 21, 0.6) !important; }
 .dark .dark\:bg-slate-900\/80 { background-color: rgba(19, 19, 21, 0.85) !important; }
-.dark .dark\:bg-slate-800 { background-color: #1C1C1F !important; }
+.dark .dark\:bg-slate-800 { background-color: rgba(28, 28, 31, 0.62) !important; backdrop-filter: blur(24px) saturate(170%); }
 .dark .dark\:bg-slate-800\/80 { background-color: rgba(28, 28, 31, 0.85) !important; }
 .dark .dark\:bg-slate-700 { background-color: #2A2A2E !important; }
 .dark .dark\:bg-slate-700\/50 { background-color: rgba(42, 42, 46, 0.6) !important; }
@@ -2905,15 +2905,15 @@ body {
 .dark .card-tier-2,
 .dark .card-premium,
 .dark .report-container {
-  background: rgba(28, 28, 31, 0.94);
-  border-color: rgba(255, 255, 255, 0.07);
+  background: rgba(28, 28, 31, 0.58);
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
-.dark .app-shell .bg-white { background-color: rgba(28, 28, 31, 0.94); }
+.dark .app-shell .bg-white { background-color: rgba(28, 28, 31, 0.58); }
 
 .dark .table-premium th,
 .dark .table-header {
-  background: rgba(19, 19, 21, 0.94);
+  background: rgba(19, 19, 21, 0.6);
   border-bottom-color: #2E2E33;
   color: #A1A1AA;
 }
@@ -2935,7 +2935,7 @@ body {
 .dark .input-base:focus,
 .dark .input-premium:focus { background: #131315; border-color: #F97316; }
 
-.dark .sticky-action { background: rgba(28, 28, 31, 0.96) !important; }
+.dark .sticky-action { background: rgba(28, 28, 31, 0.82) !important; }
 
 /* Sidebar / header chrome */
 .dark .dark\:bg-slate-800\/80,
@@ -2956,26 +2956,26 @@ body {
 /* ---- cubes ---- */
 .bg3d-cube {
   position: absolute;
-  width: 150px;
-  height: 150px;
+  width: 190px;
+  height: 190px;
   transform-style: preserve-3d;
-  opacity: 0.5;
+  opacity: 0.85;
 }
 
 .bg3d-face {
   position: absolute;
   inset: 0;
-  border: 1.5px solid rgba(249, 115, 22, 0.42);
+  border: 1.5px solid rgba(249, 115, 22, 0.55);
   background: linear-gradient(135deg, rgba(249, 115, 22, 0.055), rgba(249, 115, 22, 0));
   border-radius: 8px;
 }
 
-.bg3d-face--front  { transform: translateZ(75px); }
-.bg3d-face--back   { transform: rotateY(180deg) translateZ(75px); }
-.bg3d-face--right  { transform: rotateY(90deg) translateZ(75px); }
-.bg3d-face--left   { transform: rotateY(-90deg) translateZ(75px); }
-.bg3d-face--top    { transform: rotateX(90deg) translateZ(75px); }
-.bg3d-face--bottom { transform: rotateX(-90deg) translateZ(75px); }
+.bg3d-face--front  { transform: translateZ(95px); }
+.bg3d-face--back   { transform: rotateY(180deg) translateZ(95px); }
+.bg3d-face--right  { transform: rotateY(90deg) translateZ(95px); }
+.bg3d-face--left   { transform: rotateY(-90deg) translateZ(95px); }
+.bg3d-face--top    { transform: rotateX(90deg) translateZ(95px); }
+.bg3d-face--bottom { transform: rotateX(-90deg) translateZ(95px); }
 
 .bg3d-cube--a {
   top: 14%; left: 8%;
@@ -3030,10 +3030,10 @@ body {
 /* ---- orbital rings (3 nested circles rotated onto different planes) ---- */
 .bg3d-ring {
   position: absolute;
-  width: 260px;
-  height: 260px;
+  width: 300px;
+  height: 300px;
   transform-style: preserve-3d;
-  opacity: 0.32;
+  opacity: 0.55;
 }
 
 .bg3d-ring i {
@@ -3105,9 +3105,9 @@ body {
 .dark .bg3d-cube--b .bg3d-face { border-color: rgba(16, 185, 129, 0.42); }
 .dark .bg3d-ring i { border-color: rgba(249, 115, 22, 0.55); }
 .dark .bg3d-ring i:nth-child(3) { border-color: rgba(16, 185, 129, 0.45); }
-.dark .bg3d-cube { opacity: 0.42; }
-.dark .bg3d-ring { opacity: 0.26; }
-.dark .bg3d-plane { opacity: 0.42; }
+.dark .bg3d-cube { opacity: 0.7; }
+.dark .bg3d-ring { opacity: 0.45; }
+.dark .bg3d-plane { opacity: 0.55; }
 
 @media (prefers-reduced-motion: reduce) {
   .bg3d-cube, .bg3d-ring, .bg3d-plane { animation: none !important; }
