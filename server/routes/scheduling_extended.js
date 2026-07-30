@@ -489,13 +489,18 @@ router.put('/rules/:id', async (req, res) => {
             return res.status(500).json({ error: 'attendance_rules table does not exist. Please run the database migration.' });
         }
 
-        // Build dynamic update query
+        // Build dynamic update query — keys come from the request body, so
+        // validate them as SQL identifiers before interpolation
+        const SAFE_IDENTIFIER = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
         const updates = [];
         const values = [];
         let paramIndex = 1;
 
         for (const [key, value] of Object.entries(fields)) {
             if (value !== undefined && key !== 'id') {
+                if (!SAFE_IDENTIFIER.test(key)) {
+                    return res.status(400).json({ error: `Invalid field name: ${key}` });
+                }
                 updates.push(`${key} = $${paramIndex}`);
                 values.push(value);
                 paramIndex++;
@@ -607,35 +612,8 @@ router.delete('/holiday-locations/:id', async (req, res) => {
     }
 });
 
-// ==================== SYSTEM LOGS ====================
-
-router.get('/system-logs', async (req, res) => {
-    try {
-        const { limit = 100, user_id, action, entity_type } = req.query;
-        let query = 'SELECT * FROM system_logs WHERE 1=1';
-        const params = [];
-
-        if (user_id) {
-            params.push(user_id);
-            query += ` AND user_id = $${params.length}`;
-        }
-        if (action) {
-            params.push(action);
-            query += ` AND action = $${params.length}`;
-        }
-        if (entity_type) {
-            params.push(entity_type);
-            query += ` AND entity_type = $${params.length}`;
-        }
-
-        params.push(limit);
-        query += ` ORDER BY created_at DESC LIMIT $${params.length}`;
-
-        const result = await db.query(query, params);
-        res.json(result.rows);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
+// System logs are served by routes/system_logs.js behind requireAdmin.
+// A duplicate route here (mounted at /api, registered earlier) would bypass
+// that guard — removed.
 
 module.exports = router;

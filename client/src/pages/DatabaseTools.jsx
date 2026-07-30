@@ -4,11 +4,12 @@ import {
     Database, Download, Upload, RefreshCw, Trash2, Clock,
     HardDrive, CheckCircle, AlertTriangle, Calendar, FileText, Server, Save
 } from 'lucide-react';
-import { toast } from '../components/ToastContainer';
+
 import { confirm } from '../components/ConfirmDialog';
-import { Button, PageHeader } from '../components';
+import { Button, PageHeader, useToast } from '../components';
 
 export default function DatabaseTools() {
+    const toast = useToast();
     const [backups, setBackups] = useState([]);
     const [loading, setLoading] = useState(false);
     const [recomputeRange, setRecomputeRange] = useState(() => {

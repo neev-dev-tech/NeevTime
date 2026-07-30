@@ -3,6 +3,7 @@ const attendanceEngine = require('./attendance_engine');
 const fs = require('node:fs');
 const deviceCapabilities = require('./device-capabilities');
 const moment = require('moment-timezone');
+const logger = require('../utils/logger');
 
 /**
  * ADMS Protocol Handler
@@ -171,7 +172,9 @@ const processAttendanceLogLine = async (line, SN, deviceDirection, io) => {
         `, [userId, SN, istTimestamp, finalState, Number.parseInt(verifyMode || 0), line]);
 
         io.emit('new_punch', { employee_code: userId, device_serial: SN, timestamp: istTimestamp, state: finalState });
-        await attendanceEngine.processDailyAttendance(userId, istTimestamp.substring(0, 10));
+        // Recompute this employee's daily summary for the punch date
+        const punchDate = istTimestamp.substring(0, 10);
+        await attendanceEngine.processDateRange(punchDate, punchDate, null, userId);
 
         // Background HRMS Sync
         (async () => {
@@ -634,8 +637,9 @@ const handleGetRequest = async (req, res, io) => {
                     deviceModel = modelPart.substring(0, verIndex);
                 }
             }
-            // [4] = Device IP
-            if (parts.length > 4) {
+            // [4] = Device IP — device-supplied, only accept a valid IPv4
+            // string (this value is later interpolated into a ping command)
+            if (parts.length > 4 && /^(\d{1,3}\.){3}\d{1,3}$/.test(parts[4])) {
                 deviceIP = parts[4];
             }
         } catch (err) {

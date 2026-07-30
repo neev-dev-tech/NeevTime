@@ -15,6 +15,24 @@
 const db = require('../db');
 const fs = require('fs');
 
+// Ensure retry/dead-letter columns exist (schema script covers Docker; this
+// covers bare-metal restarts). Queue queries fail hard without them.
+(async () => {
+    const cols = [
+        'max_retries INTEGER DEFAULT 3',
+        'next_retry_at TIMESTAMP',
+        'last_error TEXT',
+        'priority INTEGER DEFAULT 5',
+        'command_type VARCHAR(50)',
+        'sent_at TIMESTAMP',
+        'completed_at TIMESTAMP'
+    ];
+    for (const col of cols) {
+        await db.query(`ALTER TABLE device_commands ADD COLUMN IF NOT EXISTS ${col}`)
+            .catch(err => console.error(`device_commands column ensure failed: ${err.message}`));
+    }
+})();
+
 // Command Priority Levels
 const PRIORITY = {
     CRITICAL: 1,    // User deletion, emergency sync

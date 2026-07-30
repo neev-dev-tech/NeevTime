@@ -7,7 +7,7 @@ const moment = require('moment-timezone');
  */
 class AttendanceEngine {
 
-    async processDateRange(startDate, endDate, employeeId = null) {
+    async processDateRange(startDate, endDate, employeeId = null, employeeCode = null) {
         console.log(`[ATTENDANCE ENGINE] Starting batch process: ${startDate} to ${endDate}`);
         
         // 1. Fetch all required logs in ONE query
@@ -21,13 +21,16 @@ class AttendanceEngine {
           moment.tz(endDate, 'Asia/Kolkata').endOf('day').format('YYYY-MM-DD HH:mm:ss')
         ];
         
-        if (employeeId) {
-            // Need to get employee_code for the ID first if not provided, 
-            // but usually we have it. Assuming we might need to filter.
+        // Filter by numeric DB id (API callers) or employee_code (ADMS punches)
+        let filterCode = employeeCode || null;
+        if (!filterCode && employeeId) {
             const emp = await db.query('SELECT employee_code FROM employees WHERE id = $1', [employeeId]);
             if (emp.rows.length === 0) return [];
+            filterCode = emp.rows[0].employee_code;
+        }
+        if (filterCode) {
             logsQuery += ' AND employee_code = $3';
-            logsParams.push(emp.rows[0].employee_code);
+            logsParams.push(filterCode);
         }
 
         const allLogs = await db.query(logsQuery, logsParams);
@@ -43,8 +46,8 @@ class AttendanceEngine {
 
         // 3. Get all employees (if not already filtered)
         let empQuery = 'SELECT employee_code FROM employees';
-        if (employeeId) empQuery += ' WHERE id = $1';
-        const employees = await db.query(empQuery, employeeId ? [employeeId] : []);
+        if (filterCode) empQuery += ' WHERE employee_code = $1';
+        const employees = await db.query(empQuery, filterCode ? [filterCode] : []);
 
         const results = [];
         const summaryData = [];

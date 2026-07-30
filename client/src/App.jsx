@@ -7,6 +7,7 @@ import PropTypes from 'prop-types';
 import MainLayout from './layouts/MainLayout';
 import { ToastProvider, ThemeProvider as EnhancedThemeProvider } from './components';
 import ErrorBoundary from './components/ErrorBoundary';
+import ConfirmDialog from './components/ConfirmDialog';
 
 // Pages
 import Dashboard from './pages/Dashboard';
@@ -134,6 +135,7 @@ export default function App() {
   return (
     <EnhancedThemeProvider>
       <ToastProvider position="top-right" maxToasts={5}>
+          <ConfirmDialog />
           <ErrorBoundary>
             <BrowserRouter>
               <Routes>

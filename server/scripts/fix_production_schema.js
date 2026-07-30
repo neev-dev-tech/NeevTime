@@ -218,6 +218,14 @@ async function fixProductionSchema() {
 
     await runQuery(`ALTER TABLE device_commands ADD COLUMN IF NOT EXISTS sequence INTEGER DEFAULT 1`, 'device_commands.sequence');
     await runQuery(`ALTER TABLE device_commands ADD COLUMN IF NOT EXISTS retry_count INTEGER DEFAULT 0`, 'device_commands.retry_count');
+    // Columns required by the command-queue retry/dead-letter system
+    await runQuery(`ALTER TABLE device_commands ADD COLUMN IF NOT EXISTS max_retries INTEGER DEFAULT 3`, 'device_commands.max_retries');
+    await runQuery(`ALTER TABLE device_commands ADD COLUMN IF NOT EXISTS next_retry_at TIMESTAMP`, 'device_commands.next_retry_at');
+    await runQuery(`ALTER TABLE device_commands ADD COLUMN IF NOT EXISTS last_error TEXT`, 'device_commands.last_error');
+    await runQuery(`ALTER TABLE device_commands ADD COLUMN IF NOT EXISTS priority INTEGER DEFAULT 5`, 'device_commands.priority');
+    await runQuery(`ALTER TABLE device_commands ADD COLUMN IF NOT EXISTS command_type VARCHAR(50)`, 'device_commands.command_type');
+    await runQuery(`ALTER TABLE device_commands ADD COLUMN IF NOT EXISTS sent_at TIMESTAMP`, 'device_commands.sent_at');
+    await runQuery(`ALTER TABLE device_commands ADD COLUMN IF NOT EXISTS completed_at TIMESTAMP`, 'device_commands.completed_at');
 
     await runQuery(`
         CREATE TABLE IF NOT EXISTS device_capabilities (

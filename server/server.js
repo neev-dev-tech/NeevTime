@@ -110,9 +110,11 @@ app.use((req, res, next) => {
 });
 
 const attendanceEngine = require('./services/attendance_engine');
+// Auth middleware needed for the early-registered attendance routes below
+const { router: authRouter, authenticateToken } = require('./routes/auth');
 
 // Attendance Processing API
-app.post('/api/attendance/process', async (req, res) => {
+app.post('/api/attendance/process', authenticateToken, async (req, res) => {
     try {
         const { startDate, endDate, employeeId } = req.body;
         // Default to today if not provided
@@ -128,7 +130,7 @@ app.post('/api/attendance/process', async (req, res) => {
 });
 
 // Get Attendance Summary (Processed)
-app.get('/api/attendance/summary', async (req, res) => {
+app.get('/api/attendance/summary', authenticateToken, async (req, res) => {
     try {
         const { date, employee_code } = req.query;
         let query = `
@@ -163,7 +165,7 @@ app.get('/api/attendance/summary', async (req, res) => {
 });
 
 // Reports - First & Last
-app.get('/api/reports/first-last', async (req, res) => {
+app.get('/api/reports/first-last', authenticateToken, async (req, res) => {
     try {
         const { startDate, endDate, employeeId, firstName } = req.query;
         let query = `
@@ -215,7 +217,7 @@ app.get('/api/reports/first-last', async (req, res) => {
 });
 
 // Manual Attendance Entry
-app.post('/api/attendance/manual', async (req, res) => {
+app.post('/api/attendance/manual', authenticateToken, async (req, res) => {
     try {
         const { employee_code, date, in_time, out_time, reason } = req.body;
         if (!employee_code || !date || !in_time || !out_time || !reason) {
@@ -263,8 +265,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.text({ type: 'text/*' }));
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Auth Routes
-const { router: authRouter, authenticateToken } = require('./routes/auth');
+// Auth Routes (authRouter/authenticateToken already required above)
 const orgRouter = require('./routes/organization');
 const personnelRouter = require('./routes/personnel_expansion');
 const schedulingRouter = require('./routes/scheduling');
@@ -571,6 +572,23 @@ app.post('/api/employees', async (req, res) => {
 });
 
 // Update Employee
+// Bulk App Access — must register before /api/employees/:id or the
+// param route swallows it (id="app-access" -> int cast 500)
+app.put('/api/employees/app-access', async (req, res) => {
+    try {
+        const { ids, enabled } = req.body;
+        if (!ids || !Array.isArray(ids)) return res.status(400).json({ error: 'ids required' });
+
+        await db.query(`
+            UPDATE employees SET app_login_enabled = $1 WHERE id = ANY($2)
+        `, [enabled, ids]);
+
+        res.json({ success: true, count: ids.length, enabled });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 app.put('/api/employees/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -650,22 +668,6 @@ app.post('/api/employees/import', async (req, res) => {
         res.status(500).json({ error: err.message });
     } finally {
         client.release();
-    }
-});
-
-// Bulk App Access
-app.put('/api/employees/app-access', async (req, res) => {
-    try {
-        const { ids, enabled } = req.body;
-        if (!ids || !Array.isArray(ids)) return res.status(400).json({ error: 'ids required' });
-
-        await db.query(`
-            UPDATE employees SET app_login_enabled = $1 WHERE id = ANY($2)
-        `, [enabled, ids]);
-
-        res.json({ success: true, count: ids.length, enabled });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
     }
 });
 
@@ -1214,6 +1216,12 @@ app.post('/api/devices/:serial/test-connection', async (req, res) => {
 
         const ip = result.rows[0].ip_address;
         if (!ip) return res.status(400).json({ error: 'Device has no IP address' });
+
+        // ip_address originates from unauthenticated ADMS device reports —
+        // strict format check before it goes anywhere near a shell
+        if (!/^(\d{1,3}\.){3}\d{1,3}$/.test(ip)) {
+            return res.status(400).json({ error: 'Device IP address is not a valid IPv4 address' });
+        }
 
         const { exec } = require('child_process');
         // Ping 3 times, 1s timeout

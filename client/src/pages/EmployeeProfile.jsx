@@ -21,7 +21,6 @@ export default function EmployeeProfile() {
 
     useEffect(() => {
         fetchEmployee();
-        fetchAttendance();
         fetchDepsAndAreas();
     }, [id]);
 
@@ -30,14 +29,16 @@ export default function EmployeeProfile() {
             const res = await api.get(`/api/employees/${id}`);
             setEmployee(res.data);
             setEditForm(res.data); // Pre-fill edit form
+            // Summary rows are keyed by employee_code, not the numeric route id
+            if (res.data?.employee_code) fetchAttendance(res.data.employee_code);
         } catch (err) { console.error(err); }
         setLoading(false);
     };
 
-    const fetchAttendance = async () => {
+    const fetchAttendance = async (employeeCode) => {
         try {
-            const res = await api.get('/api/attendance/summary', { params: { employee_code: id } });
-            setAttendance(res.data.slice(0, 30));
+            const res = await api.get('/api/attendance/summary', { params: { employee_code: employeeCode } });
+            setAttendance((res.data || []).slice(0, 30));
         } catch (err) { console.error(err); }
     };
 

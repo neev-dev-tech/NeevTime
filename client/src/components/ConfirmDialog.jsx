@@ -29,10 +29,9 @@ export default function ConfirmDialog() {
 
     React.useEffect(() => {
         const handleShow = (event) => {
-            setOptions({
-                ...options,
-                ...event.detail
-            });
+            // Functional update — the effect runs once, so spreading a captured
+            // `options` would reuse stale values from the first render
+            setOptions(prev => ({ ...prev, confirmButtonColor: undefined, ...event.detail }));
             setIsOpen(true);
         };
 
@@ -45,13 +44,17 @@ export default function ConfirmDialog() {
         if (resolveCallback) {
             resolveCallback(true);
             resolveCallback = null;
+            rejectCallback = null;
         }
     };
 
     const handleCancel = () => {
         setIsOpen(false);
-        if (rejectCallback) {
-            rejectCallback(false);
+        // Cancel resolves false — rejecting would throw inside callers' try
+        // blocks and surface as a bogus error toast
+        if (resolveCallback) {
+            resolveCallback(false);
+            resolveCallback = null;
             rejectCallback = null;
         }
     };
