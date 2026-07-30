@@ -2526,3 +2526,594 @@ body {
   background: rgba(148, 163, 184, 0.15);
   color: #94A3B8;
 }
+
+/* ==========================================================================
+   AMBIENT 3D BACKGROUND
+   Fixed behind all content. GPU-composited transforms only.
+   ========================================================================== */
+
+.app-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  perspective: 1000px;
+  perspective-origin: 50% 40%;
+}
+
+/* Receding grid floor — gives the page a horizon */
+.app-bg__grid {
+  position: absolute;
+  left: -50%;
+  right: -50%;
+  bottom: -40%;
+  height: 90%;
+  background-image:
+    linear-gradient(to right, rgba(249, 115, 22, 0.16) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(249, 115, 22, 0.16) 1px, transparent 1px);
+  background-size: 64px 64px;
+  transform: rotateX(72deg);
+  transform-origin: 50% 100%;
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 55%, transparent 92%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 55%, transparent 92%);
+  animation: bg-grid-drift 26s linear infinite;
+}
+
+.dark .app-bg__grid {
+  background-image:
+    linear-gradient(to right, rgba(249, 115, 22, 0.16) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(249, 115, 22, 0.16) 1px, transparent 1px);
+}
+
+@keyframes bg-grid-drift {
+  from { background-position: 0 0; }
+  to { background-position: 0 64px; }
+}
+
+/* Depth orbs — each on its own Z plane so they parallax against each other */
+.app-bg__orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(60px);
+  will-change: transform;
+}
+
+.app-bg__orb--1 {
+  width: 46vw; height: 46vw;
+  top: -12vw; left: -8vw;
+  background: radial-gradient(circle at 30% 30%, rgba(249, 115, 22, 0.45), rgba(249, 115, 22, 0) 70%);
+  transform: translateZ(-220px);
+  animation: bg-float-a 30s ease-in-out infinite;
+}
+
+.app-bg__orb--2 {
+  width: 38vw; height: 38vw;
+  top: 8vh; right: -10vw;
+  background: radial-gradient(circle at 60% 40%, rgba(245, 158, 11, 0.38), rgba(245, 158, 11, 0) 70%);
+  transform: translateZ(-140px);
+  animation: bg-float-b 38s ease-in-out infinite;
+}
+
+.app-bg__orb--3 {
+  width: 32vw; height: 32vw;
+  bottom: -8vw; left: 22vw;
+  background: radial-gradient(circle at 40% 60%, rgba(16, 185, 129, 0.30), rgba(16, 185, 129, 0) 70%);
+  transform: translateZ(-320px);
+  animation: bg-float-c 44s ease-in-out infinite;
+}
+
+.app-bg__orb--4 {
+  width: 26vw; height: 26vw;
+  bottom: 14vh; right: 16vw;
+  background: radial-gradient(circle at 50% 50%, rgba(234, 88, 12, 0.28), rgba(234, 88, 12, 0) 70%);
+  transform: translateZ(-60px);
+  animation: bg-float-a 34s ease-in-out infinite reverse;
+}
+
+.dark .app-bg__orb--1 { background: radial-gradient(circle at 30% 30%, rgba(249, 115, 22, 0.22), rgba(249, 115, 22, 0) 70%); }
+.dark .app-bg__orb--2 { background: radial-gradient(circle at 60% 40%, rgba(217, 119, 6, 0.20), rgba(217, 119, 6, 0) 70%); }
+.dark .app-bg__orb--3 { background: radial-gradient(circle at 40% 60%, rgba(5, 150, 105, 0.18), rgba(5, 150, 105, 0) 70%); }
+.dark .app-bg__orb--4 { background: radial-gradient(circle at 50% 50%, rgba(124, 45, 18, 0.28), rgba(124, 45, 18, 0) 70%); }
+
+@keyframes bg-float-a {
+  0%, 100% { transform: translateZ(-220px) translate3d(0, 0, 0) scale(1); }
+  50%      { transform: translateZ(-220px) translate3d(4vw, 5vh, 0) scale(1.10); }
+}
+
+@keyframes bg-float-b {
+  0%, 100% { transform: translateZ(-140px) translate3d(0, 0, 0) scale(1.05); }
+  50%      { transform: translateZ(-140px) translate3d(-5vw, 7vh, 0) scale(0.95); }
+}
+
+@keyframes bg-float-c {
+  0%, 100% { transform: translateZ(-320px) translate3d(0, 0, 0) scale(1); }
+  50%      { transform: translateZ(-320px) translate3d(6vw, -6vh, 0) scale(1.15); }
+}
+
+/* Wash so content always wins the contrast fight */
+.app-bg__veil {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(250, 251, 252, 0.55) 0%, rgba(250, 251, 252, 0.68) 55%, rgba(250, 251, 252, 0.80) 100%);
+}
+
+.dark .app-bg__veil {
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.72) 0%, rgba(15, 23, 42, 0.84) 55%, rgba(15, 23, 42, 0.92) 100%);
+}
+
+/* App chrome sits above the background layer */
+.app-shell {
+  position: relative;
+  z-index: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-bg__grid,
+  .app-bg__orb {
+    animation: none !important;
+  }
+}
+
+/* ==========================================================================
+   SURFACE REFRESH — glassy cards, crisper tables, tighter data styling
+   Overrides earlier definitions; keeps class names so no page changes needed.
+   ========================================================================== */
+
+.card-base,
+.card-tier-1,
+.card-tier-2,
+.card-premium {
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  border-radius: 18px;
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 12px 32px -12px rgba(15, 23, 42, 0.14);
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.card-base:hover,
+.card-tier-1:hover,
+.card-tier-2:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 2px 4px rgba(15, 23, 42, 0.05),
+    0 20px 44px -16px rgba(249, 115, 22, 0.26);
+}
+
+.dark .card-base,
+.dark .card-tier-1,
+.dark .card-tier-2,
+.dark .card-premium {
+  background: rgba(30, 41, 59, 0.94);
+  border-color: rgba(148, 163, 184, 0.16);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.30),
+    0 16px 40px -16px rgba(0, 0, 0, 0.60);
+}
+
+.dark .card-base:hover,
+.dark .card-tier-1:hover,
+.dark .card-tier-2:hover {
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.32),
+    0 22px 48px -18px rgba(249, 115, 22, 0.28);
+}
+
+/* Any page-level white panel picks up the same glass treatment */
+.app-shell .bg-white {
+  background-color: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+}
+
+.dark .app-shell .bg-white {
+  background-color: rgba(30, 41, 59, 0.94);
+}
+
+/* Tables — lighter chrome, stronger data hierarchy */
+.table-premium th,
+.table-header {
+  background: rgba(248, 250, 252, 0.92);
+  border-bottom: 1px solid #E2E8F0;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: #64748B;
+  backdrop-filter: blur(8px);
+}
+
+.dark .table-premium th,
+.dark .table-header {
+  background: rgba(15, 23, 42, 0.92);
+  border-bottom-color: #334155;
+  color: #94A3B8;
+}
+
+.table-premium td {
+  font-size: 13px;
+  color: #334155;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+}
+
+.dark .table-premium td {
+  color: #CBD5E1;
+  border-bottom-color: rgba(51, 65, 85, 0.7);
+}
+
+.table-row,
+.table-premium tbody tr {
+  background: transparent;
+  transition: background 160ms ease;
+}
+
+.table-row:nth-child(even),
+.table-premium tbody tr:nth-child(even) {
+  background: rgba(248, 250, 252, 0.55);
+}
+
+.dark .table-row:nth-child(even),
+.dark .table-premium tbody tr:nth-child(even) {
+  background: rgba(15, 23, 42, 0.35);
+}
+
+.table-row:hover,
+.table-premium tbody tr:hover {
+  background: rgba(255, 237, 213, 0.55);
+  transform: none;
+  box-shadow: inset 3px 0 0 #F97316;
+}
+
+.dark .table-row:hover,
+.dark .table-premium tbody tr:hover {
+  background: rgba(51, 65, 85, 0.55);
+  box-shadow: inset 3px 0 0 #F97316;
+}
+
+/* Data typing — codes, times and numbers read as data, not prose */
+.table-premium td code,
+.cell-code,
+.font-mono {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+.table-premium td:has(> .badge-premium) { white-space: nowrap; }
+
+/* Badges — flatter, tighter, consistent across every page */
+.badge-base,
+.badge-premium {
+  border-radius: 9999px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-width: 1px;
+}
+
+/* Inputs — match the glass surfaces */
+.input-base,
+.input-premium {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  border-color: #E2E8F0;
+  transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+
+.dark .input-base,
+.dark .input-premium {
+  background: rgba(15, 23, 42, 0.85);
+  border-color: #334155;
+}
+
+.input-base:focus,
+.input-premium:focus {
+  border-color: #F97316;
+  box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.13);
+  background: #FFFFFF;
+}
+
+.dark .input-base:focus,
+.dark .input-premium:focus {
+  background: rgba(15, 23, 42, 0.95);
+}
+
+/* Report surfaces get the same treatment as cards */
+.report-container {
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  border-radius: 18px;
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 12px 32px -12px rgba(15, 23, 42, 0.14);
+}
+
+.dark .report-container {
+  background: rgba(30, 41, 59, 0.94);
+  border-color: rgba(148, 163, 184, 0.16);
+}
+
+.report-header {
+  background: transparent;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.dark .report-header {
+  border-bottom-color: rgba(51, 65, 85, 0.8);
+}
+
+/* Sticky action column keeps a solid backing over the glass */
+.sticky-action {
+  background: rgba(255, 255, 255, 0.94) !important;
+  backdrop-filter: blur(10px);
+}
+
+.dark .sticky-action {
+  background: rgba(30, 41, 59, 0.94) !important;
+}
+
+/* Modals float above the depth field */
+.modal-backdrop {
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(6px);
+}
+
+/* ==========================================================================
+   NEUTRAL DARK THEME — charcoal, not navy
+   Remaps the slate (blue-tinted) dark surfaces to neutral greys app-wide,
+   so no per-page class edits are needed.
+   ========================================================================== */
+
+.dark body,
+.dark .app-shell {
+  background-color: #101012;
+}
+
+.dark .app-bg__veil {
+  background: linear-gradient(180deg, rgba(16, 16, 18, 0.72) 0%, rgba(16, 16, 18, 0.84) 55%, rgba(16, 16, 18, 0.92) 100%);
+}
+
+/* Surfaces */
+.dark .dark\:bg-slate-900 { background-color: #131315 !important; }
+.dark .dark\:bg-slate-900\/50 { background-color: rgba(19, 19, 21, 0.6) !important; }
+.dark .dark\:bg-slate-900\/80 { background-color: rgba(19, 19, 21, 0.85) !important; }
+.dark .dark\:bg-slate-800 { background-color: #1C1C1F !important; }
+.dark .dark\:bg-slate-800\/80 { background-color: rgba(28, 28, 31, 0.85) !important; }
+.dark .dark\:bg-slate-700 { background-color: #2A2A2E !important; }
+.dark .dark\:bg-slate-700\/50 { background-color: rgba(42, 42, 46, 0.6) !important; }
+.dark .dark\:hover\:bg-slate-700:hover { background-color: #2A2A2E !important; }
+.dark .dark\:hover\:bg-slate-700\/50:hover { background-color: rgba(42, 42, 46, 0.6) !important; }
+.dark .dark\:hover\:bg-slate-600:hover { background-color: #35353A !important; }
+.dark .dark\:bg-slate-600 { background-color: #35353A !important; }
+
+/* Borders */
+.dark .dark\:border-slate-700 { border-color: #2E2E33 !important; }
+.dark .dark\:border-slate-600 { border-color: #3A3A40 !important; }
+.dark .dark\:divide-slate-700 > :not([hidden]) ~ :not([hidden]) { border-color: #2E2E33 !important; }
+
+/* Component classes */
+.dark .card-base,
+.dark .card-tier-1,
+.dark .card-tier-2,
+.dark .card-premium,
+.dark .report-container {
+  background: rgba(28, 28, 31, 0.94);
+  border-color: rgba(255, 255, 255, 0.07);
+}
+
+.dark .app-shell .bg-white { background-color: rgba(28, 28, 31, 0.94); }
+
+.dark .table-premium th,
+.dark .table-header {
+  background: rgba(19, 19, 21, 0.94);
+  border-bottom-color: #2E2E33;
+  color: #A1A1AA;
+}
+
+.dark .table-premium td { color: #D4D4D8; border-bottom-color: rgba(46, 46, 51, 0.8); }
+.dark .table-row { background: transparent; border-color: #2E2E33; }
+.dark .table-row:nth-child(even),
+.dark .table-premium tbody tr:nth-child(even) { background: rgba(255, 255, 255, 0.022); }
+.dark .table-row:hover,
+.dark .table-premium tbody tr:hover { background: rgba(249, 115, 22, 0.09); }
+
+.dark .input-base,
+.dark .input-premium {
+  background: rgba(19, 19, 21, 0.9);
+  border-color: #3A3A40;
+  color: #E4E4E7;
+}
+
+.dark .input-base:focus,
+.dark .input-premium:focus { background: #131315; border-color: #F97316; }
+
+.dark .sticky-action { background: rgba(28, 28, 31, 0.96) !important; }
+
+/* Sidebar / header chrome */
+.dark .dark\:bg-slate-800\/80,
+.dark header.dark\:bg-slate-900\/80 { backdrop-filter: blur(18px) saturate(140%); }
+
+/* ==========================================================================
+   3D SCENE — wireframe geometry on real Z planes
+   ========================================================================== */
+
+.bg3d-scene {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  perspective: 1200px;
+  perspective-origin: 55% 45%;
+}
+
+/* ---- cubes ---- */
+.bg3d-cube {
+  position: absolute;
+  width: 150px;
+  height: 150px;
+  transform-style: preserve-3d;
+  opacity: 0.5;
+}
+
+.bg3d-face {
+  position: absolute;
+  inset: 0;
+  border: 1.5px solid rgba(249, 115, 22, 0.42);
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.055), rgba(249, 115, 22, 0));
+  border-radius: 8px;
+}
+
+.bg3d-face--front  { transform: translateZ(75px); }
+.bg3d-face--back   { transform: rotateY(180deg) translateZ(75px); }
+.bg3d-face--right  { transform: rotateY(90deg) translateZ(75px); }
+.bg3d-face--left   { transform: rotateY(-90deg) translateZ(75px); }
+.bg3d-face--top    { transform: rotateX(90deg) translateZ(75px); }
+.bg3d-face--bottom { transform: rotateX(-90deg) translateZ(75px); }
+
+.bg3d-cube--a {
+  top: 14%; left: 8%;
+  animation: bg3d-spin-a 34s linear infinite, bg3d-bob 13s ease-in-out infinite;
+}
+
+.bg3d-cube--b {
+  top: 58%; right: 12%;
+  width: 108px; height: 108px;
+  opacity: 0.38;
+  animation: bg3d-spin-b 46s linear infinite, bg3d-bob 17s ease-in-out infinite reverse;
+}
+.bg3d-cube--b .bg3d-face { border-color: rgba(16, 185, 129, 0.38); background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(16, 185, 129, 0)); }
+.bg3d-cube--b .bg3d-face--front { transform: translateZ(54px); }
+.bg3d-cube--b .bg3d-face--back { transform: rotateY(180deg) translateZ(54px); }
+.bg3d-cube--b .bg3d-face--right { transform: rotateY(90deg) translateZ(54px); }
+.bg3d-cube--b .bg3d-face--left { transform: rotateY(-90deg) translateZ(54px); }
+.bg3d-cube--b .bg3d-face--top { transform: rotateX(90deg) translateZ(54px); }
+.bg3d-cube--b .bg3d-face--bottom { transform: rotateX(-90deg) translateZ(54px); }
+
+.bg3d-cube--c {
+  bottom: 12%; left: 26%;
+  width: 74px; height: 74px;
+  opacity: 0.3;
+  animation: bg3d-spin-c 28s linear infinite, bg3d-bob 11s ease-in-out infinite;
+}
+.bg3d-cube--c .bg3d-face { border-color: rgba(245, 158, 11, 0.42); }
+.bg3d-cube--c .bg3d-face--front { transform: translateZ(37px); }
+.bg3d-cube--c .bg3d-face--back { transform: rotateY(180deg) translateZ(37px); }
+.bg3d-cube--c .bg3d-face--right { transform: rotateY(90deg) translateZ(37px); }
+.bg3d-cube--c .bg3d-face--left { transform: rotateY(-90deg) translateZ(37px); }
+.bg3d-cube--c .bg3d-face--top { transform: rotateX(90deg) translateZ(37px); }
+.bg3d-cube--c .bg3d-face--bottom { transform: rotateX(-90deg) translateZ(37px); }
+
+@keyframes bg3d-spin-a {
+  from { transform: rotateX(-22deg) rotateY(0deg) rotateZ(6deg); }
+  to   { transform: rotateX(-22deg) rotateY(360deg) rotateZ(6deg); }
+}
+@keyframes bg3d-spin-b {
+  from { transform: rotateX(18deg) rotateY(0deg) rotateZ(-10deg); }
+  to   { transform: rotateX(18deg) rotateY(-360deg) rotateZ(-10deg); }
+}
+@keyframes bg3d-spin-c {
+  from { transform: rotateX(35deg) rotateY(0deg); }
+  to   { transform: rotateX(35deg) rotateY(360deg); }
+}
+@keyframes bg3d-bob {
+  0%, 100% { margin-top: 0; }
+  50%      { margin-top: -26px; }
+}
+
+/* ---- orbital rings (3 nested circles rotated onto different planes) ---- */
+.bg3d-ring {
+  position: absolute;
+  width: 260px;
+  height: 260px;
+  transform-style: preserve-3d;
+  opacity: 0.32;
+}
+
+.bg3d-ring i {
+  position: absolute;
+  inset: 0;
+  border: 1.5px solid rgba(249, 115, 22, 0.5);
+  border-radius: 50%;
+}
+
+.bg3d-ring i:nth-child(1) { transform: rotateY(72deg); }
+.bg3d-ring i:nth-child(2) { transform: rotateY(0deg) rotateX(66deg); }
+.bg3d-ring i:nth-child(3) { transform: rotateX(24deg) rotateY(38deg); border-color: rgba(16, 185, 129, 0.42); }
+
+.bg3d-ring--a {
+  top: 6%; right: 16%;
+  animation: bg3d-orbit-a 40s linear infinite;
+}
+
+.bg3d-ring--b {
+  bottom: 4%; right: 34%;
+  width: 180px; height: 180px;
+  opacity: 0.24;
+  animation: bg3d-orbit-b 56s linear infinite;
+}
+
+@keyframes bg3d-orbit-a {
+  from { transform: rotateZ(0deg) rotateX(14deg); }
+  to   { transform: rotateZ(360deg) rotateX(14deg); }
+}
+@keyframes bg3d-orbit-b {
+  from { transform: rotateZ(0deg) rotateX(-20deg); }
+  to   { transform: rotateZ(-360deg) rotateX(-20deg); }
+}
+
+/* ---- tilted glass planes drifting in depth ---- */
+.bg3d-plane {
+  position: absolute;
+  border-radius: 20px;
+  border: 1px solid rgba(249, 115, 22, 0.26);
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.07), rgba(249, 115, 22, 0));
+  opacity: 0.5;
+}
+
+.bg3d-plane--a {
+  top: 34%; left: 42%;
+  width: 300px; height: 190px;
+  animation: bg3d-plane-a 30s ease-in-out infinite;
+}
+
+.bg3d-plane--b {
+  top: 8%; left: 58%;
+  width: 210px; height: 140px;
+  border-color: rgba(16, 185, 129, 0.22);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.06), rgba(16, 185, 129, 0));
+  animation: bg3d-plane-b 38s ease-in-out infinite;
+}
+
+@keyframes bg3d-plane-a {
+  0%, 100% { transform: perspective(900px) rotateX(58deg) rotateZ(-18deg) translateZ(-120px); }
+  50%      { transform: perspective(900px) rotateX(46deg) rotateZ(-6deg) translateZ(20px); }
+}
+@keyframes bg3d-plane-b {
+  0%, 100% { transform: perspective(900px) rotateX(-42deg) rotateZ(16deg) translateZ(-180px); }
+  50%      { transform: perspective(900px) rotateX(-30deg) rotateZ(4deg) translateZ(-40px); }
+}
+
+/* dark-mode geometry reads brighter against charcoal */
+.dark .bg3d-face { border-color: rgba(249, 115, 22, 0.5); }
+.dark .bg3d-cube--b .bg3d-face { border-color: rgba(16, 185, 129, 0.42); }
+.dark .bg3d-ring i { border-color: rgba(249, 115, 22, 0.55); }
+.dark .bg3d-ring i:nth-child(3) { border-color: rgba(16, 185, 129, 0.45); }
+.dark .bg3d-cube { opacity: 0.42; }
+.dark .bg3d-ring { opacity: 0.26; }
+.dark .bg3d-plane { opacity: 0.42; }
+
+@media (prefers-reduced-motion: reduce) {
+  .bg3d-cube, .bg3d-ring, .bg3d-plane { animation: none !important; }
+}
+
+/* geometry is decoration — hide on small screens where space is tight */
+@media (max-width: 900px) {
+  .bg3d-scene { display: none; }
+}

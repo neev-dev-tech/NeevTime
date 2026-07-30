@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 import { modules, personnelSidebar, deviceSidebar, attendanceSidebar, systemSidebar } from '../config/navigation';
 import { ThemeButton } from '../components';
 import GlobalSearch from '../components/GlobalSearch';
+import AnimatedBackground from '../components/AnimatedBackground';
 import NotificationCenter from '../components/NotificationCenter';
 import VersionDisplay from '../components/VersionDisplay';
 import useStore from '../store/useStore';
@@ -66,7 +67,8 @@ export default function MainLayout({ children }) {
   }, [location.pathname, location.search, currentSidebar]);
 
   return (
-    <div className="flex flex-col min-h-screen font-sans bg-[#FAFBFC] dark:bg-slate-900">
+    <div className="app-shell flex flex-col min-h-screen font-sans">
+      <AnimatedBackground />
       <GlobalSearch />
       {/* Top Navigation */}
       <motion.header
@@ -164,7 +166,7 @@ export default function MainLayout({ children }) {
 
       <div className="flex flex-1 overflow-hidden">
         {activeModule !== 'Dashboard' && currentSidebar.length > 0 && (
-          <aside className="w-64 border-r border-orange-200 dark:border-slate-700 flex-shrink-0 overflow-y-auto pb-10 bg-white dark:bg-slate-800">
+          <aside className="w-64 border-r border-orange-200 dark:border-slate-700 flex-shrink-0 overflow-y-auto pb-10 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl">
             {currentSidebar.map((group, i) => (
               <div key={i} className="mb-2">
                 <button
@@ -245,7 +247,7 @@ export default function MainLayout({ children }) {
           </div>
         )}
 
-        <main className="flex-1 overflow-auto bg-slate-50/50 dark:bg-slate-900">
+        <main className="flex-1 overflow-auto">
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}

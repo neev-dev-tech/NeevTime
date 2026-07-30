@@ -186,10 +186,9 @@ export default function ReportsDashboard() {
                 <button
                     id={cardId}
                     onClick={onNavigate}
-                    className="report-card-button w-full p-5 rounded-[16px] cursor-pointer flex flex-col items-center justify-center gap-3 text-center relative overflow-hidden"
+                    className="report-card-button w-full p-5 rounded-[16px] cursor-pointer flex flex-col items-center justify-center gap-3 text-center relative overflow-hidden bg-white dark:bg-slate-800"
                     style={{
                         ...currentStyle,
-                        background: '#FFFFFF',
                         border: tier === 'primary' ? `1px solid rgba(0, 0, 0, 0.08)` : currentStyle.border,
                         borderTop: tier === 'primary' ? `3px solid ${categoryColors.color}` : currentStyle.border,
                         position: 'relative',
@@ -225,9 +224,8 @@ export default function ReportsDashboard() {
                     {/* Report Name */}
                     <div className="flex flex-col gap-1 w-full">
                         <span
-                            className="font-semibold leading-tight transition-colors"
+                            className="font-semibold leading-tight transition-colors text-slate-800 dark:text-slate-100"
                             style={{
-                                color: '#1E293B',
                                 fontWeight: tier === 'primary' ? 700 : 600,
                                 fontSize: tier === 'primary' ? '14px' : tier === 'secondary' ? '13px' : '12px'
                             }}
@@ -236,9 +234,8 @@ export default function ReportsDashboard() {
                         </span>
                         {/* Microcopy - More Secondary */}
                         <span
-                            className="text-[10px] leading-tight"
+                            className="text-[10px] leading-tight text-slate-400 dark:text-slate-500"
                             style={{
-                                color: '#9CA3AF',
                                 opacity: 0.9,
                                 fontWeight: 400,
                                 marginTop: '2px'
@@ -292,8 +289,8 @@ export default function ReportsDashboard() {
                                     }}
                                 ></div>
                                 <h2 
-                                    className="text-xl font-bold flex items-center gap-3"
-                                    style={{ color: '#111827', fontWeight: 800, letterSpacing: '-0.02em' }}
+                                    className="text-xl font-bold flex items-center gap-3 text-slate-900 dark:text-slate-100"
+                                    style={{ fontWeight: 800, letterSpacing: '-0.02em' }}
                                 >
                                     {section.title}
                                     <span 
@@ -310,8 +307,8 @@ export default function ReportsDashboard() {
                             </div>
                             {section.description && (
                                 <p 
-                                    className="text-sm ml-4"
-                                    style={{ color: '#6B7280', fontWeight: 500, letterSpacing: '-0.01em' }}
+                                    className="text-sm ml-4 text-slate-500 dark:text-slate-400"
+                                    style={{ fontWeight: 500, letterSpacing: '-0.01em' }}
                                 >
                                     {section.description}
                                 </p>
