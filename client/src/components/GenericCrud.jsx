@@ -99,7 +99,7 @@ export default function GenericCrud({ title, endpoint, columns, icon: Icon }) {
             {/* Edit/Add Modal */}
             {showModal && (
                 <div className="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-sm border border-white/50 dark:border-slate-700" style={{ borderRadius: '16px' }}>
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-sm border border-slate-200 dark:border-slate-700" style={{ borderRadius: '16px' }}>
                         <h3 className="text-lg font-bold mb-4 text-charcoal dark:text-slate-100">{editingId ? 'Edit' : 'Add'} {title}</h3>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             {columns.map(col => (
@@ -126,7 +126,7 @@ export default function GenericCrud({ title, endpoint, columns, icon: Icon }) {
             {/* Delete Confirmation Modal */}
             {deleteId && (
                 <div className="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-sm text-center border border-white/50 dark:border-slate-700" style={{ borderRadius: '16px' }}>
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-sm text-center border border-slate-200 dark:border-slate-700" style={{ borderRadius: '16px' }}>
                         <div className="mx-auto w-12 h-12 bg-red-50 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-4">
                             <Trash2 className="text-red-500" size={24} />
                         </div>

@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api';
-import { Plus, Edit2, Trash2, Clock, Sun, Moon, X } from 'lucide-react';
+import { Plus, Edit2, Trash2, Clock, Sun, Moon, X, AlertCircle, RefreshCw } from 'lucide-react';
 import { useToast, Button, PageHeader, ExportMenu } from '../components';
 
 export default function ShiftMaster() {
     const toast = useToast();
     const [shifts, setShifts] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [editingShift, setEditingShift] = useState(null);
     const [form, setForm] = useState({
@@ -17,9 +19,15 @@ export default function ShiftMaster() {
 
     const fetchShifts = async () => {
         try {
+            setError(null);
             const res = await api.get('/api/shifts');
             setShifts(res.data);
-        } catch (err) { console.error(err); }
+        } catch (err) {
+            console.error(err);
+            setError(err.response?.data?.error || 'Could not load shifts');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -66,6 +74,7 @@ export default function ShiftMaster() {
             <PageHeader
                 icon={Clock}
                 title="Shift Master"
+                subtitle="Working-hour patterns employees and departments can be assigned to"
                 actions={
                     <>
                         <ExportMenu
@@ -94,42 +103,102 @@ export default function ShiftMaster() {
                 }
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {shifts.map(shift => (
-                    <div key={shift.id} className="bg-white dark:bg-slate-800 border dark:border-slate-700 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
-                        <div className="flex justify-between items-start mb-3">
-                            <div>
-                                <h3 className="font-bold text-lg text-slate-800 dark:text-slate-100">{shift.name}</h3>
-                                <span className={`text-xs px-2 py-0.5 rounded ${shift.shift_type === 'Night' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300' : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'}`}>
-                                    {shift.shift_type || 'Fixed'}
-                                </span>
-                            </div>
-                            <div className="flex gap-1">
-                                <button onClick={() => handleEdit(shift)} className="p-1.5 text-slate-400 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-slate-700 rounded"><Edit2 size={16} /></button>
-                                <button onClick={() => handleDelete(shift.id)} className="p-1.5 text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded"><Trash2 size={16} /></button>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-4 text-sm text-slate-600 dark:text-slate-400 mb-2">
-                            <span className="flex items-center gap-1"><Sun size={14} className="text-yellow-500" /> {shift.start_time?.substring(0, 5)}</span>
-                            <span>→</span>
-                            <span className="flex items-center gap-1"><Moon size={14} className="text-blue-500" /> {shift.end_time?.substring(0, 5)}</span>
-                        </div>
-                        <div className="text-xs text-slate-500 dark:text-slate-400 space-y-1">
-                            <div>Grace: {shift.grace_in_minutes || 0} min | Late after: {shift.late_threshold_minutes || 15} min</div>
-                            {shift.break_duration_minutes > 0 && <div>Break: {shift.break_duration_minutes} min</div>}
-                            {shift.is_night_shift && <div className="text-indigo-600 dark:text-indigo-400">🌙 Night Shift</div>}
-                        </div>
+            {loading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {Array.from({ length: 6 }).map((_, i) => (
+                        <div key={i} className="h-44 rounded-2xl bg-slate-100 dark:bg-slate-700 animate-pulse" />
+                    ))}
+                </div>
+            ) : error ? (
+                <div className="card-base !p-0 overflow-hidden">
+                    <div className="py-16 text-center">
+                        <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load shifts</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <Button variant="secondary" icon={RefreshCw} onClick={fetchShifts}>Try again</Button>
                     </div>
-                ))}
-            </div>
+                </div>
+            ) : shifts.length === 0 ? (
+                <div className="card-base !p-0 overflow-hidden">
+                    <div className="py-16 text-center">
+                        <Clock size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No shifts yet</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            A shift defines the start and end of a working day before schedules can use it.
+                        </p>
+                    </div>
+                </div>
+            ) : (
+                <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {shifts.map(shift => (
+                            <div key={shift.id} className="bg-white/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 hover:-translate-y-0.5 transition-transform">
+                                <div className="flex justify-between items-start gap-3 mb-3">
+                                    <div className="min-w-0">
+                                        <h3 className="font-semibold text-slate-800 dark:text-slate-100 truncate">{shift.name || '—'}</h3>
+                                        <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${shift.shift_type === 'Night'
+                                                ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300'
+                                                : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'}`}>
+                                                {shift.shift_type || 'Fixed'}
+                                            </span>
+                                            {shift.is_night_shift && (
+                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300">
+                                                    <Moon size={10} /> Overnight
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-1 shrink-0">
+                                        <button onClick={() => handleEdit(shift)} aria-label="Edit shift" className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-slate-700 rounded-lg transition-colors"><Edit2 size={16} /></button>
+                                        <button onClick={() => handleDelete(shift.id)} aria-label="Delete shift" className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-lg transition-colors"><Trash2 size={16} /></button>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-2 text-sm mb-3">
+                                    <span className="inline-flex items-center gap-1.5 text-slate-800 dark:text-slate-100 font-semibold tabular-nums">
+                                        <Sun size={14} className="text-amber-500 dark:text-amber-400" />
+                                        {shift.start_time?.substring(0, 5) || '—'}
+                                    </span>
+                                    <span className="text-slate-400 dark:text-slate-500">→</span>
+                                    <span className="inline-flex items-center gap-1.5 text-slate-800 dark:text-slate-100 font-semibold tabular-nums">
+                                        <Moon size={14} className="text-blue-500 dark:text-blue-400" />
+                                        {shift.end_time?.substring(0, 5) || '—'}
+                                    </span>
+                                </div>
+
+                                <dl className="grid grid-cols-3 gap-2 pt-3 border-t border-slate-100 dark:border-slate-700 text-center">
+                                    <div>
+                                        <dt className="text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 font-bold">Grace</dt>
+                                        <dd className="text-sm font-semibold text-slate-800 dark:text-slate-100 tabular-nums">{shift.grace_in_minutes || 0}m</dd>
+                                    </div>
+                                    <div>
+                                        <dt className="text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 font-bold">Late After</dt>
+                                        <dd className="text-sm font-semibold text-slate-800 dark:text-slate-100 tabular-nums">{shift.late_threshold_minutes || 15}m</dd>
+                                    </div>
+                                    <div>
+                                        <dt className="text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 font-bold">Break</dt>
+                                        <dd className="text-sm font-semibold text-slate-800 dark:text-slate-100 tabular-nums">
+                                            {shift.break_duration_minutes > 0 ? `${shift.break_duration_minutes}m` : '—'}
+                                        </dd>
+                                    </div>
+                                </dl>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
+                        {shifts.length} shift{shifts.length === 1 ? '' : 's'}
+                    </div>
+                </div>
+            )}
 
             {/* Add/Edit Modal */}
             {showModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                     <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-lg overflow-hidden">
                         <div className="px-6 py-4 border-b dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
-                            <h3 className="font-bold text-lg">{editingShift ? 'Edit Shift' : 'Add New Shift'}</h3>
-                            <button onClick={() => setShowModal(false)}><X className="text-slate-400 hover:text-red-500" /></button>
+                            <h3 className="font-bold text-lg text-slate-800 dark:text-slate-100">{editingShift ? 'Edit Shift' : 'Add New Shift'}</h3>
+                            <Button variant="ghost" size="sm" icon={X} iconSize={20} aria-label="Close" onClick={() => setShowModal(false)} />
                         </div>
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             <div>

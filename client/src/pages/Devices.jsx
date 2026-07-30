@@ -862,12 +862,8 @@ export default function Devices() {
 
             {showModal && (
                 <div className="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4">
-                    <div className="p-6 rounded-2xl w-full max-w-lg border" style={{
-                        borderRadius: '16px',
-                        background: 'linear-gradient(135deg, #FFFFFF 0%, #FFFBF5 100%)',
-                        borderColor: '#FED7AA'
-                    }}>
-                        <h3 className="font-semibold mb-4" style={{ color: '#1E293B', fontWeight: 600 }}>{editingDevice ? 'Edit' : 'Add'} Device</h3>
+                    <div className="p-6 rounded-2xl w-full max-w-lg border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700" style={{ borderRadius: '16px' }}>
+                        <h3 className="font-semibold mb-4 text-slate-800 dark:text-slate-100">{editingDevice ? 'Edit' : 'Add'} Device</h3>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <input className="input-base" placeholder="Name" value={form.device_name} onChange={e => setForm({ ...form, device_name: e.target.value })} />
                             <input className="input-base" placeholder="Serial" value={form.serial_number} onChange={e => setForm({ ...form, serial_number: e.target.value })} disabled={!!editingDevice} />
@@ -891,12 +887,8 @@ export default function Devices() {
             )}
             {confirmation.show && (
                 <div className="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4">
-                    <div className="p-6 rounded-2xl text-center border" style={{
-                        borderRadius: '16px',
-                        background: 'linear-gradient(135deg, #FFFFFF 0%, #FFFBF5 100%)',
-                        borderColor: '#FED7AA'
-                    }}>
-                        <h3 className="font-semibold" style={{ color: '#1E293B', fontWeight: 600 }}>{confirmation.title}</h3>
+                    <div className="p-6 rounded-2xl text-center border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700" style={{ borderRadius: '16px' }}>
+                        <h3 className="font-semibold text-slate-800 dark:text-slate-100">{confirmation.title}</h3>
                         <p className="my-2 text-sm text-slate-500 dark:text-slate-400">{confirmation.message}</p>
                         <div className="flex justify-center gap-2 mt-4">
                             <Button variant="secondary" onClick={() => setConfirmation({ show: false, action: null })}>Cancel</Button>

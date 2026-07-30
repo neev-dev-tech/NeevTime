@@ -100,23 +100,13 @@ export default function AddEmployeeModal({
     return (
         <div className="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4">
             <div
-                className="rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden border animate-slide-up"
-                style={{
-                    borderRadius: '16px',
-                    background: 'linear-gradient(135deg, #FFFFFF 0%, #FFFBF5 100%)',
-                    borderColor: '#FED7AA'
-                }}
+                className="rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden border animate-slide-up bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"
+                style={{ borderRadius: '16px' }}
             >
                 {/* Header */}
-                <div
-                    className="px-8 py-5 border-b flex justify-between items-center"
-                    style={{
-                        background: 'linear-gradient(135deg, #FFF7ED 0%, #FFFFFF 100%)',
-                        borderColor: '#FED7AA'
-                    }}
-                >
+                <div className="px-8 py-5 border-b flex justify-between items-center bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
                     <div>
-                        <h3 className="font-semibold text-xl" style={{ color: '#1E293B', fontWeight: 600 }}>
+                        <h3 className="font-semibold text-xl text-slate-800 dark:text-slate-100">
                             Add Employee
                         </h3>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
@@ -307,13 +297,7 @@ export default function AddEmployeeModal({
                 </form>
 
                 {/* Footer */}
-                <div
-                    className="px-8 py-4 border-t flex items-center justify-between"
-                    style={{
-                        background: 'linear-gradient(135deg, #FAFAFA 0%, #FFFFFF 100%)',
-                        borderColor: '#E5E7EB'
-                    }}
-                >
+                <div className="px-8 py-4 border-t flex items-center justify-between bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
                     <div className="text-sm text-slate-500 dark:text-slate-400">
                         {!isValid && touched.employee_code && (
                             <span className="text-red-500">

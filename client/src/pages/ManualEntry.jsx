@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
-import { ClipboardEdit, Search, Calendar, Clock, User, AlertCircle, CheckCircle } from 'lucide-react';
+import { ClipboardEdit, Search, Calendar, Clock, User, AlertCircle, CheckCircle, RefreshCw } from 'lucide-react';
 import { useToast, Button, PageHeader } from '../components';
 
 export default function ManualEntry() {
     const toast = useToast();
     const [employees, setEmployees] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedEmployee, setSelectedEmployee] = useState(null);
     const [form, setForm] = useState({
@@ -20,10 +22,17 @@ export default function ManualEntry() {
     useEffect(() => { fetchEmployees(); }, []);
 
     const fetchEmployees = async () => {
+        setLoading(true);
+        setError(null);
         try {
             const res = await api.get('/api/employees');
             setEmployees(res.data);
-        } catch (err) { console.error(err); }
+        } catch (err) {
+            console.error(err);
+            setError(err.response?.data?.error || 'Could not load employees');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const filteredEmployees = employees.filter(e =>
@@ -54,8 +63,11 @@ export default function ManualEntry() {
         setSubmitting(false);
     };
 
+    const fieldClass = 'w-full rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 pl-10 pr-4 py-2 focus:outline-none focus:border-orange-400 dark:focus:border-orange-500';
+    const labelClass = 'block text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-2';
+
     return (
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-2xl mx-auto space-y-6">
             <PageHeader
                 icon={ClipboardEdit}
                 title="Manual Attendance Entry"
@@ -63,37 +75,65 @@ export default function ManualEntry() {
             />
 
             {result && (
-                <div className={`mb-4 p-4 rounded-lg flex items-center gap-2 ${result.success ? 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300' : 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300'}`}>
+                <div className={`p-4 rounded-2xl border flex items-center gap-3 text-sm ${result.success
+                    ? 'bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-900/30 dark:border-emerald-800 dark:text-emerald-300'
+                    : 'bg-rose-50 border-rose-200 text-rose-700 dark:bg-rose-900/30 dark:border-rose-800 dark:text-rose-300'}`}>
                     {result.success ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
-                    {result.message}
+                    <span className="font-semibold">{result.message}</span>
                 </div>
             )}
 
-            <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border dark:border-slate-700 p-6 space-y-6">
+            {error && (
+                <div className="p-4 rounded-2xl border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-900/30 flex items-center gap-3 flex-wrap">
+                    <AlertCircle size={20} className="text-rose-500 dark:text-rose-400" />
+                    <div className="min-w-0">
+                        <p className="font-bold text-slate-800 dark:text-slate-100 text-sm">Could not load employees</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">{error}</p>
+                    </div>
+                    <div className="ml-auto">
+                        <Button variant="secondary" size="sm" icon={RefreshCw} onClick={fetchEmployees}>Try again</Button>
+                    </div>
+                </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="card-base space-y-6">
                 {/* Employee Search */}
                 <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Select Employee *</label>
+                    <label className={labelClass}>Select Employee *</label>
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={18} />
                         <input
                             type="text"
                             placeholder="Search by name or ID..."
-                            className="w-full border dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 rounded-lg pl-10 pr-4 py-2"
+                            className={fieldClass}
                             value={selectedEmployee ? `${selectedEmployee.name} (${selectedEmployee.employee_code})` : searchTerm}
                             onChange={(e) => { setSearchTerm(e.target.value); setSelectedEmployee(null); }}
                             onFocus={() => setSelectedEmployee(null)}
                         />
                     </div>
                     {!selectedEmployee && searchTerm && (
-                        <div className="border dark:border-slate-700 rounded-lg mt-1 max-h-40 overflow-auto bg-white dark:bg-slate-800 shadow-lg">
-                            {filteredEmployees.length === 0 ? (
-                                <div className="p-3 text-slate-400 text-sm">No employees found</div>
+                        <div className="border border-slate-200 dark:border-slate-700 rounded-xl mt-1.5 max-h-40 overflow-auto bg-white dark:bg-slate-800 shadow-lg divide-y divide-slate-100 dark:divide-slate-700">
+                            {loading ? (
+                                <div className="p-3 space-y-2">
+                                    {Array.from({ length: 3 }).map((_, i) => (
+                                        <div key={i} className="h-6 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
+                                    ))}
+                                </div>
+                            ) : filteredEmployees.length === 0 ? (
+                                <div className="p-4 text-center">
+                                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">No matching employees</p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                                        Nothing matches “{searchTerm}”. Try a different name or code.
+                                    </p>
+                                </div>
                             ) : filteredEmployees.slice(0, 5).map(emp => (
                                 <button key={emp.id} type="button" onClick={() => { setSelectedEmployee(emp); setSearchTerm(''); }}
-                                    className="w-full text-left px-4 py-2 hover:bg-orange-50 dark:hover:bg-slate-700 flex items-center gap-2">
-                                    <User size={16} className="text-slate-400" />
-                                    <span className="font-medium">{emp.name}</span>
-                                    <span className="text-slate-500 dark:text-slate-400 text-sm">{emp.employee_code}</span>
+                                    className="w-full text-left px-4 py-2 hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors flex items-center gap-2">
+                                    <User size={16} className="text-slate-400 dark:text-slate-500" />
+                                    <span className="font-semibold text-slate-800 dark:text-slate-100">{emp.name || '—'}</span>
+                                    <span className="ml-auto font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold">
+                                        {emp.employee_code || '—'}
+                                    </span>
                                 </button>
                             ))}
                         </div>
@@ -102,35 +142,42 @@ export default function ManualEntry() {
 
                 {/* Date */}
                 <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Date *</label>
+                    <label className={labelClass}>Date *</label>
                     <div className="relative">
-                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                        <input type="date" className="w-full border dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 rounded-lg pl-10 pr-4 py-2" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} required />
+                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={18} />
+                        <input type="date" className={`${fieldClass} tabular-nums`} value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} required />
                     </div>
                 </div>
 
                 {/* Time */}
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">In Time *</label>
+                        <label className={labelClass}>In Time *</label>
                         <div className="relative">
-                            <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                            <input type="time" className="w-full border dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 rounded-lg pl-10 pr-4 py-2" value={form.in_time} onChange={e => setForm({ ...form, in_time: e.target.value })} required />
+                            <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={18} />
+                            <input type="time" className={`${fieldClass} tabular-nums`} value={form.in_time} onChange={e => setForm({ ...form, in_time: e.target.value })} required />
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Out Time *</label>
+                        <label className={labelClass}>Out Time *</label>
                         <div className="relative">
-                            <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                            <input type="time" className="w-full border dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 rounded-lg pl-10 pr-4 py-2" value={form.out_time} onChange={e => setForm({ ...form, out_time: e.target.value })} required />
+                            <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={18} />
+                            <input type="time" className={`${fieldClass} tabular-nums`} value={form.out_time} onChange={e => setForm({ ...form, out_time: e.target.value })} required />
                         </div>
                     </div>
                 </div>
 
                 {/* Reason */}
                 <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Reason *</label>
-                    <textarea className="w-full border dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 rounded-lg px-4 py-2" rows={3} placeholder="Reason for manual entry..." value={form.reason} onChange={e => setForm({ ...form, reason: e.target.value })} required />
+                    <label className={labelClass}>Reason *</label>
+                    <textarea
+                        className="w-full rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 px-4 py-2 focus:outline-none focus:border-orange-400 dark:focus:border-orange-500"
+                        rows={3}
+                        placeholder="Reason for manual entry..."
+                        value={form.reason}
+                        onChange={e => setForm({ ...form, reason: e.target.value })}
+                        required
+                    />
                 </div>
 
                 <Button type="submit" size="lg" disabled={submitting || !selectedEmployee} className="w-full">

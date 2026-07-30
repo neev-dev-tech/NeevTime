@@ -1,9 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Edit2, X, Check, RefreshCw, Users, Shield, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Edit2, X, Check, RefreshCw, Users, Shield, AlertCircle } from 'lucide-react';
 import api from '../api';
 import { Button, PageHeader, ExportMenu } from '../components';
 
 const ROLES = ['admin', 'hr', 'user'];
+
+const BADGE = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide';
+const ROLE_TINTS = {
+    admin: 'bg-rose-50 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300',
+    hr: 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+};
+const ROLE_FALLBACK = 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300';
+
+const CELL_MONO = 'font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold';
+const CELL_STRONG = 'font-semibold text-slate-800 dark:text-slate-100';
+const CELL_SOFT = 'text-slate-600 dark:text-slate-300';
+
+const dash = (v) => (v === null || v === undefined || v === '' ? '—' : v);
+const initialOf = (name) => (String(name || '').trim().charAt(0) || '?').toUpperCase();
 
 export default function UsersPage() {
     const [users, setUsers] = useState([]);
@@ -12,6 +26,7 @@ export default function UsersPage() {
     const [editUser, setEditUser] = useState(null);
     const [formData, setFormData] = useState({ username: '', password: '', role: 'user', email: '' });
     const [error, setError] = useState('');
+    const [loadError, setLoadError] = useState(null);
     const [toast, setToast] = useState(null);
 
     useEffect(() => {
@@ -23,7 +38,9 @@ export default function UsersPage() {
         try {
             const res = await api.get('/api/users');
             setUsers(res.data);
+            setLoadError(null);
         } catch (err) {
+            setLoadError(err.response?.data?.error || 'Failed to load users');
             showToast(err.response?.data?.error || 'Failed to load users', 'error');
         } finally {
             setLoading(false);
@@ -104,14 +121,6 @@ export default function UsersPage() {
         setShowModal(true);
     };
 
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center h-64">
-                <Loader2 className="w-8 h-8 animate-spin text-green-500" />
-            </div>
-        );
-    }
-
     return (
         <div className="space-y-6">
             {/* Header */}
@@ -150,84 +159,121 @@ export default function UsersPage() {
             />
 
             {/* Users Table */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
-                <table className="w-full">
-                    <thead className="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700">
-                        <tr>
-                            <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">ID</th>
-                            <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">Username</th>
-                            <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">Email</th>
-                            <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">Role</th>
-                            <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">Created</th>
-                            <th className="text-right px-6 py-3 text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-                        {users.map(user => (
-                            <tr key={user.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
-                                <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{user.id}</td>
-                                <td className="px-6 py-4">
-                                    <span className="font-medium text-slate-900 dark:text-slate-100">{user.username}</span>
-                                </td>
-                                <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{user.email || '-'}</td>
-                                <td className="px-6 py-4">
-                                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${user.role === 'admin'
-                                            ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
-                                            : user.role === 'hr'
-                                                ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
-                                                : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
-                                        }`}>
-                                        <Shield size={12} />
-                                        {user.role}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">
-                                    {user.created_at ? new Date(user.created_at).toLocaleDateString() : '-'}
-                                </td>
-                                <td className="px-6 py-4 text-right">
-                                    <div className="flex items-center justify-end gap-2">
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            icon={Edit2}
-                                            aria-label="Edit"
-                                            onClick={() => handleEdit(user)}
-                                        />
-                                        <Button
-                                            variant="danger"
-                                            size="sm"
-                                            icon={Trash2}
-                                            aria-label="Delete"
-                                            onClick={() => handleDelete(user)}
-                                        />
-                                    </div>
-                                </td>
-                            </tr>
+            <div className="card-base !p-0 overflow-hidden">
+                {loading ? (
+                    <div className="p-6 space-y-3">
+                        {Array.from({ length: 6 }).map((_, i) => (
+                            <div key={i} className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
                         ))}
-                        {users.length === 0 && (
-                            <tr>
-                                <td colSpan={6} className="px-6 py-8 text-center text-slate-500 dark:text-slate-400">
-                                    No users found
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
+                    </div>
+                ) : loadError ? (
+                    <div className="py-16 text-center">
+                        <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load users</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{loadError}</p>
+                        <Button variant="secondary" icon={RefreshCw} onClick={fetchUsers}>Try again</Button>
+                    </div>
+                ) : users.length === 0 ? (
+                    <div className="py-16 text-center">
+                        <Users size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No users yet</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            Add a user to give someone access to the system.
+                        </p>
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left">
+                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">
+                                <tr>
+                                    <th className="px-5 py-3 font-bold w-12">#</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">ID</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Username</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Email</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Role</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Created</th>
+                                    <th className="px-5 py-3 font-bold text-right whitespace-nowrap">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                                {users.map((user, idx) => (
+                                    <tr key={user.id} className="hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{idx + 1}</td>
+                                        <td className="px-5 py-3">
+                                            <span className={CELL_MONO}>{dash(user.id)}</span>
+                                        </td>
+                                        <td className="px-5 py-3">
+                                            <div className="flex items-center gap-3 min-w-0">
+                                                <span
+                                                    aria-hidden="true"
+                                                    className="w-8 h-8 shrink-0 rounded-full grid place-items-center font-bold text-xs bg-orange-100 text-orange-700 border border-orange-200 dark:bg-orange-900/40 dark:text-orange-300 dark:border-orange-800/70"
+                                                >
+                                                    {initialOf(user.username)}
+                                                </span>
+                                                <span className={`${CELL_STRONG} truncate`}>{dash(user.username)}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-5 py-3">
+                                            <span className={CELL_SOFT}>{dash(user.email)}</span>
+                                        </td>
+                                        <td className="px-5 py-3">
+                                            <span className={`${BADGE} ${ROLE_TINTS[user.role] || ROLE_FALLBACK}`}>
+                                                <Shield size={11} />
+                                                {dash(user.role)}
+                                            </span>
+                                        </td>
+                                        <td className="px-5 py-3">
+                                            <span className={CELL_SOFT}>
+                                                {user.created_at ? new Date(user.created_at).toLocaleDateString() : '—'}
+                                            </span>
+                                        </td>
+                                        <td className="px-5 py-3">
+                                            <div className="flex items-center justify-end">
+                                                <div className="dv-quiet">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        icon={Edit2}
+                                                        aria-label="Edit"
+                                                        onClick={() => handleEdit(user)}
+                                                    />
+                                                    <Button
+                                                        variant="danger"
+                                                        size="sm"
+                                                        icon={Trash2}
+                                                        aria-label="Delete"
+                                                        onClick={() => handleDelete(user)}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+
+                {!loading && !loadError && users.length > 0 && (
+                    <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
+                        {users.length} user{users.length === 1 ? '' : 's'}
+                    </div>
+                )}
             </div>
 
             {/* Modal */}
             {showModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white dark:bg-slate-800 rounded-xl w-full max-w-md shadow-2xl">
-                        <div className="flex items-center justify-between p-4 border-b dark:border-slate-700">
-                            <h2 className="text-lg font-semibold">
+                <div className="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4">
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-md shadow-xl border border-white/50 dark:border-slate-700">
+                        <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
+                            <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
                                 {editUser ? 'Edit User' : 'Add New User'}
                             </h2>
-                            <Button variant="ghost" size="sm" icon={X} aria-label="Close" onClick={() => setShowModal(false)} />
+                            <Button variant="ghost" size="sm" icon={X} iconSize={20} aria-label="Close" onClick={() => setShowModal(false)} />
                         </div>
-                        <form onSubmit={handleSubmit} className="p-4 space-y-4">
+                        <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             {error && (
-                                <div className="p-3 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 rounded-lg text-sm">
+                                <div className="p-3 bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-900/30 dark:text-rose-300 dark:border-rose-800 rounded-lg text-sm">
                                     {error}
                                 </div>
                             )}
@@ -238,7 +284,7 @@ export default function UsersPage() {
                                     type="text"
                                     value={formData.username}
                                     onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-100 focus:outline-none focus:border-orange-400 dark:focus:border-orange-500"
                                     required
                                 />
                             </div>
@@ -251,7 +297,7 @@ export default function UsersPage() {
                                     type="password"
                                     value={formData.password}
                                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-100 focus:outline-none focus:border-orange-400 dark:focus:border-orange-500"
                                     {...(!editUser && { required: true })}
                                 />
                             </div>
@@ -262,7 +308,7 @@ export default function UsersPage() {
                                     type="email"
                                     value={formData.email}
                                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-100 focus:outline-none focus:border-orange-400 dark:focus:border-orange-500"
                                 />
                             </div>
 
@@ -271,7 +317,7 @@ export default function UsersPage() {
                                 <select
                                     value={formData.role}
                                     onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-100 focus:outline-none focus:border-orange-400 dark:focus:border-orange-500"
                                 >
                                     {ROLES.map(role => (
                                         <option key={role} value={role}>{role}</option>
@@ -279,7 +325,7 @@ export default function UsersPage() {
                                 </select>
                             </div>
 
-                            <div className="flex gap-2 pt-4">
+                            <div className="flex gap-2 pt-4 border-t border-slate-100 dark:border-slate-700">
                                 <Button
                                     variant="secondary"
                                     type="button"
@@ -304,19 +350,19 @@ export default function UsersPage() {
 
             {/* Toast */}
             {toast && (
-                <div className={`fixed bottom-4 right-4 flex items-center px-4 py-3 rounded-lg shadow-xl text-white z-50 animate-in slide-in-from-bottom-5 duration-300 ${toast.type === 'success' ? 'bg-green-500' :
-                        toast.type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+                <div className={`fixed bottom-4 right-4 flex items-center px-4 py-3 rounded-xl shadow-xl text-white z-50 animate-in slide-in-from-bottom-5 duration-300 ${toast.type === 'success' ? 'bg-emerald-600 dark:bg-emerald-500' :
+                    toast.type === 'error' ? 'bg-rose-600 dark:bg-rose-500' : 'bg-blue-600 dark:bg-blue-500'
                     }`}>
-                    <span className="flex-1 pr-3">{toast.message}</span>
-                    <button 
+                    <span className="flex-1 pr-3 text-sm font-medium">{toast.message}</span>
+                    <button
                         onClick={() => {
                             if (toastTimeoutRef.current) {
                                 clearTimeout(toastTimeoutRef.current);
                                 toastTimeoutRef.current = null;
                             }
                             setToast(null);
-                        }} 
-                        className="text-white hover:text-slate-200 focus:outline-none font-bold text-lg leading-none"
+                        }}
+                        className="text-white hover:text-slate-200 dark:hover:text-slate-100 focus:outline-none font-bold text-lg leading-none"
                     >
                         ✕
                     </button>

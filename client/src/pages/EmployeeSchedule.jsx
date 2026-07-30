@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
-import { UserCheck, Plus, Edit2, Trash2, X, Save, Users, Search, Filter } from 'lucide-react';
+import { UserCheck, Plus, Edit2, Trash2, X, Save, Users, Search, Filter, AlertCircle, RefreshCw } from 'lucide-react';
 import { useToast, Button, PageHeader, ExportMenu } from '../components';
 
 export default function EmployeeSchedule() {
@@ -11,6 +11,7 @@ export default function EmployeeSchedule() {
     const [shifts, setShifts] = useState([]);
     const [timetables, setTimetables] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
@@ -35,6 +36,7 @@ export default function EmployeeSchedule() {
 
     const fetchData = async () => {
         try {
+            setError(null);
             const [schedRes, empRes, deptRes, shiftRes, ttRes] = await Promise.all([
                 api.get('/api/schedules/employee'),
                 api.get('/api/employees'),
@@ -49,6 +51,7 @@ export default function EmployeeSchedule() {
             setTimetables(ttRes.data || []);
         } catch (err) {
             console.error('Error fetching data:', err);
+            setError(err.response?.data?.error || 'Could not load employee schedules');
         } finally {
             setLoading(false);
         }
@@ -178,6 +181,7 @@ export default function EmployeeSchedule() {
             <PageHeader
                 icon={UserCheck}
                 title="Employee Schedule"
+                subtitle="Per-employee shift assignments and temporary overrides"
                 actions={
                     <>
                         <ExportMenu
@@ -212,87 +216,125 @@ export default function EmployeeSchedule() {
             />
 
             {/* Filters */}
-            <div className="flex gap-4 flex-wrap">
+            <div className="flex gap-3 flex-wrap">
                 <div className="flex-1 min-w-[200px] relative">
-                    <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
+                    <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500" />
                     <input
                         type="text"
                         placeholder="Search employee..."
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
-                        className="w-full pl-9 pr-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                        className="w-full pl-9 pr-3 py-2 text-sm rounded-lg bg-white/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-400"
                     />
                 </div>
-                <select
-                    value={filterDepartment}
-                    onChange={e => setFilterDepartment(e.target.value)}
-                    className="px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
-                >
-                    <option value="">All Departments</option>
-                    {departments.map(d => (
-                        <option key={d.id} value={d.name}>{d.name}</option>
-                    ))}
-                </select>
+                <div className="relative">
+                    <Filter size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 pointer-events-none" />
+                    <select
+                        value={filterDepartment}
+                        onChange={e => setFilterDepartment(e.target.value)}
+                        className="pl-9 pr-3 py-2 text-sm rounded-lg bg-white/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                    >
+                        <option value="">All Departments</option>
+                        {departments.map(d => (
+                            <option key={d.id} value={d.name}>{d.name}</option>
+                        ))}
+                    </select>
+                </div>
             </div>
 
             {/* Schedules Table */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border dark:border-slate-700 overflow-hidden">
-                <table className="w-full">
-                    <thead className="bg-slate-50 dark:bg-slate-900/50">
-                        <tr>
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600 dark:text-slate-400">Employee</th>
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600 dark:text-slate-400">Department</th>
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600 dark:text-slate-400">Shift</th>
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600 dark:text-slate-400">Effective Period</th>
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600 dark:text-slate-400">Type</th>
-                            <th className="px-4 py-3 text-center text-sm font-semibold text-slate-600 dark:text-slate-400">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y dark:divide-slate-700">
-                        {loading ? (
-                            <tr>
-                                <td colSpan={6} className="px-4 py-8 text-center text-slate-500 dark:text-slate-400">Loading...</td>
-                            </tr>
-                        ) : filteredSchedules.length === 0 ? (
-                            <tr>
-                                <td colSpan={6} className="px-4 py-8 text-center text-slate-500 dark:text-slate-400">
-                                    No employee schedules found.
-                                </td>
-                            </tr>
-                        ) : filteredSchedules.map(schedule => (
-                            <tr key={schedule.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
-                                <td className="px-4 py-3">
-                                    <div className="font-medium">{schedule.employee_name}</div>
-                                    <div className="text-xs text-slate-500 dark:text-slate-400">{schedule.employee_code}</div>
-                                </td>
-                                <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">
-                                    {schedule.department_name || '-'}
-                                </td>
-                                <td className="px-4 py-3">
-                                    <span className="px-2 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 rounded text-sm">
-                                        {schedule.shift_name || schedule.timetable_name || '-'}
-                                    </span>
-                                </td>
-                                <td className="px-4 py-3 text-sm">
-                                    {schedule.effective_from?.split('T')[0]} → {schedule.effective_to?.split('T')[0] || 'Ongoing'}
-                                </td>
-                                <td className="px-4 py-3">
-                                    {schedule.is_temporary ? (
-                                        <span className="px-2 py-1 bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 rounded text-xs">Temporary</span>
-                                    ) : (
-                                        <span className="px-2 py-1 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 rounded text-xs">Regular</span>
-                                    )}
-                                </td>
-                                <td className="px-4 py-3">
-                                    <div className="flex items-center justify-center gap-2">
-                                        <Button variant="ghost" size="sm" icon={Edit2} iconSize={16} onClick={() => openEdit(schedule)} aria-label="Edit schedule" />
-                                        <Button variant="danger" size="sm" icon={Trash2} iconSize={16} onClick={() => handleDelete(schedule.id)} aria-label="Delete schedule" />
-                                    </div>
-                                </td>
-                            </tr>
+            <div className="card-base !p-0 overflow-hidden">
+                {loading ? (
+                    <div className="p-6 space-y-3">
+                        {Array.from({ length: 6 }).map((_, i) => (
+                            <div key={i} className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
                         ))}
-                    </tbody>
-                </table>
+                    </div>
+                ) : error ? (
+                    <div className="py-16 text-center">
+                        <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load schedules</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <Button variant="secondary" icon={RefreshCw} onClick={fetchData}>Try again</Button>
+                    </div>
+                ) : filteredSchedules.length === 0 ? (
+                    <div className="py-16 text-center">
+                        <UserCheck size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">
+                            {searchTerm || filterDepartment ? 'No matching schedules' : 'No employee schedules yet'}
+                        </h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            {searchTerm || filterDepartment
+                                ? 'Nothing matches the current search and department filter.'
+                                : 'Assign a shift to an employee to override their department schedule.'}
+                        </p>
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left">
+                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">
+                                <tr>
+                                    <th className="px-5 py-3 font-bold w-12">#</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Employee</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Department</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Shift</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Effective Period</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Type</th>
+                                    <th className="px-5 py-3 font-bold text-right whitespace-nowrap">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                                {filteredSchedules.map((schedule, idx) => (
+                                    <tr key={schedule.id} className="hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums align-top">{idx + 1}</td>
+                                        <td className="px-5 py-3">
+                                            <div className="font-semibold text-slate-800 dark:text-slate-100">{schedule.employee_name || '—'}</div>
+                                            <div className="font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold">
+                                                {schedule.employee_code || '—'}
+                                            </div>
+                                        </td>
+                                        <td className="px-5 py-3 text-slate-600 dark:text-slate-300">
+                                            {schedule.department_name || '—'}
+                                        </td>
+                                        <td className="px-5 py-3">
+                                            {(schedule.shift_name || schedule.timetable_name) ? (
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                                                    {schedule.shift_name || schedule.timetable_name}
+                                                </span>
+                                            ) : (
+                                                <span className="text-slate-600 dark:text-slate-300">—</span>
+                                            )}
+                                        </td>
+                                        <td className="px-5 py-3 text-slate-600 dark:text-slate-300 tabular-nums whitespace-nowrap">
+                                            {schedule.effective_from?.split('T')[0] || '—'} → {schedule.effective_to?.split('T')[0] || 'Ongoing'}
+                                        </td>
+                                        <td className="px-5 py-3">
+                                            {schedule.is_temporary ? (
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">Temporary</span>
+                                            ) : (
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">Regular</span>
+                                            )}
+                                        </td>
+                                        <td className="px-5 py-3">
+                                            <div className="flex items-center justify-end">
+                                                <div className="dv-quiet">
+                                                    <Button variant="ghost" size="sm" icon={Edit2} iconSize={16} onClick={() => openEdit(schedule)} aria-label="Edit schedule" />
+                                                    <Button variant="danger" size="sm" icon={Trash2} iconSize={16} onClick={() => handleDelete(schedule.id)} aria-label="Delete schedule" />
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+
+                {!loading && !error && filteredSchedules.length > 0 && (
+                    <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
+                        {filteredSchedules.length} schedule{filteredSchedules.length === 1 ? '' : 's'}
+                    </div>
+                )}
             </div>
 
             {/* Individual Schedule Modal */}
@@ -427,15 +469,15 @@ export default function EmployeeSchedule() {
                                 </div>
                                 <div className="space-y-1">
                                     {filteredEmployees.map(emp => (
-                                        <label key={emp.id} className="flex items-center gap-2 p-2 rounded hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer">
+                                        <label key={emp.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-orange-50/50 dark:hover:bg-slate-700/40 cursor-pointer transition-colors">
                                             <input
                                                 type="checkbox"
                                                 checked={selectedEmployees.includes(emp.id)}
                                                 onChange={() => toggleEmployeeSelection(emp.id)}
                                                 className="w-4 h-4 text-green-600 rounded"
                                             />
-                                            <span className="text-sm">{emp.name}</span>
-                                            <span className="text-xs text-slate-500 dark:text-slate-400">({emp.employee_code})</span>
+                                            <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">{emp.name || '—'}</span>
+                                            <span className="font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold">{emp.employee_code || '—'}</span>
                                         </label>
                                     ))}
                                 </div>

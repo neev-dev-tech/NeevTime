@@ -2,16 +2,28 @@ import React, { useState, useEffect } from 'react';
 import api from '../api';
 import {
     Database, Download, Upload, RefreshCw, Trash2, Clock,
-    HardDrive, CheckCircle, AlertTriangle, Calendar, FileText, Server, Save
+    HardDrive, CheckCircle, AlertTriangle, AlertCircle, Calendar, FileText, Server, Save
 } from 'lucide-react';
 
 import { confirm } from '../components/ConfirmDialog';
 import { Button, PageHeader, useToast } from '../components';
 
+const BADGE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide';
+const BADGE_AUTO = 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300';
+const BADGE_MANUAL = 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300';
+
+const CELL_MONO = 'font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold';
+const CELL_STRONG = 'font-semibold text-slate-800 dark:text-slate-100';
+const FIELD ='text-sm rounded-lg px-3 py-2 border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-100 focus:outline-none focus:border-orange-400 dark:focus:border-orange-500';
+const FIELD_LABEL = 'block text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-1';
+
+const dash = (v) => (v === null || v === undefined || v === '' ? '—' : v);
+
 export default function DatabaseTools() {
     const toast = useToast();
     const [backups, setBackups] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
     const [recomputeRange, setRecomputeRange] = useState(() => {
         const today = new Date().toISOString().split('T')[0];
         return { start: today, end: today };
@@ -63,8 +75,10 @@ export default function DatabaseTools() {
             // Fetch DB stats from real API
             const statsRes = await api.get('/api/stats/database').catch(() => ({ data: null }));
             setDbStats(statsRes.data);
+            setError(null);
         } catch (err) {
             console.error('Error fetching data:', err);
+            setError(err.response?.data?.error || err.message || 'Could not load database information');
         } finally {
             setLoading(false);
         }
@@ -180,12 +194,29 @@ export default function DatabaseTools() {
         }
     };
 
+    const STATS = [
+        { label: 'DB Size', value: dbStats?.database_size || '—', icon: Database, tint: 'text-blue-600 dark:text-blue-400', ring: 'bg-blue-50 dark:bg-blue-900/30', breakAll: true },
+        { label: 'Employees', value: dbStats?.total_employees ?? 0, icon: FileText, tint: 'text-emerald-600 dark:text-emerald-400', ring: 'bg-emerald-50 dark:bg-emerald-900/30' },
+        { label: 'Departments', value: dbStats?.total_departments ?? 0, icon: HardDrive, tint: 'text-purple-600 dark:text-purple-400', ring: 'bg-purple-50 dark:bg-purple-900/30' },
+        { label: 'Logs', value: dbStats?.total_attendance_logs ?? 0, icon: Clock, tint: 'text-amber-600 dark:text-amber-400', ring: 'bg-amber-50 dark:bg-amber-900/30' },
+        { label: 'Holidays', value: dbStats?.total_holidays ?? 0, icon: Calendar, tint: 'text-rose-600 dark:text-rose-400', ring: 'bg-rose-50 dark:bg-rose-900/30' },
+        {
+            label: 'Last Backup',
+            value: dbStats?.last_backup ? new Date(dbStats.last_backup).toLocaleDateString() : 'Never',
+            icon: CheckCircle,
+            tint: 'text-slate-500 dark:text-slate-400',
+            ring: 'bg-slate-100 dark:bg-slate-700',
+            small: true
+        }
+    ];
+
     return (
         <div className="space-y-6">
             {/* Header */}
             <PageHeader
                 icon={Server}
                 title="Database Tools"
+                subtitle="Backups, restores and attendance maintenance"
                 actions={(
                     <>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchData}>
@@ -202,114 +233,129 @@ export default function DatabaseTools() {
                     </>
                 )}
             />
-            <div className="report-container">
-                {/* Database Stats Cards */}
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 p-6 border-b border-slate-100 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900/50">
-                    <div className="bg-white dark:bg-slate-800 border border-blue-100 dark:border-slate-700 rounded-xl p-4 shadow-sm relative overflow-hidden group">
-                        <div className="text-blue-600 text-xs font-bold uppercase tracking-wider mb-1">DB Size</div>
-                        <div className="text-2xl font-bold text-slate-800 dark:text-slate-100 break-all">{dbStats?.database_size || '-'}</div>
-                        <Database className="absolute bottom-2 right-2 text-blue-50 opacity-50 -z-0" size={40} />
-                    </div>
-                    <div className="bg-white dark:bg-slate-800 border border-emerald-100 dark:border-slate-700 rounded-xl p-4 shadow-sm relative overflow-hidden group">
-                        <div className="text-emerald-600 text-xs font-bold uppercase tracking-wider mb-1">Employees</div>
-                        <div className="text-2xl font-bold text-slate-800 dark:text-slate-100">{dbStats?.total_employees || 0}</div>
-                        <FileText className="absolute bottom-2 right-2 text-emerald-50 opacity-50 -z-0" size={40} />
-                    </div>
-                    <div className="bg-white dark:bg-slate-800 border border-purple-100 dark:border-slate-700 rounded-xl p-4 shadow-sm relative overflow-hidden group">
-                        <div className="text-purple-600 text-xs font-bold uppercase tracking-wider mb-1">Departments</div>
-                        <div className="text-2xl font-bold text-slate-800 dark:text-slate-100">{dbStats?.total_departments || 0}</div>
-                        <HardDrive className="absolute bottom-2 right-2 text-purple-50 opacity-50 -z-0" size={40} />
-                    </div>
-                    <div className="bg-white dark:bg-slate-800 border border-amber-100 dark:border-slate-700 rounded-xl p-4 shadow-sm relative overflow-hidden group">
-                        <div className="text-amber-600 text-xs font-bold uppercase tracking-wider mb-1">Logs</div>
-                        <div className="text-2xl font-bold text-slate-800 dark:text-slate-100">{dbStats?.total_attendance_logs || 0}</div>
-                        <Clock className="absolute bottom-2 right-2 text-amber-50 opacity-50 -z-0" size={40} />
-                    </div>
-                    <div className="bg-white dark:bg-slate-800 border border-rose-100 dark:border-slate-700 rounded-xl p-4 shadow-sm relative overflow-hidden group">
-                        <div className="text-rose-600 text-xs font-bold uppercase tracking-wider mb-1">Holidays</div>
-                        <div className="text-2xl font-bold text-slate-800 dark:text-slate-100">{dbStats?.total_holidays || 0}</div>
-                        <Calendar className="absolute bottom-2 right-2 text-rose-50 opacity-50 -z-0" size={40} />
-                    </div>
-                    <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 shadow-sm relative overflow-hidden group bg-gradient-to-br from-slate-50 to-white dark:from-slate-800 dark:to-slate-800">
-                        <div className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Last Backup</div>
-                        <div className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                            {dbStats?.last_backup ? new Date(dbStats.last_backup).toLocaleDateString() : 'Never'}
+
+            {/* Database Stats Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                {STATS.map(stat => {
+                    const Icon = stat.icon;
+                    return (
+                        <div
+                            key={stat.label}
+                            className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 p-4 shadow-sm"
+                        >
+                            <div className="flex items-center gap-2 mb-2">
+                                <div className={`w-8 h-8 shrink-0 rounded-lg grid place-items-center ${stat.ring} ${stat.tint}`}>
+                                    <Icon size={16} />
+                                </div>
+                                <div className="text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">
+                                    {stat.label}
+                                </div>
+                            </div>
+                            <div className={`font-bold text-slate-800 dark:text-slate-100 tabular-nums ${stat.small ? 'text-sm' : 'text-2xl'} ${stat.breakAll ? 'break-all' : ''}`}>
+                                {stat.value}
+                            </div>
                         </div>
-                        <CheckCircle className="absolute bottom-2 right-2 text-slate-200 opacity-50 -z-0" size={40} />
-                    </div>
-                </div>
+                    );
+                })}
+            </div>
 
-                {/* Warning */}
-                <div className="mx-6 mt-6 p-4 rounded-xl bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 flex items-start gap-3">
-                    <div className="p-2 bg-amber-100 dark:bg-amber-900/50 rounded-lg text-amber-600 dark:text-amber-400 flex-shrink-0">
-                        <AlertTriangle size={20} />
-                    </div>
-                    <div>
-                        <h4 className="text-sm font-bold text-amber-800 dark:text-amber-200">Important Safety Notice</h4>
-                        <p className="text-sm text-amber-700 dark:text-amber-300 mt-1 leading-relaxed">
-                            Always create a comprehensive backup before performing any restore operation. Restoring a backup is a destructive action that will replace all current data.
-                        </p>
-                    </div>
+            {/* Warning */}
+            <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 flex items-start gap-3">
+                <div className="p-2 bg-amber-100 dark:bg-amber-900/50 rounded-lg text-amber-600 dark:text-amber-400 flex-shrink-0">
+                    <AlertTriangle size={20} />
                 </div>
+                <div>
+                    <h4 className="text-sm font-bold text-amber-800 dark:text-amber-200">Important Safety Notice</h4>
+                    <p className="text-sm text-amber-700 dark:text-amber-300 mt-1 leading-relaxed">
+                        Always create a comprehensive backup before performing any restore operation. Restoring a backup is a destructive action that will replace all current data.
+                    </p>
+                </div>
+            </div>
 
-                {/* Backups Table */}
-                <div className="p-6">
-                    <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center gap-2">
-                        <Clock size={20} className="text-slate-400" />
+            {/* Backups Table */}
+            <div className="card-base !p-0 overflow-hidden">
+                <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900/50">
+                    <h3 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                        <Clock size={18} className="text-orange-500 dark:text-orange-400" />
                         Backup History
                     </h3>
-                    <div className="table-premium-wrapper border dark:border-slate-700 rounded-xl overflow-hidden">
-                        <table className="table-premium">
-                            <thead>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                        Every snapshot stored on the server, newest first.
+                    </p>
+                </div>
+
+                {loading ? (
+                    <div className="p-6 space-y-3">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                            <div key={i} className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
+                        ))}
+                    </div>
+                ) : error ? (
+                    <div className="py-16 text-center">
+                        <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load backups</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <Button variant="secondary" icon={RefreshCw} onClick={fetchData}>Try again</Button>
+                    </div>
+                ) : backups.length === 0 ? (
+                    <div className="py-16 text-center">
+                        <Database size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No backups available</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            Create your first backup to secure your data.
+                        </p>
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left">
+                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">
                                 <tr>
-                                    <th>Backup Name</th>
-                                    <th>Type</th>
-                                    <th>Size</th>
-                                    <th>Created On</th>
-                                    <th className="text-right">Actions</th>
+                                    <th className="px-5 py-3 font-bold w-12">#</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Backup Name</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Type</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Size</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Created On</th>
+                                    <th className="px-5 py-3 font-bold text-right whitespace-nowrap">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                {loading ? (
-                                    <tr><td colSpan={5} className="p-8 text-center text-slate-400">Loading backups...</td></tr>
-                                ) : backups.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={5}>
-                                            <div className="table-empty-state">
-                                                <div className="table-empty-icon"><Database size={40} /></div>
-                                                <div className="table-empty-title">No backups available</div>
-                                                <div className="table-empty-description">Create your first backup to secure your data.</div>
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                                {backups.map((backup, idx) => (
+                                    <tr key={backup.id} className="hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{idx + 1}</td>
+                                        <td className="px-5 py-3">
+                                            <div className="flex items-center gap-3 min-w-0">
+                                                <span
+                                                    aria-hidden="true"
+                                                    className="w-8 h-8 shrink-0 rounded-lg grid place-items-center bg-orange-100 text-orange-700 border border-orange-200 dark:bg-orange-900/40 dark:text-orange-300 dark:border-orange-800/70"
+                                                >
+                                                    <Database size={15} />
+                                                </span>
+                                                <span className="font-mono text-xs text-slate-800 dark:text-slate-100 font-semibold truncate">
+                                                    {dash(backup.name)}
+                                                </span>
                                             </div>
                                         </td>
-                                    </tr>
-                                ) : (
-                                    backups.map(backup => (
-                                        <tr key={backup.id}>
-                                            <td>
-                                                <div className="flex items-center gap-3">
-                                                    <div className="p-2 rounded bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400">
-                                                        <Database size={16} />
-                                                    </div>
-                                                    <span className="font-semibold text-slate-700 dark:text-slate-300 text-sm">{backup.name}</span>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${backup.type === 'auto'
-                                                    ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800'
-                                                    : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800'
-                                                    }`}>
-                                                    {backup.type === 'auto' ? 'Automatic' : 'Manual'}
+                                        <td className="px-5 py-3">
+                                            <span className={`${BADGE} ${backup.type === 'auto' ? BADGE_AUTO : BADGE_MANUAL}`}>
+                                                {backup.type === 'auto' ? 'Automatic' : 'Manual'}
+                                            </span>
+                                        </td>
+                                        <td className="px-5 py-3">
+                                            <span className={CELL_MONO}>{dash(backup.size)}</span>
+                                        </td>
+                                        <td className="px-5 py-3">
+                                            <div className="flex flex-col">
+                                                <span className={CELL_STRONG}>
+                                                    {backup.created_at ? new Date(backup.created_at).toLocaleDateString() : '—'}
                                                 </span>
-                                            </td>
-                                            <td><span className="font-mono text-sm text-slate-600 dark:text-slate-400">{backup.size}</span></td>
-                                            <td>
-                                                <div className="flex flex-col">
-                                                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">{new Date(backup.created_at).toLocaleDateString()}</span>
-                                                    <span className="text-xs text-slate-400">{new Date(backup.created_at).toLocaleTimeString()}</span>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div className="flex items-center justify-end gap-2">
+                                                <span className="text-xs text-slate-400 dark:text-slate-500 tabular-nums">
+                                                    {backup.created_at ? new Date(backup.created_at).toLocaleTimeString() : ''}
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td className="px-5 py-3">
+                                            <div className="flex items-center justify-end">
+                                                <div className="dv-quiet">
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
@@ -335,21 +381,27 @@ export default function DatabaseTools() {
                                                         onClick={() => deleteBackup(backup)}
                                                     />
                                                 </div>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
                             </tbody>
                         </table>
                     </div>
-                </div>
+                )}
+
+                {!loading && !error && backups.length > 0 && (
+                    <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
+                        {backups.length} backup{backups.length === 1 ? '' : 's'}
+                    </div>
+                )}
             </div>
 
             {/* Attendance Maintenance */}
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
-                <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50">
+            <div className="card-base !p-0 overflow-hidden">
+                <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900/50">
                     <h3 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                        <RefreshCw size={18} className="text-orange-500" />
+                        <RefreshCw size={18} className="text-orange-500 dark:text-orange-400" />
                         Recompute Attendance Summaries
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -358,12 +410,22 @@ export default function DatabaseTools() {
                 </div>
                 <div className="p-6 flex flex-wrap items-end gap-3">
                     <div>
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">From</label>
-                        <input type="date" value={recomputeRange.start} onChange={e => setRecomputeRange(r => ({ ...r, start: e.target.value }))} className="text-sm border rounded-lg px-3 py-2 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100" />
+                        <label className={FIELD_LABEL}>From</label>
+                        <input
+                            type="date"
+                            value={recomputeRange.start}
+                            onChange={e => setRecomputeRange(r => ({ ...r, start: e.target.value }))}
+                            className={FIELD}
+                        />
                     </div>
                     <div>
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">To</label>
-                        <input type="date" value={recomputeRange.end} onChange={e => setRecomputeRange(r => ({ ...r, end: e.target.value }))} className="text-sm border rounded-lg px-3 py-2 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100" />
+                        <label className={FIELD_LABEL}>To</label>
+                        <input
+                            type="date"
+                            value={recomputeRange.end}
+                            onChange={e => setRecomputeRange(r => ({ ...r, end: e.target.value }))}
+                            className={FIELD}
+                        />
                     </div>
                     <Button variant="primary" icon={RefreshCw} onClick={handleRecompute} disabled={recomputing}>
                         {recomputing ? 'Processing...' : 'Recompute'}
@@ -372,30 +434,33 @@ export default function DatabaseTools() {
             </div>
 
             {/* Auto Backup Settings */}
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
-                <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50 flex items-center justify-between">
+            <div className="card-base !p-0 overflow-hidden">
+                <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900/50">
                     <h3 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                        <RefreshCw size={18} className="text-orange-500" />
+                        <Clock size={18} className="text-orange-500 dark:text-orange-400" />
                         Automatic Backup Settings
                     </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                        Schedule for the unattended snapshots the server takes on its own.
+                    </p>
                 </div>
                 <div className="p-6">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div className="space-y-2">
-                            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Frequency</label>
-                            <select className="input-premium w-full bg-slate-50 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100">
+                            <label className={FIELD_LABEL}>Frequency</label>
+                            <select className={`${FIELD} w-full`}>
                                 <option value="daily">Daily</option>
                                 <option value="weekly">Weekly</option>
                                 <option value="monthly">Monthly</option>
                             </select>
                         </div>
                         <div className="space-y-2">
-                            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Preferred Time</label>
-                            <input type="time" defaultValue="02:00" className="input-premium w-full bg-slate-50 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100" />
+                            <label className={FIELD_LABEL}>Preferred Time</label>
+                            <input type="time" defaultValue="02:00" className={`${FIELD} w-full`} />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Retention (Count)</label>
-                            <input type="number" defaultValue="7" className="input-premium w-full bg-slate-50 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100" />
+                            <label className={FIELD_LABEL}>Retention (Count)</label>
+                            <input type="number" defaultValue="7" className={`${FIELD} w-full`} />
                         </div>
                     </div>
                     <div className="mt-6 flex justify-end">

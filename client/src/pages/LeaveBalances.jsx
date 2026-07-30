@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { PieChart, RefreshCw, PlayCircle } from 'lucide-react';
+import { PieChart, RefreshCw, PlayCircle, AlertCircle } from 'lucide-react';
 import api from '../api';
 import { Button, PageHeader, ExportMenu, useToast } from '../components';
 
@@ -9,10 +9,12 @@ export default function LeaveBalances() {
     const [employees, setEmployees] = useState([]);
     const [year, setYear] = useState(new Date().getFullYear());
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
     const [initializing, setInitializing] = useState(false);
 
     const fetchData = async () => {
         setLoading(true);
+        setError(null);
         try {
             const [balRes, empRes] = await Promise.all([
                 api.get('/api/leave-balances', { params: { year } }),
@@ -21,6 +23,7 @@ export default function LeaveBalances() {
             setBalances(balRes.data || []);
             setEmployees(empRes.data || []);
         } catch (err) {
+            setError(err.response?.data?.error || 'Could not load leave balances');
             toast.error('Failed to load balances');
         } finally {
             setLoading(false);
@@ -53,7 +56,11 @@ export default function LeaveBalances() {
                 subtitle="Per-employee leave entitlements and usage"
                 actions={
                     <>
-                        <select value={year} onChange={e => setYear(parseInt(e.target.value))} className="text-sm border dark:border-slate-600 rounded-lg px-3 py-2 bg-white dark:bg-slate-900 dark:text-slate-100">
+                        <select
+                            value={year}
+                            onChange={e => setYear(parseInt(e.target.value))}
+                            className="text-sm font-semibold tabular-nums rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-100 px-3 py-2 focus:outline-none focus:border-orange-400 dark:focus:border-orange-500"
+                        >
                             {[0, 1, 2].map(off => {
                                 const y = new Date().getFullYear() - off;
                                 return <option key={y} value={y}>{y}</option>;
@@ -80,43 +87,84 @@ export default function LeaveBalances() {
                 }
             />
 
-            <div className="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm overflow-x-auto">
-                <table className="w-full text-sm text-left">
-                    <thead className="bg-slate-50 dark:bg-slate-900/50 text-xs uppercase text-slate-500 dark:text-slate-400">
-                        <tr>
-                            <th className="px-6 py-3">Employee</th>
-                            <th className="px-6 py-3">Leave Type</th>
-                            <th className="px-6 py-3">Opening</th>
-                            <th className="px-6 py-3">Used</th>
-                            <th className="px-6 py-3">Balance</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y dark:divide-slate-700">
-                        {balances.length === 0 ? (
-                            <tr>
-                                <td colSpan={5} className="px-6 py-10 text-center text-slate-400">
-                                    {loading ? 'Loading...' : 'No balances for this year — use "Initialize Year" to create them from leave-type quotas.'}
-                                </td>
-                            </tr>
-                        ) : balances.map(b => (
-                            <tr key={b.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
-                                <td className="px-6 py-3">
-                                    <span className="font-medium text-slate-800 dark:text-slate-100">{b.employee_name}</span>
-                                    <span className="text-xs text-slate-400 font-mono ml-2">{b.employee_code}</span>
-                                </td>
-                                <td className="px-6 py-3">
-                                    <span className="inline-flex items-center gap-1.5">
-                                        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: b.color || '#94a3b8' }} />
-                                        {b.leave_type_name}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-3">{b.opening_balance}</td>
-                                <td className="px-6 py-3 text-amber-600 font-medium">{b.used ?? 0}</td>
-                                <td className="px-6 py-3 font-bold text-emerald-600">{b.balance}</td>
-                            </tr>
+            <div className="card-base !p-0 overflow-hidden">
+                {loading ? (
+                    <div className="p-6 space-y-3">
+                        {Array.from({ length: 8 }).map((_, i) => (
+                            <div key={i} className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
                         ))}
-                    </tbody>
-                </table>
+                    </div>
+                ) : error ? (
+                    <div className="py-16 text-center">
+                        <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load leave balances</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <Button variant="secondary" icon={RefreshCw} onClick={fetchData}>Try again</Button>
+                    </div>
+                ) : balances.length === 0 ? (
+                    <div className="py-16 text-center">
+                        <PieChart size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No balances for {year}</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            Use “Initialize Year” to create them from leave-type quotas, or pick a different year.
+                        </p>
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left">
+                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">
+                                <tr>
+                                    <th className="px-5 py-3 font-bold w-12">#</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Employee</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Code</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Leave Type</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Opening</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Used</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Balance</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                                {balances.map((b, idx) => (
+                                    <tr key={b.id} className="hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{idx + 1}</td>
+                                        <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">
+                                            {b.employee_name || '—'}
+                                        </td>
+                                        <td className="px-5 py-3 whitespace-nowrap">
+                                            <span className="font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold">
+                                                {b.employee_code || '—'}
+                                            </span>
+                                        </td>
+                                        <td className="px-5 py-3 whitespace-nowrap">
+                                            <span className="inline-flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
+                                                <span
+                                                    className="w-2.5 h-2.5 rounded-full ring-1 ring-black/5 dark:ring-white/10"
+                                                    style={{ backgroundColor: b.color || '#94a3b8' }}
+                                                />
+                                                {b.leave_type_name || '—'}
+                                            </span>
+                                        </td>
+                                        <td className="px-5 py-3 text-slate-600 dark:text-slate-300 tabular-nums">
+                                            {b.opening_balance ?? '—'}
+                                        </td>
+                                        <td className="px-5 py-3 font-semibold tabular-nums text-amber-600 dark:text-amber-400">
+                                            {b.used ?? 0}
+                                        </td>
+                                        <td className="px-5 py-3 font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
+                                            {b.balance ?? '—'}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+
+                {!loading && !error && balances.length > 0 && (
+                    <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
+                        {balances.length} record{balances.length === 1 ? '' : 's'}
+                    </div>
+                )}
             </div>
         </div>
     );

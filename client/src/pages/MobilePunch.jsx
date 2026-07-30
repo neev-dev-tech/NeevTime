@@ -137,92 +137,105 @@ const MobilePunch = () => {
                 subtitle="GPS geofenced attendance punch"
             />
             <div className="flex-1 flex flex-col items-center justify-center">
-            <div className="w-full max-w-md bg-white dark:bg-slate-800 rounded-3xl shadow-xl overflow-hidden border border-slate-100 dark:border-slate-700">
+                <div className="w-full max-w-md bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-3xl shadow-xl overflow-hidden border border-slate-200 dark:border-slate-700">
 
-                {/* Header Map Placeholder */}
-                <div className="h-48 bg-blue-50 dark:bg-blue-900/30 relative flex items-center justify-center">
-                    <div className="absolute inset-0 bg-saffron-gradient opacity-10"></div>
-                    {status === 'locating' ? (
-                        <div className="animate-pulse flex flex-col items-center">
-                            <Navigation className="text-orange-500 animate-spin mb-2" size={32} />
-                            <span className="text-orange-600 dark:text-orange-400 font-medium">Locating GPS...</span>
-                        </div>
-                    ) : location ? (
-                        <div className="flex flex-col items-center z-10">
-                            <div className={`w-16 h-16 rounded-full flex items-center justify-center shadow-lg border-4 border-white ${status === 'ready' ? 'bg-green-500' : 'bg-red-500'
-                                }`}>
-                                <MapPin className="text-white" size={32} />
+                    {/* Location panel */}
+                    <div className="h-48 bg-slate-50/70 dark:bg-slate-900/50 relative flex items-center justify-center border-b border-slate-100 dark:border-slate-700">
+                        <div className="absolute inset-0 bg-saffron-gradient opacity-10"></div>
+                        {status === 'locating' ? (
+                            <div className="flex flex-col items-center z-10">
+                                <Navigation className="text-orange-500 animate-spin mb-2" size={32} />
+                                <span className="text-orange-600 dark:text-orange-400 font-semibold text-sm">Locating GPS…</span>
+                                <div className="mt-3 h-2 w-32 rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
                             </div>
-                            <div className="mt-2 text-center">
-                                <p className="font-bold text-slate-800 dark:text-slate-100">{nearestFence?.name || 'Unknown Location'}</p>
-                                <p className={`text-sm font-medium ${status === 'ready' ? 'text-green-600' : 'text-red-500'}`}>
-                                    {distance ? `${Math.round(distance)}m away` : '--'}
-                                </p>
+                        ) : location ? (
+                            <div className="flex flex-col items-center z-10">
+                                <div className={`w-16 h-16 rounded-full flex items-center justify-center shadow-lg border-4 border-white dark:border-slate-800 ${status === 'ready' ? 'bg-emerald-500' : 'bg-rose-500'
+                                    }`}>
+                                    <MapPin className="text-white" size={32} />
+                                </div>
+                                <div className="mt-2 text-center">
+                                    <p className="font-semibold text-slate-800 dark:text-slate-100">{nearestFence?.name || '—'}</p>
+                                    <p className={`text-sm font-semibold tabular-nums ${status === 'ready' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                                        {distance != null ? `${Math.round(distance)}m away` : '—'}
+                                    </p>
+                                </div>
                             </div>
-                        </div>
-                    ) : (
-                        <span className="text-red-500 font-medium">GPS Access Denied</span>
-                    )}
-                </div>
-
-                {/* Content */}
-                <div className="p-6">
-                    <div className="mb-6">
-                        <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Simulate Employee (Admin)</label>
-                        <select
-                            className="input-base w-full"
-                            value={selectedEmployeeId}
-                            onChange={(e) => setSelectedEmployeeId(e.target.value)}
-                        >
-                            {employees.map(e => <option key={e.id} value={e.id}>{e.first_name} {e.last_name} ({e.employee_code})</option>)}
-                        </select>
+                        ) : (
+                            <div className="flex flex-col items-center z-10 text-center px-6">
+                                <XCircle size={36} className="text-rose-400 mb-2" />
+                                <p className="font-bold text-slate-800 dark:text-slate-100">GPS access denied</p>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">Allow location access to punch in.</p>
+                            </div>
+                        )}
                     </div>
 
-                    {status === 'success' ? (
-                        <div className="text-center py-8 animate-fade-in">
-                            <CheckCircle className="mx-auto text-green-500 mb-4" size={64} />
-                            <h2 className="text-2xl font-bold text-green-600">Punched In!</h2>
-                            <p className="text-slate-500 dark:text-slate-400 mt-2">Attendance recorded successfully.</p>
+                    {/* Content */}
+                    <div className="p-6">
+                        <div className="mb-6">
+                            <label className="block text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-2">
+                                Simulate Employee (Admin)
+                            </label>
+                            <select
+                                className="input-base w-full"
+                                value={selectedEmployeeId}
+                                onChange={(e) => setSelectedEmployeeId(e.target.value)}
+                            >
+                                {employees.map(e => <option key={e.id} value={e.id}>{e.first_name} {e.last_name} ({e.employee_code})</option>)}
+                            </select>
+                            {employees.length === 0 && (
+                                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">No employees available yet.</p>
+                            )}
                         </div>
-                    ) : status === 'error' ? (
-                        <div className="text-center py-6 animate-fade-in">
-                            <XCircle className="mx-auto text-red-500 mb-4" size={48} />
-                            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">Punch Failed</h3>
-                            <p className="text-red-600 mt-2 mb-4 text-sm">{error}</p>
-                            <Button variant="secondary" onClick={() => setStatus('ready')} className="w-full">
-                                Try Again
-                            </Button>
-                        </div>
-                    ) : (
-                        <div className="space-y-4">
-                            <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-xl text-sm text-blue-700 dark:text-blue-300">
-                                <p className="flex items-center gap-2 font-semibold">
-                                    <MapPin size={16} /> Location Required
-                                </p>
-                                <p className="mt-1 opacity-80">You must be within {nearestFence?.radius_meters || 100}m of an office location.</p>
-                            </div>
 
-                            <button
-                                onClick={handlePunch}
-                                disabled={status !== 'ready' || !location}
-                                className={`
+                        {status === 'success' ? (
+                            <div className="text-center py-8 animate-fade-in">
+                                <CheckCircle className="mx-auto text-emerald-500 mb-4" size={64} />
+                                <h2 className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">Punched In</h2>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">Attendance recorded successfully.</p>
+                            </div>
+                        ) : status === 'error' ? (
+                            <div className="text-center py-6 animate-fade-in">
+                                <XCircle className="mx-auto text-rose-400 mb-4" size={48} />
+                                <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Punch failed</h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error || 'Something went wrong.'}</p>
+                                <Button variant="secondary" icon={RefreshCw} onClick={() => setStatus('ready')} className="w-full">
+                                    Try again
+                                </Button>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                <div className="bg-slate-50/70 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 p-4 rounded-xl text-sm">
+                                    <p className="flex items-center gap-2 font-semibold text-slate-800 dark:text-slate-100">
+                                        <MapPin size={16} className="text-orange-500" /> Location required
+                                    </p>
+                                    <p className="mt-1 text-slate-600 dark:text-slate-300">
+                                        You must be within <span className="tabular-nums font-semibold">{nearestFence?.radius_meters || 100}m</span> of an office location.
+                                    </p>
+                                </div>
+
+                                {/* Deliberate gradient CTA — the one loud element on the page */}
+                                <button
+                                    onClick={handlePunch}
+                                    disabled={status !== 'ready' || !location}
+                                    className={`
                                     w-full py-4 rounded-2xl font-bold text-lg shadow-lg transform transition-all active:scale-95
                                     flex items-center justify-center gap-2
                                     ${status === 'ready'
-                                        ? 'bg-saffron-gradient text-white hover:shadow-orange-200'
-                                        : 'bg-slate-200 text-slate-400 cursor-not-allowed'}
+                                            ? 'bg-saffron-gradient text-white hover:shadow-orange-200 dark:hover:shadow-orange-900/40'
+                                            : 'bg-slate-200 text-slate-400 cursor-not-allowed dark:bg-slate-700 dark:text-slate-500'}
                                 `}
-                            >
-                                {status === 'punching' ? (
-                                    <>
-                                        <RefreshCw className="animate-spin" /> Processing...
-                                    </>
-                                ) : 'Tap to Punch In'}
-                            </button>
-                        </div>
-                    )}
+                                >
+                                    {status === 'punching' ? (
+                                        <>
+                                            <RefreshCw className="animate-spin" /> Processing…
+                                        </>
+                                    ) : 'Tap to Punch In'}
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
-            </div>
             </div>
         </div>
     );

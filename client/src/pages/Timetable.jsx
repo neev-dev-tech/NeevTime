@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
-import { Clock, Plus, Edit2, Trash2, X, Save, CalendarDays, Coffee, Moon, Sun, Check } from 'lucide-react';
+import { Clock, Plus, Edit2, Trash2, X, Save, CalendarDays, Coffee, Moon, Sun, Check, AlertCircle, RefreshCw } from 'lucide-react';
 import { useToast, Button, PageHeader, ExportMenu } from '../components';
 
 export default function Timetable() {
     const toast = useToast();
     const [timetables, setTimetables] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [showBreakModal, setShowBreakModal] = useState(false);
@@ -43,10 +44,12 @@ export default function Timetable() {
 
     const fetchTimetables = async () => {
         try {
+            setError(null);
             const res = await api.get('/api/timetables');
             setTimetables(res.data);
         } catch (err) {
             console.error('Error fetching timetables:', err);
+            setError(err.response?.data?.error || 'Could not load timetables');
         } finally {
             setLoading(false);
         }
@@ -150,7 +153,7 @@ export default function Timetable() {
     };
 
     const formatTime = (time) => {
-        if (!time) return '-';
+        if (!time) return '—';
         return time.substring(0, 5);
     };
 
@@ -160,6 +163,7 @@ export default function Timetable() {
             <PageHeader
                 icon={CalendarDays}
                 title="Timetable Management"
+                subtitle="Check-in and check-out windows, grace periods, and breaks"
                 actions={
                     <>
                         <ExportMenu
@@ -187,109 +191,137 @@ export default function Timetable() {
             />
 
             {/* Timetable Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {loading ? (
-                    <div className="col-span-full text-center py-8 text-slate-500 dark:text-slate-400">Loading...</div>
-                ) : timetables.length === 0 ? (
-                    <div className="col-span-full text-center py-8 text-slate-500 dark:text-slate-400">No timetables defined</div>
-                ) : timetables.map(tt => (
-                    <div
-                        key={tt.id}
-                        className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border dark:border-slate-700 overflow-hidden hover:shadow-md transition-shadow"
-                    >
-                        {/* Header with color */}
-                        <div
-                            className="h-2"
-                            style={{ backgroundColor: tt.color || '#3B82F6' }}
-                        />
-                        <div className="p-5">
-                            <div className="flex items-start justify-between mb-3">
-                                <div>
-                                    <h3 className="font-semibold text-lg">{tt.name}</h3>
-                                    <span className="text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded">
-                                        {tt.code}
-                                    </span>
-                                </div>
-                                <div className="flex gap-1">
-                                    {tt.is_overnight && (
-                                        <span className="p-1.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded" title="Overnight">
-                                            <Moon size={14} />
-                                        </span>
-                                    )}
-                                    {tt.is_flexible && (
-                                        <span className="p-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded" title="Flexible">
-                                            <Sun size={14} />
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Time Display */}
-                            <div className="grid grid-cols-2 gap-3 mb-4">
-                                <div className="bg-green-50 dark:bg-green-900/30 rounded-lg p-3 text-center">
-                                    <div className="text-xs text-green-600 dark:text-green-400 mb-1">Check In</div>
-                                    <div className="text-lg font-bold text-green-700 dark:text-green-300">{formatTime(tt.check_in)}</div>
-                                    {tt.late_in && (
-                                        <div className="text-xs text-slate-500 dark:text-slate-400">Late after {formatTime(tt.late_in)}</div>
-                                    )}
-                                </div>
-                                <div className="bg-red-50 dark:bg-red-900/30 rounded-lg p-3 text-center">
-                                    <div className="text-xs text-red-600 dark:text-red-400 mb-1">Check Out</div>
-                                    <div className="text-lg font-bold text-red-700 dark:text-red-300">{formatTime(tt.check_out)}</div>
-                                    {tt.early_out && (
-                                        <div className="text-xs text-slate-500 dark:text-slate-400">Early before {formatTime(tt.early_out)}</div>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Details */}
-                            <div className="text-sm text-slate-600 dark:text-slate-400 space-y-1 mb-4">
-                                <div className="flex justify-between">
-                                    <span>Grace Period:</span>
-                                    <span className="font-medium">{tt.grace_period_minutes} min</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span>Full Day Hours:</span>
-                                    <span className="font-medium">{tt.min_hours_for_full_day || 8}h</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span>Breaks:</span>
-                                    <span className="font-medium">{tt.break_count || 0}</span>
-                                </div>
-                            </div>
-
-                            {/* Actions */}
-                            <div className="flex gap-2 pt-3 border-t dark:border-slate-700">
-                                <Button
-                                    variant="secondary"
-                                    size="sm"
-                                    icon={Coffee}
-                                    className="flex-1"
-                                    onClick={() => openBreakModal(tt)}
-                                >
-                                    Breaks
-                                </Button>
-                                <Button
-                                    variant="secondary"
-                                    size="sm"
-                                    icon={Edit2}
-                                    className="flex-1"
-                                    onClick={() => openEdit(tt)}
-                                >
-                                    Edit
-                                </Button>
-                                <Button
-                                    variant="danger"
-                                    size="sm"
-                                    icon={Trash2}
-                                    aria-label="Delete"
-                                    onClick={() => handleDelete(tt.id)}
-                                />
-                            </div>
-                        </div>
+            {loading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {Array.from({ length: 6 }).map((_, i) => (
+                        <div key={i} className="h-64 rounded-2xl bg-slate-100 dark:bg-slate-700 animate-pulse" />
+                    ))}
+                </div>
+            ) : error ? (
+                <div className="card-base !p-0 overflow-hidden">
+                    <div className="py-16 text-center">
+                        <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load timetables</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <Button variant="secondary" icon={RefreshCw} onClick={fetchTimetables}>Try again</Button>
                     </div>
-                ))}
-            </div>
+                </div>
+            ) : timetables.length === 0 ? (
+                <div className="card-base !p-0 overflow-hidden">
+                    <div className="py-16 text-center">
+                        <CalendarDays size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No timetables yet</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            A timetable sets the check-in and check-out times a shift is measured against.
+                        </p>
+                    </div>
+                </div>
+            ) : (
+                <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {timetables.map(tt => (
+                            <div
+                                key={tt.id}
+                                className="bg-white/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden hover:-translate-y-0.5 transition-transform"
+                            >
+                                {/* Header with color */}
+                                <div
+                                    className="h-1.5"
+                                    style={{ backgroundColor: tt.color || '#3B82F6' }}
+                                />
+                                <div className="p-4">
+                                    <div className="flex items-start justify-between gap-3 mb-3">
+                                        <div className="min-w-0">
+                                            <h3 className="font-semibold text-slate-800 dark:text-slate-100 truncate">{tt.name || '—'}</h3>
+                                            <span className="font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold">
+                                                {tt.code || '—'}
+                                            </span>
+                                        </div>
+                                        <div className="flex gap-1 shrink-0">
+                                            {tt.is_overnight && (
+                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300" title="Overnight">
+                                                    <Moon size={10} /> Night
+                                                </span>
+                                            )}
+                                            {tt.is_flexible && (
+                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300" title="Flexible">
+                                                    <Sun size={10} /> Flex
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Time Display */}
+                                    <div className="grid grid-cols-2 gap-2 mb-3">
+                                        <div className="rounded-xl p-2.5 text-center bg-emerald-50 dark:bg-emerald-900/25 border border-emerald-100 dark:border-emerald-900/40">
+                                            <div className="text-[10px] uppercase tracking-[0.09em] font-bold text-emerald-700 dark:text-emerald-400 mb-0.5">Check In</div>
+                                            <div className="text-lg font-bold tabular-nums text-emerald-700 dark:text-emerald-300">{formatTime(tt.check_in)}</div>
+                                            <div className="text-[11px] tabular-nums text-slate-500 dark:text-slate-400">
+                                                {tt.late_in ? `Late after ${formatTime(tt.late_in)}` : '—'}
+                                            </div>
+                                        </div>
+                                        <div className="rounded-xl p-2.5 text-center bg-rose-50 dark:bg-rose-900/25 border border-rose-100 dark:border-rose-900/40">
+                                            <div className="text-[10px] uppercase tracking-[0.09em] font-bold text-rose-700 dark:text-rose-400 mb-0.5">Check Out</div>
+                                            <div className="text-lg font-bold tabular-nums text-rose-700 dark:text-rose-300">{formatTime(tt.check_out)}</div>
+                                            <div className="text-[11px] tabular-nums text-slate-500 dark:text-slate-400">
+                                                {tt.early_out ? `Early before ${formatTime(tt.early_out)}` : '—'}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Details */}
+                                    <dl className="grid grid-cols-3 gap-2 text-center mb-3">
+                                        <div>
+                                            <dt className="text-[10px] uppercase tracking-[0.09em] font-bold text-slate-500 dark:text-slate-400">Grace</dt>
+                                            <dd className="text-sm font-semibold tabular-nums text-slate-800 dark:text-slate-100">{tt.grace_period_minutes ?? 0}m</dd>
+                                        </div>
+                                        <div>
+                                            <dt className="text-[10px] uppercase tracking-[0.09em] font-bold text-slate-500 dark:text-slate-400">Full Day</dt>
+                                            <dd className="text-sm font-semibold tabular-nums text-slate-800 dark:text-slate-100">{tt.min_hours_for_full_day || 8}h</dd>
+                                        </div>
+                                        <div>
+                                            <dt className="text-[10px] uppercase tracking-[0.09em] font-bold text-slate-500 dark:text-slate-400">Breaks</dt>
+                                            <dd className="text-sm font-semibold tabular-nums text-slate-800 dark:text-slate-100">{tt.break_count || 0}</dd>
+                                        </div>
+                                    </dl>
+
+                                    {/* Actions */}
+                                    <div className="flex gap-2 pt-3 border-t border-slate-100 dark:border-slate-700">
+                                        <Button
+                                            variant="secondary"
+                                            size="sm"
+                                            icon={Coffee}
+                                            className="flex-1"
+                                            onClick={() => openBreakModal(tt)}
+                                        >
+                                            Breaks
+                                        </Button>
+                                        <Button
+                                            variant="secondary"
+                                            size="sm"
+                                            icon={Edit2}
+                                            className="flex-1"
+                                            onClick={() => openEdit(tt)}
+                                        >
+                                            Edit
+                                        </Button>
+                                        <Button
+                                            variant="danger"
+                                            size="sm"
+                                            icon={Trash2}
+                                            aria-label="Delete"
+                                            onClick={() => handleDelete(tt.id)}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
+                        {timetables.length} timetable{timetables.length === 1 ? '' : 's'}
+                    </div>
+                </div>
+            )}
 
             {/* Add/Edit Timetable Modal */}
             {showModal && (
@@ -469,14 +501,20 @@ export default function Timetable() {
                             {/* Existing Breaks */}
                             <div className="space-y-2 mb-4">
                                 {breaks.length === 0 ? (
-                                    <div className="text-center py-4 text-slate-500 dark:text-slate-400">No breaks defined</div>
+                                    <div className="text-center py-8">
+                                        <Coffee size={32} className="mx-auto mb-2 text-slate-300 dark:text-slate-600" />
+                                        <h4 className="font-bold text-slate-800 dark:text-slate-100 mb-0.5">No breaks defined</h4>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400">Add a break below and it will be deducted from worked hours.</p>
+                                    </div>
                                 ) : breaks.map(b => (
-                                    <div key={b.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
-                                        <div>
-                                            <div className="font-medium">{b.name}</div>
-                                            <div className="text-sm text-slate-500 dark:text-slate-400">
-                                                {formatTime(b.start_time)} - {formatTime(b.end_time)}
-                                                {b.is_paid && <span className="ml-2 text-green-600 dark:text-green-400">(Paid)</span>}
+                                    <div key={b.id} className="flex items-center justify-between gap-3 p-3 bg-white/70 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl">
+                                        <div className="min-w-0">
+                                            <div className="font-semibold text-slate-800 dark:text-slate-100 truncate">{b.name || '—'}</div>
+                                            <div className="text-sm tabular-nums text-slate-600 dark:text-slate-300">
+                                                {formatTime(b.start_time)} – {formatTime(b.end_time)}
+                                                {b.is_paid && (
+                                                    <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">Paid</span>
+                                                )}
                                             </div>
                                         </div>
                                         <Button

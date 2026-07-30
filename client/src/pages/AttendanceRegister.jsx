@@ -1,15 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api';
-import { Calendar, Clock, AlertTriangle, CheckCircle, XCircle, User, Filter, Download, FileDown, FileSpreadsheet, Table2, RefreshCw } from 'lucide-react';
+import { Calendar, Clock, AlertTriangle, CheckCircle, XCircle, Filter, FileDown, FileSpreadsheet, RefreshCw, AlertCircle } from 'lucide-react';
 import { exportToPDF } from '../utils/pdfExport';
 import { exportToExcel } from '../utils/excelExport';
-import SkeletonLoader from '../components/SkeletonLoader';
 import { useToast, Button, PageHeader } from '../components';
+
+const BADGE_BASE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide';
 
 export default function AttendanceRegister() {
     const toast = useToast();
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [filters, setFilters] = useState({ status: '', department: '' });
 
@@ -17,27 +19,31 @@ export default function AttendanceRegister() {
 
     const fetchData = async () => {
         setLoading(true);
+        setError(null);
         try {
             const res = await api.get('/api/attendance/summary', { params: { date } });
             let filtered = res.data;
             if (filters.status) filtered = filtered.filter(r => r.status === filters.status);
             if (filters.department) filtered = filtered.filter(r => r.department === filters.department);
             setData(filtered);
-        } catch (err) { console.error(err); }
+        } catch (err) {
+            console.error(err);
+            setError(err.response?.data?.error || 'Could not load attendance records');
+        }
         setLoading(false);
     };
 
     const getStatusStyle = (status) => {
         const styles = {
-            'Present': 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800',
-            'Absent': 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-900/30 dark:text-rose-300 dark:border-rose-800',
-            'Late': 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800',
-            'Half Day': 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-800',
-            'Miss Punch': 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800',
-            'Weekly Off': 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800',
-            'Holiday': 'bg-pink-50 text-pink-700 border-pink-200 dark:bg-pink-900/30 dark:text-pink-300 dark:border-pink-800',
+            'Present': 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
+            'Absent': 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300',
+            'Late': 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
+            'Half Day': 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
+            'Miss Punch': 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
+            'Weekly Off': 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
+            'Holiday': 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300',
         };
-        return styles[status] || 'bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-900/50 dark:text-slate-300 dark:border-slate-700';
+        return styles[status] || 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300';
     };
 
     const summary = {
@@ -103,128 +109,149 @@ export default function AttendanceRegister() {
         });
     };
 
+    const isFiltered = Boolean(filters.status || filters.department);
+
+    const stats = [
+        { label: 'Present', value: summary.present, icon: CheckCircle, tone: 'text-emerald-600 dark:text-emerald-400' },
+        { label: 'Absent', value: summary.absent, icon: XCircle, tone: 'text-rose-600 dark:text-rose-400' },
+        { label: 'Late Arrival', value: summary.late, icon: Clock, tone: 'text-amber-600 dark:text-amber-400' },
+        { label: 'Miss Punch', value: summary.missPunch, icon: AlertTriangle, tone: 'text-purple-600 dark:text-purple-400' }
+    ];
+
     return (
         <div className="space-y-6">
-            <div className="report-container">
-                {/* Header */}
-                <div className="px-6 pt-6 border-b border-slate-100 dark:border-slate-700">
-                    <PageHeader
-                        icon={Calendar}
-                        title="Attendance Register"
-                        subtitle="Daily attendance summary"
-                        actions={
-                            <>
-                                <input
-                                    type="date"
-                                    value={date}
-                                    onChange={e => setDate(e.target.value)}
-                                    className="input-premium py-1.5 px-3 bg-white/50 border-slate-200 text-sm dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
-                                />
-                                <Button variant="secondary" icon={Filter}>Filters</Button>
-                                <Button variant="danger" icon={FileDown} onClick={handleExportPDF} title="Export PDF">PDF</Button>
-                                <Button variant="success" icon={FileSpreadsheet} onClick={handleExportXLSX} title="Export Excel">XLSX</Button>
-                            </>
-                        }
-                    />
-                </div>
+            <PageHeader
+                icon={Calendar}
+                title="Attendance Register"
+                subtitle="Daily attendance summary"
+                actions={
+                    <>
+                        <input
+                            type="date"
+                            value={date}
+                            onChange={e => setDate(e.target.value)}
+                            className="rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm tabular-nums text-slate-700 dark:text-slate-100 py-1.5 px-3 focus:outline-none focus:border-orange-400 dark:focus:border-orange-500"
+                        />
+                        <Button variant="secondary" icon={Filter}>Filters</Button>
+                        <Button variant="danger" icon={FileDown} onClick={handleExportPDF} title="Export PDF">PDF</Button>
+                        <Button variant="success" icon={FileSpreadsheet} onClick={handleExportXLSX} title="Export Excel">XLSX</Button>
+                    </>
+                }
+            />
 
-                {/* Summary Cards */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 border-b border-slate-100 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900/50">
-                    <div className="bg-white dark:bg-slate-800 border dark:border-slate-700 border-emerald-100 rounded-xl p-4 shadow-sm relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
-                        <div className="relative z-10">
-                            <div className="text-emerald-600 text-xs font-bold uppercase tracking-wider mb-1">Present</div>
-                            <div className="text-3xl font-bold text-slate-800 dark:text-slate-100">{summary.present}</div>
+            {/* Summary Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {stats.map(({ label, value, icon: Icon, tone }) => (
+                    <div
+                        key={label}
+                        className="bg-white/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 flex items-start justify-between gap-3"
+                    >
+                        <div className="min-w-0">
+                            <div className={`text-[10px] font-bold uppercase tracking-[0.09em] mb-1 ${tone}`}>{label}</div>
+                            <div className="text-3xl font-bold tabular-nums text-slate-800 dark:text-slate-100">{value}</div>
                         </div>
-                        <CheckCircle className="absolute bottom-3 right-3 text-emerald-100 z-0" size={32} />
+                        <Icon size={22} className={`shrink-0 opacity-40 ${tone}`} />
                     </div>
+                ))}
+            </div>
 
-                    <div className="bg-white dark:bg-slate-800 border dark:border-slate-700 border-rose-100 rounded-xl p-4 shadow-sm relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 w-16 h-16 bg-rose-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
-                        <div className="relative z-10">
-                            <div className="text-rose-600 text-xs font-bold uppercase tracking-wider mb-1">Absent</div>
-                            <div className="text-3xl font-bold text-slate-800 dark:text-slate-100">{summary.absent}</div>
-                        </div>
-                        <XCircle className="absolute bottom-3 right-3 text-rose-100 z-0" size={32} />
-                    </div>
-
-                    <div className="bg-white dark:bg-slate-800 border dark:border-slate-700 border-amber-100 rounded-xl p-4 shadow-sm relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 w-16 h-16 bg-amber-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
-                        <div className="relative z-10">
-                            <div className="text-amber-600 text-xs font-bold uppercase tracking-wider mb-1">Late Arrival</div>
-                            <div className="text-3xl font-bold text-slate-800 dark:text-slate-100">{summary.late}</div>
-                        </div>
-                        <Clock className="absolute bottom-3 right-3 text-amber-100 z-0" size={32} />
-                    </div>
-
-                    <div className="bg-white dark:bg-slate-800 border dark:border-slate-700 border-purple-100 rounded-xl p-4 shadow-sm relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 w-16 h-16 bg-purple-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
-                        <div className="relative z-10">
-                            <div className="text-purple-600 text-xs font-bold uppercase tracking-wider mb-1">Miss Punch</div>
-                            <div className="text-3xl font-bold text-slate-800 dark:text-slate-100">{summary.missPunch}</div>
-                        </div>
-                        <AlertTriangle className="absolute bottom-3 right-3 text-purple-100 z-0" size={32} />
-                    </div>
-                </div>
-
-                {/* Table */}
+            {/* Table */}
+            <div className="card-base !p-0 overflow-hidden">
                 {loading ? (
-                    <div className="p-6">
-                        <SkeletonLoader rows={10} columns={7} />
+                    <div className="p-6 space-y-3">
+                        {Array.from({ length: 10 }).map((_, i) => (
+                            <div key={i} className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
+                        ))}
+                    </div>
+                ) : error ? (
+                    <div className="py-16 text-center">
+                        <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load attendance</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <Button variant="secondary" icon={RefreshCw} onClick={fetchData}>Try again</Button>
+                    </div>
+                ) : data.length === 0 ? (
+                    <div className="py-16 text-center">
+                        <Calendar size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">
+                            {isFiltered ? 'No matching records' : 'No attendance records'}
+                        </h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            {isFiltered
+                                ? 'Nothing matches the current filters. Clear them or pick another date.'
+                                : 'Change the date or check your shifts configuration.'}
+                        </p>
                     </div>
                 ) : (
-                    <div className="table-premium-wrapper">
-                        <table className="table-premium">
-                            <thead>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left">
+                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">
                                 <tr>
-                                    <th>Employee</th>
-                                    <th>Department</th>
-                                    <th>In Time</th>
-                                    <th>Out Time</th>
-                                    <th>Duration</th>
-                                    <th>Late (min)</th>
-                                    <th>Status</th>
+                                    <th className="px-5 py-3 font-bold w-12">#</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Employee</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Code</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Department</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">In Time</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Out Time</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Duration</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Late (min)</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Status</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                {data.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={7}>
-                                            <div className="table-empty-state">
-                                                <div className="table-empty-icon"><Calendar size={40} /></div>
-                                                <div className="table-empty-title">No attendance records</div>
-                                                <div className="table-empty-description">Change the date or check your shifts configuration.</div>
-                                            </div>
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                                {data.map((row, idx) => (
+                                    <tr key={row.id} className="hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{idx + 1}</td>
+                                        <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">
+                                            {row.name || '—'}
+                                        </td>
+                                        <td className="px-5 py-3 whitespace-nowrap">
+                                            <span className="font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold">
+                                                {row.employee_code || '—'}
+                                            </span>
+                                        </td>
+                                        <td className="px-5 py-3 whitespace-nowrap text-slate-600 dark:text-slate-300">
+                                            {row.department || '—'}
+                                        </td>
+                                        <td className="px-5 py-3 whitespace-nowrap">
+                                            <span className="font-mono text-xs tabular-nums text-slate-600 dark:text-slate-300">
+                                                {row.in_time ? new Date(row.in_time).toLocaleTimeString() : '—'}
+                                            </span>
+                                        </td>
+                                        <td className="px-5 py-3 whitespace-nowrap">
+                                            <span className="font-mono text-xs tabular-nums text-slate-600 dark:text-slate-300">
+                                                {row.out_time ? new Date(row.out_time).toLocaleTimeString() : '—'}
+                                            </span>
+                                        </td>
+                                        <td className="px-5 py-3 whitespace-nowrap">
+                                            <span className="font-mono text-xs tabular-nums font-semibold text-slate-700 dark:text-slate-200">
+                                                {row.duration_minutes ? `${Math.floor(row.duration_minutes / 60)}h ${row.duration_minutes % 60}m` : '—'}
+                                            </span>
+                                        </td>
+                                        <td className="px-5 py-3 whitespace-nowrap">
+                                            {row.late_minutes > 0 ? (
+                                                <span className={`${BADGE_BASE} tabular-nums bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300`}>
+                                                    {row.late_minutes} min
+                                                </span>
+                                            ) : (
+                                                <span className="text-slate-400 dark:text-slate-500">—</span>
+                                            )}
+                                        </td>
+                                        <td className="px-5 py-3 whitespace-nowrap">
+                                            <span className={`${BADGE_BASE} ${getStatusStyle(row.status)}`}>
+                                                {row.status || '—'}
+                                            </span>
                                         </td>
                                     </tr>
-                                ) : (
-                                    data.map(row => (
-                                        <tr key={row.id}>
-                                            <td>
-                                                <div className="flex flex-col">
-                                                    <span className="font-semibold text-slate-800 dark:text-slate-100">{row.name}</span>
-                                                    <span className="cell-code mt-0.5 w-fit">{row.employee_code}</span>
-                                                </div>
-                                            </td>
-                                            <td><span className="text-slate-600 dark:text-slate-400 font-medium text-xs uppercase tracking-wide">{row.department || '-'}</span></td>
-                                            <td><span className="font-mono text-xs text-slate-600 dark:text-slate-400">{row.in_time ? new Date(row.in_time).toLocaleTimeString() : '-'}</span></td>
-                                            <td><span className="font-mono text-xs text-slate-600 dark:text-slate-400">{row.out_time ? new Date(row.out_time).toLocaleTimeString() : '-'}</span></td>
-                                            <td><span className="font-mono text-xs font-semibold text-slate-700 dark:text-slate-300">{row.duration_minutes ? `${Math.floor(row.duration_minutes / 60)}h ${row.duration_minutes % 60}m` : '-'}</span></td>
-                                            <td>
-                                                {row.late_minutes > 0 ? (
-                                                    <span className="text-amber-600 font-bold text-xs bg-amber-50 px-2 py-1 rounded-full border border-amber-100 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800">{row.late_minutes} min</span>
-                                                ) : <span className="text-slate-400">-</span>}
-                                            </td>
-                                            <td>
-                                                <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${getStatusStyle(row.status)}`}>
-                                                    {row.status}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
+                                ))}
                             </tbody>
                         </table>
+                    </div>
+                )}
+
+                {!loading && !error && data.length > 0 && (
+                    <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
+                        {data.length} record{data.length === 1 ? '' : 's'}
                     </div>
                 )}
             </div>

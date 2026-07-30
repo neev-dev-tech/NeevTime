@@ -413,7 +413,7 @@ export default function Area() {
             {/* Add Modal */}
             {showModal && (
                 <div className="fixed inset-0 bg-charcoal/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-sm border border-white/50 dark:border-slate-700">
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-sm border border-slate-200 dark:border-slate-700">
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="text-lg font-bold text-charcoal dark:text-slate-100">Add Area</h3>
                             <Button variant="ghost" size="sm" icon={X} aria-label="Close" onClick={() => setShowModal(false)} />
@@ -454,7 +454,7 @@ export default function Area() {
             {/* Import Modal */}
             {showImportModal && (
                 <div className="fixed inset-0 bg-charcoal/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-md border border-white/50 dark:border-slate-700">
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-md border border-slate-200 dark:border-slate-700">
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="text-lg font-bold text-charcoal dark:text-slate-100">Import Areas</h3>
                             <Button variant="ghost" size="sm" icon={X} aria-label="Close" onClick={() => setShowImportModal(false)} />
@@ -489,7 +489,7 @@ export default function Area() {
             {/* Personnel Transfer Modal */}
             {showTransferModal && (
                 <div className="fixed inset-0 bg-charcoal/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-md border border-white/50 dark:border-slate-700">
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-md border border-slate-200 dark:border-slate-700">
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="text-lg font-bold text-charcoal dark:text-slate-100">Personnel Transfer</h3>
                             <Button variant="ghost" size="sm" icon={X} aria-label="Close" onClick={() => setShowTransferModal(false)} />
@@ -534,7 +534,7 @@ export default function Area() {
             {/* Delete Confirmation Modal */}
             {showDeleteModal && (
                 <div className="fixed inset-0 bg-charcoal/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-sm border border-white/50 dark:border-slate-700 text-center">
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-sm border border-slate-200 dark:border-slate-700 text-center">
                         <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500 dark:text-red-400">
                             <Trash2 size={24} />
                         </div>

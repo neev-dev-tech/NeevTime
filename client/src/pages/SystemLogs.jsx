@@ -1,14 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
 import {
-    Activity, RefreshCw, Filter, Download, User, Calendar,
-    Database, Settings, Users, Clock, FileText, Search, ChevronDown, Monitor
+    Activity, RefreshCw, Filter, Download, User,
+    Database, Users, ChevronDown, Monitor, AlertCircle
 } from 'lucide-react';
 import { Button, PageHeader } from '../components';
+
+const BADGE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide';
+const CELL_MONO = 'font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold';
+const CELL_STRONG = 'font-semibold text-slate-800 dark:text-slate-100';
+const CELL_SOFT = 'text-slate-600 dark:text-slate-300';
+const FIELD = 'w-full text-sm rounded-lg px-3 py-1.5 border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-100 focus:outline-none focus:border-orange-400 dark:focus:border-orange-500';
+
+const dash = (v) => (v === null || v === undefined || v === '' ? '—' : v);
 
 export default function SystemLogs() {
     const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [filters, setFilters] = useState({
         action: '',
         entity_type: '',
@@ -36,8 +45,10 @@ export default function SystemLogs() {
 
             const res = await api.get('/api/system-logs', { params });
             setLogs(res.data || []);
+            setError(null);
         } catch (err) {
             console.error('Error fetching logs:', err);
+            setError(err.response?.data?.error || 'Could not load system logs');
             setLogs([]);
         } finally {
             setLoading(false);
@@ -46,16 +57,16 @@ export default function SystemLogs() {
 
     const getActionStyle = (action) => {
         const styles = {
-            LOGIN: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800',
-            LOGOUT: 'bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-900/30 dark:text-slate-300 dark:border-slate-800',
-            CREATE: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800',
-            UPDATE: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800',
-            DELETE: 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-900/30 dark:text-rose-300 dark:border-rose-800',
-            EXPORT: 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800',
-            IMPORT: 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-300 dark:border-indigo-800',
-            SYNC: 'bg-cyan-50 text-cyan-700 border-cyan-200 dark:bg-cyan-900/30 dark:text-cyan-300 dark:border-cyan-800'
+            LOGIN: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
+            LOGOUT: 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300',
+            CREATE: 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
+            UPDATE: 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
+            DELETE: 'bg-rose-50 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300',
+            EXPORT: 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
+            IMPORT: 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300',
+            SYNC: 'bg-cyan-50 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300'
         };
-        return styles[action] || 'bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-900/30 dark:text-slate-300 dark:border-slate-800';
+        return styles[action] || 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300';
     };
 
     const exportLogs = () => {
@@ -98,19 +109,31 @@ export default function SystemLogs() {
         return true;
     });
 
+    const hasActiveFilters = Boolean(
+        filters.action || filters.entity_type || filters.user_id || filters.dateFrom || filters.dateTo
+    );
+
+    const KPIS = [
+        { label: 'Total Logs', value: filteredLogs.length, icon: Activity, tint: 'text-purple-600 dark:text-purple-400', ring: 'bg-purple-50 dark:bg-purple-900/30' },
+        { label: 'Logins', value: filteredLogs.filter(l => l.action === 'LOGIN').length, icon: User, tint: 'text-emerald-600 dark:text-emerald-400', ring: 'bg-emerald-50 dark:bg-emerald-900/30' },
+        { label: 'Data Changes', value: filteredLogs.filter(l => ['CREATE', 'UPDATE', 'DELETE'].includes(l.action)).length, icon: Database, tint: 'text-blue-600 dark:text-blue-400', ring: 'bg-blue-50 dark:bg-blue-900/30' },
+        { label: 'Active Users', value: uniqueUsers.length, icon: Users, tint: 'text-amber-600 dark:text-amber-400', ring: 'bg-amber-50 dark:bg-amber-900/30' }
+    ];
+
     return (
         <div className="space-y-6">
             {/* Header */}
             <PageHeader
                 icon={Activity}
                 title="System Logs"
+                subtitle="Audit trail of every action taken in the system"
                 actions={(
                     <>
                         <Button
                             variant="secondary"
                             icon={Filter}
                             onClick={() => setShowFilters(!showFilters)}
-                            className={showFilters ? 'bg-orange-50 border-orange-200 text-orange-700 dark:bg-orange-900/30 dark:border-orange-800 dark:text-orange-300' : ''}
+                            className={showFilters ? 'ring-2 ring-orange-400 ring-offset-1 dark:ring-offset-slate-900' : ''}
                         >
                             Filters
                             <ChevronDown size={14} className={`transition-transform ${showFilters ? 'rotate-180' : ''}`} />
@@ -125,15 +148,39 @@ export default function SystemLogs() {
                     </>
                 )}
             />
-            <div className="report-container">
+
+            {/* KPI Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {KPIS.map(kpi => {
+                    const Icon = kpi.icon;
+                    return (
+                        <div
+                            key={kpi.label}
+                            className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 p-4 shadow-sm flex items-center gap-3"
+                        >
+                            <div className={`w-10 h-10 shrink-0 rounded-xl grid place-items-center ${kpi.ring} ${kpi.tint}`}>
+                                <Icon size={18} />
+                            </div>
+                            <div className="min-w-0">
+                                <div className="text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">
+                                    {kpi.label}
+                                </div>
+                                <div className="text-2xl font-bold tabular-nums text-slate-800 dark:text-slate-100">{kpi.value}</div>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+
+            <div className="card-base !p-0 overflow-hidden">
                 {/* Filter Panel */}
                 {showFilters && (
-                    <div className="bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700 p-4 animate-in fade-in slide-in-from-top-2">
+                    <div className="bg-slate-50/70 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700 p-4 animate-in fade-in slide-in-from-top-2">
                         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                             <div>
-                                <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1 block">Action</label>
+                                <label className="text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-1 block">Action</label>
                                 <select
-                                    className="input-premium py-1.5 text-sm bg-white dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                    className={FIELD}
                                     value={filters.action}
                                     onChange={e => setFilters({ ...filters, action: e.target.value })}
                                 >
@@ -142,9 +189,9 @@ export default function SystemLogs() {
                                 </select>
                             </div>
                             <div>
-                                <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1 block">Entity</label>
+                                <label className="text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-1 block">Entity</label>
                                 <select
-                                    className="input-premium py-1.5 text-sm bg-white dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                    className={FIELD}
                                     value={filters.entity_type}
                                     onChange={e => setFilters({ ...filters, entity_type: e.target.value })}
                                 >
@@ -153,9 +200,9 @@ export default function SystemLogs() {
                                 </select>
                             </div>
                             <div>
-                                <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1 block">User</label>
+                                <label className="text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-1 block">User</label>
                                 <select
-                                    className="input-premium py-1.5 text-sm bg-white dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                    className={FIELD}
                                     value={filters.user_id}
                                     onChange={e => setFilters({ ...filters, user_id: e.target.value })}
                                 >
@@ -164,19 +211,19 @@ export default function SystemLogs() {
                                 </select>
                             </div>
                             <div>
-                                <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1 block">From Date</label>
+                                <label className="text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-1 block">From Date</label>
                                 <input
                                     type="date"
-                                    className="input-premium py-1.5 text-sm bg-white dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                    className={FIELD}
                                     value={filters.dateFrom}
                                     onChange={e => setFilters({ ...filters, dateFrom: e.target.value })}
                                 />
                             </div>
                             <div>
-                                <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1 block">To Date</label>
+                                <label className="text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-1 block">To Date</label>
                                 <input
                                     type="date"
-                                    className="input-premium py-1.5 text-sm bg-white dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                    className={FIELD}
                                     value={filters.dateTo}
                                     onChange={e => setFilters({ ...filters, dateTo: e.target.value })}
                                 />
@@ -185,114 +232,110 @@ export default function SystemLogs() {
                     </div>
                 )}
 
-                {/* KPI Cards */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 border-b border-slate-100 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900/50">
-                    <div className="bg-white dark:bg-slate-800 border border-purple-100 dark:border-slate-700 rounded-xl p-4 shadow-sm relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 w-16 h-16 bg-purple-50 dark:bg-purple-900/30 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
-                        <div className="relative z-10">
-                            <div className="text-purple-600 text-xs font-bold uppercase tracking-wider mb-1">Total Logs</div>
-                            <div className="text-3xl font-bold text-slate-800 dark:text-slate-100">{filteredLogs.length}</div>
-                        </div>
-                        <Activity className="absolute bottom-3 right-3 text-purple-100 z-0" size={32} />
-                    </div>
-
-                    <div className="bg-white dark:bg-slate-800 border border-emerald-100 dark:border-slate-700 rounded-xl p-4 shadow-sm relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-50 dark:bg-emerald-900/30 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
-                        <div className="relative z-10">
-                            <div className="text-emerald-600 text-xs font-bold uppercase tracking-wider mb-1">Logins</div>
-                            <div className="text-3xl font-bold text-slate-800 dark:text-slate-100">{filteredLogs.filter(l => l.action === 'LOGIN').length}</div>
-                        </div>
-                        <User className="absolute bottom-3 right-3 text-emerald-100 z-0" size={32} />
-                    </div>
-
-                    <div className="bg-white dark:bg-slate-800 border border-blue-100 dark:border-slate-700 rounded-xl p-4 shadow-sm relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 w-16 h-16 bg-blue-50 dark:bg-blue-900/30 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
-                        <div className="relative z-10">
-                            <div className="text-blue-600 text-xs font-bold uppercase tracking-wider mb-1">Data Changes</div>
-                            <div className="text-3xl font-bold text-slate-800 dark:text-slate-100">{filteredLogs.filter(l => ['CREATE', 'UPDATE', 'DELETE'].includes(l.action)).length}</div>
-                        </div>
-                        <Database className="absolute bottom-3 right-3 text-blue-100 z-0" size={32} />
-                    </div>
-
-                    <div className="bg-white dark:bg-slate-800 border border-amber-100 dark:border-slate-700 rounded-xl p-4 shadow-sm relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 w-16 h-16 bg-amber-50 dark:bg-amber-900/30 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
-                        <div className="relative z-10">
-                            <div className="text-amber-600 text-xs font-bold uppercase tracking-wider mb-1">Active Users</div>
-                            <div className="text-3xl font-bold text-slate-800 dark:text-slate-100">{uniqueUsers.length}</div>
-                        </div>
-                        <Users className="absolute bottom-3 right-3 text-amber-100 z-0" size={32} />
-                    </div>
-                </div>
-
                 {/* Table */}
-                <div className="table-premium-wrapper">
-                    <table className="table-premium">
-                        <thead>
-                            <tr>
-                                <th>Result</th>
-                                <th>Action</th>
-                                <th>Entity</th>
-                                <th>User</th>
-                                <th>IP Address</th>
-                                <th>Time</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {loading ? (
-                                <tr><td colSpan={6} className="text-center p-8 text-slate-400">Loading logs...</td></tr>
-                            ) : filteredLogs.length === 0 ? (
+                {loading ? (
+                    <div className="p-6 space-y-3">
+                        {Array.from({ length: 8 }).map((_, i) => (
+                            <div key={i} className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
+                        ))}
+                    </div>
+                ) : error ? (
+                    <div className="py-16 text-center">
+                        <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load system logs</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <Button variant="secondary" icon={RefreshCw} onClick={fetchLogs}>Try again</Button>
+                    </div>
+                ) : filteredLogs.length === 0 ? (
+                    <div className="py-16 text-center">
+                        <Activity size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">
+                            {hasActiveFilters ? 'No logs match these filters' : 'No system logs yet'}
+                        </h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            {hasActiveFilters
+                                ? 'Widen the date range or clear a filter to see more activity.'
+                                : 'Actions taken in the app will be recorded here.'}
+                        </p>
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left">
+                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">
                                 <tr>
-                                    <td colSpan={6}>
-                                        <div className="table-empty-state">
-                                            <div className="table-empty-icon"><Activity size={40} /></div>
-                                            <div className="table-empty-title">No system logs found</div>
-                                            <div className="table-empty-description">Try adjusting your filters or check back later.</div>
-                                        </div>
-                                    </td>
+                                    <th className="px-5 py-3 font-bold w-12">#</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Result</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Action</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Entity</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">User</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">IP Address</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Time</th>
                                 </tr>
-                            ) : (
-                                filteredLogs.map(log => (
-                                    <tr key={log.id}>
-                                        <td>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                                {filteredLogs.map((log, idx) => (
+                                    <tr key={log.id} className="hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{idx + 1}</td>
+                                        <td className="px-5 py-3">
                                             <div className="flex items-center gap-2">
                                                 <div className="p-1.5 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700">
                                                     <Monitor size={14} className="text-slate-500 dark:text-slate-400" />
                                                 </div>
-                                                <span className="font-medium text-slate-700 dark:text-slate-300">Success</span>
+                                                <span className={CELL_SOFT}>Success</span>
                                             </div>
                                         </td>
-                                        <td>
-                                            <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${getActionStyle(log.action)}`}>
-                                                {log.action}
+                                        <td className="px-5 py-3">
+                                            <span className={`${BADGE} ${getActionStyle(log.action)}`}>
+                                                {dash(log.action)}
                                             </span>
                                         </td>
-                                        <td>
+                                        <td className="px-5 py-3">
                                             <div className="flex flex-col">
-                                                <span className="font-semibold text-slate-700 dark:text-slate-300 text-sm">{log.entity_type}</span>
-                                                {log.entity_id && <span className="text-xs text-slate-400 font-mono">ID: {log.entity_id}</span>}
+                                                <span className={CELL_STRONG}>{dash(log.entity_type)}</span>
+                                                {log.entity_id && (
+                                                    <span className="font-mono text-[11px] tabular-nums text-orange-600 dark:text-orange-400 font-semibold">
+                                                        ID: {log.entity_id}
+                                                    </span>
+                                                )}
                                             </div>
                                         </td>
-                                        <td>
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-400">
-                                                    {log.username?.charAt(0).toUpperCase()}
-                                                </div>
-                                                <span className="text-slate-700 dark:text-slate-300 font-medium text-sm">{log.username}</span>
+                                        <td className="px-5 py-3">
+                                            <div className="flex items-center gap-2.5 min-w-0">
+                                                <span
+                                                    aria-hidden="true"
+                                                    className="w-8 h-8 shrink-0 rounded-full grid place-items-center font-bold text-xs bg-orange-100 text-orange-700 border border-orange-200 dark:bg-orange-900/40 dark:text-orange-300 dark:border-orange-800/70"
+                                                >
+                                                    {(String(log.username || '').trim().charAt(0) || '?').toUpperCase()}
+                                                </span>
+                                                <span className={`${CELL_STRONG} truncate`}>{dash(log.username)}</span>
                                             </div>
                                         </td>
-                                        <td><span className="cell-code text-xs text-slate-500 dark:text-slate-400">{log.ip_address}</span></td>
-                                        <td>
+                                        <td className="px-5 py-3">
+                                            <span className={CELL_MONO}>{dash(log.ip_address)}</span>
+                                        </td>
+                                        <td className="px-5 py-3">
                                             <div className="flex flex-col">
-                                                <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">{new Date(log.created_at).toLocaleDateString()}</span>
-                                                <span className="text-xs text-slate-400">{new Date(log.created_at).toLocaleTimeString()}</span>
+                                                <span className={CELL_STRONG}>
+                                                    {log.created_at ? new Date(log.created_at).toLocaleDateString() : '—'}
+                                                </span>
+                                                <span className="text-xs text-slate-400 dark:text-slate-500 tabular-nums">
+                                                    {log.created_at ? new Date(log.created_at).toLocaleTimeString() : ''}
+                                                </span>
                                             </div>
                                         </td>
                                     </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+
+                {!loading && !error && filteredLogs.length > 0 && (
+                    <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
+                        {filteredLogs.length} record{filteredLogs.length === 1 ? '' : 's'}
+                        {filteredLogs.length !== logs.length && ` of ${logs.length}`}
+                    </div>
+                )}
             </div>
         </div>
     );

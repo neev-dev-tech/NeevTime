@@ -3128,6 +3128,11 @@ body {
 .app-shell .card-tier-1,
 .app-shell .card-tier-2 { background-color: rgba(255, 255, 255, 0.62); }
 
+.dark .app-shell .report-container,
+.dark .app-shell .card-base,
+.dark .app-shell .card-tier-1,
+.dark .app-shell .card-tier-2 { background-color: rgba(28, 28, 31, 0.58); }
+
 /* Scrolling table bodies inherit the card glass instead of solid white */
 .app-shell .custom-scrollbar.bg-white,
 .app-shell .overflow-auto.bg-white { background-color: transparent !important; backdrop-filter: none; }
@@ -3425,3 +3430,8 @@ tr:focus-within .dv-quiet { opacity: 1; transform: none; }
   color: #94A3B8;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
+
+/* Scrollbars follow the theme — a light track reads as a white slab on charcoal */
+.dark .custom-scrollbar::-webkit-scrollbar-track { background-color: rgba(255, 255, 255, 0.04); }
+.dark .custom-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(255, 255, 255, 0.16); }
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: rgba(255, 255, 255, 0.26); }

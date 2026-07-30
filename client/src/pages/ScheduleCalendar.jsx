@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
-import { CalendarDays, ChevronLeft, ChevronRight, Users, Building2, Clock, Filter } from 'lucide-react';
-import { PageHeader } from '../components';
+import { CalendarDays, ChevronLeft, ChevronRight, Users, Building2, Clock, Filter, AlertCircle, RefreshCw } from 'lucide-react';
+import { PageHeader, Button } from '../components';
 
 export default function ScheduleCalendar() {
     const [currentDate, setCurrentDate] = useState(new Date());
@@ -12,6 +12,7 @@ export default function ScheduleCalendar() {
     const [departments, setDepartments] = useState([]);
     const [selectedDepartment, setSelectedDepartment] = useState('');
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         fetchData();
@@ -19,6 +20,7 @@ export default function ScheduleCalendar() {
 
     const fetchData = async () => {
         try {
+            setError(null);
             const [empRes, shiftRes, deptRes, schedRes] = await Promise.all([
                 api.get('/api/employees'),
                 api.get('/api/shifts'),
@@ -31,6 +33,7 @@ export default function ScheduleCalendar() {
             setSchedules(schedRes.data || []);
         } catch (err) {
             console.error('Error fetching data:', err);
+            setError(err.response?.data?.error || 'Could not load the schedule calendar');
         } finally {
             setLoading(false);
         }
@@ -92,12 +95,12 @@ export default function ScheduleCalendar() {
 
     const getShiftColor = (shiftId) => {
         const colors = [
-            'bg-blue-100 text-blue-800',
-            'bg-green-100 text-green-800',
-            'bg-purple-100 text-purple-800',
-            'bg-amber-100 text-amber-800',
-            'bg-rose-100 text-rose-800',
-            'bg-cyan-100 text-cyan-800'
+            'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
+            'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
+            'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
+            'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
+            'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300',
+            'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300'
         ];
         return colors[shiftId % colors.length];
     };
@@ -130,15 +133,16 @@ export default function ScheduleCalendar() {
             <PageHeader
                 icon={CalendarDays}
                 title="Schedule Calendar"
+                subtitle="Who is on which shift, day by day"
                 actions={
                     <>
                         {/* Department Filter */}
-                        <div className="flex items-center gap-2">
-                            <Filter size={16} className="text-slate-500 dark:text-slate-400" />
+                        <div className="relative">
+                            <Filter size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 pointer-events-none" />
                             <select
                                 value={selectedDepartment}
                                 onChange={(e) => setSelectedDepartment(e.target.value)}
-                                className="px-3 py-2 border rounded-lg text-sm dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                className="pl-9 pr-3 py-2 text-sm rounded-lg bg-white/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-orange-400"
                             >
                                 <option value="">All Departments</option>
                                 {departments.map(d => (
@@ -147,16 +151,20 @@ export default function ScheduleCalendar() {
                             </select>
                         </div>
                         {/* View Mode Toggle */}
-                        <div className="flex bg-slate-100 dark:bg-slate-700 rounded-lg p-1">
+                        <div className="inline-flex rounded-full p-1 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
                             <button
                                 onClick={() => setViewMode('week')}
-                                className={`px-3 py-1 rounded text-sm ${viewMode === 'week' ? 'bg-white dark:bg-slate-800 shadow' : ''}`}
+                                className={`px-4 py-1 rounded-full text-xs font-semibold transition-colors ${viewMode === 'week'
+                                    ? 'bg-orange-600 text-white shadow-sm'
+                                    : 'text-slate-600 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400'}`}
                             >
                                 Week
                             </button>
                             <button
                                 onClick={() => setViewMode('month')}
-                                className={`px-3 py-1 rounded text-sm ${viewMode === 'month' ? 'bg-white dark:bg-slate-800 shadow' : ''}`}
+                                className={`px-4 py-1 rounded-full text-xs font-semibold transition-colors ${viewMode === 'month'
+                                    ? 'bg-orange-600 text-white shadow-sm'
+                                    : 'text-slate-600 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400'}`}
                             >
                                 Month
                             </button>
@@ -166,61 +174,84 @@ export default function ScheduleCalendar() {
             />
 
             {/* Calendar Navigation */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border dark:border-slate-700 p-4">
+            <div className="card-base !p-4">
                 <div className="flex items-center justify-between mb-4">
                     <button
                         onClick={() => navigateMonth(-1)}
-                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg"
+                        aria-label="Previous"
+                        className="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-orange-50 dark:hover:bg-slate-700 hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
                     >
-                        <ChevronLeft size={20} />
+                        <ChevronLeft size={18} />
                     </button>
-                    <h2 className="text-lg font-semibold">
+                    <h2 className="text-sm font-bold uppercase tracking-[0.09em] text-slate-600 dark:text-slate-300 tabular-nums">
                         {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
                     </h2>
                     <button
                         onClick={() => navigateMonth(1)}
-                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg"
+                        aria-label="Next"
+                        className="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-orange-50 dark:hover:bg-slate-700 hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
                     >
-                        <ChevronRight size={20} />
+                        <ChevronRight size={18} />
                     </button>
                 </div>
 
                 {/* Shift Legend */}
-                <div className="flex flex-wrap gap-2 mb-4 pb-4 border-b dark:border-slate-700">
+                <div className="flex flex-wrap gap-1.5 mb-4 pb-4 border-b border-slate-100 dark:border-slate-700">
                     {shifts.map((shift, i) => (
                         <span
                             key={shift.id}
-                            className={`px-2 py-1 rounded text-xs font-medium ${getShiftColor(i)}`}
+                            className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${getShiftColor(i)}`}
                         >
                             {shift.name}
                         </span>
                     ))}
-                    <span className="px-2 py-1 rounded text-xs font-medium bg-slate-200 text-slate-600 dark:text-slate-400">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300">
                         WO = Week Off
                     </span>
                 </div>
 
                 {loading ? (
-                    <div className="text-center py-8 text-slate-500 dark:text-slate-400">Loading schedule...</div>
+                    <div className="space-y-3">
+                        {Array.from({ length: 6 }).map((_, i) => (
+                            <div key={i} className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
+                        ))}
+                    </div>
+                ) : error ? (
+                    <div className="py-16 text-center">
+                        <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load the calendar</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <Button variant="secondary" icon={RefreshCw} onClick={fetchData}>Try again</Button>
+                    </div>
+                ) : filteredEmployees.length === 0 ? (
+                    <div className="py-16 text-center">
+                        <Users size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No employees to show</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            {selectedDepartment
+                                ? 'No employees belong to the selected department.'
+                                : 'Add employees and they will appear here with their shifts.'}
+                        </p>
+                    </div>
                 ) : (
                     <div className="overflow-x-auto">
-                        <table className="w-full border-collapse">
+                        <table className="w-full border-separate border-spacing-1">
                             <thead>
                                 <tr>
-                                    <th className="border dark:border-slate-700 p-2 bg-slate-50 dark:bg-slate-900/50 text-left min-w-[150px] sticky left-0 z-10">
+                                    <th className="p-2 rounded-lg ring-1 ring-black/5 dark:ring-white/10 bg-slate-50/70 dark:bg-slate-900/50 text-left min-w-[150px] sticky left-0 z-10 text-[10px] uppercase tracking-[0.09em] font-bold text-slate-500 dark:text-slate-400">
                                         Employee
                                     </th>
                                     {days.map((day, i) => (
                                         <th
                                             key={i}
-                                            className={`border dark:border-slate-700 p-2 text-center min-w-[60px] text-sm ${day && isToday(day) ? 'bg-green-100' :
-                                                    day && isWeekend(day) ? 'bg-slate-100 dark:bg-slate-700' : 'bg-slate-50 dark:bg-slate-900/50'
+                                            className={`p-1.5 rounded-lg ring-1 ring-black/5 dark:ring-white/10 text-center min-w-[60px] ${day && isToday(day) ? 'bg-orange-100 dark:bg-orange-900/30' :
+                                                day && isWeekend(day) ? 'bg-slate-100 dark:bg-slate-700' : 'bg-slate-50/70 dark:bg-slate-900/50'
                                                 }`}
                                         >
                                             {day ? (
                                                 <>
-                                                    <div className="font-medium">{dayNames[day.getDay()]}</div>
-                                                    <div className={`text-xs ${isToday(day) ? 'text-green-600 font-bold' : 'text-slate-500 dark:text-slate-400'}`}>
+                                                    <div className="text-[10px] uppercase tracking-[0.09em] font-bold text-slate-500 dark:text-slate-400">{dayNames[day.getDay()]}</div>
+                                                    <div className={`text-xs tabular-nums ${isToday(day) ? 'text-orange-600 dark:text-orange-400 font-bold' : 'text-slate-600 dark:text-slate-300'}`}>
                                                         {day.getDate()}
                                                     </div>
                                                 </>
@@ -230,20 +261,14 @@ export default function ScheduleCalendar() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredEmployees.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={days.length + 1} className="border dark:border-slate-700 p-4 text-center text-slate-500 dark:text-slate-400">
-                                            No employees found
-                                        </td>
-                                    </tr>
-                                ) : filteredEmployees.slice(0, 15).map((emp) => (
-                                    <tr key={emp.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
-                                        <td className="border dark:border-slate-700 p-2 bg-white dark:bg-slate-800 sticky left-0 z-10">
-                                            <div className="font-medium text-sm">{emp.name}</div>
-                                            <div className="text-xs text-slate-500 dark:text-slate-400">{emp.employee_code}</div>
+                                {filteredEmployees.slice(0, 15).map((emp) => (
+                                    <tr key={emp.id} className="group">
+                                        <td className="p-2 rounded-lg ring-1 ring-black/5 dark:ring-white/10 bg-white dark:bg-slate-800 sticky left-0 z-10 group-hover:bg-orange-50/50 dark:group-hover:bg-slate-700/40 transition-colors">
+                                            <div className="font-semibold text-sm text-slate-800 dark:text-slate-100">{emp.name || '—'}</div>
+                                            <div className="font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold">{emp.employee_code || '—'}</div>
                                         </td>
                                         {days.map((day, i) => {
-                                            if (!day) return <td key={i} className="border dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50"></td>;
+                                            if (!day) return <td key={i} className="rounded-lg ring-1 ring-black/5 dark:ring-white/10 bg-slate-50/50 dark:bg-slate-900/40"></td>;
 
                                             const schedule = getScheduleForEmployeeOnDate(emp.id, day);
                                             const isWO = isWeekend(day);
@@ -251,22 +276,22 @@ export default function ScheduleCalendar() {
                                             return (
                                                 <td
                                                     key={i}
-                                                    className={`border dark:border-slate-700 p-1 text-center ${isToday(day) ? 'bg-green-50' :
-                                                            isWO ? 'bg-slate-100 dark:bg-slate-700' : ''
+                                                    className={`p-1 text-center rounded-lg ring-1 ring-black/5 dark:ring-white/10 ${isToday(day) ? 'bg-orange-50 dark:bg-orange-900/20' :
+                                                        isWO ? 'bg-slate-100 dark:bg-slate-700' : 'bg-white dark:bg-slate-800'
                                                         }`}
                                                 >
                                                     {isWO ? (
-                                                        <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">WO</span>
+                                                        <span className="text-[10px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">WO</span>
                                                     ) : schedule ? (
                                                         <span
-                                                            className={`inline-block px-1.5 py-0.5 rounded text-xs font-medium ${getShiftColor(shifts.findIndex(s => s.id === schedule.shift_id))
+                                                            className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${getShiftColor(shifts.findIndex(s => s.id === schedule.shift_id))
                                                                 }`}
                                                             title={schedule.shift_name}
                                                         >
                                                             {schedule.shift_name?.substring(0, 3) || 'SCH'}
                                                         </span>
                                                     ) : (
-                                                        <span className="text-xs text-slate-300">-</span>
+                                                        <span className="text-xs text-slate-300 dark:text-slate-600">—</span>
                                                     )}
                                                 </td>
                                             );
@@ -275,42 +300,48 @@ export default function ScheduleCalendar() {
                                 ))}
                             </tbody>
                         </table>
-                        {filteredEmployees.length > 15 && (
-                            <div className="text-center py-2 text-sm text-slate-500 dark:text-slate-400">
-                                Showing 15 of {filteredEmployees.length} employees
-                            </div>
-                        )}
+                        <div className="pt-3 mt-2 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
+                            {filteredEmployees.length > 15
+                                ? `Showing 15 of ${filteredEmployees.length} employees`
+                                : `${filteredEmployees.length} employee${filteredEmployees.length === 1 ? '' : 's'}`}
+                        </div>
                     </div>
                 )}
             </div>
 
             {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border dark:border-slate-700 p-4">
+                <div className="bg-white/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 hover:-translate-y-0.5 transition-transform">
                     <div className="flex items-center gap-2 mb-2">
-                        <Users className="text-orange-600 dark:text-orange-400" />
-                        <h3 className="font-semibold">Total Employees</h3>
+                        <div className="p-1.5 rounded-xl bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400">
+                            <Users size={16} />
+                        </div>
+                        <h3 className="text-[10px] uppercase tracking-[0.09em] font-bold text-slate-500 dark:text-slate-400">Total Employees</h3>
                     </div>
-                    <div className="text-3xl font-bold text-orange-600 dark:text-orange-400">{filteredEmployees.length}</div>
-                    <div className="text-sm text-slate-500 dark:text-slate-400">
+                    <div className="text-3xl font-bold tabular-nums text-orange-600 dark:text-orange-400">{filteredEmployees.length}</div>
+                    <div className="text-sm text-slate-600 dark:text-slate-300">
                         {selectedDepartment ? 'In selected department' : 'Across all departments'}
                     </div>
                 </div>
-                <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border dark:border-slate-700 p-4">
+                <div className="bg-white/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 hover:-translate-y-0.5 transition-transform">
                     <div className="flex items-center gap-2 mb-2">
-                        <Clock className="text-green-600" />
-                        <h3 className="font-semibold">Active Shifts</h3>
+                        <div className="p-1.5 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
+                            <Clock size={16} />
+                        </div>
+                        <h3 className="text-[10px] uppercase tracking-[0.09em] font-bold text-slate-500 dark:text-slate-400">Active Shifts</h3>
                     </div>
-                    <div className="text-3xl font-bold text-green-600">{shifts.length}</div>
-                    <div className="text-sm text-slate-500 dark:text-slate-400">Defined in system</div>
+                    <div className="text-3xl font-bold tabular-nums text-emerald-600 dark:text-emerald-400">{shifts.length}</div>
+                    <div className="text-sm text-slate-600 dark:text-slate-300">Defined in system</div>
                 </div>
-                <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border dark:border-slate-700 p-4">
+                <div className="bg-white/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 hover:-translate-y-0.5 transition-transform">
                     <div className="flex items-center gap-2 mb-2">
-                        <Building2 className="text-purple-600" />
-                        <h3 className="font-semibold">Departments</h3>
+                        <div className="p-1.5 rounded-xl bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">
+                            <Building2 size={16} />
+                        </div>
+                        <h3 className="text-[10px] uppercase tracking-[0.09em] font-bold text-slate-500 dark:text-slate-400">Departments</h3>
                     </div>
-                    <div className="text-3xl font-bold text-purple-600">{departments.length}</div>
-                    <div className="text-sm text-slate-500 dark:text-slate-400">With employees</div>
+                    <div className="text-3xl font-bold tabular-nums text-purple-600 dark:text-purple-400">{departments.length}</div>
+                    <div className="text-sm text-slate-600 dark:text-slate-300">With employees</div>
                 </div>
             </div>
         </div>

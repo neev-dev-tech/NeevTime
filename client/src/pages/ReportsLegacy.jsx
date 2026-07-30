@@ -12,6 +12,17 @@ import { exportToPDF } from '../utils/pdfExport';
 import { exportToExcel as exportToExcelUtil } from '../utils/excelExport';
 import { Button } from '../components';
 
+// Stat tile tones — written out in full so Tailwind's scanner keeps the classes
+const STAT_TONES = {
+    orange: 'bg-orange-50 border-orange-100 text-orange-600 dark:bg-orange-900/30 dark:border-orange-800 dark:text-orange-400',
+    emerald: 'bg-emerald-50 border-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:border-emerald-800 dark:text-emerald-400',
+    rose: 'bg-rose-50 border-rose-100 text-rose-600 dark:bg-rose-900/30 dark:border-rose-800 dark:text-rose-400',
+    amber: 'bg-amber-50 border-amber-100 text-amber-600 dark:bg-amber-900/30 dark:border-amber-800 dark:text-amber-400'
+};
+
+const CODE_CELL = 'font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold';
+const SECONDARY_CELL = 'text-slate-600 dark:text-slate-300';
+
 export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
     const [searchParams] = useSearchParams();
     const location = useLocation();
@@ -37,6 +48,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
     const [reportData, setReportData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [generated, setGenerated] = useState(false);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         fetchFilters();
@@ -118,8 +130,8 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                 label: 'Employee',
                 render: (row) => (
                     <div className="flex flex-col">
-                        <span className="font-semibold text-slate-800 dark:text-slate-100">{row.employee_name || row.emp_name || 'Unknown'}</span>
-                        <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">{row.employee_code}</span>
+                        <span className="font-semibold text-slate-800 dark:text-slate-100">{row.employee_name || row.emp_name || '—'}</span>
+                        <span className={CODE_CELL}>{row.employee_code || '—'}</span>
                     </div>
                 )
             },
@@ -139,8 +151,8 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                         label: 'Employee',
                         render: (row) => (
                             <div className="flex flex-col">
-                                <span className="font-semibold text-slate-800 dark:text-slate-100">{row.emp_name || 'Unknown'}</span>
-                                <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">{row.employee_code}</span>
+                                <span className="font-semibold text-slate-800 dark:text-slate-100">{row.emp_name || '—'}</span>
+                                <span className={CODE_CELL}>{row.employee_code || '—'}</span>
                             </div>
                         )
                     },
@@ -148,8 +160,12 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                         label: 'Time',
                         render: (row) => (
                             <div className="flex flex-col">
-                                <span className="text-sm font-medium text-slate-800 dark:text-slate-100">{new Date(row.punch_time).toLocaleTimeString()}</span>
-                                <span className="text-xs text-slate-500 dark:text-slate-400">{new Date(row.punch_time).toLocaleDateString()}</span>
+                                <span className="text-sm font-semibold tabular-nums text-slate-800 dark:text-slate-100">
+                                    {row.punch_time ? new Date(row.punch_time).toLocaleTimeString() : '—'}
+                                </span>
+                                <span className="text-xs tabular-nums text-slate-500 dark:text-slate-400">
+                                    {row.punch_time ? new Date(row.punch_time).toLocaleDateString() : '—'}
+                                </span>
                             </div>
                         )
                     },
@@ -168,7 +184,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                     {
                         label: 'Mode',
                         render: (row) => (
-                            <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
+                            <div className="flex items-center gap-1.5 text-xs tabular-nums text-slate-600 dark:text-slate-300">
                                 <Fingerprint size={12} className="text-orange-500" />
                                 {row.verification_mode || '15'}
                             </div>
@@ -345,6 +361,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
     const generateReport = async () => {
         setLoading(true);
         setGenerated(false);
+        setError(null);
         try {
             let data = [];
             const range = { start_date: dateFrom, end_date: dateTo };
@@ -471,6 +488,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
             setGenerated(true);
         } catch (err) {
             console.error(err);
+            setError(err.response?.data?.error || err.message || 'Could not generate the report');
         } finally {
             setLoading(false);
         }
@@ -576,125 +594,173 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                 </span>
             );
         }
-        if (col.type === 'time' || col.key.includes('time')) {
-            return <span className="font-mono text-xs text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/50 px-1.5 py-0.5 rounded border border-slate-100 dark:border-slate-700">{val || '-'}</span>;
+        if (col.type === 'time' || (col.key && col.key.includes('time'))) {
+            return <span className={`font-mono text-xs tabular-nums ${SECONDARY_CELL}`}>{val || '—'}</span>;
         }
         if (col.type === 'code') {
-            return <code className="text-xs bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded text-slate-600 dark:text-slate-400">{val}</code>;
+            return <span className={CODE_CELL}>{val || '—'}</span>;
+        }
+        if (col.type === 'number' || col.type === 'duration') {
+            return <span className={`text-sm tabular-nums ${SECONDARY_CELL} ${col.className || ''}`}>{val ?? '—'}</span>;
+        }
+        if (col.type === 'date') {
+            return <span className={`text-sm tabular-nums ${SECONDARY_CELL} ${col.className || ''}`}>{val || '—'}</span>;
         }
 
-        return <span className={`text-sm text-slate-700 dark:text-slate-300 ${col.className || ''}`}>{val || '-'}</span>;
+        return <span className={`text-sm ${SECONDARY_CELL} ${col.className || ''}`}>{val || '—'}</span>;
     };
 
     const columns = getColumnDefs(reportType);
 
+
     return (
-        <div className="flex flex-col h-full bg-[#FAFBFC] dark:bg-slate-900">
-            {/* Premium Header */}
-            <div className="bg-white dark:bg-slate-800 border-b dark:border-slate-700 sticky top-0 z-30 shadow-sm">
-                <div className="px-6 py-4 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <Button variant="ghost" size="sm" icon={ArrowLeft} iconSize={20} onClick={() => navigate('/reports')} aria-label="Back to reports" />
-                        <div>
-                            <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                                <div className="p-2 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/30 dark:to-amber-900/30 rounded-lg border border-orange-100 dark:border-orange-800 text-orange-600 dark:text-orange-300 shadow-sm">
-                                    <FileBarChart size={20} />
-                                </div>
-                                {getReportTitle()}
-                            </h1>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 ml-1">Comprehensive data view and analysis</p>
-                        </div>
+        <div className="space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between flex-wrap gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                    <Button variant="ghost" size="sm" icon={ArrowLeft} iconSize={18} onClick={() => navigate('/reports')} aria-label="Back to reports" />
+                    <div className="p-2.5 bg-orange-50 border border-orange-100 rounded-xl text-orange-600 shrink-0 dark:bg-orange-900/30 dark:border-orange-800 dark:text-orange-400">
+                        <FileBarChart size={22} />
                     </div>
-                    <div className="flex gap-3">
-                        {generated && reportData.length > 0 && (
-                            <>
-                                <Button variant="secondary" icon={Download} iconSize={15} onClick={handleExportCSV}>CSV</Button>
-                                <Button variant="success" icon={Download} iconSize={15} onClick={handleExportExcel}>Excel</Button>
-                                <Button variant="danger" icon={Download} iconSize={15} onClick={handleExportPDF}>PDF</Button>
-                            </>
-                        )}
-                        <Button variant="primary" onClick={generateReport} disabled={loading} className="shadow-lg shadow-orange-200/50">
-                            {loading ? <RefreshCw size={18} className="animate-spin" /> : <Calculator size={18} />}
-                            {loading ? 'Processing...' : 'Generate Report'}
-                        </Button>
+                    <div className="min-w-0">
+                        <h1 className="text-xl font-bold text-slate-800 truncate dark:text-slate-100">{getReportTitle()}</h1>
+                        <p className="text-sm text-slate-500 truncate dark:text-slate-400">Comprehensive data view and analysis</p>
                     </div>
                 </div>
-                {/* Filters */}
-                <div className="px-6 py-3 bg-slate-50 dark:bg-slate-900/50 border-t dark:border-slate-700 flex items-center gap-4 overflow-x-auto">
-                    <div className="flex items-center gap-2 bg-white dark:bg-slate-800 p-1 rounded-md border dark:border-slate-700 shadow-sm">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2 border-r dark:border-slate-700">Range</span>
-                        <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="text-sm font-medium border-none focus:ring-0 py-1 dark:bg-slate-900 dark:text-slate-100" />
-                        <span className="text-slate-300">→</span>
-                        <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="text-sm font-medium border-none focus:ring-0 py-1 dark:bg-slate-900 dark:text-slate-100" />
-                    </div>
-
-                    <div className="flex items-center gap-2 bg-white dark:bg-slate-800 p-1 rounded-md border dark:border-slate-700 shadow-sm min-w-[200px]">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2 border-r dark:border-slate-700">Dept</span>
-                        <select value={department} onChange={e => setDepartment(e.target.value)} className="text-sm font-medium border-none focus:ring-0 w-full py-1 dark:bg-slate-900 dark:text-slate-100">
-                            <option value="">All Departments</option>
-                            {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-                        </select>
-                    </div>
+                <div className="flex items-center gap-2 flex-wrap">
+                    {generated && reportData.length > 0 && (
+                        <>
+                            <Button variant="secondary" icon={Download} iconSize={15} onClick={handleExportCSV}>CSV</Button>
+                            <Button variant="success" icon={Download} iconSize={15} onClick={handleExportExcel}>Excel</Button>
+                            <Button variant="danger" icon={Download} iconSize={15} onClick={handleExportPDF}>PDF</Button>
+                        </>
+                    )}
+                    <Button variant="primary" onClick={generateReport} disabled={loading}>
+                        {loading ? <RefreshCw size={16} className="animate-spin" /> : <Calculator size={16} />}
+                        {loading ? 'Processing…' : 'Generate Report'}
+                    </Button>
                 </div>
             </div>
 
-            {/* Content */}
-            <div className="flex-1 overflow-auto p-6 space-y-6">
+            {/* Filters */}
+            <div className="card-base !p-4 flex flex-wrap items-center gap-x-6 gap-y-3">
+                <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">Range</span>
+                    <input
+                        type="date"
+                        value={dateFrom}
+                        onChange={e => setDateFrom(e.target.value)}
+                        className="input-base !py-1.5 !w-auto text-sm tabular-nums"
+                    />
+                    <span className="text-slate-400">&rarr;</span>
+                    <input
+                        type="date"
+                        value={dateTo}
+                        onChange={e => setDateTo(e.target.value)}
+                        className="input-base !py-1.5 !w-auto text-sm tabular-nums"
+                    />
+                </div>
+                <div className="flex items-center gap-2 min-w-[220px]">
+                    <span className="text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">Dept</span>
+                    <select
+                        value={department}
+                        onChange={e => setDepartment(e.target.value)}
+                        className="input-base !py-1.5 text-sm"
+                    >
+                        <option value="">All Departments</option>
+                        {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                    </select>
+                </div>
+            </div>
 
-                {/* Stats Section */}
-                {generated && stats.length > 0 && (
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        {stats.map((stat, i) => (
-                            <div key={i} className="bg-white dark:bg-slate-800 p-4 rounded-xl border dark:border-slate-700 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow">
-                                <div className={`p-3 rounded-lg bg-${stat.color}-50 dark:bg-${stat.color}-900/30 text-${stat.color}-600 dark:text-${stat.color}-300`}>
-                                    <stat.icon size={24} />
-                                </div>
-                                <div>
-                                    <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">{stat.label}</p>
-                                    <p className="text-xl font-bold text-slate-800 dark:text-slate-100">{stat.value}</p>
-                                </div>
+            {/* Stat tiles — glass cards with icon chips */}
+            {generated && !error && stats.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {stats.map((stat, i) => (
+                        <div key={i} className="card-base !p-4 flex items-center gap-3">
+                            <div className={`p-2.5 rounded-xl border shrink-0 ${STAT_TONES[stat.color] || STAT_TONES.orange}`}>
+                                <stat.icon size={20} />
                             </div>
+                            <div className="min-w-0">
+                                <p className="text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 truncate">{stat.label}</p>
+                                <p className="text-xl font-bold tabular-nums text-slate-800 dark:text-slate-100 truncate">{stat.value}</p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* Results */}
+            <div className="card-base !p-0 overflow-hidden">
+                {loading ? (
+                    <div className="p-6 space-y-3">
+                        {Array.from({ length: 8 }).map((_, i) => (
+                            <div key={i} className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
                         ))}
+                    </div>
+                ) : error ? (
+                    <div className="py-16 text-center">
+                        <AlertTriangle size={40} className="mx-auto mb-3 text-rose-400" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not generate the report</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <Button variant="secondary" icon={RefreshCw} onClick={generateReport}>Try again</Button>
+                    </div>
+                ) : !generated ? (
+                    <div className="py-16 text-center">
+                        <FileBarChart size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No report yet</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            Choose a range and department, then press Generate Report.
+                        </p>
+                    </div>
+                ) : reportData.length === 0 ? (
+                    <div className="py-16 text-center">
+                        <FileText size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No records found</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            Nothing matched {dateFrom} to {dateTo} for this report.
+                        </p>
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left">
+                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">
+                                <tr>
+                                    <th className="px-5 py-3 font-bold w-12">#</th>
+                                    {columns
+                                        ? columns.map((col, i) => (
+                                            <th key={i} className="px-5 py-3 font-bold whitespace-nowrap">{col.label}</th>
+                                        ))
+                                        : Object.keys(reportData[0] || {}).map(k => (
+                                            <th key={k} className="px-5 py-3 font-bold whitespace-nowrap capitalize">{k.replace(/_/g, ' ')}</th>
+                                        ))}
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                                {reportData.map((row, i) => (
+                                    <tr key={i} className="hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                        <td className="px-5 py-3 text-slate-400 tabular-nums">{i + 1}</td>
+                                        {columns
+                                            ? columns.map((col, j) => (
+                                                <td key={j} className="px-5 py-3 whitespace-nowrap">
+                                                    {renderCell(row, col)}
+                                                </td>
+                                            ))
+                                            : Object.keys(row).map(k => (
+                                                <td key={k} className="px-5 py-3 whitespace-nowrap">
+                                                    <span className={SECONDARY_CELL}>{row[k] || '—'}</span>
+                                                </td>
+                                            ))}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
                 )}
 
-                {!generated ? (
-                    <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl bg-slate-50/50 dark:bg-slate-900/50 m-4">
-                        <div className="bg-white dark:bg-slate-800 p-4 rounded-full shadow-sm mb-3">
-                            <FileBarChart className="text-slate-300" size={32} />
-                        </div>
-                        <p className="text-slate-500 dark:text-slate-400 font-medium">Select filters and generate report</p>
-                    </div>
-                ) : (
-                    <div className="table-premium-wrapper shadow-sm border dark:border-slate-700 rounded-xl overflow-hidden bg-white dark:bg-slate-800 animate-in fade-in slide-in-from-bottom-6 duration-700">
-                        <table className="table-premium w-full text-left">
-                            <thead>
-                                <tr>
-                                    {columns ? columns.map((col, i) => (
-                                        <th key={i} className="whitespace-nowrap">{col.label}</th>
-                                    )) : Object.keys(reportData[0] || {}).map(k => <th key={k} className="capitalize">{k.replace(/_/g, ' ')}</th>)}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {reportData.length === 0 ? (
-                                    <tr>
-                                        <td colSpan="100%" className="text-center py-12 text-slate-400">
-                                            No records found
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    reportData.map((row, i) => (
-                                        <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
-                                            {columns ? columns.map((col, j) => (
-                                                <td key={j} className="py-3 px-4 border-b border-slate-100 dark:border-slate-700">
-                                                    {renderCell(row, col)}
-                                                </td>
-                                            )) : Object.keys(row).map(k => <td key={k} className="py-3 px-4 border-b border-slate-100 dark:border-slate-700 text-sm text-slate-600 dark:text-slate-400">{row[k]}</td>)}
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
+                {!loading && !error && generated && reportData.length > 0 && (
+                    <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
+                        {reportData.length} record{reportData.length === 1 ? '' : 's'}
                     </div>
                 )}
             </div>

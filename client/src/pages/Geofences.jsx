@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { MapPin, Plus, Search, Trash2, Edit2, AlertCircle, CheckCircle, Navigation } from 'lucide-react';
+import { MapPin, Plus, Search, Trash2, Edit2, AlertCircle, CheckCircle, Navigation, RefreshCw } from 'lucide-react';
 import api from '../api';
 import { Button, PageHeader, ExportMenu } from '../components';
 
@@ -12,6 +12,7 @@ const Geofences = () => {
     const [editingGeofence, setEditingGeofence] = useState(null);
     const [form, setForm] = useState({ name: '', latitude: '', longitude: '', radius_meters: 100, address: '' });
     const [error, setError] = useState('');
+    const [loadError, setLoadError] = useState(null);
     const [toast, setToast] = useState(null);
 
     useEffect(() => {
@@ -20,10 +21,12 @@ const Geofences = () => {
 
     const fetchGeofences = async () => {
         try {
+            setLoadError(null);
             const res = await api.get('/api/mobile/geofences');
             setGeofences(res.data);
         } catch (err) {
             showToast('error', 'Failed to fetch geofences');
+            setLoadError(err.response?.data?.error || 'Failed to fetch geofences');
         } finally {
             setLoading(false);
         }
@@ -134,10 +137,10 @@ const Geofences = () => {
                 }
             />
 
-            <div className="card-base p-0 flex flex-col flex-1 overflow-hidden">
-                <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex gap-4 bg-slate-50/50 dark:bg-slate-900/50">
+            <div className="card-base !p-0 flex flex-col flex-1 overflow-hidden">
+                <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex gap-4 bg-slate-50/70 dark:bg-slate-900/50">
                     <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={20} />
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500" size={18} />
                         <input
                             type="text"
                             placeholder="Search locations..."
@@ -148,41 +151,74 @@ const Geofences = () => {
                     </div>
                 </div>
 
-                <div className="overflow-auto flex-1">
-                    <table className="w-full text-left">
-                        <thead className="bg-slate-50 dark:bg-slate-900/50 sticky top-0">
-                            <tr>
-                                <th className="px-6 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Name</th>
-                                <th className="px-6 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Coordinates</th>
-                                <th className="px-6 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Radius</th>
-                                <th className="px-6 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Address</th>
-                                <th className="px-6 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                            {loading ? (
-                                <tr><td colSpan="5" className="p-8 text-center text-slate-500 dark:text-slate-400">Loading locations...</td></tr>
-                            ) : filteredGeofences.length === 0 ? (
-                                <tr><td colSpan="5" className="p-8 text-center text-slate-500 dark:text-slate-400">No locations found</td></tr>
-                            ) : (
-                                filteredGeofences.map(fence => (
-                                    <tr key={fence.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 bg-white dark:bg-slate-800">
-                                        <td className="px-6 py-4 font-medium text-slate-900 dark:text-slate-100">{fence.name}</td>
-                                        <td className="px-6 py-4 text-slate-600 dark:text-slate-400 font-mono text-sm">
+                {loading ? (
+                    <div className="p-6 space-y-3">
+                        {Array.from({ length: 6 }).map((_, i) => (
+                            <div key={i} className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
+                        ))}
+                    </div>
+                ) : loadError ? (
+                    <div className="py-16 text-center">
+                        <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load locations</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{loadError}</p>
+                        <Button variant="secondary" icon={RefreshCw} onClick={fetchGeofences}>Try again</Button>
+                    </div>
+                ) : filteredGeofences.length === 0 ? (
+                    <div className="py-16 text-center">
+                        <MapPin size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">
+                            {searchTerm ? 'No matching locations' : 'No locations yet'}
+                        </h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            {searchTerm
+                                ? 'No geofence matches that name or address.'
+                                : 'Add a geofence to limit mobile punches to a GPS boundary.'}
+                        </p>
+                    </div>
+                ) : (
+                    <div className="overflow-auto flex-1">
+                        <table className="w-full text-sm text-left">
+                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 sticky top-0 z-10">
+                                <tr>
+                                    <th className="px-5 py-3 font-bold w-12">#</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Name</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Coordinates</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Radius</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Address</th>
+                                    <th className="px-5 py-3 font-bold text-right whitespace-nowrap">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                                {filteredGeofences.map((fence, idx) => (
+                                    <tr key={fence.id} className="hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{idx + 1}</td>
+                                        <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100">{fence.name || '—'}</td>
+                                        <td className="px-5 py-3 font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold whitespace-nowrap">
                                             {Number(fence.latitude).toFixed(5)}, {Number(fence.longitude).toFixed(5)}
                                         </td>
-                                        <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{fence.radius_meters}m</td>
-                                        <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{fence.address || '-'}</td>
-                                        <td className="px-6 py-4 text-right space-x-2">
-                                            <Button variant="ghost" size="sm" icon={Edit2} aria-label="Edit geofence" onClick={() => openModal(fence)} />
-                                            <Button variant="danger" size="sm" icon={Trash2} aria-label="Delete geofence" onClick={() => handleDelete(fence.id)} />
+                                        <td className="px-5 py-3 text-slate-600 dark:text-slate-300 tabular-nums whitespace-nowrap">{fence.radius_meters}m</td>
+                                        <td className="px-5 py-3 text-slate-600 dark:text-slate-300">{fence.address || '—'}</td>
+                                        <td className="px-5 py-3">
+                                            <div className="flex items-center justify-end">
+                                                <div className="dv-quiet">
+                                                    <Button variant="ghost" size="sm" icon={Edit2} aria-label="Edit geofence" onClick={() => openModal(fence)} />
+                                                    <Button variant="danger" size="sm" icon={Trash2} aria-label="Delete geofence" onClick={() => handleDelete(fence.id)} />
+                                                </div>
+                                            </div>
                                         </td>
                                     </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+
+                {!loading && !loadError && filteredGeofences.length > 0 && (
+                    <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
+                        {filteredGeofences.length} location{filteredGeofences.length === 1 ? '' : 's'}
+                    </div>
+                )}
             </div>
 
             {/* Modal */}

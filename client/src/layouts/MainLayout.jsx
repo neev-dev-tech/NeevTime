@@ -96,7 +96,7 @@ export default function MainLayout({ children }) {
                       setActiveModule(mod.name);
                       if (mod.path !== '#') navigate(mod.path);
                     }}
-                    className={`px-5 py-1.5 rounded-full transition-all flex items-center gap-2 text-sm font-semibold relative ${isActive ? 'text-white' : 'text-slate-600 hover:text-orange-600'}`}
+                    className={`px-5 py-1.5 rounded-full transition-all flex items-center gap-2 text-sm font-semibold relative ${isActive ? 'text-white' : 'text-slate-600 hover:text-orange-600 dark:text-slate-300 dark:hover:text-orange-400'}`}
                   >
                     {isActive && (
                       <motion.div 

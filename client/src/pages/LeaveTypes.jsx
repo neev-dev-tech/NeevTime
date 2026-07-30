@@ -1,22 +1,30 @@
 import React, { useEffect, useState } from 'react';
-import { FileText, Plus, Trash2, X } from 'lucide-react';
+import { FileText, Plus, Trash2, X, AlertCircle, RefreshCw } from 'lucide-react';
 import api from '../api';
 import { Button, PageHeader, useToast } from '../components';
 
 const DEFAULT_FORM = { code: '', name: '', annual_quota: 12, carry_forward: false, color: '#3b82f6' };
+const BADGE_BASE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide';
 
 export default function LeaveTypes() {
     const toast = useToast();
     const [types, setTypes] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [form, setForm] = useState(DEFAULT_FORM);
 
     const fetchTypes = async () => {
+        setLoading(true);
+        setError(null);
         try {
             const res = await api.get('/api/leave-types');
             setTypes(res.data || []);
         } catch (err) {
+            setError(err.response?.data?.error || 'Could not load leave types');
             toast.error('Failed to load leave types');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -55,72 +63,129 @@ export default function LeaveTypes() {
                 actions={<Button variant="successSolid" icon={Plus} onClick={() => setShowModal(true)}>Add Leave Type</Button>}
             />
 
-            <div className="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm overflow-hidden">
-                <table className="w-full text-sm text-left">
-                    <thead className="bg-slate-50 dark:bg-slate-900/50 text-xs uppercase text-slate-500 dark:text-slate-400">
-                        <tr>
-                            <th className="px-6 py-3">Code</th>
-                            <th className="px-6 py-3">Name</th>
-                            <th className="px-6 py-3">Annual Quota</th>
-                            <th className="px-6 py-3">Carry Forward</th>
-                            <th className="px-6 py-3">Color</th>
-                            <th className="px-6 py-3 text-right">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y dark:divide-slate-700">
-                        {types.length === 0 ? (
-                            <tr><td colSpan={6} className="px-6 py-10 text-center text-slate-400">No leave types defined</td></tr>
-                        ) : types.map(t => (
-                            <tr key={t.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
-                                <td className="px-6 py-3 font-mono font-bold text-slate-700 dark:text-slate-300">{t.code}</td>
-                                <td className="px-6 py-3 font-medium text-slate-800 dark:text-slate-100">{t.name}</td>
-                                <td className="px-6 py-3">{t.annual_quota}</td>
-                                <td className="px-6 py-3">{t.carry_forward ? 'Yes' : 'No'}</td>
-                                <td className="px-6 py-3">
-                                    <span className="inline-block w-5 h-5 rounded-full border dark:border-slate-700" style={{ backgroundColor: t.color }} />
-                                </td>
-                                <td className="px-6 py-3 text-right">
-                                    <Button variant="danger" size="sm" icon={Trash2} aria-label="Delete leave type" onClick={() => handleDelete(t.id)} />
-                                </td>
-                            </tr>
+            <div className="card-base !p-0 overflow-hidden">
+                {loading ? (
+                    <div className="p-6 space-y-3">
+                        {Array.from({ length: 6 }).map((_, i) => (
+                            <div key={i} className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
                         ))}
-                    </tbody>
-                </table>
+                    </div>
+                ) : error ? (
+                    <div className="py-16 text-center">
+                        <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load leave types</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <Button variant="secondary" icon={RefreshCw} onClick={fetchTypes}>Try again</Button>
+                    </div>
+                ) : types.length === 0 ? (
+                    <div className="py-16 text-center">
+                        <FileText size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No leave types defined</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            Add a leave type to set the annual quota employees can draw from.
+                        </p>
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left">
+                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">
+                                <tr>
+                                    <th className="px-5 py-3 font-bold w-12">#</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Code</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Name</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Annual Quota</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Carry Forward</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Color</th>
+                                    <th className="px-5 py-3 font-bold text-right whitespace-nowrap">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                                {types.map((t, idx) => (
+                                    <tr key={t.id} className="hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{idx + 1}</td>
+                                        <td className="px-5 py-3 whitespace-nowrap">
+                                            <span className="font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold">
+                                                {t.code || '—'}
+                                            </span>
+                                        </td>
+                                        <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">
+                                            {t.name || '—'}
+                                        </td>
+                                        <td className="px-5 py-3 text-slate-600 dark:text-slate-300 tabular-nums">
+                                            {t.annual_quota ?? '—'}
+                                        </td>
+                                        <td className="px-5 py-3 whitespace-nowrap">
+                                            <span className={`${BADGE_BASE} ${t.carry_forward
+                                                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
+                                                : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'}`}>
+                                                {t.carry_forward ? 'Yes' : 'No'}
+                                            </span>
+                                        </td>
+                                        <td className="px-5 py-3 whitespace-nowrap">
+                                            <span className="inline-flex items-center gap-2">
+                                                <span
+                                                    className="inline-block w-4 h-4 rounded-full ring-1 ring-black/5 dark:ring-white/10"
+                                                    style={{ backgroundColor: t.color || 'transparent' }}
+                                                />
+                                                <span className="font-mono text-xs text-slate-600 dark:text-slate-300">
+                                                    {t.color || '—'}
+                                                </span>
+                                            </span>
+                                        </td>
+                                        <td className="px-5 py-3">
+                                            <div className="flex items-center justify-end">
+                                                <div className="dv-quiet">
+                                                    <Button variant="danger" size="sm" icon={Trash2} aria-label="Delete leave type" onClick={() => handleDelete(t.id)} />
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+
+                {!loading && !error && types.length > 0 && (
+                    <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
+                        {types.length} record{types.length === 1 ? '' : 's'}
+                    </div>
+                )}
             </div>
 
             {showModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-sm">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">Add Leave Type</h3>
-                            <Button variant="ghost" size="sm" icon={X} aria-label="Close" onClick={() => setShowModal(false)} />
+                <div className="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4">
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-sm border border-white/50 dark:border-slate-700">
+                        <div className="flex items-center justify-between p-4 border-b dark:border-slate-700">
+                            <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Add Leave Type</h3>
+                            <Button variant="ghost" size="sm" icon={X} iconSize={20} aria-label="Close" onClick={() => setShowModal(false)} />
                         </div>
-                        <form onSubmit={handleSubmit} className="space-y-4">
+                        <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             <div className="flex gap-3">
                                 <div className="w-24">
-                                    <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">Code</label>
-                                    <input type="text" value={form.code} onChange={e => setForm(f => ({ ...f, code: e.target.value.toUpperCase() }))} className="input-base" placeholder="CL" required />
+                                    <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">Code</label>
+                                    <input type="text" value={form.code} onChange={e => setForm(f => ({ ...f, code: e.target.value.toUpperCase() }))} className="input-base font-mono dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100" placeholder="CL" required />
                                 </div>
                                 <div className="flex-1">
-                                    <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">Name</label>
-                                    <input type="text" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className="input-base" placeholder="Casual Leave" required />
+                                    <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">Name</label>
+                                    <input type="text" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className="input-base dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100" placeholder="Casual Leave" required />
                                 </div>
                             </div>
                             <div className="flex gap-3 items-end">
                                 <div className="flex-1">
-                                    <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">Annual Quota (days)</label>
-                                    <input type="number" min="0" value={form.annual_quota} onChange={e => setForm(f => ({ ...f, annual_quota: parseInt(e.target.value) || 0 }))} className="input-base" required />
+                                    <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">Annual Quota (days)</label>
+                                    <input type="number" min="0" value={form.annual_quota} onChange={e => setForm(f => ({ ...f, annual_quota: parseInt(e.target.value) || 0 }))} className="input-base tabular-nums dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100" required />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">Color</label>
-                                    <input type="color" value={form.color} onChange={e => setForm(f => ({ ...f, color: e.target.value }))} className="h-10 w-14 border dark:border-slate-600 rounded-lg cursor-pointer" />
+                                    <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">Color</label>
+                                    <input type="color" value={form.color} onChange={e => setForm(f => ({ ...f, color: e.target.value }))} className="h-10 w-14 border border-slate-200 dark:border-slate-600 rounded-lg cursor-pointer" />
                                 </div>
                             </div>
-                            <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                            <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
                                 <input type="checkbox" checked={form.carry_forward} onChange={e => setForm(f => ({ ...f, carry_forward: e.target.checked }))} />
                                 Unused days carry forward to next year
                             </label>
-                            <div className="flex justify-end gap-3 pt-2">
+                            <div className="flex justify-end gap-3 pt-4 border-t dark:border-slate-700">
                                 <Button type="button" variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
                                 <Button type="submit" variant="primary">Save</Button>
                             </div>

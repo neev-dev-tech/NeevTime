@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api';
-import { Calendar, Plus, Check, X, User, Search, RefreshCw, ChevronDown } from 'lucide-react';
+import { Calendar, Plus, Check, X, Search, RefreshCw, ChevronDown, AlertCircle } from 'lucide-react';
 import { useToast, Button, PageHeader, ExportMenu } from '../components';
+
+const BADGE_BASE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide';
 
 export default function LeaveApplications() {
     const toast = useToast();
@@ -9,6 +11,8 @@ export default function LeaveApplications() {
     const [filteredApps, setFilteredApps] = useState([]);
     const [leaveTypes, setLeaveTypes] = useState([]);
     const [employees, setEmployees] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [showApply, setShowApply] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
@@ -21,6 +25,8 @@ export default function LeaveApplications() {
     }, []);
 
     const fetchData = async () => {
+        setLoading(true);
+        setError(null);
         try {
             const [apps, types, emps] = await Promise.all([
                 api.get('/api/leave-applications'),
@@ -31,7 +37,12 @@ export default function LeaveApplications() {
             setFilteredApps(apps.data);
             setLeaveTypes(types.data);
             setEmployees(emps.data);
-        } catch (err) { console.error(err); }
+        } catch (err) {
+            console.error(err);
+            setError(err.response?.data?.error || 'Could not load leave applications');
+        } finally {
+            setLoading(false);
+        }
     };
 
     useEffect(() => {
@@ -63,8 +74,16 @@ export default function LeaveApplications() {
     };
 
     const getStatusBadge = (status) => {
-        const colors = { 'Pending': 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300', 'Approved': 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300', 'Rejected': 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' };
-        return <span className={`px-2 py-0.5 rounded text-xs font-medium ${colors[status] || 'bg-slate-100 dark:bg-slate-700'}`}>{status}</span>;
+        const colors = {
+            'Pending': 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
+            'Approved': 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
+            'Rejected': 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300'
+        };
+        return (
+            <span className={`${BADGE_BASE} ${colors[status] || 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'}`}>
+                {status || '—'}
+            </span>
+        );
     };
 
     const exportColumns = [
@@ -76,8 +95,10 @@ export default function LeaveApplications() {
         { key: 'status', label: 'Status' }
     ];
 
+    const isFiltered = Boolean(searchQuery) || statusFilter !== 'All';
+
     return (
-        <div className="flex flex-col h-[calc(100vh-120px)]">
+        <div className="space-y-6">
             <PageHeader
                 icon={Calendar}
                 title="Leave Applications"
@@ -100,21 +121,21 @@ export default function LeaveApplications() {
                     </>
                 }
             />
-            <div className="flex flex-col flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm rounded-md overflow-hidden relative">
+
             {/* Toolbar */}
-            <div className="flex items-center gap-2 p-2 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-sm flex-wrap">
+            <div className="flex items-center gap-2 p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 text-sm flex-wrap">
                 <div className="relative">
                     <select
                         value={statusFilter}
                         onChange={e => setStatusFilter(e.target.value)}
-                        className="appearance-none pl-3 pr-8 py-1.5 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 rounded text-slate-700 dark:text-slate-300 cursor-pointer text-sm font-medium focus:outline-none"
+                        className="appearance-none pl-3 pr-8 py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm font-semibold text-slate-700 dark:text-slate-100 cursor-pointer focus:outline-none focus:border-orange-400 dark:focus:border-orange-500"
                     >
                         <option value="All">All Status</option>
                         <option value="Pending">Pending</option>
                         <option value="Approved">Approved</option>
                         <option value="Rejected">Rejected</option>
                     </select>
-                    <ChevronDown size={14} className="absolute right-2 top-2.5 text-slate-500 dark:text-slate-400 pointer-events-none" />
+                    <ChevronDown size={14} className="absolute right-2.5 top-2.5 text-slate-400 dark:text-slate-500 pointer-events-none" />
                 </div>
 
                 <div className="ml-auto w-64 relative">
@@ -123,107 +144,158 @@ export default function LeaveApplications() {
                         placeholder="Search employee..."
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
-                        className="w-full pl-8 pr-3 py-1.5 border dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 rounded text-sm focus:outline-none focus:border-orange-400"
+                        className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-orange-400 dark:focus:border-orange-500"
                     />
-                    <Search size={14} className="absolute left-2.5 top-2 text-slate-400" />
+                    <Search size={14} className="absolute left-2.5 top-2 text-slate-400 dark:text-slate-500" />
                 </div>
             </div>
 
             {/* Applications Table */}
-            <div className="flex-1 overflow-auto bg-white dark:bg-slate-800">
-                <table className="w-full text-sm text-left border-collapse">
-                    <thead className="bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 sticky top-0 z-10">
-                        <tr>
-                            <th className="p-3 border-b border-r dark:border-slate-700 font-semibold">Employee</th>
-                            <th className="p-3 border-b border-r dark:border-slate-700 font-semibold">Leave Type</th>
-                            <th className="p-3 border-b border-r dark:border-slate-700 font-semibold text-center">From</th>
-                            <th className="p-3 border-b border-r dark:border-slate-700 font-semibold text-center">To</th>
-                            <th className="p-3 border-b border-r dark:border-slate-700 font-semibold text-center">Days</th>
-                            <th className="p-3 border-b border-r dark:border-slate-700 font-semibold text-center">Status</th>
-                            <th className="p-3 border-b dark:border-slate-700 font-semibold text-center">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-50 dark:divide-slate-700">
-                        {filteredApps.map(app => (
-                            <tr key={app.id} className="hover:bg-orange-50 dark:hover:bg-slate-700">
-                                <td className="p-3 border-r dark:border-slate-700 flex items-center gap-2 font-medium text-slate-900 dark:text-slate-100">
-                                    <User size={16} className="text-slate-400" /> {app.employee_name}
-                                </td>
-                                <td className="p-3 border-r dark:border-slate-700">
-                                    <span className="px-2 py-0.5 rounded text-xs" style={{ backgroundColor: (app.color || '#999') + '20', color: (app.color || '#666') }}>
-                                        {app.leave_type_name}
-                                    </span>
-                                </td>
-                                <td className="p-3 border-r dark:border-slate-700 text-center text-slate-600 dark:text-slate-400">{new Date(app.from_date).toLocaleDateString()}</td>
-                                <td className="p-3 border-r dark:border-slate-700 text-center text-slate-600 dark:text-slate-400">{new Date(app.to_date).toLocaleDateString()}</td>
-                                <td className="p-3 border-r dark:border-slate-700 text-center text-slate-600 dark:text-slate-400">{app.total_days}</td>
-                                <td className="p-3 border-r dark:border-slate-700 text-center">{getStatusBadge(app.status)}</td>
-                                <td className="p-3 text-center">
-                                    {app.status === 'Pending' && (
-                                        <div className="flex justify-center gap-1">
-                                            <Button variant="success" size="sm" icon={Check} aria-label="Approve" title="Approve" onClick={() => handleAction(app.id, 'Approved')} />
-                                            <Button variant="danger" size="sm" icon={X} aria-label="Reject" title="Reject" onClick={() => handleAction(app.id, 'Rejected')} />
-                                        </div>
-                                    )}
-                                </td>
-                            </tr>
+            <div className="card-base !p-0 overflow-hidden">
+                {loading ? (
+                    <div className="p-6 space-y-3">
+                        {Array.from({ length: 8 }).map((_, i) => (
+                            <div key={i} className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
                         ))}
-                        {filteredApps.length === 0 && (
-                            <tr>
-                                <td colSpan={7} className="p-8 text-center text-slate-400">
-                                    No applications found matching your filters.
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
+                    </div>
+                ) : error ? (
+                    <div className="py-16 text-center">
+                        <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load leave applications</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <Button variant="secondary" icon={RefreshCw} onClick={fetchData}>Try again</Button>
+                    </div>
+                ) : filteredApps.length === 0 ? (
+                    <div className="py-16 text-center">
+                        <Calendar size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">
+                            {isFiltered ? 'No matching applications' : 'No leave applications yet'}
+                        </h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            {isFiltered
+                                ? 'Nothing matches the current filters. Clear the search or pick another status.'
+                                : 'Apply for leave on behalf of an employee to see requests here.'}
+                        </p>
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left">
+                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">
+                                <tr>
+                                    <th className="px-5 py-3 font-bold w-12">#</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Employee</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Leave Type</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">From</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">To</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Days</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Status</th>
+                                    <th className="px-5 py-3 font-bold text-right whitespace-nowrap">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                                {filteredApps.map((app, idx) => (
+                                    <tr key={app.id} className="hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{idx + 1}</td>
+                                        <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">
+                                            {app.employee_name || '—'}
+                                        </td>
+                                        <td className="px-5 py-3 whitespace-nowrap">
+                                            {app.leave_type_name ? (
+                                                <span
+                                                    className={BADGE_BASE}
+                                                    style={{ backgroundColor: (app.color || '#94a3b8') + '20', color: (app.color || '#64748b') }}
+                                                >
+                                                    {app.leave_type_name}
+                                                </span>
+                                            ) : (
+                                                <span className="text-slate-600 dark:text-slate-300">—</span>
+                                            )}
+                                        </td>
+                                        <td className="px-5 py-3 whitespace-nowrap text-slate-600 dark:text-slate-300 tabular-nums">
+                                            {app.from_date ? new Date(app.from_date).toLocaleDateString() : '—'}
+                                        </td>
+                                        <td className="px-5 py-3 whitespace-nowrap text-slate-600 dark:text-slate-300 tabular-nums">
+                                            {app.to_date ? new Date(app.to_date).toLocaleDateString() : '—'}
+                                        </td>
+                                        <td className="px-5 py-3 whitespace-nowrap text-slate-600 dark:text-slate-300 tabular-nums">
+                                            {app.total_days ?? '—'}
+                                        </td>
+                                        <td className="px-5 py-3 whitespace-nowrap">{getStatusBadge(app.status)}</td>
+                                        <td className="px-5 py-3">
+                                            <div className="flex items-center justify-end">
+                                                {app.status === 'Pending' ? (
+                                                    <div className="dv-quiet flex items-center gap-1">
+                                                        <Button variant="success" size="sm" icon={Check} aria-label="Approve" title="Approve" onClick={() => handleAction(app.id, 'Approved')} />
+                                                        <Button variant="danger" size="sm" icon={X} aria-label="Reject" title="Reject" onClick={() => handleAction(app.id, 'Rejected')} />
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-slate-400 dark:text-slate-500">—</span>
+                                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+
+                {!loading && !error && filteredApps.length > 0 && (
+                    <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
+                        {filteredApps.length} record{filteredApps.length === 1 ? '' : 's'}
+                    </div>
+                )}
             </div>
 
             {/* Apply Modal */}
             {showApply && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <form onSubmit={handleApply} className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-lg p-6 space-y-4">
-                        <h3 className="font-bold text-lg">Apply Leave</h3>
-                        <div>
-                            <label className="block text-sm font-medium mb-1">Employee</label>
-                            <select required className="w-full border dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 rounded-lg px-3 py-2" value={form.employee_code} onChange={e => setForm({ ...form, employee_code: e.target.value })}>
-                                <option value="">Select Employee</option>
-                                {employees.map(e => <option key={e.employee_code} value={e.employee_code}>{e.name} ({e.employee_code})</option>)}
-                            </select>
+                <div className="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4">
+                    <form onSubmit={handleApply} className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-lg border border-white/50 dark:border-slate-700">
+                        <div className="flex items-center justify-between p-4 border-b dark:border-slate-700">
+                            <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Apply Leave</h2>
+                            <Button variant="ghost" size="sm" icon={X} iconSize={20} aria-label="Close" onClick={() => setShowApply(false)} />
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium mb-1">Leave Type</label>
-                            <select required className="w-full border dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 rounded-lg px-3 py-2" value={form.leave_type_id} onChange={e => setForm({ ...form, leave_type_id: e.target.value })}>
-                                <option value="">Select Type</option>
-                                {leaveTypes.map(lt => <option key={lt.id} value={lt.id}>{lt.name}</option>)}
-                            </select>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="p-6 space-y-4">
                             <div>
-                                <label className="block text-sm font-medium mb-1">From Date</label>
-                                <input type="date" required className="w-full border dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 rounded-lg px-3 py-2" value={form.from_date} onChange={e => setForm({ ...form, from_date: e.target.value })} />
+                                <label className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">Employee</label>
+                                <select required className="w-full px-3 py-2 border rounded-lg border-slate-200 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100" value={form.employee_code} onChange={e => setForm({ ...form, employee_code: e.target.value })}>
+                                    <option value="">Select Employee</option>
+                                    {employees.map(e => <option key={e.employee_code} value={e.employee_code}>{e.name} ({e.employee_code})</option>)}
+                                </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-1">To Date</label>
-                                <input type="date" required className="w-full border dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 rounded-lg px-3 py-2" value={form.to_date} onChange={e => setForm({ ...form, to_date: e.target.value })} />
+                                <label className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">Leave Type</label>
+                                <select required className="w-full px-3 py-2 border rounded-lg border-slate-200 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100" value={form.leave_type_id} onChange={e => setForm({ ...form, leave_type_id: e.target.value })}>
+                                    <option value="">Select Type</option>
+                                    {leaveTypes.map(lt => <option key={lt.id} value={lt.id}>{lt.name}</option>)}
+                                </select>
                             </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <input type="checkbox" id="halfDay" checked={form.is_half_day} onChange={e => setForm({ ...form, is_half_day: e.target.checked })} />
-                            <label htmlFor="halfDay" className="text-sm">Half Day</label>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium mb-1">Reason</label>
-                            <textarea required className="w-full border dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 rounded-lg px-3 py-2" rows={2} value={form.reason} onChange={e => setForm({ ...form, reason: e.target.value })} />
-                        </div>
-                        <div className="flex justify-end gap-3 pt-2">
-                            <Button variant="secondary" onClick={() => setShowApply(false)}>Cancel</Button>
-                            <Button variant="primary" type="submit">Submit</Button>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">From Date</label>
+                                    <input type="date" required className="w-full px-3 py-2 border rounded-lg border-slate-200 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100" value={form.from_date} onChange={e => setForm({ ...form, from_date: e.target.value })} />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">To Date</label>
+                                    <input type="date" required className="w-full px-3 py-2 border rounded-lg border-slate-200 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100" value={form.to_date} onChange={e => setForm({ ...form, to_date: e.target.value })} />
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <input type="checkbox" id="halfDay" checked={form.is_half_day} onChange={e => setForm({ ...form, is_half_day: e.target.checked })} />
+                                <label htmlFor="halfDay" className="text-sm text-slate-700 dark:text-slate-300">Half Day</label>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">Reason</label>
+                                <textarea required className="w-full px-3 py-2 border rounded-lg border-slate-200 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100" rows={2} value={form.reason} onChange={e => setForm({ ...form, reason: e.target.value })} />
+                            </div>
+                            <div className="flex justify-end gap-3 pt-4 border-t dark:border-slate-700">
+                                <Button variant="secondary" onClick={() => setShowApply(false)}>Cancel</Button>
+                                <Button variant="primary" type="submit">Submit</Button>
+                            </div>
                         </div>
                     </form>
                 </div>
             )}
-            </div>
         </div>
     );
 }

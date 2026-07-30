@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Save, RefreshCw, Send, Loader2, Building, Timer, CalendarDays, Mail, ShieldCheck, MessageCircle, PhoneCall, BarChart3, FileCheck, Settings as SettingsIcon } from 'lucide-react';
+import { Save, RefreshCw, Send, Loader2, AlertCircle, Building, Timer, CalendarDays, Mail, ShieldCheck, MessageCircle, PhoneCall, BarChart3, FileCheck, Settings as SettingsIcon } from 'lucide-react';
 import api from '../api';
 import { Button, PageHeader, useToast } from '../components';
 
 const CATEGORIES = [
-    { id: 'company', label: 'Company', icon: Building, iconColor: '#3B82F6' },
-    { id: 'attendance', label: 'Attendance Rules', icon: Timer, iconColor: '#F97316' },
-    { id: 'weekend', label: 'Weekend Rules', icon: CalendarDays, iconColor: '#8B5CF6' },
-    { id: 'notifications', label: 'Email/SMTP', icon: Mail, iconColor: '#10B981' },
-    { id: 'security', label: 'Security', icon: ShieldCheck, iconColor: '#EF4444' },
-    { id: 'whatsapp', label: 'WhatsApp', icon: MessageCircle, iconColor: '#25D366' },
-    { id: 'sms', label: 'SMS', icon: PhoneCall, iconColor: '#3B82F6' },
-    { id: 'reports', label: 'Auto Reports', icon: BarChart3, iconColor: '#10B981' },
-    { id: 'pdf', label: 'PDF Settings', icon: FileCheck, iconColor: '#F59E0B' },
+    { id: 'company', label: 'Company', icon: Building, iconClass: 'text-blue-500 dark:text-blue-400' },
+    { id: 'attendance', label: 'Attendance Rules', icon: Timer, iconClass: 'text-orange-500 dark:text-orange-400' },
+    { id: 'weekend', label: 'Weekend Rules', icon: CalendarDays, iconClass: 'text-violet-500 dark:text-violet-400' },
+    { id: 'notifications', label: 'Email/SMTP', icon: Mail, iconClass: 'text-emerald-500 dark:text-emerald-400' },
+    { id: 'security', label: 'Security', icon: ShieldCheck, iconClass: 'text-rose-500 dark:text-rose-400' },
+    { id: 'whatsapp', label: 'WhatsApp', icon: MessageCircle, iconClass: 'text-green-500 dark:text-green-400' },
+    { id: 'sms', label: 'SMS', icon: PhoneCall, iconClass: 'text-blue-500 dark:text-blue-400' },
+    { id: 'reports', label: 'Auto Reports', icon: BarChart3, iconClass: 'text-emerald-500 dark:text-emerald-400' },
+    { id: 'pdf', label: 'PDF Settings', icon: FileCheck, iconClass: 'text-amber-500 dark:text-amber-400' },
 ];
 
 export default function Settings() {
@@ -20,6 +20,7 @@ export default function Settings() {
     const [activeTab, setActiveTab] = useState('company');
     const [settings, setSettings] = useState({});
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [saving, setSaving] = useState(false);
     const [formData, setFormData] = useState({});
     const [testEmail, setTestEmail] = useState('');
@@ -43,7 +44,9 @@ export default function Settings() {
                 });
                 setFormData(tabData);
             }
+            setError(null);
         } catch (err) {
+            setError(err.response?.data?.error || 'Failed to load settings');
             showToast('Failed to load settings', 'error');
         } finally {
             setLoading(false);
@@ -155,7 +158,7 @@ export default function Settings() {
 
         if (config.data_type === 'boolean') {
             return (
-                <label key={key} className="flex items-center justify-between p-4 rounded-[12px] transition-colors border dark:border-slate-700 group hover:border-orange-200 dark:hover:border-orange-800 hover:shadow-sm cursor-pointer" style={{ backgroundColor: '#F8FAFC', borderColor: '#E5E7EB' }}>
+                <label key={key} className="flex items-center justify-between p-4 rounded-xl transition-colors border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900/50 group hover:border-orange-200 dark:hover:border-orange-800 hover:shadow-sm cursor-pointer">
                     <div className="flex-1">
                         <span className="font-medium block mb-1 text-slate-700 dark:text-slate-300 group-hover:text-orange-700 dark:group-hover:text-orange-300 transition-colors">{label}</span>
                         {config.description && (
@@ -231,11 +234,49 @@ export default function Settings() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <Loader2 className="w-8 h-8 animate-spin text-saffron" />
+            <div className="space-y-6">
+                <PageHeader
+                    icon={SettingsIcon}
+                    title="Settings"
+                    subtitle="Configure your application preferences"
+                />
+                <div className="card-base !p-0 overflow-hidden">
+                    <div className="flex gap-1.5 p-2 bg-slate-50/70 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700">
+                        {CATEGORIES.slice(0, 6).map(cat => (
+                            <div key={cat.id} className="h-9 w-28 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
+                        ))}
+                    </div>
+                    <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6 bg-white/70 dark:bg-slate-800/70">
+                        {Array.from({ length: 8 }).map((_, i) => (
+                            <div key={i} className="h-16 rounded-xl bg-slate-100 dark:bg-slate-700 animate-pulse" />
+                        ))}
+                    </div>
+                </div>
             </div>
         );
     }
+
+    if (error) {
+        return (
+            <div className="space-y-6">
+                <PageHeader
+                    icon={SettingsIcon}
+                    title="Settings"
+                    subtitle="Configure your application preferences"
+                />
+                <div className="card-base !p-0 overflow-hidden">
+                    <div className="py-16 text-center">
+                        <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load settings</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <Button variant="secondary" icon={RefreshCw} onClick={fetchSettings}>Try again</Button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    const sortedSettings = getSortedSettings();
 
     return (
         <div className="space-y-6">
@@ -246,9 +287,9 @@ export default function Settings() {
             />
 
             {/* Tabs + Content */}
-            <div className="card-premium overflow-hidden">
-                {/* Tab Navigation */}
-                <div className="flex border-b border-slate-200 dark:border-slate-700 overflow-x-auto custom-scrollbar" style={{ backgroundColor: '#F8FAFC' }}>
+            <div className="card-base !p-0 overflow-hidden">
+                {/* Tab Navigation — pill segmented control */}
+                <div className="flex gap-1.5 p-2 border-b border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900/50 overflow-x-auto custom-scrollbar">
                     {CATEGORIES.map(cat => {
                         const Icon = cat.icon;
                         const isActive = activeTab === cat.id;
@@ -256,23 +297,12 @@ export default function Settings() {
                             <button
                                 key={cat.id}
                                 onClick={() => setActiveTab(cat.id)}
-                                className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold whitespace-nowrap transition-all border-b-2 ${isActive
-                                    ? 'border-saffron text-saffron bg-white dark:bg-slate-800'
-                                    : 'border-transparent hover:bg-white/50 dark:hover:bg-slate-700/50'
+                                className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors border ${isActive
+                                    ? 'bg-orange-600 text-white border-transparent shadow-sm'
+                                    : 'bg-white/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-orange-300 hover:text-orange-600 dark:hover:text-orange-400'
                                     }`}
-                                style={{
-                                    transition: 'all 200ms cubic-bezier(0.25, 0.8, 0.25, 1)',
-                                    color: isActive ? '#C2410C' : '#1E293B',
-                                    fontWeight: 600
-                                }}
                             >
-                                <Icon
-                                    size={18}
-                                    style={{
-                                        color: isActive ? '#C2410C' : (cat.iconColor || '#1E293B'),
-                                        transition: 'all 200ms cubic-bezier(0.25, 0.8, 0.25, 1)'
-                                    }}
-                                />
+                                <Icon size={15} className={isActive ? 'text-white' : cat.iconClass} />
                                 {cat.label}
                             </button>
                         );
@@ -280,17 +310,27 @@ export default function Settings() {
                 </div>
 
                 {/* Tab Content */}
-                <div className="p-6" style={{ backgroundColor: '#FFFFFF' }}>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {getSortedSettings().map(([key, config]) =>
-                            renderInput(key, config)
-                        )}
-                    </div>
+                <div className="p-6 bg-white/70 dark:bg-slate-800/70">
+                    {sortedSettings.length === 0 ? (
+                        <div className="py-12 text-center">
+                            <SettingsIcon size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                            <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Nothing to configure here</h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                                This section has no settings defined yet.
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {sortedSettings.map(([key, config]) =>
+                                renderInput(key, config)
+                            )}
+                        </div>
+                    )}
 
                     {/* SMTP test — only on the Email tab */}
                     {activeTab === 'notifications' && (
-                        <div className="mt-6 p-4 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl">
-                            <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Test email delivery</p>
+                        <div className="mt-6 p-4 bg-slate-50/70 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl">
+                            <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 mb-1">Test email delivery</p>
                             <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">Save your SMTP settings first, then send a test message.</p>
                             <div className="flex gap-2 flex-wrap">
                                 <input
@@ -298,7 +338,7 @@ export default function Settings() {
                                     value={testEmail}
                                     onChange={e => setTestEmail(e.target.value)}
                                     placeholder="recipient@example.com"
-                                    className="flex-1 min-w-[220px] text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg px-3 py-2"
+                                    className="flex-1 min-w-[220px] text-sm rounded-lg px-3 py-2 border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-orange-400 dark:focus:border-orange-500"
                                 />
                                 <Button variant="dark" icon={Send} onClick={handleTestEmail} disabled={testingEmail}>
                                     {testingEmail ? 'Sending...' : 'Send Test Email'}

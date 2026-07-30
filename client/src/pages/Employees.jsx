@@ -763,15 +763,8 @@ export default function Employees() {
             {
                 showAddModal && (
                     <div className="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4">
-                        <div className="rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden border" style={{ 
-                            borderRadius: '16px',
-                            background: 'linear-gradient(135deg, #FFFFFF 0%, #FFFBF5 100%)',
-                            borderColor: '#FED7AA'
-                        }}>
-                            <div className="px-8 py-5 border-b flex justify-between items-center" style={{ 
-                                background: 'linear-gradient(135deg, #FFF7ED 0%, #FFFFFF 100%)',
-                                borderColor: '#FED7AA'
-                            }}>
+                        <div className="rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700" style={{ borderRadius: '16px' }}>
+                            <div className="px-8 py-5 border-b flex justify-between items-center bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
                                 <h3 className="font-semibold text-xl text-slate-800 dark:text-slate-100">Add Employee</h3>
                             <Button variant="ghost" size="sm" icon={X} iconSize={20} aria-label="Close" onClick={() => setShowAddModal(false)} />
                         </div>
@@ -916,15 +909,8 @@ export default function Employees() {
             {
                 showImportModal && (
                     <div className="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4">
-                        <div className="rounded-2xl shadow-xl w-full max-w-lg p-0 overflow-hidden border" style={{ 
-                            borderRadius: '16px',
-                            background: 'linear-gradient(135deg, #FFFFFF 0%, #FFFBF5 100%)',
-                            borderColor: '#FED7AA'
-                        }}>
-                            <div className="flex justify-between items-center p-5 border-b" style={{ 
-                                background: 'linear-gradient(135deg, #FFF7ED 0%, #FFFBF5 100%)',
-                                borderColor: '#FED7AA'
-                            }}>
+                        <div className="rounded-2xl shadow-xl w-full max-w-lg p-0 overflow-hidden border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700" style={{ borderRadius: '16px' }}>
+                            <div className="flex justify-between items-center p-5 border-b bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
                                 <h3 className="font-semibold text-xl text-slate-800 dark:text-slate-100">Import Employees</h3>
                             <Button variant="ghost" size="sm" icon={X} iconSize={20} aria-label="Close" onClick={() => setShowImportModal(false)} />
                         </div>
@@ -956,11 +942,7 @@ export default function Employees() {
             {
                 showTransferModal && (
                     <div className="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4">
-                        <div className="rounded-2xl shadow-xl w-full max-w-md p-6 border" style={{ 
-                            borderRadius: '16px',
-                            background: 'linear-gradient(135deg, #FFFFFF 0%, #FFFBF5 100%)',
-                            borderColor: '#FED7AA'
-                        }}>
+                        <div className="rounded-2xl shadow-xl w-full max-w-md p-6 border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700" style={{ borderRadius: '16px' }}>
                         <div className="mb-6">
                             <div className="w-12 h-12 bg-orange-50 dark:bg-orange-900/30 rounded-full flex items-center justify-center mb-4">
                                 <ArrowRightLeft className="text-saffron" size={24} />
@@ -1020,11 +1002,7 @@ export default function Employees() {
             {
                 showDeleteModal && (
                     <div className="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4">
-                        <div className="rounded-2xl shadow-xl w-full max-w-sm p-6 text-center border" style={{ 
-                            borderRadius: '16px',
-                            background: 'linear-gradient(135deg, #FFFFFF 0%, #FFFBF5 100%)',
-                            borderColor: '#FED7AA'
-                        }}>
+                        <div className="rounded-2xl shadow-xl w-full max-w-sm p-6 text-center border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700" style={{ borderRadius: '16px' }}>
                         <div className="mx-auto w-16 h-16 bg-red-50 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-6 shadow-sm">
                             <Trash2 className="text-red-500 dark:text-red-400" size={32} />
                         </div>
@@ -1057,11 +1035,7 @@ export default function Employees() {
             {
                 showConfirmModal && (
                     <div className="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4">
-                        <div className="rounded-2xl shadow-xl w-full max-w-md p-6 border" style={{ 
-                            borderRadius: '16px',
-                            background: 'linear-gradient(135deg, #FFFFFF 0%, #FFFBF5 100%)',
-                            borderColor: '#FED7AA'
-                        }}>
+                        <div className="rounded-2xl shadow-xl w-full max-w-md p-6 border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700" style={{ borderRadius: '16px' }}>
                         <div className="mb-6">
                             <div className="w-12 h-12 bg-orange-50 dark:bg-orange-900/30 rounded-full flex items-center justify-center mb-4">
                                 <Settings className="text-saffron" size={24} />
