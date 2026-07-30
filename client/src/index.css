@@ -3361,3 +3361,63 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .dv-ping, .dv-dot.on { animation: none; }
 }
+
+/* ---- device command tiles ---- */
+.cmd-tile {
+  display: flex; align-items: center; gap: 11px;
+  padding: 11px 13px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  text-align: left;
+  transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+}
+.dark .cmd-tile { background: rgba(19, 19, 21, 0.5); border-color: rgba(255, 255, 255, 0.08); }
+
+.cmd-tile:hover:not(:disabled) {
+  transform: translateY(-2px);
+  border-color: rgba(249, 115, 22, 0.45);
+  box-shadow: 0 10px 24px -12px rgba(249, 115, 22, 0.45);
+  background: rgba(255, 255, 255, 0.8);
+}
+.dark .cmd-tile:hover:not(:disabled) { background: rgba(28, 28, 31, 0.8); }
+
+.cmd-tile:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.cmd-tile--danger:hover:not(:disabled) {
+  border-color: rgba(225, 29, 72, 0.45);
+  box-shadow: 0 10px 24px -12px rgba(225, 29, 72, 0.45);
+}
+
+.cmd-tile__icon {
+  width: 34px; height: 34px;
+  border-radius: 10px;
+  display: grid; place-items: center;
+  flex-shrink: 0;
+}
+.cmd-tile__icon--blue   { background: rgba(59, 130, 246, 0.12);  color: #2563EB; }
+.cmd-tile__icon--green  { background: rgba(16, 185, 129, 0.13);  color: #059669; }
+.cmd-tile__icon--amber  { background: rgba(245, 158, 11, 0.14);  color: #D97706; }
+.cmd-tile__icon--red    { background: rgba(225, 29, 72, 0.12);   color: #E11D48; }
+.cmd-tile__icon--purple { background: rgba(139, 92, 246, 0.13);  color: #7C3AED; }
+.dark .cmd-tile__icon--blue   { color: #93C5FD; }
+.dark .cmd-tile__icon--green  { color: #6EE7B7; }
+.dark .cmd-tile__icon--amber  { color: #FCD34D; }
+.dark .cmd-tile__icon--red    { color: #FDA4AF; }
+.dark .cmd-tile__icon--purple { color: #C4B5FD; }
+
+.cmd-tile__label {
+  display: block;
+  font-size: 12.5px; font-weight: 700;
+  color: #1E293B;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.dark .cmd-tile__label { color: #F1F5F9; }
+
+.cmd-tile__desc {
+  display: block;
+  font-size: 10.5px; font-weight: 500;
+  color: #94A3B8;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}

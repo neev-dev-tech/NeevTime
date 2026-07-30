@@ -1,156 +1,291 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Database, FileCode, Image, ArrowRightLeft, FileX, Activity, AlertCircle, Upload as UploadIcon, RefreshCw } from 'lucide-react';
+import {
+    Database, FileCode, Image, ArrowRightLeft, FileX, Activity, AlertCircle,
+    Upload as UploadIcon, RefreshCw
+} from 'lucide-react';
 import api from '../api';
-import { Button, ExportMenu } from '../components';
+import { Button, PageHeader, ExportMenu } from '../components';
 
-const VALID_VIEWS = ['work-code', 'bio-template', 'bio-photo', 'transaction', 'unregistered', 'operation-log', 'error-log', 'upload-log'];
+const fmtTime = (v) => (v ? new Date(v).toLocaleString() : '—');
+const fmtDate = (v) => (v ? new Date(v).toLocaleDateString() : '—');
+
+/**
+ * Each device-data endpoint returns a different row shape, so every view
+ * declares its own columns. `render` receives the row; `key` is a plain field.
+ */
+const VIEWS = {
+    'work-code': {
+        label: 'Work Code',
+        icon: FileCode,
+        group: 'Data',
+        blurb: 'Job and department codes stored on the devices',
+        columns: [
+            { label: 'Code', key: 'id', mono: true, accent: true },
+            { label: 'Description', key: 'details' },
+            { label: 'Updated', render: r => fmtTime(r.timestamp) }
+        ]
+    },
+    'bio-template': {
+        label: 'Bio-Template',
+        icon: Database,
+        group: 'Data',
+        blurb: 'Enrolled fingerprint and face templates',
+        columns: [
+            { label: 'Employee', render: r => r.employee_name || '—', strong: true },
+            { label: 'Code', key: 'employee_code', mono: true, accent: true },
+            { label: 'Type', render: r => r.type_name || '—', badge: true },
+            { label: 'Template #', key: 'template_no', mono: true },
+            { label: 'Valid', render: r => (r.valid ? 'Yes' : 'No') },
+            { label: 'Device', key: 'source_device', mono: true },
+            { label: 'Enrolled', render: r => fmtDate(r.created_at) }
+        ]
+    },
+    'bio-photo': {
+        label: 'Bio-Photo',
+        icon: Image,
+        group: 'Data',
+        blurb: 'Face photos captured during enrolment',
+        columns: [
+            { label: 'Employee', render: r => r.employee_name || r.employee_code || '—', strong: true },
+            { label: 'Device', key: 'device_serial', mono: true },
+            { label: 'Captured', render: r => fmtTime(r.created_at || r.timestamp) }
+        ]
+    },
+    transaction: {
+        label: 'Transaction',
+        icon: ArrowRightLeft,
+        group: 'Data',
+        blurb: 'Raw punches received from the devices',
+        columns: [
+            { label: 'Employee', render: r => r.emp_name || '—', strong: true },
+            { label: 'Code', key: 'employee_code', mono: true, accent: true },
+            { label: 'Punch Time', render: r => fmtTime(r.punch_time) },
+            { label: 'Direction', render: r => ([0, 3, 4, 8].includes(Number(r.punch_state)) ? 'IN' : 'OUT'), badge: true },
+            { label: 'Device', render: r => r.device_name || r.device_serial || '—' },
+            { label: 'Verify', key: 'verification_mode', mono: true }
+        ]
+    },
+    unregistered: {
+        label: 'Unregistered Transactions',
+        icon: FileX,
+        group: 'Data',
+        blurb: 'Punches from IDs that do not match any employee',
+        columns: [
+            { label: 'Device Code', key: 'employee_code', mono: true, accent: true },
+            { label: 'Punch Time', render: r => fmtTime(r.punch_time) },
+            { label: 'Device', render: r => r.device_name || r.device_serial || '—' }
+        ]
+    },
+    'operation-log': {
+        label: 'Operation Log',
+        icon: Activity,
+        group: 'Log',
+        blurb: 'Administrative actions performed on the devices',
+        columns: [
+            { label: 'Device', render: r => r.device_name || r.device_serial || '—', strong: true },
+            { label: 'Operation', key: 'operation_type', badge: true },
+            { label: 'Operator', key: 'operator', mono: true },
+            { label: 'Detail', render: r => r.object_value || r.details || '—' },
+            { label: 'Time', render: r => fmtTime(r.log_time) }
+        ]
+    },
+    'error-log': {
+        label: 'Error Log',
+        icon: AlertCircle,
+        group: 'Log',
+        blurb: 'Errors reported by the devices',
+        columns: [
+            { label: 'Device', render: r => r.device_name || r.device_serial || '—', strong: true },
+            { label: 'Error', render: r => r.error_code || r.error_type || '—', badge: true },
+            { label: 'Message', render: r => r.error_message || r.details || '—' },
+            { label: 'Time', render: r => fmtTime(r.log_time) }
+        ]
+    },
+    'upload-log': {
+        label: 'Upload Log',
+        icon: UploadIcon,
+        group: 'Log',
+        blurb: 'Batches uploaded by the devices',
+        columns: [
+            { label: 'Device', render: r => r.device_name || r.device_serial || '—', strong: true },
+            { label: 'Type', key: 'upload_type', badge: true },
+            { label: 'Records', key: 'record_count', mono: true },
+            { label: 'Time', render: r => fmtTime(r.log_time || r.created_at) }
+        ]
+    }
+};
+
+const VALID_VIEWS = Object.keys(VIEWS);
 
 export default function DeviceData() {
-    const [searchParams] = useSearchParams();
+    const [searchParams, setSearchParams] = useSearchParams();
     const viewParam = searchParams.get('view');
     const [activeSection, setActiveSection] = useState(
         VALID_VIEWS.includes(viewParam) ? viewParam : 'work-code'
     );
-
-    // Sidebar deep-links (/devices/data?view=...) change without a remount
-    useEffect(() => {
-        if (VALID_VIEWS.includes(viewParam)) setActiveSection(viewParam);
-    }, [viewParam]);
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
 
-    const dataSections = [
-        { id: 'work-code', label: 'Work Code', icon: FileCode, group: 'Data' },
-        { id: 'bio-template', label: 'Bio-Template', icon: Database, group: 'Data' },
-        { id: 'bio-photo', label: 'Bio-Photo', icon: Image, group: 'Data' },
-        { id: 'transaction', label: 'Transaction', icon: ArrowRightLeft, group: 'Data' },
-        { id: 'unregistered', label: 'Unregistered Transactions', icon: FileX, group: 'Data' },
-        { id: 'operation-log', label: 'Operation Log', icon: Activity, group: 'Log' },
-        { id: 'error-log', label: 'Error Log', icon: AlertCircle, group: 'Log' },
-        { id: 'upload-log', label: 'Upload Log', icon: UploadIcon, group: 'Log' },
-    ];
-
+    // Sidebar deep-links (/devices/data?view=…) change without a remount
     useEffect(() => {
-        fetchData();
-    }, [activeSection]);
+        if (VALID_VIEWS.includes(viewParam) && viewParam !== activeSection) {
+            setActiveSection(viewParam);
+        }
+    }, [viewParam]);
+
+    const view = VIEWS[activeSection];
 
     const fetchData = async () => {
         setLoading(true);
+        setError(null);
         try {
-            const response = await api.get(`/api/devices/data/${activeSection}`);
-            setData(response.data || []);
+            const res = await api.get(`/api/devices/data/${activeSection}`);
+            setData(Array.isArray(res.data) ? res.data : []);
         } catch (err) {
-            console.error('Failed to fetch data:', err);
+            setError(err.response?.data?.error || 'Could not load records');
             setData([]);
         } finally {
             setLoading(false);
         }
     };
 
-    const groupedSections = dataSections.reduce((acc, section) => {
-        if (!acc[section.group]) acc[section.group] = [];
-        acc[section.group].push(section);
-        return acc;
-    }, {});
+    useEffect(() => { fetchData(); }, [activeSection]);
+
+    const exportRows = useMemo(() => data.map(row => {
+        const out = {};
+        view.columns.forEach(col => {
+            out[col.label] = col.render ? col.render(row) : (row[col.key] ?? '');
+        });
+        return out;
+    }), [data, activeSection]);
+
+    const switchView = (id) => {
+        setActiveSection(id);
+        setSearchParams({ view: id }, { replace: true });
+    };
+
+    const groups = ['Data', 'Log'];
 
     return (
-        <div className="flex flex-col md:flex-row h-[calc(100vh-140px)] gap-6">
-            {/* Sidebar */}
-            <aside className="w-full md:w-64 bg-charcoal text-white rounded-2xl overflow-hidden shadow-lg flex-shrink-0">
-                {Object.entries(groupedSections).map(([groupName, sections], groupIdx) => (
-                    <div key={groupIdx} className="border-b border-slate-700 last:border-0">
-                        <div className="px-4 py-3 bg-slate-800/50 flex items-center gap-2">
-                            <Database size={16} className="text-slate-400" />
-                            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-300">{groupName}</h3>
+        <div className="space-y-6">
+            <PageHeader
+                icon={view.icon}
+                title={view.label}
+                subtitle={view.blurb}
+                actions={
+                    <>
+                        <ExportMenu
+                            rows={exportRows}
+                            filename={`device_${activeSection}`}
+                            title={view.label}
+                        />
+                        <Button variant="secondary" icon={RefreshCw} onClick={fetchData} disabled={loading}>
+                            Refresh
+                        </Button>
+                    </>
+                }
+            />
+
+            {/* view switcher — segmented, replaces the old dark duplicate sidebar */}
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+                {groups.map(group => (
+                    <div key={group} className="flex items-center gap-2 flex-wrap">
+                        <span className="text-[10px] font-bold uppercase tracking-[0.09em] text-slate-400">{group}</span>
+                        <div className="flex flex-wrap gap-1.5">
+                            {VALID_VIEWS.filter(id => VIEWS[id].group === group).map(id => {
+                                const Icon = VIEWS[id].icon;
+                                const active = id === activeSection;
+                                return (
+                                    <button
+                                        key={id}
+                                        onClick={() => switchView(id)}
+                                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors border ${active
+                                            ? 'bg-orange-600 text-white border-transparent shadow-sm'
+                                            : 'bg-white/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-orange-300 hover:text-orange-600 dark:hover:text-orange-400'
+                                            }`}
+                                    >
+                                        <Icon size={13} />
+                                        {VIEWS[id].label}
+                                    </button>
+                                );
+                            })}
                         </div>
-                        <nav className="py-2">
-                            {sections.map((section) => (
-                                <button
-                                    key={section.id}
-                                    onClick={() => setActiveSection(section.id)}
-                                    className={`w-full px-4 py-3 text-left text-sm transition-all flex items-center gap-3 ${activeSection === section.id
-                                            ? 'bg-white/10 text-white font-medium border-l-4 border-saffron'
-                                            : 'text-slate-300 hover:bg-white/5 hover:text-white'
-                                        }`}
-                                >
-                                    <section.icon size={16} />
-                                    {section.label}
-                                </button>
-                            ))}
-                        </nav>
                     </div>
                 ))}
-            </aside>
+            </div>
 
-            {/* Main Content */}
-            <main className="flex-1 card-base p-6 overflow-auto">
-                <div className="mb-6 flex items-center justify-between flex-wrap gap-3">
-                    <div>
-                        <h2 className="text-2xl font-bold text-charcoal dark:text-slate-100 mb-2">
-                            {dataSections.find(s => s.id === activeSection)?.label}
-                        </h2>
-                        <p className="text-slate-grey dark:text-slate-400 text-sm">
-                            View and manage {dataSections.find(s => s.id === activeSection)?.label.toLowerCase()} records
-                        </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <Button variant="secondary" icon={RefreshCw} onClick={fetchData}>Refresh</Button>
-                        <ExportMenu
-                            rows={data}
-                            filename={`device_${activeSection}`}
-                            title={dataSections.find(s => s.id === activeSection)?.label}
-                            mapRow={(item) => ({
-                                ID: item.id ?? '',
-                                Details: item.details || item.description || '',
-                                Timestamp: item.timestamp ? new Date(item.timestamp).toLocaleString() : ''
-                            })}
-                        />
-                    </div>
-                </div>
-
+            <div className="card-base !p-0 overflow-hidden">
                 {loading ? (
-                    <div className="flex items-center justify-center py-20">
-                        <div className="text-center">
-                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-saffron mx-auto mb-4"></div>
-                            <p className="text-slate-grey dark:text-slate-400">Loading data...</p>
-                        </div>
+                    <div className="p-6 space-y-3">
+                        {Array.from({ length: 6 }).map((_, i) => (
+                            <div key={i} className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
+                        ))}
+                    </div>
+                ) : error ? (
+                    <div className="py-16 text-center">
+                        <AlertCircle size={40} className="mx-auto mb-3 text-rose-400" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load records</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <Button variant="secondary" icon={RefreshCw} onClick={fetchData}>Try again</Button>
                     </div>
                 ) : data.length === 0 ? (
-                    <div className="text-center py-20 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700">
-                        <Database size={48} className="mx-auto mb-4 text-slate-300" />
-                        <h3 className="text-lg font-bold text-charcoal dark:text-slate-100 mb-2">No Data Available</h3>
-                        <p className="text-slate-grey dark:text-slate-400 text-sm">
-                            There are no {dataSections.find(s => s.id === activeSection)?.label.toLowerCase()} records to display.
+                    <div className="py-16 text-center">
+                        <view.icon size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No records yet</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            Nothing has been reported for {view.label.toLowerCase()}.
                         </p>
                     </div>
                 ) : (
-                    <div className="overflow-x-auto rounded-xl border border-slate-100 dark:border-slate-700">
-                        <table className="w-full text-sm">
-                            <thead className="bg-orange-50/50 dark:bg-orange-900/30 text-charcoal dark:text-slate-100 font-semibold">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left">
+                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">
                                 <tr>
-                                    <th className="px-4 py-3 text-left border-b border-slate-100 dark:border-slate-700">#</th>
-                                    <th className="px-4 py-3 text-left border-b border-slate-100 dark:border-slate-700">ID</th>
-                                    <th className="px-4 py-3 text-left border-b border-slate-100 dark:border-slate-700">Details</th>
-                                    <th className="px-4 py-3 text-left border-b border-slate-100 dark:border-slate-700">Timestamp</th>
+                                    <th className="px-5 py-3 font-bold w-12">#</th>
+                                    {view.columns.map(col => (
+                                        <th key={col.label} className="px-5 py-3 font-bold whitespace-nowrap">{col.label}</th>
+                                    ))}
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-50 dark:divide-slate-700">
-                                {data.map((item, idx) => (
-                                    <tr key={idx} className="hover:bg-cream-50 dark:hover:bg-slate-700/50 transition-colors">
-                                        <td className="px-4 py-3 text-slate-grey dark:text-slate-400">{idx + 1}</td>
-                                        <td className="px-4 py-3 font-mono text-saffron font-medium">{item.id || '-'}</td>
-                                        <td className="px-4 py-3 text-slate-grey dark:text-slate-400">{item.details || item.description || '-'}</td>
-                                        <td className="px-4 py-3 text-slate-grey dark:text-slate-400 font-mono text-xs">
-                                            {item.timestamp ? new Date(item.timestamp).toLocaleString() : '-'}
-                                        </td>
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                                {data.map((row, idx) => (
+                                    <tr key={row.id ?? idx} className="hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                        <td className="px-5 py-3 text-slate-400 tabular-nums">{idx + 1}</td>
+                                        {view.columns.map(col => {
+                                            const value = col.render ? col.render(row) : (row[col.key] ?? '—');
+                                            return (
+                                                <td key={col.label} className="px-5 py-3 whitespace-nowrap">
+                                                    {col.badge ? (
+                                                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+                                                            {value || '—'}
+                                                        </span>
+                                                    ) : (
+                                                        <span className={[
+                                                            col.mono ? 'font-mono text-xs tabular-nums' : '',
+                                                            col.accent ? 'text-orange-600 dark:text-orange-400 font-semibold' : '',
+                                                            col.strong ? 'font-semibold text-slate-800 dark:text-slate-100' : 'text-slate-600 dark:text-slate-300'
+                                                        ].join(' ')}>
+                                                            {value === '' || value === null || value === undefined ? '—' : value}
+                                                        </span>
+                                                    )}
+                                                </td>
+                                            );
+                                        })}
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
                     </div>
                 )}
-            </main>
+
+                {!loading && !error && data.length > 0 && (
+                    <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
+                        {data.length} record{data.length === 1 ? '' : 's'}
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

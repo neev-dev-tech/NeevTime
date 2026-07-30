@@ -46,12 +46,12 @@ export default function DeviceCommands() {
     const commandList = [
         { id: 'INFO', label: 'Get Info', icon: TabletSmartphone, description: 'Get device information', color: 'blue' },
         { id: 'CHECK', label: 'Check Connection', icon: Wifi, description: 'Check device connection', color: 'green' },
-        { id: 'REBOOT', label: 'Restart Device', icon: Power, description: 'Reboot the device', color: 'amber' },
-        { id: 'CLEAR LOG', label: 'Clear Logs', icon: Trash2, description: 'Clear attendance logs from device', color: 'red' },
+        { id: 'REBOOT', label: 'Restart Device', icon: Power, description: 'Reboot the device', color: 'amber', destructive: true },
+        { id: 'CLEAR LOG', label: 'Clear Logs', icon: Trash2, description: 'Clear attendance logs from device', color: 'red', destructive: true },
         { id: 'DATA QUERY USERINFO', label: 'Get Users', icon: Users, description: 'Download user list from device', color: 'green' },
         { id: 'DATA QUERY FINGERTMP', label: 'Get FP Templates', icon: Fingerprint, description: 'Download fingerprint templates', color: 'purple' },
         { id: 'DATA QUERY ATTLOG', label: 'Get Logs', icon: Download, description: 'Fetch attendance logs', color: 'blue' },
-        { id: 'CLEAR DATA', label: 'Clear All Data', icon: Database, description: 'Factory reset device data', color: 'red' },
+        { id: 'CLEAR DATA', label: 'Clear All Data', icon: Database, description: 'Factory reset device data', color: 'red', destructive: true },
     ];
 
     const sendCommand = async (commandId) => {
@@ -271,20 +271,24 @@ export default function DeviceCommands() {
                 <div className="lg:col-span-2 space-y-6">
                     <div className="card-base p-4">
                         <h3 className="font-semibold mb-4">Available Commands</h3>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-2.5">
                             {commandList.map(cmd => (
                                 <button
                                     key={cmd.id}
                                     onClick={() => sendCommand(cmd.id)}
                                     disabled={sending[cmd.id] || !selectedDevice}
-                                    className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all disabled:opacity-50 disabled:cursor-not-allowed ${getCommandColor(cmd.color)}`}
+                                    title={cmd.description}
+                                    className={`cmd-tile ${cmd.destructive ? 'cmd-tile--danger' : ''}`}
                                 >
-                                    {sending[cmd.id] ? (
-                                        <RefreshCw size={24} className="animate-spin" />
-                                    ) : (
-                                        <cmd.icon size={24} />
-                                    )}
-                                    <span className="text-sm font-medium text-center">{cmd.label}</span>
+                                    <span className={`cmd-tile__icon cmd-tile__icon--${cmd.color}`}>
+                                        {sending[cmd.id]
+                                            ? <RefreshCw size={17} className="animate-spin" />
+                                            : <cmd.icon size={17} />}
+                                    </span>
+                                    <span className="min-w-0 text-left">
+                                        <span className="cmd-tile__label">{sending[cmd.id] ? 'Sending…' : cmd.label}</span>
+                                        <span className="cmd-tile__desc">{cmd.description}</span>
+                                    </span>
                                 </button>
                             ))}
                         </div>
