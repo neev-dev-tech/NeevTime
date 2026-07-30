@@ -3117,3 +3117,27 @@ body {
 @media (max-width: 900px) {
   .bg3d-scene { display: none; }
 }
+
+/* Page shells must not paint over the depth field — only real cards do */
+.app-shell .bg-\[\#FAFBFC\] { background-color: transparent !important; }
+.dark .app-shell .bg-\[\#FAFBFC\] { background-color: transparent !important; }
+
+/* Full-height page cards (Employees, Resign, report engine) sit on glass */
+.app-shell .report-container,
+.app-shell .card-base,
+.app-shell .card-tier-1,
+.app-shell .card-tier-2 { background-color: rgba(255, 255, 255, 0.62); }
+
+/* Scrolling table bodies inherit the card glass instead of solid white */
+.app-shell .custom-scrollbar.bg-white,
+.app-shell .overflow-auto.bg-white { background-color: transparent !important; backdrop-filter: none; }
+
+/* Toolbars inside cards: subtle tint, not a solid slab */
+.app-shell .border-b.bg-white { background-color: rgba(255, 255, 255, 0.35) !important; backdrop-filter: none; }
+.dark .app-shell .border-b.bg-white { background-color: rgba(28, 28, 31, 0.35) !important; }
+
+/* Sticky headers keep enough backing to stay legible over moving geometry */
+.app-shell thead.bg-white,
+.app-shell thead .bg-white { background-color: rgba(255, 255, 255, 0.72) !important; }
+.dark .app-shell thead.bg-white,
+.dark .app-shell thead .bg-white { background-color: rgba(28, 28, 31, 0.72) !important; }

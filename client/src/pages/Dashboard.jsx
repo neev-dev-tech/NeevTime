@@ -400,45 +400,18 @@ export default function Dashboard() {
                 </button>
             </div>
 
-            {/* Smart Insights Card */}
-            {!loading && insights.length > 0 && (
-                <div className="card-base animate-fade-in">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-2">
-                            <Brain size={18} className="text-purple-600" />
-                            <h2 className="font-semibold text-base text-slate-800 dark:text-slate-100">Today's Insights</h2>
-                        </div>
-                    </div>
-                    <div className="space-y-2">
-                        {insights.map((insight, idx) => {
-                            const Icon = insight.icon;
-                            const colors = {
-                                success: { bg: '#EAF7F0', text: '#2EAD6D', icon: '#2EAD6D' },
-                                warning: { bg: '#FFF4E5', text: '#E09B2D', icon: '#E09B2D' },
-                                error: { bg: '#FDEEEE', text: '#E5533D', icon: '#E5533D' },
-                                info: { bg: '#EEF3FF', text: '#4C6FFF', icon: '#4C6FFF' }
-                            };
-                            const color = colors[insight.type] || colors.info;
-                            return (
-                                <div key={idx} className="flex items-start gap-3 p-3 rounded-lg" style={{ backgroundColor: color.bg }}>
-                                    <Icon size={16} style={{ color: color.icon, marginTop: '2px' }} />
-                                    <span className="text-sm flex-1" style={{ color: color.text, fontWeight: 500 }}>{insight.text}</span>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
-            )}
-
+            {/* Stats + insights rail */}
+            <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-4 items-start">
+            <div className="order-2 xl:order-1 space-y-4">
             {/* Primary Stats Row - Premium Grid */}
             {loading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {Array.from({ length: 10 }).map((_, i) => (
                         <div key={i} className="h-24 bg-slate-100 dark:bg-slate-700 rounded-xl animate-pulse"></div>
                     ))}
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
                     <StatCard
                         icon={Users}
                         label="Employees"
@@ -516,6 +489,43 @@ export default function Dashboard() {
                     />
                 </div>
             )}
+            </div>
+
+            {/* Insights rail */}
+            <aside className="order-1 xl:order-2 card-base animate-fade-in xl:sticky xl:top-24">
+                <div className="flex items-center gap-2 mb-4">
+                    <Brain size={18} className="text-orange-500" />
+                    <h2 className="font-semibold text-base text-slate-800 dark:text-slate-100">Today's Insights</h2>
+                </div>
+                {loading ? (
+                    <div className="space-y-2">
+                        {Array.from({ length: 3 }).map((_, i) => (
+                            <div key={i} className="h-14 rounded-xl bg-slate-100 dark:bg-slate-700 animate-pulse" />
+                        ))}
+                    </div>
+                ) : insights.length === 0 ? (
+                    <p className="text-sm text-slate-500 dark:text-slate-400">No insights for today yet.</p>
+                ) : (
+                    <div className="space-y-2.5">
+                        {insights.map((insight, idx) => {
+                            const Icon = insight.icon;
+                            const tone = {
+                                success: 'bg-emerald-50 dark:bg-emerald-900/25 text-emerald-700 dark:text-emerald-300 border-emerald-100 dark:border-emerald-800',
+                                warning: 'bg-amber-50 dark:bg-amber-900/25 text-amber-700 dark:text-amber-300 border-amber-100 dark:border-amber-800',
+                                error: 'bg-rose-50 dark:bg-rose-900/25 text-rose-700 dark:text-rose-300 border-rose-100 dark:border-rose-800',
+                                info: 'bg-orange-50 dark:bg-orange-900/25 text-orange-700 dark:text-orange-300 border-orange-100 dark:border-orange-800'
+                            }[insight.type] || 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-100 dark:border-slate-700';
+                            return (
+                                <div key={idx} className={`flex items-start gap-2.5 p-3 rounded-xl border ${tone}`}>
+                                    <Icon size={15} className="mt-0.5 shrink-0" />
+                                    <span className="text-sm font-medium leading-snug">{insight.text}</span>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+            </aside>
+            </div>
 
             {/* Attendance Status Row - Staggered */}
             <div className="card-tier-2 animate-fade-in stagger-2">
