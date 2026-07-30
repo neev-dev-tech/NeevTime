@@ -3,13 +3,26 @@ import api from '../api';
 import {
     Plus, Trash2, Upload, Download,
     ChevronDown, Search, RefreshCw,
-    Smartphone, ArrowRightLeft, X, Filter, Settings,
-    Fingerprint, ScanFace
+    Smartphone, ArrowRightLeft, X, Settings,
+    Fingerprint, ScanFace, Users, AlertCircle, SearchX
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ResignationModal from '../components/ResignationModal';
-import SkeletonLoader from '../components/SkeletonLoader';
-import { Button } from '../components';
+import { Button, PageHeader } from '../components';
+
+/* ---- shared cell vocabulary (matches DeviceData / Devices) ---- */
+const BADGE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide';
+const BADGE_ON = `${BADGE} bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300`;
+const BADGE_OFF = `${BADGE} bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300`;
+const CELL_CODE = 'font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold';
+const CELL_STRONG = 'font-semibold text-slate-800 dark:text-slate-100';
+const CELL_SOFT = 'text-slate-600 dark:text-slate-300';
+const CELL_MONO = 'font-mono text-xs tabular-nums text-slate-600 dark:text-slate-300';
+const BIO_ON = 'text-emerald-500';
+const BIO_OFF = 'text-slate-300 dark:text-slate-600';
+
+const dash = (v) => (v === null || v === undefined || v === '' ? '—' : v);
+const initialOf = (name) => (String(name || '').trim().charAt(0) || '?').toUpperCase();
 
 export default function Employees() {
     const [employees, setEmployees] = useState([]);
@@ -80,6 +93,7 @@ export default function Employees() {
     const [areas, setAreas] = useState([]);
     const [positions, setPositions] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const navigate = useNavigate();
 
     // Close dropdowns when clicking outside
@@ -124,6 +138,7 @@ export default function Employees() {
     const fetchEmployees = async () => {
         try {
             setLoading(true);
+            setError(null);
             console.log('[Employees] fetchEmployees called');
             const res = await api.get('/api/employees');
             console.log('[Employees] Fetched', res.data?.length || 0, 'employees');
@@ -132,6 +147,7 @@ export default function Employees() {
             setSelectedIds([]);
         } catch (err) {
             console.error("Failed to fetch employees", err);
+            setError(err.response?.data?.error || err.message || 'Could not load employees');
             showToast('Failed to refresh employees', 'error');
         } finally {
             setLoading(false);
@@ -410,10 +426,43 @@ export default function Employees() {
         setConfirmMessage('');
     };
 
+    const tableHead = (
+        <thead>
+            <tr>
+                <th className="table-header w-12 text-center">
+                    <input
+                        type="checkbox"
+                        className="rounded border-slate-300 dark:border-slate-700 text-saffron focus:ring-saffron"
+                        onChange={(e) => {
+                            if (e.target.checked) setSelectedIds(filteredEmployees.map(e => e.id));
+                            else setSelectedIds([]);
+                        }}
+                    />
+                </th>
+                <th className="table-header">Employee Id</th>
+                <th className="table-header">Full Name</th>
+                <th className="table-header">Department</th>
+                <th className="table-header">Mobile</th>
+                <th className="table-header text-center">Status</th>
+                <th className="table-header text-center">Biometrics</th>
+                <th className="table-header text-center">App Access</th>
+                <th className="table-header">Position</th>
+                <th className="table-header">Area</th>
+            </tr>
+        </thead>
+    );
+
     return (
-        <div className="flex flex-col h-[calc(100vh-120px)] card-base overflow-hidden relative">
+        <div className="relative">
+            <PageHeader
+                icon={Users}
+                title="Employees"
+                subtitle="Personnel records, biometric enrolment and app access"
+            />
+
+            <div className="flex flex-col h-[calc(100vh-210px)] card-base !p-0 overflow-hidden">
             {/* Toolbar */}
-            <div className="flex items-center gap-3 p-4 border-b border-slate-200 dark:border-slate-700 text-sm flex-wrap bg-white dark:bg-slate-800">
+            <div className="flex items-center gap-2 px-5 py-3 border-b border-slate-200/80 dark:border-slate-700 text-sm flex-wrap">
                 <Button variant="successSolid" icon={Plus} onClick={() => setShowAddModal(true)}>
                     Add Employee
                 </Button>
@@ -582,36 +631,67 @@ export default function Employees() {
             </div >
 
             {/* Table */}
-            <div className="flex-1 overflow-auto custom-scrollbar bg-white dark:bg-slate-800">
+            <div className="flex-1 overflow-auto custom-scrollbar">
                 {loading ? (
-                    <SkeletonLoader rows={10} columns={10} showHeader={true} />
+                    <table className="w-full text-left text-sm border-collapse">
+                        {tableHead}
+                        <tbody>
+                            {Array.from({ length: 8 }).map((_, i) => (
+                                <tr key={i} className="border-b border-slate-100 dark:border-slate-700/60">
+                                    <td className="px-6 py-4">
+                                        <div className="h-4 w-4 mx-auto rounded bg-slate-100 dark:bg-slate-700 animate-pulse" />
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <div className="h-3 w-16 rounded bg-slate-100 dark:bg-slate-700 animate-pulse" />
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-700 animate-pulse" />
+                                            <div className="h-3 w-32 rounded bg-slate-100 dark:bg-slate-700 animate-pulse" />
+                                        </div>
+                                    </td>
+                                    {Array.from({ length: 7 }).map((__, j) => (
+                                        <td key={j} className="px-6 py-4">
+                                            <div className="h-3 w-20 rounded bg-slate-100 dark:bg-slate-700 animate-pulse" />
+                                        </td>
+                                    ))}
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                ) : error ? (
+                    <div className="py-20 text-center px-6">
+                        <AlertCircle size={40} className="mx-auto mb-3 text-rose-400" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load employees</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <Button variant="secondary" icon={RefreshCw} onClick={fetchEmployees}>Try again</Button>
+                    </div>
+                ) : filteredEmployees.length === 0 ? (
+                    searchQuery ? (
+                        <div className="py-20 text-center px-6">
+                            <SearchX size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                            <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No results match your search</h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                                Nothing matches &ldquo;{searchQuery}&rdquo;. Try another name, employee id or department.
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="py-20 text-center px-6">
+                            <Users size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                            <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No employees yet</h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                                Add an employee with the button above, or import a CSV to bring your existing list in.
+                            </p>
+                        </div>
+                    )
                 ) : (
                 <table className="w-full text-left text-sm border-collapse">
-                    <thead>
-                        <tr>
-                            <th className="table-header w-12 text-center">
-                                <input
-                                    type="checkbox"
-                                    className="rounded border-slate-300 dark:border-slate-700 text-saffron focus:ring-saffron"
-                                    onChange={(e) => {
-                                        if (e.target.checked) setSelectedIds(filteredEmployees.map(e => e.id));
-                                        else setSelectedIds([]);
-                                    }}
-                                />
-                            </th>
-                            <th className="table-header">Employee Id</th>
-                            <th className="table-header">Full Name</th>
-                            <th className="table-header">Department</th>
-                            <th className="table-header">Mobile</th>
-                            <th className="table-header text-center">Status</th>
-                            <th className="table-header text-center">Biometrics</th>
-                            <th className="table-header text-center">App Access</th>
-                            <th className="table-header">Position</th>
-                            <th className="table-header">Area</th>
-                        </tr>
-                    </thead>
+                    {tableHead}
                     <tbody>
-                        {filteredEmployees.map(emp => (
+                        {filteredEmployees.map(emp => {
+                            const isActive = emp.status === 'active';
+                            const appOn = !!emp.app_login_enabled;
+                            return (
                             <tr key={emp.employee_code} className="table-row group">
                                 <td className="px-6 py-4 text-center">
                                     <input
@@ -621,40 +701,62 @@ export default function Employees() {
                                         className="rounded border-slate-300 dark:border-slate-700 text-saffron focus:ring-saffron"
                                     />
                                 </td>
-                                <td className="px-6 py-4 font-mono text-saffron font-medium cursor-pointer" onClick={() => navigate(`/employees/${emp.id}`)}>{emp.employee_code}</td>
-                                <td className="px-6 py-4 font-semibold cursor-pointer text-slate-800 dark:text-slate-100" onClick={() => navigate(`/employees/${emp.id}`)}>{emp.name}</td>
-                                <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{emp.department_name || '-'}</td>
-                                <td className="px-6 py-4 font-mono text-xs text-slate-600 dark:text-slate-400">{emp.mobile || '-'}</td>
+                                <td className="px-6 py-4 cursor-pointer" onClick={() => navigate(`/employees/${emp.id}`)}>
+                                    <span className={CELL_CODE}>{dash(emp.employee_code)}</span>
+                                </td>
+                                <td className="px-6 py-4 cursor-pointer" onClick={() => navigate(`/employees/${emp.id}`)}>
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <span
+                                            aria-hidden="true"
+                                            className="w-9 h-9 shrink-0 rounded-full grid place-items-center font-bold text-xs bg-orange-100 text-orange-700 border border-orange-200 dark:bg-orange-900/40 dark:text-orange-300 dark:border-orange-800/70"
+                                        >
+                                            {initialOf(emp.name)}
+                                        </span>
+                                        <span className={`${CELL_STRONG} truncate`}>{dash(emp.name)}</span>
+                                    </div>
+                                </td>
+                                <td className="px-6 py-4"><span className={CELL_SOFT}>{dash(emp.department_name)}</span></td>
+                                <td className="px-6 py-4"><span className={CELL_MONO}>{dash(emp.mobile)}</span></td>
                                 <td className="px-6 py-4 text-center">
-                                    <span className={`px-2.5 py-1 rounded-full text-xs font-medium uppercase tracking-wide ${emp.status === 'active' ? 'badge-success' : 'badge-inactive'}`}>
-                                        {emp.status}
+                                    <span className={isActive ? BADGE_ON : BADGE_OFF}>
+                                        {dash(emp.status)}
                                     </span>
                                 </td>
                                 <td className="px-6 py-4 text-center">
                                     <div className="flex items-center justify-center gap-2">
-                                        <Fingerprint size={18} className={emp.has_fingerprint ? "text-green-600" : "text-slate-300"} />
-                                        <ScanFace size={18} className={emp.has_face ? "text-green-600" : "text-slate-300"} />
+                                        <span
+                                            className="inline-flex"
+                                            title={emp.has_fingerprint ? 'Fingerprint enrolled' : 'No fingerprint enrolled'}
+                                        >
+                                            <Fingerprint size={18} className={emp.has_fingerprint ? BIO_ON : BIO_OFF} />
+                                        </span>
+                                        <span
+                                            className="inline-flex"
+                                            title={emp.has_face ? 'Face enrolled' : 'No face enrolled'}
+                                        >
+                                            <ScanFace size={18} className={emp.has_face ? BIO_ON : BIO_OFF} />
+                                        </span>
                                     </div>
                                 </td>
                                 <td className="px-6 py-4 text-center">
-                                    <span className={`px-2.5 py-1 rounded-full text-xs font-medium uppercase tracking-wide ${emp.app_login_enabled ? 'badge-success' : 'badge-inactive'}`}>
-                                        {emp.app_login_enabled ? 'Enabled' : 'Disabled'}
+                                    <span className={appOn ? BADGE_ON : BADGE_OFF}>
+                                        {appOn ? 'Enabled' : 'Disabled'}
                                     </span>
                                 </td>
-                                <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{emp.designation || '-'}</td>
-                                <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{emp.area_name || '-'}</td>
+                                <td className="px-6 py-4"><span className={CELL_SOFT}>{dash(emp.designation)}</span></td>
+                                <td className="px-6 py-4"><span className={CELL_SOFT}>{dash(emp.area_name)}</span></td>
                             </tr>
-                        ))}
+                            );
+                        })}
                     </tbody>
                 </table>
                 )}
             </div>
 
-            <div className="p-4 border-t border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-grey dark:text-slate-400 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
-                <span>Total <span className="text-charcoal dark:text-slate-100 font-bold">{filteredEmployees.length}</span> Records</span>
-                <div className="flex gap-2">
-                    <span className="text-slate-grey dark:text-slate-400">Selected: <span className="text-saffron font-bold text-sm">{selectedIds.length}</span></span>
-                </div>
+            <div className="px-5 py-3 border-t border-slate-200/80 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400 flex justify-between items-center">
+                <span>Total <span className="font-bold text-slate-700 dark:text-slate-200">{filteredEmployees.length}</span> Records</span>
+                <span>Selected: <span className="font-bold text-orange-600 dark:text-orange-400">{selectedIds.length}</span></span>
+            </div>
             </div>
 
             {/* Add Employee Modal */}

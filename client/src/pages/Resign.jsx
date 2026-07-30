@@ -2,15 +2,16 @@ import React, { useEffect, useState } from 'react';
 import api from '../api';
 import {
     UserMinus, Plus, Trash2, Upload, ChevronDown, ChevronLeft, ChevronRight,
-    RefreshCw, Search, RotateCcw, BellOff, Download, X
+    RefreshCw, Search, RotateCcw, BellOff, Download, X, AlertCircle
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useToast, Button } from '../components';
+import { useToast, Button, PageHeader } from '../components';
 
 export default function Resign() {
     const [resignations, setResignations] = useState([]);
     const [employees, setEmployees] = useState([]); // Active employees for the dropdown
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [selectedIds, setSelectedIds] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
@@ -32,6 +33,7 @@ export default function Resign() {
     const fetchData = async () => {
         try {
             setLoading(true);
+            setError(null);
             const [resRes, empRes] = await Promise.all([
                 api.get('/api/employees?status=resigned').catch(() => ({ data: [] })),
                 api.get('/api/employees').catch(() => ({ data: [] }))
@@ -47,6 +49,7 @@ export default function Resign() {
             setEmployees(active);
         } catch (err) {
             console.error(err);
+            setError(err.response?.data?.error || 'Could not load resignation records');
         } finally {
             setLoading(false);
         }
@@ -239,7 +242,13 @@ export default function Resign() {
     const paginatedItems = filteredItems.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
     return (
-        <div className="flex flex-col h-[calc(100vh-120px)] card-base overflow-hidden relative">
+        <div className="flex flex-col h-[calc(100vh-120px)]">
+            <PageHeader
+                icon={UserMinus}
+                title="Resignations"
+                subtitle="Resigned and terminated employees"
+            />
+            <div className="flex flex-col flex-1 card-base overflow-hidden relative">
             {/* Toolbar */}
             <div className="flex items-center gap-3 p-4 border-b border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm flex-wrap">
                 <Button variant="successSolid" icon={Plus} onClick={() => { resetForm(); setShowModal(true); }}>
@@ -290,10 +299,36 @@ export default function Resign() {
 
             {/* Table */}
             <div className="flex-1 overflow-auto bg-white dark:bg-slate-800 custom-scrollbar">
+                {loading ? (
+                    <div className="p-6 space-y-3">
+                        {Array.from({ length: 8 }).map((_, i) => (
+                            <div key={i} className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
+                        ))}
+                    </div>
+                ) : error ? (
+                    <div className="py-16 text-center">
+                        <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load resignations</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <Button variant="secondary" icon={RefreshCw} onClick={fetchData}>Try again</Button>
+                    </div>
+                ) : paginatedItems.length === 0 ? (
+                    <div className="py-16 text-center">
+                        <UserMinus size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">
+                            {searchQuery ? 'No matching records' : 'No resignations recorded'}
+                        </h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            {searchQuery
+                                ? 'No resigned employee matches that search.'
+                                : 'Nobody has been marked as resigned or terminated yet.'}
+                        </p>
+                    </div>
+                ) : (
                 <table className="w-full text-left text-sm border-collapse">
-                    <thead className="bg-orange-50/50 dark:bg-slate-900/50 text-charcoal dark:text-slate-100 font-semibold sticky top-0 z-10 border-b border-slate-100 dark:border-slate-700">
+                    <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 sticky top-0 z-10 border-b border-slate-100 dark:border-slate-700">
                         <tr>
-                            <th className="p-4 w-12 text-center">
+                            <th className="px-5 py-3 w-12 text-center">
                                 <input
                                     type="checkbox"
                                     className="rounded border-slate-300 dark:border-slate-700 text-saffron focus:ring-saffron"
@@ -301,65 +336,60 @@ export default function Resign() {
                                     onChange={toggleSelectAll}
                                 />
                             </th>
-                            <th className="p-4 border-b border-slate-100 dark:border-slate-700">Employee Id</th>
-                            <th className="p-4 border-b border-slate-100 dark:border-slate-700">Full Name</th>
-                            <th className="p-4 border-b border-slate-100 dark:border-slate-700">Department</th>
-                            <th className="p-4 border-b border-slate-100 dark:border-slate-700">Position</th>
-                            <th className="p-4 border-b border-slate-100 dark:border-slate-700">Area Name</th>
-                            <th className="p-4 border-b border-slate-100 dark:border-slate-700">Resign Type</th>
+                            <th className="px-5 py-3 font-bold whitespace-nowrap">Employee Id</th>
+                            <th className="px-5 py-3 font-bold whitespace-nowrap">Full Name</th>
+                            <th className="px-5 py-3 font-bold whitespace-nowrap">Department</th>
+                            <th className="px-5 py-3 font-bold whitespace-nowrap">Position</th>
+                            <th className="px-5 py-3 font-bold whitespace-nowrap">Area Name</th>
+                            <th className="px-5 py-3 font-bold whitespace-nowrap">Resign Type</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-50 dark:divide-slate-700">
-                        {loading ? (
-                            <tr><td colSpan={7} className="p-8 text-center text-slate-grey dark:text-slate-400">Loading...</td></tr>
-                        ) : paginatedItems.length === 0 ? (
-                            <tr><td colSpan={7} className="p-12 text-center text-slate-grey dark:text-slate-400">No resignation records found</td></tr>
-                        ) : (
-                            paginatedItems.map(emp => (
-                                <tr key={emp.id} className="hover:bg-cream-50 dark:hover:bg-slate-700/50 transition-colors group">
-                                    <td className="p-4 text-center">
-                                        <input
-                                            type="checkbox"
-                                            className="rounded border-slate-300 dark:border-slate-700 text-saffron focus:ring-saffron"
-                                            checked={selectedIds.includes(emp.id)}
-                                            onChange={() => toggleSelect(emp.id)}
-                                        />
-                                    </td>
-                                    <td className="p-4 font-mono text-saffron font-medium">{emp.employee_code}</td>
-                                    <td className="p-4 font-bold text-charcoal dark:text-slate-100">{emp.name} {emp.last_name || ''}</td>
-                                    <td className="p-4 text-slate-grey dark:text-slate-400">{emp.department_name || '-'}</td>
-                                    <td className="p-4 text-slate-grey dark:text-slate-400">{emp.position_name || emp.designation || '-'}</td>
-                                    <td className="p-4 text-slate-grey dark:text-slate-400">{emp.area_name || '-'}</td>
-                                    <td className="p-4">
-                                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${emp.resignation_type === 'Dismissed' ? 'bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800' :
-                                            emp.resignation_type === 'Transfer' ? 'bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800' :
-                                                'bg-orange-50 text-orange-700 border border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-800'
-                                            }`}>
-                                            {emp.resignation_type || 'Resigned'}
-                                        </span>
-                                    </td>
-                                </tr>
-                            ))
-                        )}
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                        {paginatedItems.map(emp => (
+                            <tr key={emp.id} className="hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors group">
+                                <td className="px-5 py-3 text-center">
+                                    <input
+                                        type="checkbox"
+                                        className="rounded border-slate-300 dark:border-slate-700 text-saffron focus:ring-saffron"
+                                        checked={selectedIds.includes(emp.id)}
+                                        onChange={() => toggleSelect(emp.id)}
+                                    />
+                                </td>
+                                <td className="px-5 py-3 font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold">{emp.employee_code || '—'}</td>
+                                <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100">{emp.name} {emp.last_name || ''}</td>
+                                <td className="px-5 py-3 text-slate-600 dark:text-slate-300">{emp.department_name || '—'}</td>
+                                <td className="px-5 py-3 text-slate-600 dark:text-slate-300">{emp.position_name || emp.designation || '—'}</td>
+                                <td className="px-5 py-3 text-slate-600 dark:text-slate-300">{emp.area_name || '—'}</td>
+                                <td className="px-5 py-3">
+                                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide border ${emp.resignation_type === 'Dismissed' ? 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-900/30 dark:text-rose-300 dark:border-rose-800' :
+                                        emp.resignation_type === 'Transfer' ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800' :
+                                            'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-800'
+                                        }`}>
+                                        {emp.resignation_type || 'Resigned'}
+                                    </span>
+                                </td>
+                            </tr>
+                        ))}
                     </tbody>
                 </table>
+                )}
             </div>
 
             {/* Pagination Component */}
             {/* Pagination Component */}
-            <div className="p-3 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between text-sm text-slate-grey dark:text-slate-400 bg-slate-50/50 dark:bg-slate-900/50">
+            <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between text-sm text-slate-500 dark:text-slate-400 bg-slate-50/70 dark:bg-slate-900/50">
                 {/* Left Side: Total Records */}
                 <div className="flex items-center gap-4">
-                    <span className="text-xs font-medium text-slate-grey dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-1 rounded-full shadow-sm">
-                        Total Records: <span className="text-charcoal dark:text-slate-100 font-bold ml-1">{filteredItems.length}</span>
+                    <span className="text-xs font-medium text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-1 rounded-full shadow-sm">
+                        Total Records: <span className="text-slate-800 dark:text-slate-100 font-bold ml-1 tabular-nums">{filteredItems.length}</span>
                     </span>
                 </div>
 
                 {/* Right Side: Selected Count */}
                 <div className="flex items-center gap-4">
                     {selectedIds.length > 0 && (
-                        <span className="text-xs font-medium text-slate-grey dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-1 rounded-full shadow-sm">
-                            Selected: <span className="text-charcoal dark:text-slate-100 font-bold ml-1">{selectedIds.length}</span>
+                        <span className="text-xs font-medium text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-900/30 border border-orange-200 dark:border-orange-800 px-3 py-1 rounded-full shadow-sm">
+                            Selected: <span className="font-bold ml-1 tabular-nums">{selectedIds.length}</span>
                         </span>
                     )}
                 </div>
@@ -483,6 +513,7 @@ export default function Resign() {
                     </div>
                 </div>
             )}
+            </div>
         </div>
     );
 }

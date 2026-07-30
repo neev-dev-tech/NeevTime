@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FileText, Upload, Download, Trash2, X, Search, RefreshCw, User, Calendar } from 'lucide-react';
+import { FileText, Upload, Download, Trash2, X, Search, RefreshCw, User, Calendar, AlertCircle } from 'lucide-react';
 import api from '../api';
 import { Button, PageHeader } from '../components';
 
@@ -14,6 +14,8 @@ export default function EmployeeDocs() {
     const [selectedFile, setSelectedFile] = useState(null);
     const [uploading, setUploading] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const fileInputRef = useRef(null);
     const [toast, setToast] = useState(null);
     const toastTimeoutRef = useRef(null);
@@ -49,12 +51,16 @@ export default function EmployeeDocs() {
 
     const fetchDocuments = async () => {
         try {
+            setError(null);
             const res = await api.get('/api/employee-docs');
             setDocuments(res.data);
             setFilteredDocuments(res.data);
         } catch (err) {
             console.error('Failed to fetch documents', err);
+            setError(err.response?.data?.error || 'Failed to load documents');
             showToast('Failed to load documents', 'error');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -183,7 +189,7 @@ export default function EmployeeDocs() {
     };
 
     const formatDate = (dateString) => {
-        if (!dateString) return '-';
+        if (!dateString) return '—';
         const date = new Date(dateString);
         return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
     };
@@ -194,6 +200,7 @@ export default function EmployeeDocs() {
             <PageHeader
                 icon={FileText}
                 title="Employee Documents"
+                subtitle="Contracts, ID proofs and other files held against each employee"
                 actions={
                     <>
                         <Button variant="secondary" onClick={handleRefresh} disabled={refreshing}>
@@ -223,44 +230,59 @@ export default function EmployeeDocs() {
 
             {/* Documents Table */}
             <div className="flex-1 overflow-auto bg-white dark:bg-slate-800 custom-scrollbar">
-                {filteredDocuments.length === 0 ? (
+                {loading ? (
+                    <div className="p-6 space-y-3">
+                        {Array.from({ length: 8 }).map((_, i) => (
+                            <div key={i} className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
+                        ))}
+                    </div>
+                ) : error ? (
                     <div className="flex flex-col items-center justify-center h-full p-12 text-center">
-                        <FileText size={64} className="text-slate-300 mb-4" />
-                        <p className="text-slate-500 dark:text-slate-400 text-lg font-medium">No documents found</p>
-                        <p className="text-sm text-slate-400 mt-2">
-                            {searchQuery ? 'Try a different search term' : 'Upload your first document to get started'}
+                        <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load documents</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <Button variant="secondary" icon={RefreshCw} onClick={fetchDocuments}>Try again</Button>
+                    </div>
+                ) : filteredDocuments.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-full p-12 text-center">
+                        <FileText size={40} className="mb-3 text-slate-300 dark:text-slate-600" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No documents found</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            {searchQuery
+                                ? 'No document matches that search term.'
+                                : 'Nothing has been uploaded for any employee yet.'}
                         </p>
                     </div>
                 ) : (
                     <table className="w-full text-left text-sm border-collapse">
-                        <thead className="bg-orange-50/50 dark:bg-slate-900/50 text-charcoal dark:text-slate-100 font-semibold sticky top-0 z-10">
+                        <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 sticky top-0 z-10 border-b border-slate-100 dark:border-slate-700">
                             <tr>
-                                <th className="p-4 border-b border-slate-100 dark:border-slate-700">Document Name</th>
-                                <th className="p-4 border-b border-slate-100 dark:border-slate-700">Employee</th>
-                                <th className="p-4 border-b border-slate-100 dark:border-slate-700">Employee Code</th>
-                                <th className="p-4 border-b border-slate-100 dark:border-slate-700">Uploaded Date</th>
-                                <th className="p-4 border-b border-slate-100 dark:border-slate-700 text-center">Actions</th>
+                                <th className="px-5 py-3 font-bold whitespace-nowrap">Document Name</th>
+                                <th className="px-5 py-3 font-bold whitespace-nowrap">Employee</th>
+                                <th className="px-5 py-3 font-bold whitespace-nowrap">Employee Code</th>
+                                <th className="px-5 py-3 font-bold whitespace-nowrap">Uploaded Date</th>
+                                <th className="px-5 py-3 font-bold whitespace-nowrap text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-50 dark:divide-slate-700">
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                             {filteredDocuments.map(doc => (
-                                <tr key={doc.id} className="hover:bg-cream-50 dark:hover:bg-slate-700/50 transition-colors">
-                                    <td className="p-4">
+                                <tr key={doc.id} className="hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                    <td className="px-5 py-3">
                                         <div className="flex items-center gap-2">
-                                            <FileText size={18} className="text-orange-600 dark:text-orange-400" />
-                                            <span className="font-medium text-charcoal dark:text-slate-100">{doc.doc_name}</span>
+                                            <FileText size={16} className="text-orange-600 dark:text-orange-400 shrink-0" />
+                                            <span className="font-semibold text-slate-800 dark:text-slate-100">{doc.doc_name || '—'}</span>
                                         </div>
                                     </td>
-                                    <td className="p-4 text-slate-grey dark:text-slate-400">{doc.employee_name || '-'}</td>
-                                    <td className="p-4 font-mono text-saffron font-medium">{doc.employee_code}</td>
-                                    <td className="p-4 text-slate-grey dark:text-slate-400">
+                                    <td className="px-5 py-3 text-slate-600 dark:text-slate-300">{doc.employee_name || '—'}</td>
+                                    <td className="px-5 py-3 font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold">{doc.employee_code || '—'}</td>
+                                    <td className="px-5 py-3 text-slate-600 dark:text-slate-300">
                                         <div className="flex items-center gap-2">
-                                            <Calendar size={14} className="text-slate-400" />
+                                            <Calendar size={14} className="text-slate-400 dark:text-slate-500" />
                                             {formatDate(doc.uploaded_at)}
                                         </div>
                                     </td>
-                                    <td className="p-4">
-                                        <div className="flex items-center justify-center gap-2">
+                                    <td className="px-5 py-3">
+                                        <div className="dv-quiet">
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
@@ -287,8 +309,8 @@ export default function EmployeeDocs() {
             </div>
 
             {/* Footer */}
-            <div className="p-4 border-t border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50 text-xs font-medium text-slate-grey dark:text-slate-400 flex justify-between items-center">
-                <span>Total <span className="text-charcoal dark:text-slate-100 font-bold">{filteredDocuments.length}</span> Documents</span>
+            <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900/50 text-xs font-medium text-slate-500 dark:text-slate-400 flex justify-between items-center">
+                <span>Total <span className="text-slate-800 dark:text-slate-100 font-bold tabular-nums">{filteredDocuments.length}</span> Documents</span>
             </div>
             </div>
 

@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import api from '../api';
 import { Briefcase, Plus, Trash2, Edit2, Search, RefreshCw, X, Save, Download, Upload, AlertCircle, CheckCircle } from 'lucide-react';
-import SkeletonLoader from '../components/SkeletonLoader';
 import { useToast, Button, PageHeader, ExportMenu } from '../components';
 
 export default function Positions() {
@@ -9,6 +8,7 @@ export default function Positions() {
     const [positions, setPositions] = useState([]);
     const [filteredPositions, setFilteredPositions] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [showImportModal, setShowImportModal] = useState(false);
     const [editItem, setEditItem] = useState(null);
@@ -23,12 +23,14 @@ export default function Positions() {
     const fetchPositions = async () => {
         try {
             setLoading(true);
+            setError(null);
             const res = await api.get('/api/positions');
             setPositions(res.data);
             setFilteredPositions(res.data);
             setSelectedIds([]);
         } catch (err) {
             console.error(err);
+            setError(err.response?.data?.error || 'Could not load positions');
         } finally {
             setLoading(false);
         }
@@ -188,6 +190,7 @@ export default function Positions() {
             <PageHeader
                 icon={Briefcase}
                 title="Positions"
+                subtitle="Job titles employees can be assigned to"
                 actions={
                     <Button
                         variant="successSolid"
@@ -200,7 +203,7 @@ export default function Positions() {
             />
 
             {/* Toolbar */}
-            <div className="flex items-center gap-2 p-2 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-sm flex-wrap">
+            <div className="flex items-center gap-2 p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 text-sm flex-wrap">
                 <Button variant="danger" icon={Trash2} onClick={handleBulkDelete}>
                     Delete
                 </Button>
@@ -235,78 +238,113 @@ export default function Positions() {
                         placeholder="Search positions..."
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
-                        className="w-full pl-8 pr-3 py-1.5 border rounded text-sm focus:outline-none focus:border-orange-400 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                        className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-orange-400 dark:focus:border-orange-500"
                     />
-                    <Search size={14} className="absolute left-2.5 top-2 text-slate-400" />
+                    <Search size={14} className="absolute left-2.5 top-2 text-slate-400 dark:text-slate-500" />
                 </div>
             </div>
 
             {/* Table */}
-            {loading ? (
-                <SkeletonLoader rows={8} columns={5} showHeader={true} />
-            ) : (
-                <div className="card-base overflow-hidden p-0">
-                    <table className="w-full">
-                        <thead>
-                            <tr>
-                                <th className="table-header w-8">
-                                    <input
-                                        type="checkbox"
-                                        onChange={(e) => setSelectedIds(e.target.checked ? filteredPositions.map(p => p.id) : [])}
-                                        checked={filteredPositions.length > 0 && selectedIds.length === filteredPositions.length}
-                                    />
-                                </th>
-                                <th className="table-header">ID</th>
-                                <th className="table-header">Position Name</th>
-                                <th className="table-header">Description</th>
-                                <th className="table-header text-center sticky-action">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredPositions.length === 0 ? (
+            <div className="card-base !p-0 overflow-hidden">
+                {loading ? (
+                    <div className="p-6 space-y-3">
+                        {Array.from({ length: 8 }).map((_, i) => (
+                            <div key={i} className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
+                        ))}
+                    </div>
+                ) : error ? (
+                    <div className="py-16 text-center">
+                        <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load positions</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <Button variant="secondary" icon={RefreshCw} onClick={fetchPositions}>Try again</Button>
+                    </div>
+                ) : filteredPositions.length === 0 ? (
+                    <div className="py-16 text-center">
+                        <Briefcase size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">
+                            {searchQuery ? 'No matching positions' : 'No positions yet'}
+                        </h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            {searchQuery
+                                ? `Nothing matches “${searchQuery}”. Try a different search.`
+                                : 'Add a position to define the job titles employees can hold.'}
+                        </p>
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left">
+                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">
                                 <tr>
-                                    <td colSpan="5" className="px-6 py-8 text-center text-slate-500 dark:text-slate-400">
-                                        No positions found.
-                                    </td>
+                                    <th className="px-5 py-3 font-bold w-10">
+                                        <input
+                                            type="checkbox"
+                                            onChange={(e) => setSelectedIds(e.target.checked ? filteredPositions.map(p => p.id) : [])}
+                                            checked={filteredPositions.length > 0 && selectedIds.length === filteredPositions.length}
+                                        />
+                                    </th>
+                                    <th className="px-5 py-3 font-bold w-12">#</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">ID</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Position Name</th>
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Description</th>
+                                    <th className="px-5 py-3 font-bold text-right whitespace-nowrap">Actions</th>
                                 </tr>
-                            ) : (
-                                filteredPositions.map((pos) => (
-                                    <tr key={pos.id} className="table-row">
-                                        <td className="px-6 py-4">
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                                {filteredPositions.map((pos, idx) => (
+                                    <tr key={pos.id} className="hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                        <td className="px-5 py-3">
                                             <input
                                                 type="checkbox"
                                                 checked={selectedIds.includes(pos.id)}
                                                 onChange={() => toggleSelect(pos.id)}
                                             />
                                         </td>
-                                        <td className="px-6 py-4 text-slate-500 dark:text-slate-400">#{pos.id}</td>
-                                        <td className="px-6 py-4 font-semibold text-slate-800 dark:text-slate-100">{pos.name}</td>
-                                        <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{pos.description || '-'}</td>
-                                        <td className="px-6 py-4 sticky-action">
-                                            <div className="flex items-center justify-center gap-2">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    icon={Edit2}
-                                                    aria-label="Edit position"
-                                                    onClick={() => handleEdit(pos)}
-                                                />
-                                                <Button
-                                                    variant="danger"
-                                                    size="sm"
-                                                    icon={Trash2}
-                                                    aria-label="Delete position"
-                                                    onClick={(e) => handleDelete(e, pos.id)}
-                                                />
+                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{idx + 1}</td>
+                                        <td className="px-5 py-3">
+                                            <span className="font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold">
+                                                {pos.id ?? '—'}
+                                            </span>
+                                        </td>
+                                        <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100">
+                                            {pos.name || '—'}
+                                        </td>
+                                        <td className="px-5 py-3 text-slate-600 dark:text-slate-300">
+                                            {pos.description || '—'}
+                                        </td>
+                                        <td className="px-5 py-3">
+                                            <div className="flex items-center justify-end">
+                                                <div className="dv-quiet">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        icon={Edit2}
+                                                        aria-label="Edit position"
+                                                        onClick={() => handleEdit(pos)}
+                                                    />
+                                                    <Button
+                                                        variant="danger"
+                                                        size="sm"
+                                                        icon={Trash2}
+                                                        aria-label="Delete position"
+                                                        onClick={(e) => handleDelete(e, pos.id)}
+                                                    />
+                                                </div>
                                             </div>
                                         </td>
                                     </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-            )}
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+
+                {!loading && !error && filteredPositions.length > 0 && (
+                    <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
+                        {filteredPositions.length} record{filteredPositions.length === 1 ? '' : 's'}
+                    </div>
+                )}
+            </div>
 
             {/* Add/Edit Modal */}
             {showModal && (

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
-import { MapPin, Plus, Edit2, Trash2, X, Save, Calendar, Globe } from 'lucide-react';
+import { MapPin, Plus, Edit2, Trash2, X, Save, Calendar, Globe, AlertCircle, RefreshCw } from 'lucide-react';
 import { useToast, Button, PageHeader, ExportMenu } from '../components';
 
 export default function HolidayLocation({ initialTab = 'locations' }) {
@@ -8,6 +8,7 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
     const [locations, setLocations] = useState([]);
     const [holidays, setHolidays] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [activeTab, setActiveTab] = useState(initialTab);
@@ -33,6 +34,7 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
 
     const fetchData = async () => {
         try {
+            setError(null);
             const [locRes, holRes] = await Promise.all([
                 api.get('/api/holiday-locations'),
                 api.get('/api/holidays')
@@ -41,6 +43,7 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
             setHolidays(holRes.data || []);
         } catch (err) {
             console.error('Error fetching data:', err);
+            setError(err.response?.data?.error || 'Could not load holidays and locations');
         } finally {
             setLoading(false);
         }
@@ -153,6 +156,7 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
             <PageHeader
                 icon={MapPin}
                 title="Holidays & Locations"
+                subtitle="Regional locations and the holiday calendar attached to them"
                 actions={
                     <>
                         {activeTab === 'locations' ? (
@@ -195,40 +199,40 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
             />
 
             {/* Tabs */}
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-1.5">
                 <button
                     onClick={() => setActiveTab('locations')}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${activeTab === 'locations'
-                            ? 'bg-red-600 text-white'
-                            : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors border ${activeTab === 'locations'
+                        ? 'bg-orange-600 text-white border-transparent shadow-sm'
+                        : 'bg-white/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-orange-300 hover:text-orange-600 dark:hover:text-orange-400'
                         }`}
                 >
-                    <MapPin size={16} />
+                    <MapPin size={13} />
                     Locations ({locations.length})
                 </button>
                 <button
                     onClick={() => setActiveTab('holidays')}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${activeTab === 'holidays'
-                            ? 'bg-orange-600 text-white'
-                            : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors border ${activeTab === 'holidays'
+                        ? 'bg-orange-600 text-white border-transparent shadow-sm'
+                        : 'bg-white/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-orange-300 hover:text-orange-600 dark:hover:text-orange-400'
                         }`}
                 >
-                    <Calendar size={16} />
+                    <Calendar size={13} />
                     Holidays ({holidays.length})
                 </button>
             </div>
 
             {/* Upcoming Holidays Banner */}
             {upcomingHolidays.length > 0 && (
-                <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl p-4">
-                    <h3 className="font-semibold text-blue-800 mb-2 flex items-center gap-2">
-                        <Calendar size={16} /> Upcoming Holidays
+                <div className="bg-white/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-4">
+                    <h3 className="text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-3 flex items-center gap-2">
+                        <Calendar size={13} /> Upcoming Holidays
                     </h3>
                     <div className="flex flex-wrap gap-3">
                         {upcomingHolidays.map(h => (
-                            <div key={h.id} className="bg-white dark:bg-slate-800 rounded-lg px-3 py-2 shadow-sm">
-                                <div className="font-medium text-sm">{h.name}</div>
-                                <div className="text-xs text-slate-500 dark:text-slate-400">
+                            <div key={h.id} className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 hover:-translate-y-0.5 transition-transform">
+                                <div className="font-semibold text-sm text-slate-800 dark:text-slate-100">{h.name || '—'}</div>
+                                <div className="text-xs tabular-nums text-slate-500 dark:text-slate-400">
                                     {new Date(h.date).toLocaleDateString('en-US', {
                                         month: 'short', day: 'numeric', year: 'numeric'
                                     })}
@@ -241,115 +245,159 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
 
             {/* Content */}
             {loading ? (
-                <div className="text-center py-8 text-slate-500 dark:text-slate-400">Loading...</div>
+                <div className="card-base !p-0 overflow-hidden">
+                    <div className="p-6 space-y-3">
+                        {Array.from({ length: 6 }).map((_, i) => (
+                            <div key={i} className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
+                        ))}
+                    </div>
+                </div>
+            ) : error ? (
+                <div className="card-base !p-0 overflow-hidden">
+                    <div className="py-16 text-center">
+                        <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load this page</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <Button variant="secondary" icon={RefreshCw} onClick={fetchData}>Try again</Button>
+                    </div>
+                </div>
             ) : activeTab === 'locations' ? (
                 /* Locations Grid */
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {locations.length === 0 ? (
-                        <div className="col-span-full text-center py-8 text-slate-500 dark:text-slate-400">
-                            No locations defined. Locations help assign region-specific holidays.
+                locations.length === 0 ? (
+                    <div className="card-base !p-0 overflow-hidden">
+                        <div className="py-16 text-center">
+                            <MapPin size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                            <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No locations yet</h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                                Locations let you attach region-specific holidays to the right sites.
+                            </p>
                         </div>
-                    ) : locations.map(loc => (
-                        <div key={loc.id} className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border dark:border-slate-700 p-5 hover:shadow-md transition-shadow">
-                            <div className="flex items-start justify-between mb-3">
-                                <div className="flex items-center gap-2">
-                                    <div className="p-2 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg">
-                                        <MapPin size={20} />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-semibold">{loc.name}</h3>
-                                        <div className="text-xs text-slate-500 dark:text-slate-400">
-                                            {loc.description || 'No description'}
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {locations.map(loc => (
+                                <div key={loc.id} className="bg-white/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 hover:-translate-y-0.5 transition-transform">
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            <div className="p-2 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-xl shrink-0">
+                                                <MapPin size={20} />
+                                            </div>
+                                            <div className="min-w-0">
+                                                <h3 className="font-semibold text-slate-800 dark:text-slate-100 truncate">{loc.name || '—'}</h3>
+                                                <div className="text-xs text-slate-600 dark:text-slate-300 truncate">
+                                                    {loc.description || '—'}
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                </div>
-                                <div className="flex gap-1">
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        icon={Edit2}
-                                        aria-label="Edit"
-                                        onClick={() => openEdit(loc)}
-                                    />
-                                    <Button
-                                        variant="danger"
-                                        size="sm"
-                                        icon={Trash2}
-                                        aria-label="Delete"
-                                        onClick={() => handleDelete(loc.id)}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            ) : (
-                /* Holidays Table */
-                <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border dark:border-slate-700 overflow-hidden">
-                    <table className="w-full">
-                        <thead className="bg-slate-50 dark:bg-slate-900/50">
-                            <tr>
-                                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600 dark:text-slate-400">Holiday Name</th>
-                                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600 dark:text-slate-400">Date</th>
-                                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600 dark:text-slate-400">Type</th>
-                                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600 dark:text-slate-400">Optional</th>
-                                <th className="px-4 py-3 text-center text-sm font-semibold text-slate-600 dark:text-slate-400">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y dark:divide-slate-700">
-                            {holidays.length === 0 ? (
-                                <tr>
-                                    <td colSpan={5} className="px-4 py-8 text-center text-slate-500 dark:text-slate-400">
-                                        No holidays defined. Click "Add Holiday" to create one.
-                                    </td>
-                                </tr>
-                            ) : holidays.map(h => (
-                                <tr key={h.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
-                                    <td className="px-4 py-3">
-                                        <div className="font-medium">{h.name}</div>
-                                        {h.description && (
-                                            <div className="text-xs text-slate-500 dark:text-slate-400">{h.description}</div>
-                                        )}
-                                    </td>
-                                    <td className="px-4 py-3 text-sm">
-                                        {new Date(h.date).toLocaleDateString('en-US', {
-                                            weekday: 'short', month: 'short', day: 'numeric', year: 'numeric'
-                                        })}
-                                    </td>
-                                    <td className="px-4 py-3">
-                                        <span className={`px-2 py-1 rounded text-xs font-medium capitalize ${getHolidayTypeColor(h.holiday_type)}`}>
-                                            {h.holiday_type || 'national'}
-                                        </span>
-                                    </td>
-                                    <td className="px-4 py-3">
-                                        {h.is_optional ? (
-                                            <span className="px-2 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded text-xs">Optional</span>
-                                        ) : (
-                                            <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded text-xs">Mandatory</span>
-                                        )}
-                                    </td>
-                                    <td className="px-4 py-3">
-                                        <div className="flex items-center justify-center gap-2">
+                                        <div className="flex gap-1 shrink-0">
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
                                                 icon={Edit2}
                                                 aria-label="Edit"
-                                                onClick={() => openHolidayEdit(h)}
+                                                onClick={() => openEdit(loc)}
                                             />
                                             <Button
                                                 variant="danger"
                                                 size="sm"
                                                 icon={Trash2}
                                                 aria-label="Delete"
-                                                onClick={() => handleHolidayDelete(h.id)}
+                                                onClick={() => handleDelete(loc.id)}
                                             />
                                         </div>
-                                    </td>
-                                </tr>
+                                    </div>
+                                </div>
                             ))}
-                        </tbody>
-                    </table>
+                        </div>
+                        <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
+                            {locations.length} record{locations.length === 1 ? '' : 's'}
+                        </div>
+                    </div>
+                )
+            ) : (
+                /* Holidays Table */
+                <div className="card-base !p-0 overflow-hidden">
+                    {holidays.length === 0 ? (
+                        <div className="py-16 text-center">
+                            <Calendar size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                            <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No holidays yet</h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                                Add a holiday and it will be excluded from attendance for the assigned locations.
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm text-left">
+                                <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">
+                                    <tr>
+                                        <th className="px-5 py-3 font-bold w-12">#</th>
+                                        <th className="px-5 py-3 font-bold whitespace-nowrap">Holiday Name</th>
+                                        <th className="px-5 py-3 font-bold whitespace-nowrap">Date</th>
+                                        <th className="px-5 py-3 font-bold whitespace-nowrap">Type</th>
+                                        <th className="px-5 py-3 font-bold whitespace-nowrap">Optional</th>
+                                        <th className="px-5 py-3 font-bold text-right whitespace-nowrap">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                                    {holidays.map((h, idx) => (
+                                        <tr key={h.id} className="hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                            <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums align-top">{idx + 1}</td>
+                                            <td className="px-5 py-3">
+                                                <div className="font-semibold text-slate-800 dark:text-slate-100">{h.name || '—'}</div>
+                                                {h.description && (
+                                                    <div className="text-xs text-slate-600 dark:text-slate-300">{h.description}</div>
+                                                )}
+                                            </td>
+                                            <td className="px-5 py-3 text-slate-600 dark:text-slate-300 tabular-nums whitespace-nowrap">
+                                                {new Date(h.date).toLocaleDateString('en-US', {
+                                                    weekday: 'short', month: 'short', day: 'numeric', year: 'numeric'
+                                                })}
+                                            </td>
+                                            <td className="px-5 py-3">
+                                                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${getHolidayTypeColor(h.holiday_type)}`}>
+                                                    {h.holiday_type || 'national'}
+                                                </span>
+                                            </td>
+                                            <td className="px-5 py-3">
+                                                {h.is_optional ? (
+                                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300">Optional</span>
+                                                ) : (
+                                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">Mandatory</span>
+                                                )}
+                                            </td>
+                                            <td className="px-5 py-3">
+                                                <div className="flex items-center justify-end">
+                                                    <div className="dv-quiet">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            icon={Edit2}
+                                                            aria-label="Edit"
+                                                            onClick={() => openHolidayEdit(h)}
+                                                        />
+                                                        <Button
+                                                            variant="danger"
+                                                            size="sm"
+                                                            icon={Trash2}
+                                                            aria-label="Delete"
+                                                            onClick={() => handleHolidayDelete(h.id)}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+
+                    {holidays.length > 0 && (
+                        <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
+                            {holidays.length} record{holidays.length === 1 ? '' : 's'}
+                        </div>
+                    )}
                 </div>
             )}
 

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import api from '../api';
 import {
     Shield, Plus, Trash2, Edit, ChevronLeft, ChevronRight,
-    RefreshCw, Search, Users, X
+    RefreshCw, Search, Users, X, AlertCircle
 } from 'lucide-react';
 import { useToast, Button, PageHeader } from '../components';
 
@@ -11,6 +11,7 @@ export default function ApprovalRole() {
     const [roles, setRoles] = useState([]);
     const [employees, setEmployees] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [showModal, setShowModal] = useState(null); // 'add' | 'edit' | 'assign'
     const [editItem, setEditItem] = useState(null);
     const [formData, setFormData] = useState({ role_code: '', role_name: '', description: '' });
@@ -25,6 +26,7 @@ export default function ApprovalRole() {
     const fetchRoles = async () => {
         try {
             setLoading(true);
+            setError(null);
             const [rolesRes, empRes] = await Promise.all([
                 api.get('/api/approval/roles').catch(() => ({ data: [] })),
                 api.get('/api/employees').catch(() => ({ data: [] }))
@@ -33,6 +35,7 @@ export default function ApprovalRole() {
             setEmployees(empRes.data);
         } catch (err) {
             console.error(err);
+            setError(err.response?.data?.error || 'Could not load approval roles');
         } finally {
             setLoading(false);
         }
@@ -167,10 +170,36 @@ export default function ApprovalRole() {
 
             {/* Table */}
             <div className="flex-1 overflow-auto bg-white dark:bg-slate-800 custom-scrollbar">
+                {loading ? (
+                    <div className="p-6 space-y-3">
+                        {Array.from({ length: 8 }).map((_, i) => (
+                            <div key={i} className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
+                        ))}
+                    </div>
+                ) : error ? (
+                    <div className="py-16 text-center">
+                        <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load roles</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <Button variant="secondary" icon={RefreshCw} onClick={fetchRoles}>Try again</Button>
+                    </div>
+                ) : paginatedItems.length === 0 ? (
+                    <div className="py-16 text-center">
+                        <Shield size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">
+                            {searchQuery ? 'No matching roles' : 'No approval roles yet'}
+                        </h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            {searchQuery
+                                ? 'No role matches that search.'
+                                : 'Add a role to describe who can approve requests.'}
+                        </p>
+                    </div>
+                ) : (
                 <table className="w-full text-left text-sm border-collapse">
-                    <thead className="bg-orange-50/50 dark:bg-orange-900/30 text-charcoal dark:text-slate-100 font-semibold sticky top-0 z-10 border-b border-slate-100 dark:border-slate-700">
+                    <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 sticky top-0 z-10 border-b border-slate-100 dark:border-slate-700">
                         <tr>
-                            <th className="p-4 w-12 text-center">
+                            <th className="px-5 py-3 w-12 text-center">
                                 <input
                                     type="checkbox"
                                     className="rounded border-slate-300 dark:border-slate-600 text-saffron focus:ring-saffron"
@@ -178,63 +207,60 @@ export default function ApprovalRole() {
                                     onChange={toggleSelectAll}
                                 />
                             </th>
-                            <th className="p-4 border-b border-slate-100 dark:border-slate-700">Role Code</th>
-                            <th className="p-4 border-b border-slate-100 dark:border-slate-700">Role Name</th>
-                            <th className="p-4 border-b border-slate-100 dark:border-slate-700">Description</th>
-                            <th className="p-4 border-b border-slate-100 dark:border-slate-700">Total Employees</th>
-                            <th className="p-4 w-24 text-center">Actions</th>
+                            <th className="px-5 py-3 font-bold whitespace-nowrap">Role Code</th>
+                            <th className="px-5 py-3 font-bold whitespace-nowrap">Role Name</th>
+                            <th className="px-5 py-3 font-bold whitespace-nowrap">Description</th>
+                            <th className="px-5 py-3 font-bold whitespace-nowrap">Total Employees</th>
+                            <th className="px-5 py-3 font-bold whitespace-nowrap w-24 text-right">Actions</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-50 dark:divide-slate-700">
-                        {loading ? (
-                            <tr><td colSpan={6} className="p-8 text-center text-slate-grey dark:text-slate-400">Loading...</td></tr>
-                        ) : paginatedItems.length === 0 ? (
-                            <tr><td colSpan={6} className="p-12 text-center text-slate-grey dark:text-slate-400">No roles found</td></tr>
-                        ) : (
-                            paginatedItems.map(role => (
-                                <tr key={role.id} className="hover:bg-cream-50 dark:hover:bg-slate-700 transition-colors group">
-                                    <td className="p-4 text-center">
-                                        <input
-                                            type="checkbox"
-                                            className="rounded border-slate-300 dark:border-slate-600 text-saffron focus:ring-saffron"
-                                            checked={selectedIds.includes(role.id)}
-                                            onChange={() => toggleSelect(role.id)}
-                                        />
-                                    </td>
-                                    <td className="p-4 font-mono text-saffron font-medium">{role.role_code || role.id}</td>
-                                    <td className="p-4 font-bold text-charcoal dark:text-slate-100">{role.role_name || role.name}</td>
-                                    <td className="p-4 text-slate-grey dark:text-slate-400">{role.description || '-'}</td>
-                                    <td className="p-4 text-slate-grey dark:text-slate-400">{role.employee_count || 0}</td>
-                                    <td className="p-4 flex justify-center gap-2">
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                        {paginatedItems.map(role => (
+                            <tr key={role.id} className="hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors group">
+                                <td className="px-5 py-3 text-center">
+                                    <input
+                                        type="checkbox"
+                                        className="rounded border-slate-300 dark:border-slate-600 text-saffron focus:ring-saffron"
+                                        checked={selectedIds.includes(role.id)}
+                                        onChange={() => toggleSelect(role.id)}
+                                    />
+                                </td>
+                                <td className="px-5 py-3 font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold">{role.role_code || role.id || '—'}</td>
+                                <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100">{role.role_name || role.name || '—'}</td>
+                                <td className="px-5 py-3 text-slate-600 dark:text-slate-300">{role.description || '—'}</td>
+                                <td className="px-5 py-3 text-slate-600 dark:text-slate-300 tabular-nums">{role.employee_count || 0}</td>
+                                <td className="px-5 py-3">
+                                    <div className="dv-quiet">
                                         <Button variant="ghost" size="sm" icon={Edit} iconSize={16} onClick={() => handleEdit(role)} aria-label="Edit role" />
                                         <Button variant="danger" size="sm" icon={Trash2} iconSize={16} onClick={() => handleDelete(role.id)} aria-label="Delete role" />
-                                    </td>
-                                </tr>
-                            ))
-                        )}
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
                     </tbody>
                 </table>
+                )}
             </div>
 
             {/* Pagination */}
-            <div className="p-3 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between text-sm text-slate-grey dark:text-slate-400 bg-slate-50/50 dark:bg-slate-900/50">
+            <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between text-sm text-slate-500 dark:text-slate-400 bg-slate-50/70 dark:bg-slate-900/50">
                 <div className="flex items-center gap-3">
                     <Button variant="ghost" size="sm" icon={RefreshCw} onClick={fetchRoles} title="Refresh" aria-label="Refresh" />
-                    <select value={itemsPerPage} onChange={e => setItemsPerPage(Number(e.target.value))} className="border border-slate-200 dark:border-slate-600 rounded px-2 py-1 bg-white dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:border-saffron">
+                    <select value={itemsPerPage} onChange={e => setItemsPerPage(Number(e.target.value))} className="border border-slate-200 dark:border-slate-600 rounded-lg px-2 py-1 text-xs font-semibold bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 focus:outline-none focus:border-orange-400 dark:focus:border-orange-500">
                         <option value={50}>50</option>
                         <option value={100}>100</option>
                     </select>
-                    <div className="flex items-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md">
-                        <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-l disabled:opacity-50 transition-colors border-r border-slate-200 dark:border-slate-700">
+                    <div className="flex items-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
+                        <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="p-1.5 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 transition-colors border-r border-slate-200 dark:border-slate-700">
                             <ChevronLeft size={16} />
                         </button>
-                        <span className="px-3 py-1 font-medium bg-green-600 text-white text-xs">{currentPage}</span>
-                        <button onClick={() => setCurrentPage(p => Math.min(totalPages || 1, p + 1))} disabled={currentPage === totalPages} className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-r disabled:opacity-50 transition-colors border-l border-slate-200 dark:border-slate-700">
+                        <span className="px-3 py-1 font-bold bg-orange-600 text-white text-xs tabular-nums">{currentPage}</span>
+                        <button onClick={() => setCurrentPage(p => Math.min(totalPages || 1, p + 1))} disabled={currentPage === totalPages} className="p-1.5 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 transition-colors border-l border-slate-200 dark:border-slate-700">
                             <ChevronRight size={16} />
                         </button>
                     </div>
                 </div>
-                <span className="text-xs font-medium">Total <span className="text-charcoal dark:text-slate-100 font-bold">{filteredItems.length}</span> Records</span>
+                <span className="text-xs font-medium">Total <span className="text-slate-800 dark:text-slate-100 font-bold tabular-nums">{filteredItems.length}</span> Records</span>
             </div>
 
             {/* Add/Edit Modal */}

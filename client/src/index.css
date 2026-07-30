@@ -3354,6 +3354,10 @@ body {
 .dv-card:hover .dv-quiet,
 .dv-card:focus-within .dv-quiet { opacity: 1; transform: none; }
 
+/* same treatment inside table rows */
+tr:hover .dv-quiet,
+tr:focus-within .dv-quiet { opacity: 1; transform: none; }
+
 @media (hover: none) {
   .dv-quiet { opacity: 1; transform: none; }
 }
