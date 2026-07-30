@@ -642,86 +642,84 @@ export default function Devices() {
                             )}
                         />
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                            {devices.map(device => (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
+                            {devices.map(device => {
+                                const isOnline = device.status === 'online';
+                                const isSelected = selectedDevices.includes(device.serial_number);
+                                const direction = getDirectionLabel(device.device_direction);
+                                return (
                                 <div
                                     key={device.serial_number}
-                                    className={`device-card ${device.status === 'online' ? 'online' : 'offline'} ${selectedDevices.includes(device.serial_number) ? 'selected' : ''} group`}
+                                    className={`dv-card group ${isOnline ? 'is-online' : 'is-offline'} ${isSelected ? 'is-selected' : ''}`}
                                 >
-                                    {/* Premium Checkbox */}
-                                    <div className="absolute top-5 right-5 z-10">
-                                        <input
-                                            type="checkbox"
-                                            checked={selectedDevices.includes(device.serial_number)}
-                                            onChange={() => {
-                                                if (selectedDevices.includes(device.serial_number))
-                                                    setSelectedDevices(selectedDevices.filter(s => s !== device.serial_number));
-                                                else
-                                                    setSelectedDevices([...selectedDevices, device.serial_number]);
-                                            }}
-                                            className="checkbox-premium"
-                                        />
+                                    {/* status rail */}
+                                    <span className="dv-rail" />
+
+                                    {/* header */}
+                                    <div className="dv-head">
+                                        <div className="dv-avatar">
+                                            {isOnline ? <Wifi size={20} /> : <WifiOff size={20} />}
+                                            {isOnline && <span className="dv-ping" />}
+                                        </div>
+
+                                        <div className="min-w-0 flex-1">
+                                            <div className="flex items-center gap-2">
+                                                <h3 className="dv-name">{device.device_name}</h3>
+                                                <span className={`dv-dir dv-dir--${direction.toLowerCase()}`}>{direction}</span>
+                                            </div>
+                                            <p className="dv-serial">{device.serial_number}</p>
+                                        </div>
+
+                                        <label className="dv-check" title={isSelected ? 'Deselect device' : 'Select device'}>
+                                            <input
+                                                type="checkbox"
+                                                checked={isSelected}
+                                                onChange={() => {
+                                                    if (isSelected)
+                                                        setSelectedDevices(selectedDevices.filter(s => s !== device.serial_number));
+                                                    else
+                                                        setSelectedDevices([...selectedDevices, device.serial_number]);
+                                                }}
+                                            />
+                                            <span />
+                                        </label>
                                     </div>
 
-                                    {/* Device Header */}
-                                    <div className="flex items-center gap-4 mb-5">
-                                        <div className={`device-icon-container ${device.status === 'offline' ? 'offline' : ''}`}>
-                                            {device.status === 'online'
-                                                ? <Wifi className="text-emerald-600" size={22} />
-                                                : <WifiOff className="text-slate-400" size={22} />
-                                            }
-                                            <div className={`device-status-indicator ${device.status === 'online' ? 'online' : 'offline'}`}></div>
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <h3 className="font-bold text-lg text-slate-800 dark:text-slate-100 truncate">{device.device_name}</h3>
-                                            <p className="text-xs font-mono text-slate-500 dark:text-slate-400 tracking-wide">{device.serial_number}</p>
-                                        </div>
+                                    {/* live status line */}
+                                    <div className="dv-status">
+                                        <span className={`dv-dot ${isOnline ? 'on' : 'off'}`} />
+                                        <span className="dv-status-text">{isOnline ? 'Online' : 'Offline'}</span>
+                                        <span className="dv-sep" />
+                                        <Clock size={12} className="opacity-60" />
+                                        <span>{timeSince(device.last_activity)}</span>
                                     </div>
 
-                                    {/* Status Badges */}
-                                    <div className="flex gap-2 mb-5">
-                                        <span className={`badge-premium ${device.status === 'online' ? 'badge-online' : 'badge-offline'}`}>
-                                            <span className={`w-1.5 h-1.5 rounded-full ${device.status === 'online' ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
-                                            {device.status}
-                                        </span>
-                                        <span className="badge-premium badge-direction">
-                                            {getDirectionLabel(device.device_direction)}
-                                        </span>
-                                    </div>
-
-                                    {/* Device Info Grid */}
-                                    <div className="device-info-grid mb-5">
-                                        <div className="device-info-item">
-                                            <span className="device-info-label">IP Address</span>
-                                            <span className="device-info-value">{device.ip_address}</span>
+                                    {/* metrics */}
+                                    <div className="dv-metrics">
+                                        <div>
+                                            <span className="dv-label">IP Address</span>
+                                            <span className="dv-value font-mono">{device.ip_address || '—'}</span>
                                         </div>
-                                        <div className="device-info-item">
-                                            <span className="device-info-label">Area</span>
-                                            <span className="device-info-value" style={{ fontFamily: 'inherit' }}>{device.area_name || 'Unassigned'}</span>
-                                        </div>
-                                        <div className="device-info-item col-span-2">
-                                            <span className="device-info-label">Last Activity</span>
-                                            <span className="device-info-value" style={{ fontFamily: 'inherit' }}>{timeSince(device.last_activity)}</span>
+                                        <div>
+                                            <span className="dv-label">Area</span>
+                                            <span className="dv-value">{device.area_name || 'Unassigned'}</span>
                                         </div>
                                     </div>
 
-                                    {/* Action Button Bar */}
-                                    <div className="action-button-bar">
+                                    {/* actions */}
+                                    <div className="dv-actions">
                                         <Button
                                             variant="secondary"
                                             size="sm"
+                                            className="flex-1"
                                             onClick={() => syncDevice(device.serial_number, 'INFO')}
                                             disabled={syncing[device.serial_number]}
                                         >
-                                            {syncing[device.serial_number]
-                                                ? <RefreshCw className="animate-spin" size={16} />
-                                                : <RefreshCw size={16} />
-                                            }
+                                            <RefreshCw size={15} className={syncing[device.serial_number] ? 'animate-spin' : ''} />
                                             {syncing[device.serial_number] ? 'Syncing...' : 'Sync'}
                                         </Button>
 
-                                        {/* Diagnostic Tools for Offline Devices */}
-                                        {device.status === 'offline' && (
+                                        {!isOnline && (
                                             <>
                                                 <Button
                                                     variant="ghost"
@@ -764,23 +762,28 @@ export default function Devices() {
                                             </>
                                         )}
 
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            icon={Edit2}
-                                            aria-label="Edit"
-                                            onClick={() => { setEditingDevice(device); setForm({ ...defaultForm, ...device }); setShowModal(true); }}
-                                        />
-                                        <Button
-                                            variant="danger"
-                                            size="sm"
-                                            icon={Trash2}
-                                            aria-label="Delete"
-                                            onClick={() => handleDelete(device.serial_number)}
-                                        />
+                                        <div className="dv-quiet">
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                icon={Edit2}
+                                                aria-label="Edit"
+                                                title="Edit device"
+                                                onClick={() => { setEditingDevice(device); setForm({ ...defaultForm, ...device }); setShowModal(true); }}
+                                            />
+                                            <Button
+                                                variant="danger"
+                                                size="sm"
+                                                icon={Trash2}
+                                                aria-label="Delete"
+                                                title="Delete device"
+                                                onClick={() => handleDelete(device.serial_number)}
+                                            />
+                                        </div>
                                     </div>
                                 </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </div >
                 );
