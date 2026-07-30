@@ -276,6 +276,28 @@ const schedulingExtRouter = require('./routes/scheduling_extended');
 
 app.use('/api', authRouter);
 
+// Liveness probe for the container healthcheck and load balancer. Must stay
+// above the authenticateToken-wrapped routers below — their middleware runs
+// for every /api/* path, which would 401 the probe and mark the app unhealthy.
+app.get('/api/health', async (req, res) => {
+    try {
+        await db.query('SELECT 1');
+        res.json({
+            status: 'healthy',
+            timestamp: new Date().toISOString(),
+            database: 'connected',
+            uptime: process.uptime()
+        });
+    } catch (err) {
+        res.status(503).json({
+            status: 'unhealthy',
+            timestamp: new Date().toISOString(),
+            database: 'disconnected',
+            error: err.message
+        });
+    }
+});
+
 // Employee self-service portal — own auth realm, must mount before the
 // authenticateToken-wrapped /api routers below (their middleware runs for
 // every /api/* path, which would 401 the public portal login).
@@ -433,27 +455,6 @@ app.get(['/iclock/getrequest', '/iclock/getrequest.aspx'], adms.handleGetRequest
 app.post(['/iclock/devicecmd', '/iclock/devicecmd.aspx'], (req, res) => res.send('OK'));
 
 // ================= API Routes ==================
-
-// Health Check Endpoint
-app.get('/api/health', async (req, res) => {
-    try {
-        // Test database connection
-        await db.query('SELECT 1');
-        res.json({
-            status: 'healthy',
-            timestamp: new Date().toISOString(),
-            database: 'connected',
-            uptime: process.uptime()
-        });
-    } catch (err) {
-        res.status(503).json({
-            status: 'unhealthy',
-            timestamp: new Date().toISOString(),
-            database: 'disconnected',
-            error: err.message
-        });
-    }
-});
 
 // Get Dashboard Stats
 app.get('/api/stats', async (req, res) => {
