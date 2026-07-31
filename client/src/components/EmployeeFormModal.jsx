@@ -56,6 +56,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee = null, de
 
         // Attendance Settings
         attendance_required: employee?.attendance_required ?? true,
+        exclude_from_hrms: employee?.exclude_from_hrms ?? false,
         overtime_allowed: employee?.overtime_allowed || false,
         default_shift_id: employee?.default_shift_id || '',
         week_off_days: employee?.week_off_days || 'Sun,Sat',
@@ -267,6 +268,19 @@ export default function EmployeeFormModal({ isOpen, onClose, employee = null, de
                             <div className="space-y-4">
                                 <Toggle label="Attendance Required" checked={formData.attendance_required} onChange={v => handleChange('attendance_required', v)} />
                                 <Toggle label="Overtime Allowed" checked={formData.overtime_allowed} onChange={v => handleChange('overtime_allowed', v)} />
+                                {/* Facility and security contractors hold biometric access but do
+                                    not exist in the HR system. Without this their punches are
+                                    pushed, rejected, and retried on every sync cycle. */}
+                                <Toggle
+                                    label="Exclude from HRMS sync"
+                                    checked={formData.exclude_from_hrms}
+                                    onChange={v => handleChange('exclude_from_hrms', v)}
+                                />
+                                <p className="ml-40 -mt-2 text-xs text-slate-500 dark:text-slate-400">
+                                    For people with door access who are not on the HR system —
+                                    contractors, security, facility staff. Attendance is still
+                                    recorded here, it is just never sent to ERPNext.
+                                </p>
                                 <div className="flex items-center gap-2">
                                     <label className="w-44 text-right text-slate-600 dark:text-slate-400 text-sm">Default Shift:</label>
                                     <select

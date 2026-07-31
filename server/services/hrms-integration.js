@@ -365,7 +365,14 @@ const runScheduledSync = async () => {
  */
 const syncAttendanceToHRMS = async (integration) => {
     try {
-        // Get unsynced attendance records (sync_status is VARCHAR: 'synced', 'pending', etc.)
+        // Get unsynced attendance records (sync_status is VARCHAR: 'synced',
+        // 'pending', 'skipped').
+        //
+        // 'skipped' is deliberate and must not be retried. It covers people who
+        // hold biometric access but are not in the HR system at all — facility
+        // and security contractors here. Without the exclusion their punches
+        // were pushed, rejected, left as 'pending', and pushed again on the next
+        // cycle for as long as they stayed inside the 7-day window.
         const result = await db.query(`
             SELECT 
                 al.*,
@@ -373,10 +380,22 @@ const syncAttendanceToHRMS = async (integration) => {
                 e.email
             FROM attendance_logs al
             LEFT JOIN employees e ON al.employee_code = e.employee_code
-            WHERE (al.sync_status IS NULL OR al.sync_status != 'synced')
+            WHERE (al.sync_status IS NULL OR al.sync_status NOT IN ('synced', 'skipped'))
+            AND COALESCE(e.exclude_from_hrms, false) = false
             AND al.punch_time > NOW() - INTERVAL '7 days'
             ORDER BY al.punch_time
             LIMIT 500
+        `);
+
+        // Anything belonging to an excluded employee is settled once, so it stops
+        // being reconsidered on every cycle.
+        await db.query(`
+            UPDATE attendance_logs al
+            SET sync_status = 'skipped'
+            FROM employees e
+            WHERE e.employee_code = al.employee_code
+              AND e.exclude_from_hrms = true
+              AND (al.sync_status IS NULL OR al.sync_status = 'pending')
         `);
 
         if (result.rows.length === 0) {

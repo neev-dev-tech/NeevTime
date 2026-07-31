@@ -659,7 +659,7 @@ const PATCHABLE_EMPLOYEE_FIELDS = new Set([
     'attendance_required', 'status', 'app_access', 'app_login_enabled',
     'overtime_allowed', 'geo_fencing', 'selfie_punch', 'outdoor_mng',
     'department_id', 'area_id', 'position_id', 'default_shift_id',
-    'designation', 'employment_type'
+    'designation', 'employment_type', 'exclude_from_hrms'
 ]);
 
 app.patch('/api/employees/:id', async (req, res) => {
@@ -1580,6 +1580,11 @@ const ensureSchema = async () => {
     const statements = [
         `ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_login_attempts INTEGER DEFAULT 0`,
         `ALTER TABLE users ADD COLUMN IF NOT EXISTS locked_until TIMESTAMP`,
+        // Not everyone with biometric access belongs in the HR system. Facility
+        // and security contractors are enrolled here for door access only, and
+        // pushing their punches to ERPNext just produces rejections that retry
+        // forever. Defaults to false, so existing staff are unaffected.
+        `ALTER TABLE employees ADD COLUMN IF NOT EXISTS exclude_from_hrms BOOLEAN DEFAULT false`,
         `ALTER TABLE devices ADD COLUMN IF NOT EXISTS retired_at TIMESTAMP`,
         // Which family this reader belongs to. Installs that predate this column
         // already label their push-protocol devices 'ZKTeco' — eSSL readers speak
