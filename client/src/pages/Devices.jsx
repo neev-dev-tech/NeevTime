@@ -413,7 +413,13 @@ export default function Devices() {
 
     const handleDelete = (serial) => {
         console.log('[Devices] handleDelete called with serial:', serial);
-        setConfirmation({ show: true, action: 'delete', title: 'Remove Device', message: 'Irreversible action.', target: serial });
+        setConfirmation({
+            show: true,
+            action: 'delete',
+            title: 'Retire Device',
+            message: 'The device is removed from the active fleet and stops accepting commands. Its attendance history is kept.',
+            target: serial
+        });
     };
 
     const processDataTransfer = async () => {
@@ -426,8 +432,12 @@ export default function Devices() {
                     showToast('Error: No device selected for deletion', 'error');
                     return;
                 }
-                await api.delete(`/api/devices/${target}`);
-                showToast('Device deleted successfully', 'success');
+                const res = await api.delete(`/api/devices/${target}`);
+                const kept = res.data?.preserved_logs;
+                showToast(
+                    kept ? `Device retired — ${kept.toLocaleString()} punch records kept` : 'Device retired',
+                    'success'
+                );
             } else {
                 const endpointMap = {
                     'download-users': '/api/devices/sync/download-users',

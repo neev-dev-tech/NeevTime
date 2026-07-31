@@ -385,7 +385,11 @@ const handleHandshake = async (req, res, io) => {
             INSERT INTO devices (serial_number, status, last_activity)
             VALUES ($1, 'online', NOW())
             ON CONFLICT (serial_number) 
-            DO UPDATE SET status = 'online', last_activity = NOW()
+            -- A retired device must not resurrect itself just by staying on the
+            -- network; last_activity still updates so the fleet view is honest.
+            DO UPDATE SET
+                status = CASE WHEN devices.status = 'retired' THEN 'retired' ELSE 'online' END,
+                last_activity = NOW()
         `, [SN]);
 
         // Notify Frontend
@@ -445,7 +449,9 @@ const handleAttendanceLogs = async (req, res, io) => {
                 INSERT INTO devices (serial_number, status, last_activity)
                 VALUES ($1, 'online', NOW())
                 ON CONFLICT (serial_number) 
-                DO UPDATE SET status = 'online', last_activity = NOW()
+                DO UPDATE SET
+                    status = CASE WHEN devices.status = 'retired' THEN 'retired' ELSE 'online' END,
+                    last_activity = NOW()
                 RETURNING device_direction
             `, [SN]);
 
@@ -654,7 +660,7 @@ const handleGetRequest = async (req, res, io) => {
         VALUES ($1, 'online', NOW(), $2, $3, $4)
         ON CONFLICT (serial_number) 
         DO UPDATE SET 
-            status = 'online', 
+            status = CASE WHEN devices.status = 'retired' THEN 'retired' ELSE 'online' END,
             last_activity = NOW(),
             device_model = COALESCE(NULLIF($2, ''), devices.device_model),
             firmware_version = COALESCE(NULLIF($3, ''), devices.firmware_version),

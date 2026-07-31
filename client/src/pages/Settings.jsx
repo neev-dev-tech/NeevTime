@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, RefreshCw, Send, Loader2, AlertCircle, Building, Timer, CalendarDays, Mail, ShieldCheck, BarChart3, FileCheck, Database as DatabaseIcon, Settings as SettingsIcon } from 'lucide-react';
+import { Save, RefreshCw, Send, Loader2, AlertCircle, Building, Timer, CalendarDays, Mail, ShieldCheck, BarChart3, FileCheck, Database as DatabaseIcon, Globe, Settings as SettingsIcon } from 'lucide-react';
 import api from '../api';
 import { Button, PageHeader, useToast } from '../components';
 
@@ -14,6 +14,17 @@ const CATEGORIES = [
     { id: 'reports', label: 'Auto Reports', icon: BarChart3, iconClass: 'text-emerald-500 dark:text-emerald-400' },
     { id: 'pdf', label: 'PDF Settings', icon: FileCheck, iconClass: 'text-amber-500 dark:text-amber-400' },
     { id: 'database', label: 'Database', icon: DatabaseIcon, iconClass: 'text-violet-500 dark:text-violet-400' },
+    { id: 'timezone', label: 'Timezone', icon: Globe, iconClass: 'text-sky-500 dark:text-sky-400' },
+];
+
+// Zones the app is realistically deployed in. Kept short deliberately — the
+// full IANA list is hundreds of entries and unusable in a dropdown.
+const TIMEZONES = [
+    'Asia/Kolkata', 'Asia/Dubai', 'Asia/Karachi', 'Asia/Dhaka', 'Asia/Kathmandu',
+    'Asia/Colombo', 'Asia/Singapore', 'Asia/Manila', 'Asia/Jakarta', 'Asia/Bangkok',
+    'Asia/Tokyo', 'Asia/Shanghai', 'Asia/Riyadh', 'Europe/London', 'Europe/Berlin',
+    'Europe/Paris', 'America/New_York', 'America/Chicago', 'America/Denver',
+    'America/Los_Angeles', 'Australia/Sydney', 'UTC'
 ];
 
 export default function Settings() {
@@ -189,6 +200,26 @@ export default function Settings() {
                         onChange={(e) => handleChange(key, parseFloat(e.target.value) || 0)}
                         className="input-premium transition-all duration-200"
                     />
+                    {config.description && (
+                        <p className="text-xs text-slate-500 dark:text-slate-400 ml-1">{config.description}</p>
+                    )}
+                </div>
+            );
+        }
+
+        // A free-text timezone is easy to typo, and a typo silently falls back
+        // to the default inside the attendance engine.
+        if (key === 'system_timezone') {
+            return (
+                <div key={key} className="space-y-2">
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">{label}</label>
+                    <select
+                        value={value ?? 'Asia/Kolkata'}
+                        onChange={(e) => handleChange(key, e.target.value)}
+                        className="input-premium"
+                    >
+                        {TIMEZONES.map(tz => <option key={tz} value={tz}>{tz}</option>)}
+                    </select>
                     {config.description && (
                         <p className="text-xs text-slate-500 dark:text-slate-400 ml-1">{config.description}</p>
                     )}

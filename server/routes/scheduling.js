@@ -226,5 +226,133 @@ router.delete('/break-times/:id', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// ==================== BULK IMPORT ====================
+//
+// The Import Wizard offered Shift Assignment and Holidays, but the endpoints
+// behind them were never built, so both flows 404'd on submit. Each row is
+// validated and applied independently: one bad row is reported and skipped
+// rather than failing the whole file, since a partially-correct spreadsheet is
+// the normal case.
+
+const asRows = (body) => {
+    const rows = body?.data || body?.employees || body?.rows;
+    return Array.isArray(rows) ? rows : null;
+};
+
+// Shift assignment: employee_code, shift_id, effective_from
+router.post('/roster/import', async (req, res) => {
+    const rows = asRows(req.body);
+    if (!rows) return res.status(400).json({ error: 'Expected an array of rows in "data"' });
+
+    const errors = [];
+    let imported = 0;
+    const client = await db.getClient();
+
+    try {
+        await client.query('BEGIN');
+
+        for (const [index, row] of rows.entries()) {
+            const line = index + 2; // +1 for zero-index, +1 for the header row
+            const code = String(row.employee_code ?? '').trim();
+            const shiftId = parseInt(row.shift_id);
+            const from = String(row.effective_from ?? '').trim();
+
+            if (!code || !Number.isInteger(shiftId) || !from) {
+                errors.push(`Row ${line}: employee_code, shift_id and effective_from are all required`);
+                continue;
+            }
+
+            const emp = await client.query('SELECT id FROM employees WHERE employee_code = $1', [code]);
+            if (emp.rows.length === 0) {
+                errors.push(`Row ${line}: no employee with code ${code}`);
+                continue;
+            }
+
+            const shift = await client.query('SELECT id FROM shifts WHERE id = $1', [shiftId]);
+            if (shift.rows.length === 0) {
+                errors.push(`Row ${line}: no shift with id ${shiftId}`);
+                continue;
+            }
+
+            await client.query(
+                `INSERT INTO employee_schedules (employee_id, shift_id, effective_from, effective_to, reason)
+                 VALUES ($1, $2, $3, $4, $5)`,
+                [emp.rows[0].id, shiftId, from, row.effective_to || null, 'Bulk import']
+            );
+            imported += 1;
+        }
+
+        await client.query('COMMIT');
+        res.json({ success: true, imported, skipped: errors.length, errors: errors.slice(0, 50) });
+    } catch (err) {
+        await client.query('ROLLBACK').catch(() => {});
+        res.status(500).json({ error: err.message });
+    } finally {
+        client.release();
+    }
+});
+
+// Holidays: name, date, is_optional
+router.post('/holidays/import', async (req, res) => {
+    const rows = asRows(req.body);
+    if (!rows) return res.status(400).json({ error: 'Expected an array of rows in "data"' });
+
+    const errors = [];
+    let imported = 0;
+    const client = await db.getClient();
+
+    try {
+        await client.query('BEGIN');
+
+        for (const [index, row] of rows.entries()) {
+            const line = index + 2;
+            const name = String(row.name ?? '').trim();
+            const date = String(row.date ?? '').trim();
+
+            if (!name || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+                errors.push(`Row ${line}: name is required and date must be YYYY-MM-DD`);
+                continue;
+            }
+
+            const isOptional = row.is_optional === true
+                || String(row.is_optional ?? '').toLowerCase() === 'true'
+                || String(row.is_optional ?? '') === '1';
+
+            const locationId = row.location_id ? parseInt(row.location_id) : null;
+
+            // Explicit find-then-write rather than ON CONFLICT: the unique index
+            // is on (date, location_id), and in SQL NULL never equals NULL, so a
+            // national holiday (no location) would never match the conflict
+            // target and would duplicate on every re-import.
+            const existing = await client.query(
+                `SELECT id FROM holidays
+                 WHERE date = $1 AND location_id IS NOT DISTINCT FROM $2`,
+                [date, locationId]
+            );
+
+            if (existing.rows.length > 0) {
+                await client.query(
+                    'UPDATE holidays SET name = $1, is_optional = $2 WHERE id = $3',
+                    [name, isOptional, existing.rows[0].id]
+                );
+            } else {
+                await client.query(
+                    'INSERT INTO holidays (name, date, location_id, is_optional) VALUES ($1, $2, $3, $4)',
+                    [name, date, locationId, isOptional]
+                );
+            }
+            imported += 1;
+        }
+
+        await client.query('COMMIT');
+        res.json({ success: true, imported, skipped: errors.length, errors: errors.slice(0, 50) });
+    } catch (err) {
+        await client.query('ROLLBACK').catch(() => {});
+        res.status(500).json({ error: err.message });
+    } finally {
+        client.release();
+    }
+});
+
 module.exports = router;
 

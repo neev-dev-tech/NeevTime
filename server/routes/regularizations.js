@@ -95,14 +95,17 @@ router.put('/:id/status', async (req, res) => {
 
             await client.query(
                 `INSERT INTO attendance_daily_summary
-                    (employee_code, date, in_time, out_time, duration_minutes, status, remarks)
-                 VALUES ($1, $2, $3, $4, $5, 'Present', $6)
+                    (employee_code, date, in_time, out_time, duration_minutes, status, remarks, is_finalized)
+                 VALUES ($1, $2, $3, $4, $5, 'Present', $6, true)
                  ON CONFLICT (employee_code, date) DO UPDATE SET
                     in_time = EXCLUDED.in_time,
                     out_time = EXCLUDED.out_time,
                     duration_minutes = EXCLUDED.duration_minutes,
                     status = EXCLUDED.status,
-                    remarks = EXCLUDED.remarks`,
+                    remarks = EXCLUDED.remarks,
+                    -- An approved regularization outranks the raw punches, so a
+                    -- recompute must leave this row alone
+                    is_finalized = true`,
                 [reg.employee_code, dateStr, inTime, outTime, duration, `Regularized: ${reg.reason}`]
             );
         }

@@ -5,6 +5,12 @@ const jwt = require('jsonwebtoken');
 const db = require('../db');
 const { logLogin, logLogout } = require('../utils/systemLogger');
 const settings = require('../utils/settings');
+const { rateLimit } = require('../utils/rateLimit');
+
+// Throttles the endpoint itself. The per-account lockout below cannot see an
+// attacker spraying one password across many usernames; this can.
+const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, message: 'Too many sign-in attempts from this address. Try again later.' });
+const resetLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 10, message: 'Too many password reset requests. Try again later.' });
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
@@ -53,7 +59,7 @@ const tokenOptions = async () => {
 };
 
 // Login
-router.post('/login', async (req, res) => {
+router.post('/login', loginLimiter, async (req, res) => {
     const { username, password } = req.body;
 
     try {
@@ -128,7 +134,7 @@ router.post('/login', async (req, res) => {
 // ================= PASSWORD RESET =================
 
 // Request a reset link. Always responds success to avoid user enumeration.
-router.post('/forgot-password', async (req, res) => {
+router.post('/forgot-password', resetLimiter, async (req, res) => {
     const { username } = req.body;
     const genericOk = { success: true, message: 'If the account exists, a reset link has been emailed.' };
     if (!username) return res.status(400).json({ error: 'Username required' });
@@ -169,7 +175,7 @@ router.post('/forgot-password', async (req, res) => {
     }
 });
 
-router.post('/reset-password', async (req, res) => {
+router.post('/reset-password', resetLimiter, async (req, res) => {
     const { uid, token, password } = req.body;
     if (!uid || !token || !password) return res.status(400).json({ error: 'uid, token and password required' });
 

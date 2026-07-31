@@ -12,6 +12,10 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../db');
+const { rateLimit } = require('../utils/rateLimit');
+
+// Employee portal login is public; throttle it like the admin login.
+const portalLoginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, message: 'Too many sign-in attempts from this address. Try again later.' });
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -39,7 +43,7 @@ db.query(`
 // AUTH
 // ==========================================
 
-router.post('/login', async (req, res) => {
+router.post('/login', portalLoginLimiter, async (req, res) => {
     const { employee_code, password } = req.body;
     if (!employee_code || !password) {
         return res.status(400).json({ error: 'Employee code and password required' });

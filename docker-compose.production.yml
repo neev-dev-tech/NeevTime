@@ -9,6 +9,17 @@ services:
       POSTGRES_USER: ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME:-attendance_db}
+      # Timestamp columns are `timestamp without time zone`, so NOW() stores the
+      # container's wall clock. Running the database in UTC while devices write
+      # IST punch times put two conventions in one schema and made every
+      # created_at read 5h30m early. Both services now run in the same zone.
+      TZ: ${APP_TIMEZONE:-Asia/Kolkata}
+      PGTZ: ${APP_TIMEZONE:-Asia/Kolkata}
+    # The server-side timezone comes from postgresql.conf, which initdb already
+    # wrote as UTC on first boot — the env vars above only affect client
+    # sessions and the shell. This overrides the running server, which is what
+    # NOW() actually reads. No data is rewritten; only new writes change.
+    command: postgres -c timezone=${APP_TIMEZONE:-Asia/Kolkata} -c log_timezone=${APP_TIMEZONE:-Asia/Kolkata}
     ports:
       - "${DB_PORT:-5432}:5432"
     volumes:
@@ -34,6 +45,7 @@ services:
       - "${ADMS_PORT:-8080}:8080"
     environment:
       NODE_ENV: production
+      TZ: ${APP_TIMEZONE:-Asia/Kolkata}
       PORT: 3001
       SERVER_URL: ${SERVER_URL:-http://localhost}
       DB_HOST: db

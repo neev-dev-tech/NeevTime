@@ -231,14 +231,17 @@ app.post('/api/attendance/manual', authenticateToken, async (req, res) => {
 
         // Insert or update attendance_daily_summary
         const result = await db.query(`
-            INSERT INTO attendance_daily_summary (employee_code, date, in_time, out_time, duration_minutes, status, remarks)
-            VALUES ($1, $2, $3, $4, $5, 'Present', $6)
+            INSERT INTO attendance_daily_summary (employee_code, date, in_time, out_time, duration_minutes, status, remarks, is_finalized)
+            VALUES ($1, $2, $3, $4, $5, 'Present', $6, true)
             ON CONFLICT (employee_code, date) DO UPDATE SET
                 in_time = EXCLUDED.in_time,
                 out_time = EXCLUDED.out_time,
                 duration_minutes = EXCLUDED.duration_minutes,
                 status = EXCLUDED.status,
-                remarks = EXCLUDED.remarks
+                remarks = EXCLUDED.remarks,
+                -- Marks the row as hand-corrected so a later recompute from raw
+                -- punches cannot silently overwrite it
+                is_finalized = true
             RETURNING *
         `, [employee_code, date, in_time, out_time, durationMinutes, `Manual Entry: ${reason}`]);
 
@@ -405,7 +408,11 @@ app.use('/api/reports', authenticateToken, reportsRouter);
 
 // Mobile Attendance Routes (Phase 3)
 const mobileAttendanceRouter = require('./routes/mobile_attendance');
-app.use('/api/mobile', authenticateToken, mobileAttendanceRouter);
+// Mobile Entry records a punch for an arbitrary employee_id taken from the
+// request body, so it can create attendance for anyone. That is the intended
+// admin workflow, but it must not be available to ordinary accounts — and the
+// /api audit middleware records who did it.
+app.use('/api/mobile', authenticateToken, requireAdmin, mobileAttendanceRouter);
 
 // Pending-work summary for the notification bell
 app.get('/api/notifications/summary', authenticateToken, async (req, res) => {
@@ -957,6 +964,9 @@ app.get('/api/devices', async (req, res) => {
                 FROM attendance_logs
                 GROUP BY device_serial
             ) log_stats ON d.serial_number = log_stats.device_serial
+            -- Retired devices stay in the table so their attendance history keeps
+            -- a valid owner, but they are not part of the active fleet.
+            WHERE d.status IS DISTINCT FROM 'retired'
             ORDER BY d.last_activity DESC
         `);
 
@@ -1370,28 +1380,50 @@ const createCrudRoutes = (table, path) => {
 createCrudRoutes('departments', 'departments');
 
 
-// Delete Device
+/**
+ * Retire a device.
+ *
+ * This used to DELETE the device's attendance_logs, which destroyed every punch
+ * ever collected through that reader — including punches already used for
+ * closed payroll — with no way back. Removing a decommissioned reader must not
+ * rewrite attendance history, so the device row is marked retired and its logs
+ * are left untouched. Pending commands are cleared, since a retired device will
+ * never execute them.
+ */
 app.delete('/api/devices/:serial', async (req, res) => {
     const { serial } = req.params;
     const client = await db.getClient();
     try {
         await client.query('BEGIN');
 
-        // Delete related commands first
+        const existing = await client.query(
+            'SELECT serial_number FROM devices WHERE serial_number = $1',
+            [serial]
+        );
+        if (existing.rows.length === 0) {
+            await client.query('ROLLBACK');
+            return res.status(404).json({ error: 'Device not found' });
+        }
+
+        // Queued commands are meaningless once the device is retired
         await client.query('DELETE FROM device_commands WHERE device_serial = $1', [serial]);
 
-        // Delete related attendance logs
-        await client.query('DELETE FROM attendance_logs WHERE device_serial = $1', [serial]);
+        const logCount = await client.query(
+            'SELECT COUNT(*)::int AS count FROM attendance_logs WHERE device_serial = $1',
+            [serial]
+        );
 
-        // Delete the device
-        const result = await client.query('DELETE FROM devices WHERE serial_number = $1', [serial]);
+        await client.query(
+            `UPDATE devices SET status = 'retired', retired_at = NOW() WHERE serial_number = $1`,
+            [serial]
+        );
 
         await client.query('COMMIT');
 
-        if (result.rowCount === 0) {
-            return res.status(404).json({ error: 'Device not found' });
-        }
-        res.json({ message: 'Device deleted successfully' });
+        res.json({
+            message: 'Device retired. Its attendance history has been preserved.',
+            preserved_logs: logCount.rows[0].count
+        });
     } catch (err) {
         await client.query('ROLLBACK');
         console.error('Delete Device Error:', err);
@@ -1481,7 +1513,10 @@ setTimeout(checkDeviceHeartbeats, 5000);
 const ensureSchema = async () => {
     const statements = [
         `ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_login_attempts INTEGER DEFAULT 0`,
-        `ALTER TABLE users ADD COLUMN IF NOT EXISTS locked_until TIMESTAMP`
+        `ALTER TABLE users ADD COLUMN IF NOT EXISTS locked_until TIMESTAMP`,
+        `ALTER TABLE devices ADD COLUMN IF NOT EXISTS retired_at TIMESTAMP`,
+        // Marks a summary row as hand-corrected so a recompute leaves it alone
+        `ALTER TABLE attendance_daily_summary ADD COLUMN IF NOT EXISTS is_finalized BOOLEAN DEFAULT false`
     ];
     for (const sql of statements) {
         try {
@@ -1496,7 +1531,9 @@ const ensureSchema = async () => {
         ['database', 'backup_enabled', 'false', 'boolean', 'Take unattended backups on a schedule'],
         ['database', 'backup_frequency', 'daily', 'string', 'daily, weekly (Mondays) or monthly (1st)'],
         ['database', 'backup_time', '02:00', 'string', 'Server local time to run the backup'],
-        ['database', 'backup_retention_count', '7', 'number', 'How many automatic backups to keep']
+        ['database', 'backup_retention_count', '7', 'number', 'How many automatic backups to keep'],
+        ['timezone', 'system_timezone', 'Asia/Kolkata', 'string',
+            'Zone used to decide which day a punch belongs to and to measure shift start, lateness and overtime']
     ];
     for (const [category, key, value, type, description] of seeds) {
         try {
@@ -1509,6 +1546,18 @@ const ensureSchema = async () => {
         } catch (err) {
             console.error('Settings seed failed:', key, '-', err.message);
         }
+    }
+
+    // Fill in descriptions on rows that predate them, without touching values
+    try {
+        await db.query(
+            `UPDATE app_settings SET description = $1
+             WHERE category = 'timezone' AND setting_key = 'system_timezone'
+               AND (description IS NULL OR description = '')`,
+            ['Zone used to decide which day a punch belongs to and to measure shift start, lateness and overtime']
+        );
+    } catch (err) {
+        console.error('Settings description backfill failed:', err.message);
     }
 };
 

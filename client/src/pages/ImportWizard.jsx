@@ -48,7 +48,17 @@ export default function ImportWizard() {
             const endpoint = IMPORT_TYPES.find(t => t.id === importType)?.endpoint;
             // Support both payload structures depending on backend expectation
             const res = await api.post(endpoint, { employees: parsedData, data: parsedData });
-            setResult({ success: true, message: `Successfully imported ${parsedData.length} records.` });
+            // Report what the server actually wrote, not how many rows were sent —
+            // rows can be skipped for validation reasons and the user needs to know.
+            const imported = res.data?.imported ?? res.data?.count ?? parsedData.length;
+            const skipped = res.data?.skipped ?? 0;
+            setResult({
+                success: true,
+                message: skipped
+                    ? `Imported ${imported} of ${parsedData.length} records. ${skipped} skipped.`
+                    : `Successfully imported ${imported} records.`,
+                errors: res.data?.errors || []
+            });
             setStep(4);
         } catch (err) {
             setResult({ success: false, message: err.response?.data?.error || 'Import failed. Please check your data format.' });
@@ -253,7 +263,20 @@ export default function ImportWizard() {
                         <h2 className={`text-2xl font-bold mb-3 ${result.success ? 'text-slate-800 dark:text-slate-100' : 'text-rose-700 dark:text-rose-300'}`}>
                             {result.success ? 'Import Complete!' : 'Import Failed'}
                         </h2>
-                        <p className="text-slate-600 dark:text-slate-300 mb-8 leading-relaxed">{result.message}</p>
+                        <p className="text-slate-600 dark:text-slate-300 mb-4 leading-relaxed">{result.message}</p>
+
+                        {result.errors?.length > 0 && (
+                            <div className="mb-8 text-left rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 p-4 max-h-52 overflow-y-auto custom-scrollbar">
+                                <p className="text-xs font-bold uppercase tracking-[0.09em] text-amber-800 dark:text-amber-300 mb-2">
+                                    Skipped rows
+                                </p>
+                                <ul className="space-y-1">
+                                    {result.errors.map((line, i) => (
+                                        <li key={i} className="text-xs text-amber-800 dark:text-amber-200 font-mono">{line}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
 
                         <Button variant="dark" size="lg" onClick={reset} className="w-full">
                             Import Another File

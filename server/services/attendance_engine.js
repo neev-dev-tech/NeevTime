@@ -217,6 +217,10 @@ class AttendanceEngine {
                         ot_minutes = EXCLUDED.ot_minutes,
                         status = EXCLUDED.status,
                         last_calculated_at = NOW()
+                    -- Manual Log entries and approved regularizations set
+                    -- is_finalized. A human decided those days; recomputing from
+                    -- raw punches must not quietly undo that decision.
+                    WHERE attendance_daily_summary.is_finalized IS NOT TRUE
                 `, [row.employeeCode, row.date, row.inTime, row.outTime, row.durationMinutes, row.lateMinutes, row.otMinutes || 0, row.status]);
             }
             await client.query('COMMIT');
