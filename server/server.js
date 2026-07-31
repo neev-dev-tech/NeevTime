@@ -1581,10 +1581,12 @@ const ensureSchema = async () => {
         `ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_login_attempts INTEGER DEFAULT 0`,
         `ALTER TABLE users ADD COLUMN IF NOT EXISTS locked_until TIMESTAMP`,
         `ALTER TABLE devices ADD COLUMN IF NOT EXISTS retired_at TIMESTAMP`,
-        // Protocol family this reader speaks. 'adms' is the ZKTeco/eSSL iclock push
-        // protocol — the only one that has ever registered a device here.
-        `ALTER TABLE devices ADD COLUMN IF NOT EXISTS vendor VARCHAR(30) DEFAULT 'adms'`,
-        `UPDATE devices SET vendor = 'adms' WHERE vendor IS NULL`,
+        // Which family this reader belongs to. Installs that predate this column
+        // already label their push-protocol devices 'ZKTeco' — eSSL readers speak
+        // the same iclock protocol — so new registrations use that same value
+        // rather than introducing a second name for the same thing.
+        `ALTER TABLE devices ADD COLUMN IF NOT EXISTS vendor VARCHAR(30) DEFAULT 'ZKTeco'`,
+        `UPDATE devices SET vendor = 'ZKTeco' WHERE vendor IS NULL`,
         // Devices already in the table were trusted before this existed, so they
         // stay approved; only serials seen for the first time arrive as pending.
         `ALTER TABLE devices ADD COLUMN IF NOT EXISTS approval_status VARCHAR(20) DEFAULT 'approved'`,

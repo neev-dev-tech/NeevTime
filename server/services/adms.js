@@ -367,7 +367,7 @@ const handleHandshake = async (req, res, io) => {
         // Register/Update Device
         await db.query(`
             INSERT INTO devices (serial_number, status, last_activity, vendor, approval_status, first_seen_at)
-            VALUES ($1, 'online', NOW(), 'adms', 'pending', NOW())
+            VALUES ($1, 'online', NOW(), 'ZKTeco', 'pending', NOW())
             ON CONFLICT (serial_number) 
             -- A retired device must not resurrect itself just by staying on the
             -- network; last_activity still updates so the fleet view is honest.
@@ -431,7 +431,7 @@ const handleAttendanceLogs = async (req, res, io) => {
         try {
             const deviceRes = await db.query(`
                 INSERT INTO devices (serial_number, status, last_activity, vendor, approval_status, first_seen_at)
-                VALUES ($1, 'online', NOW(), 'adms', 'pending', NOW())
+                VALUES ($1, 'online', NOW(), 'ZKTeco', 'pending', NOW())
                 ON CONFLICT (serial_number) 
                 DO UPDATE SET
                     status = CASE WHEN devices.status = 'retired' THEN 'retired' ELSE 'online' END,
@@ -652,7 +652,7 @@ const handleGetRequest = async (req, res, io) => {
     // Also update model, firmware, and IP if available from INFO
     const deviceResult = await db.query(`
         INSERT INTO devices (serial_number, status, last_activity, device_model, firmware_version, ip_address, vendor, approval_status, first_seen_at)
-        VALUES ($1, 'online', NOW(), $2, $3, $4, 'adms', 'pending', NOW())
+        VALUES ($1, 'online', NOW(), $2, $3, $4, 'ZKTeco', 'pending', NOW())
         ON CONFLICT (serial_number) 
         DO UPDATE SET 
             status = CASE WHEN devices.status = 'retired' THEN 'retired' ELSE 'online' END,
