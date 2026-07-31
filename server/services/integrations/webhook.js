@@ -173,11 +173,13 @@ class WebhookIntegration extends BaseIntegration {
 
                 await this.request('POST', endpoint, payload);
 
-                // Mark all as synced
+                // Mark all as synced. sync_status is VARCHAR, not boolean
                 const ids = records.map(r => r.id);
-                // Mark as synced (sync_status is boolean)
+                // sync_status is VARCHAR; writing a boolean stored 'true', which
+                // never matches the != 'synced' filter, so the record was re-pushed
+                // on every cycle and duplicated in the HR system
                 await db.query(`
-                    UPDATE attendance_logs SET sync_status = true WHERE id = ANY($1)
+                    UPDATE attendance_logs SET sync_status = 'synced' WHERE id = ANY($1)
                 `, [ids]);
 
                 stats.processed = records.length;
@@ -195,9 +197,11 @@ class WebhookIntegration extends BaseIntegration {
                     const payload = this.mapFields('attendance', record);
                     await this.request('POST', endpoint, payload);
 
-                    // Mark as synced (sync_status is boolean)
+                    // sync_status is VARCHAR; writing a boolean stored 'true', which
+                // never matches the != 'synced' filter, so the record was re-pushed
+                // on every cycle and duplicated in the HR system
                     await db.query(`
-                        UPDATE attendance_logs SET sync_status = true WHERE id = $1
+                        UPDATE attendance_logs SET sync_status = 'synced' WHERE id = $1
                     `, [record.id]);
 
                     stats.success++;

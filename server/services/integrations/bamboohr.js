@@ -180,9 +180,11 @@ class BambooHRIntegration extends BaseIntegration {
                     });
                 }
 
-                // Mark as synced (sync_status is boolean)
+                // sync_status is VARCHAR; writing a boolean stored 'true', which
+                // never matches the != 'synced' filter, so the record was re-pushed
+                // on every cycle and duplicated in the HR system
                 const ids = group.records.map(r => r.id);
-                await db.query(`UPDATE attendance_logs SET sync_status = true WHERE id = ANY($1)`, [ids]);
+                await db.query(`UPDATE attendance_logs SET sync_status = 'synced' WHERE id = ANY($1)`, [ids]);
 
                 stats.success++;
             } catch (err) {

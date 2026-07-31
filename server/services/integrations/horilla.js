@@ -178,9 +178,11 @@ class HorillaIntegration extends BaseIntegration {
                     }
                 }
 
-                // Mark as synced (sync_status is boolean)
+                // sync_status is VARCHAR; writing a boolean stored 'true', which
+                // never matches the != 'synced' filter, so the record was re-pushed
+                // on every cycle and duplicated in the HR system
                 await db.query(`
-                    UPDATE attendance_logs SET sync_status = true WHERE id = $1
+                    UPDATE attendance_logs SET sync_status = 'synced' WHERE id = $1
                 `, [record.id]);
 
                 stats.success++;

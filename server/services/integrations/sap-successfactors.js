@@ -207,8 +207,10 @@ class SAPSuccessFactorsIntegration extends BaseIntegration {
                 });
 
                 const ids = group.records.map(r => r.id);
-                // Mark as synced (sync_status is boolean)
-                await db.query(`UPDATE attendance_logs SET sync_status = true WHERE id = ANY($1)`, [ids]);
+                // sync_status is VARCHAR; writing a boolean stored 'true', which
+                // never matches the != 'synced' filter, so the record was re-pushed
+                // on every cycle and duplicated in the HR system
+                await db.query(`UPDATE attendance_logs SET sync_status = 'synced' WHERE id = ANY($1)`, [ids]);
 
                 stats.success++;
             } catch (err) {
