@@ -298,6 +298,11 @@ app.get('/api/health', async (req, res) => {
     }
 });
 
+// Audit trail for every mutating API call. Mounted here so it wraps res.json
+// before any router runs; req.user is read at response time, by which point the
+// route's own authenticateToken has populated it.
+app.use('/api', require('./utils/systemLogger').auditMutations);
+
 // Employee self-service portal — own auth realm, must mount before the
 // authenticateToken-wrapped /api routers below (their middleware runs for
 // every /api/* path, which would 401 the public portal login).
@@ -629,6 +634,49 @@ app.put('/api/employees/:id', async (req, res) => {
         }
     } catch (err) {
         console.error(err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+/**
+ * Partial employee update. PUT above rewrites the whole row, so bulk toggles
+ * (disable attendance, rehire) need a patch that touches only what it is given.
+ * Columns are whitelisted — the body must never choose which column to write.
+ */
+const PATCHABLE_EMPLOYEE_FIELDS = new Set([
+    'attendance_required', 'status', 'app_access', 'app_login_enabled',
+    'overtime_allowed', 'geo_fencing', 'selfie_punch', 'outdoor_mng',
+    'department_id', 'area_id', 'position_id', 'default_shift_id',
+    'designation', 'employment_type'
+]);
+
+app.patch('/api/employees/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const entries = Object.entries(req.body || {})
+            .filter(([key]) => PATCHABLE_EMPLOYEE_FIELDS.has(key));
+
+        if (entries.length === 0) {
+            return res.status(400).json({
+                error: 'No patchable fields supplied',
+                allowed: [...PATCHABLE_EMPLOYEE_FIELDS]
+            });
+        }
+
+        const sets = entries.map(([key], i) => `${key} = $${i + 1}`);
+        const params = entries.map(([, value]) => value === '' ? null : value);
+        params.push(id);
+
+        const result = await db.query(
+            `UPDATE employees SET ${sets.join(', ')}, updated_at = NOW()
+             WHERE id = $${params.length} RETURNING *`,
+            params
+        );
+
+        if (result.rows.length === 0) return res.status(404).json({ error: 'Employee not found' });
+        res.json(result.rows[0]);
+    } catch (err) {
+        console.error('PATCH /api/employees/:id failed:', err.message);
         res.status(500).json({ error: err.message });
     }
 });
@@ -1314,9 +1362,12 @@ const createCrudRoutes = (table, path) => {
     });
 };
 
+// routes/organization.js mounts first and owns /api/departments, /api/areas and
+// /api/positions. It has no PUT /departments/:id, so this generic CRUD is kept
+// solely to supply that one handler — its GET/POST/DELETE never match.
+// 'areas' and 'positions' are omitted: organization.js covers all four verbs for
+// both, so registering them here would only create unreachable duplicates.
 createCrudRoutes('departments', 'departments');
-createCrudRoutes('areas', 'areas');
-createCrudRoutes('positions', 'positions'); // Assuming table is positions
 
 
 // Delete Device
@@ -1423,10 +1474,50 @@ setInterval(checkDeviceHeartbeats, 30 * 1000);
 // Run once at startup after a short delay
 setTimeout(checkDeviceHeartbeats, 5000);
 
+/**
+ * Columns the app needs that predate this deployment's schema. Idempotent, so
+ * it is safe to run on every boot and needs no migration tooling.
+ */
+const ensureSchema = async () => {
+    const statements = [
+        `ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_login_attempts INTEGER DEFAULT 0`,
+        `ALTER TABLE users ADD COLUMN IF NOT EXISTS locked_until TIMESTAMP`
+    ];
+    for (const sql of statements) {
+        try {
+            await db.query(sql);
+        } catch (err) {
+            console.error('Schema ensure failed:', sql, '-', err.message);
+        }
+    }
+
+    // Settings the app reads but that predate this deployment's seed data
+    const seeds = [
+        ['database', 'backup_enabled', 'false', 'boolean', 'Take unattended backups on a schedule'],
+        ['database', 'backup_frequency', 'daily', 'string', 'daily, weekly (Mondays) or monthly (1st)'],
+        ['database', 'backup_time', '02:00', 'string', 'Server local time to run the backup'],
+        ['database', 'backup_retention_count', '7', 'number', 'How many automatic backups to keep']
+    ];
+    for (const [category, key, value, type, description] of seeds) {
+        try {
+            await db.query(
+                `INSERT INTO app_settings (category, setting_key, setting_value, data_type, description)
+                 VALUES ($1, $2, $3, $4, $5)
+                 ON CONFLICT (category, setting_key) DO NOTHING`,
+                [category, key, value, type, description]
+            );
+        } catch (err) {
+            console.error('Settings seed failed:', key, '-', err.message);
+        }
+    }
+};
+
 const PORT = process.env.PORT || 3001;
-server.listen(PORT, '0.0.0.0', () => {
+server.listen(PORT, '0.0.0.0', async () => {
     console.log(`Server running on port ${PORT}`);
     console.log(`ADMS Endpoint: http://0.0.0.0:${PORT}/iclock/cdata`);
+
+    await ensureSchema();
 
     // Start HRMS scheduled sync (pushes attendance to ERPNext every 5 minutes)
     try {
@@ -1462,8 +1553,20 @@ server.listen(PORT, '0.0.0.0', () => {
     try {
         const scheduledReports = require('./services/scheduled-reports');
         scheduledReports.startScheduler();
+        // Pick up any Auto Reports settings saved while the server was down
+        scheduledReports.syncFromSettings().catch(err => {
+            console.error('Auto report sync failed:', err.message);
+        });
         console.log('Scheduled Reports: scheduler started (checks every minute)');
     } catch (err) {
         console.log('Scheduled Reports: Not available -', err.message);
+    }
+
+    // Unattended database backups, driven by Settings → Database
+    try {
+        require('./routes/database').startAutoBackup();
+        console.log('Auto Backup: scheduler started (checks every minute)');
+    } catch (err) {
+        console.log('Auto Backup: Not available -', err.message);
     }
 });

@@ -40,9 +40,15 @@ const initTransporter = async () => {
         const appCfg = appRes.rows.reduce((acc, r) => { acc[r.setting_key] = r.setting_value; return acc; }, {});
 
         if (appCfg.smtp_host) {
+            const port = parseInt(appCfg.smtp_port) || 587;
             emailConfig = {
                 smtp_host: appCfg.smtp_host,
-                smtp_port: parseInt(appCfg.smtp_port) || 587,
+                smtp_port: port,
+                // The Settings toggle wins; port 465 is the implicit-TLS default
+                // for providers that never expose the choice.
+                smtp_secure: appCfg.smtp_secure === undefined
+                    ? port === 465
+                    : appCfg.smtp_secure === 'true' || appCfg.smtp_secure === true,
                 smtp_user: appCfg.smtp_username,
                 smtp_password: appCfg.smtp_password,
                 from_email: appCfg.smtp_from_email || appCfg.smtp_username,
@@ -60,7 +66,7 @@ const initTransporter = async () => {
         transporter = nodemailer.createTransport({
             host: emailConfig.smtp_host,
             port: emailConfig.smtp_port,
-            secure: emailConfig.smtp_port === 465,
+            secure: emailConfig.smtp_secure ?? emailConfig.smtp_port === 465,
             auth: {
                 user: emailConfig.smtp_user,
                 pass: emailConfig.smtp_password
@@ -93,6 +99,18 @@ const getTransporter = async () => {
  * Send email
  */
 const sendEmail = async (options) => {
+    // The Email Enabled switch is a real kill switch for outbound mail. The test
+    // send bypasses it deliberately (options.force) so the SMTP settings can be
+    // verified before the switch is turned on.
+    if (!options.force) {
+        const settings = require('../utils/settings');
+        const enabled = await settings.get('notifications', 'email_enabled', true);
+        if (!enabled) {
+            log('INFO', 'Email suppressed — Email Enabled is off', { to: options.to });
+            throw new Error('Email sending is disabled in Settings → Email/SMTP');
+        }
+    }
+
     const transport = await getTransporter();
 
     if (!transport) {
@@ -205,6 +223,7 @@ const testEmailConfig = async (testRecipient) => {
         await initTransporter(); // Refresh config
 
         await sendEmail({
+            force: true,
             to: testRecipient,
             subject: '✅ Email Configuration Test',
             html: `
@@ -226,72 +245,15 @@ const testEmailConfig = async (testRecipient) => {
     }
 };
 
-/**
- * Get email configuration (masked)
- */
-const getEmailConfig = async () => {
-    const result = await db.query('SELECT * FROM email_settings LIMIT 1');
-    if (result.rows.length === 0) {
-        return null;
-    }
-
-    const config = result.rows[0];
-    return {
-        ...config,
-        smtp_password: config.smtp_password ? '****' : null
-    };
-};
-
-/**
- * Save email configuration
- */
-const saveEmailConfig = async (config) => {
-    const existing = await db.query('SELECT id FROM email_settings LIMIT 1');
-
-    if (existing.rows.length > 0) {
-        await db.query(`
-            UPDATE email_settings SET
-                smtp_host = $1,
-                smtp_port = $2,
-                smtp_secure = $3,
-                smtp_user = $4,
-                smtp_password = CASE WHEN $5 = '****' THEN smtp_password ELSE $5 END,
-                from_email = $6,
-                from_name = $7,
-                is_active = $8,
-                updated_at = NOW()
-            WHERE id = $9
-        `, [
-            config.smtp_host, config.smtp_port, config.smtp_secure,
-            config.smtp_user, config.smtp_password,
-            config.from_email, config.from_name, config.is_active,
-            existing.rows[0].id
-        ]);
-    } else {
-        await db.query(`
-            INSERT INTO email_settings 
-            (smtp_host, smtp_port, smtp_secure, smtp_user, smtp_password, from_email, from_name, is_active)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-        `, [
-            config.smtp_host, config.smtp_port, config.smtp_secure,
-            config.smtp_user, config.smtp_password,
-            config.from_email, config.from_name, config.is_active ?? true
-        ]);
-    }
-
-    // Reinitialize transporter
-    transporter = null;
-    await initTransporter();
-
-    return { success: true };
-};
+// getEmailConfig / saveEmailConfig removed along with the /api/reports/
+// email-settings routes that were their only callers. The email_settings
+// table is still read as a fallback in initTransporter for installs that
+// predate the Settings page, but nothing writes to it any more.
 
 module.exports = {
     initTransporter,
     sendEmail,
     sendReportEmail,
     sendAlertEmail,
-    testEmailConfig,
-    getEmailConfig,
-    saveEmailConfig
+    testEmailConfig
 };

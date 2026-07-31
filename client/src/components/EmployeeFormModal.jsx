@@ -1,10 +1,20 @@
-import React, { useState } from 'react';
-import { X, User, Upload, Camera } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, User, Camera } from 'lucide-react';
 import Button from './ui/Button';
+import api from '../api';
 
 export default function EmployeeFormModal({ isOpen, onClose, employee = null, departments = [], positions = [], areas = [], onSave }) {
     const isEdit = !!employee;
     const [activeTab, setActiveTab] = useState('personal');
+    const [shifts, setShifts] = useState([]);
+
+    useEffect(() => {
+        if (!isOpen) return;
+        api.get('/api/shifts')
+            .then(res => setShifts(res.data || []))
+            .catch(() => setShifts([]));
+    }, [isOpen]);
+
     const [formData, setFormData] = useState({
         // Profile
         employee_code: employee?.employee_code || '',
@@ -162,9 +172,18 @@ export default function EmployeeFormModal({ isOpen, onClose, employee = null, de
                                             </>
                                         )}
                                     </div>
-                                    <button type="button" className="mt-2 w-full text-xs text-orange-600 dark:text-orange-300 hover:text-orange-700 flex items-center justify-center gap-1">
-                                        <Camera size={12} /> Upload
-                                    </button>
+                                    {/* Photos are read from photo_url; there is no upload endpoint,
+                                        so the field is edited rather than a file being posted. */}
+                                    <label className="mt-2 block text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 text-center">
+                                        <Camera size={12} className="inline mr-1" /> Photo URL
+                                    </label>
+                                    <input
+                                        type="url"
+                                        value={formData.photo_url || ''}
+                                        onChange={e => handleChange('photo_url', e.target.value)}
+                                        placeholder="https://…"
+                                        className="mt-1 w-32 text-xs border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1"
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -225,16 +244,14 @@ export default function EmployeeFormModal({ isOpen, onClose, employee = null, de
                             <div className="space-y-4">
                                 <InputField label="Device Privilege" value={formData.device_privilege} onChange={v => handleChange('device_privilege', v)}
                                     options={['Employee', 'Administrator', 'Super Administrator']} />
-                                <div className="flex items-center gap-4 mt-6 ml-40">
-                                    <Button type="button" variant="primary">
-                                        Enroll Fingerprint
-                                    </Button>
-                                    <Button type="button" variant="primary">
-                                        Enroll Face
-                                    </Button>
-                                    <Button type="button" variant="primary">
-                                        Enroll Palm
-                                    </Button>
+                                {/* Enrolment is captured on the reader itself — the finger, face
+                                    or palm has to be presented to the hardware. This panel reports
+                                    what the devices have sent back. */}
+                                <div className="mt-6 ml-40 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+                                    <p className="text-xs text-amber-800 dark:text-amber-300">
+                                        Biometrics are enrolled at the device. Register the employee on
+                                        a reader, and the status below updates on the next device sync.
+                                    </p>
                                 </div>
                                 <div className="mt-4 p-4 bg-slate-50 dark:bg-slate-900/50 rounded ml-40">
                                     <div className="grid grid-cols-3 gap-4 text-sm">
@@ -252,11 +269,20 @@ export default function EmployeeFormModal({ isOpen, onClose, employee = null, de
                                 <Toggle label="Overtime Allowed" checked={formData.overtime_allowed} onChange={v => handleChange('overtime_allowed', v)} />
                                 <div className="flex items-center gap-2">
                                     <label className="w-44 text-right text-slate-600 dark:text-slate-400 text-sm">Default Shift:</label>
-                                    <select className="flex-1 max-w-xs border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded px-3 py-1.5 text-sm">
+                                    <select
+                                        value={formData.default_shift_id || ''}
+                                        onChange={e => handleChange('default_shift_id', e.target.value)}
+                                        className="flex-1 max-w-xs border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded px-3 py-1.5 text-sm"
+                                    >
                                         <option value="">----------</option>
-                                        <option>General Shift (9:00 - 18:00)</option>
-                                        <option>Morning Shift (6:00 - 14:00)</option>
-                                        <option>Night Shift (22:00 - 6:00)</option>
+                                        {shifts.map(shift => (
+                                            <option key={shift.id} value={shift.id}>
+                                                {shift.name}
+                                                {shift.start_time && shift.end_time
+                                                    ? ` (${String(shift.start_time).slice(0, 5)} - ${String(shift.end_time).slice(0, 5)})`
+                                                    : ''}
+                                            </option>
+                                        ))}
                                     </select>
                                 </div>
                                 <div className="flex items-center gap-2">

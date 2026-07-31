@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, RefreshCw, Send, Loader2, AlertCircle, Building, Timer, CalendarDays, Mail, ShieldCheck, MessageCircle, PhoneCall, BarChart3, FileCheck, Settings as SettingsIcon } from 'lucide-react';
+import { Save, RefreshCw, Send, Loader2, AlertCircle, Building, Timer, CalendarDays, Mail, ShieldCheck, BarChart3, FileCheck, Database as DatabaseIcon, Settings as SettingsIcon } from 'lucide-react';
 import api from '../api';
 import { Button, PageHeader, useToast } from '../components';
 
@@ -9,10 +9,11 @@ const CATEGORIES = [
     { id: 'weekend', label: 'Weekend Rules', icon: CalendarDays, iconClass: 'text-violet-500 dark:text-violet-400' },
     { id: 'notifications', label: 'Email/SMTP', icon: Mail, iconClass: 'text-emerald-500 dark:text-emerald-400' },
     { id: 'security', label: 'Security', icon: ShieldCheck, iconClass: 'text-rose-500 dark:text-rose-400' },
-    { id: 'whatsapp', label: 'WhatsApp', icon: MessageCircle, iconClass: 'text-green-500 dark:text-green-400' },
-    { id: 'sms', label: 'SMS', icon: PhoneCall, iconClass: 'text-blue-500 dark:text-blue-400' },
+    // SMS and WhatsApp tabs removed — the server has no provider integration for
+    // either, so every field on them was saved and never read by anything.
     { id: 'reports', label: 'Auto Reports', icon: BarChart3, iconClass: 'text-emerald-500 dark:text-emerald-400' },
     { id: 'pdf', label: 'PDF Settings', icon: FileCheck, iconClass: 'text-amber-500 dark:text-amber-400' },
+    { id: 'database', label: 'Database', icon: DatabaseIcon, iconClass: 'text-violet-500 dark:text-violet-400' },
 ];
 
 export default function Settings() {

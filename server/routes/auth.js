@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../db');
 const { logLogin, logLogout } = require('../utils/systemLogger');
+const settings = require('../utils/settings');
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
@@ -15,6 +16,40 @@ if (!JWT_SECRET) {
 const getUserByUsername = async (username) => {
     const res = await db.query('SELECT * FROM users WHERE username = $1', [username]);
     return res.rows[0];
+};
+
+/**
+ * Validate a new password against the Security settings policy.
+ * Returns an error string, or null when the password is acceptable.
+ */
+const checkPasswordPolicy = async (password) => {
+    const policy = await settings.getCategory('security', {
+        password_min_length: 6,
+        password_require_uppercase: false,
+        password_require_number: false,
+        require_special_char: false
+    });
+
+    if (password.length < policy.password_min_length) {
+        return `Password must be at least ${policy.password_min_length} characters`;
+    }
+    if (policy.password_require_uppercase && !/[A-Z]/.test(password)) {
+        return 'Password must contain an uppercase letter';
+    }
+    if (policy.password_require_number && !/[0-9]/.test(password)) {
+        return 'Password must contain a number';
+    }
+    if (policy.require_special_char && !/[^A-Za-z0-9]/.test(password)) {
+        return 'Password must contain a special character';
+    }
+    return null;
+};
+
+/** Session length for issued tokens, from Security settings. */
+const tokenOptions = async () => {
+    const minutes = await settings.get('security', 'session_timeout_minutes', 0);
+    if (minutes > 0) return { expiresIn: `${minutes}m` };
+    return { expiresIn: process.env.JWT_EXPIRES_IN || '12h' };
 };
 
 // Login
@@ -29,12 +64,52 @@ router.post('/login', async (req, res) => {
             return res.status(400).json({ error: 'Invalid username or password' });
         }
 
-        const validPass = await bcrypt.compare(password, user.password_hash);
-        if (!validPass) return res.status(400).json({ error: 'Invalid username or password' });
+        const maxAttempts = await settings.get('security', 'max_login_attempts', 0);
+        const lockoutMinutes = await settings.get('security', 'lockout_duration_minutes', 15);
 
-        const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, {
-            expiresIn: process.env.JWT_EXPIRES_IN || '12h'
-        });
+        // Locked accounts are refused before the password is even checked, so a
+        // lockout cannot be worn down by continued guessing.
+        if (user.locked_until && new Date(user.locked_until) > new Date()) {
+            const remaining = Math.ceil((new Date(user.locked_until) - new Date()) / 60000);
+            return res.status(423).json({
+                error: `Account locked. Try again in ${remaining} minute${remaining === 1 ? '' : 's'}.`
+            });
+        }
+
+        const validPass = await bcrypt.compare(password, user.password_hash);
+        if (!validPass) {
+            if (maxAttempts > 0) {
+                const attempts = (user.failed_login_attempts || 0) + 1;
+                if (attempts >= maxAttempts) {
+                    await db.query(
+                        `UPDATE users SET failed_login_attempts = 0,
+                         locked_until = NOW() + ($1 || ' minutes')::interval WHERE id = $2`,
+                        [String(lockoutMinutes), user.id]
+                    );
+                    return res.status(423).json({
+                        error: `Too many failed attempts. Account locked for ${lockoutMinutes} minutes.`
+                    });
+                }
+                await db.query('UPDATE users SET failed_login_attempts = $1 WHERE id = $2', [attempts, user.id]);
+            }
+            return res.status(400).json({ error: 'Invalid username or password' });
+        }
+
+        // Successful login clears the counter and any expired lock
+        if (user.failed_login_attempts || user.locked_until) {
+            await db.query(
+                'UPDATE users SET failed_login_attempts = 0, locked_until = NULL WHERE id = $1',
+                [user.id]
+            );
+        }
+
+        // username travels in the token so audit entries can name the actor
+        // without a database lookup on every mutating request
+        const token = jwt.sign(
+            { id: user.id, role: user.role, username: user.username },
+            JWT_SECRET,
+            await tokenOptions()
+        );
 
         // Log login event
         const ipAddress = req.ip || req.connection?.remoteAddress || req.headers?.['x-forwarded-for'];
@@ -97,7 +172,9 @@ router.post('/forgot-password', async (req, res) => {
 router.post('/reset-password', async (req, res) => {
     const { uid, token, password } = req.body;
     if (!uid || !token || !password) return res.status(400).json({ error: 'uid, token and password required' });
-    if (password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
+
+    const policyError = await checkPasswordPolicy(password);
+    if (policyError) return res.status(400).json({ error: policyError });
 
     try {
         const result = await db.query('SELECT * FROM users WHERE id = $1', [uid]);
@@ -136,6 +213,18 @@ const authenticateToken = (req, res, next) => {
     });
 };
 
+// Logout — records the audit entry. The token itself is discarded client-side.
+router.post('/logout', authenticateToken, async (req, res) => {
+    try {
+        const result = await db.query('SELECT username FROM users WHERE id = $1', [req.user.id]);
+        const ipAddress = req.ip || req.connection?.remoteAddress || req.headers?.['x-forwarded-for'];
+        await logLogout(result.rows[0]?.username || String(req.user.id), ipAddress, req.user.id);
+    } catch (err) {
+        console.error('Failed to log logout:', err.message);
+    }
+    res.json({ success: true });
+});
+
 router.get('/me', authenticateToken, async (req, res) => {
     const result = await db.query('SELECT id, username, role FROM users WHERE id = $1', [req.user.id]);
     res.json(result.rows[0]);
@@ -166,6 +255,9 @@ router.post('/users', authenticateToken, async (req, res) => {
         if (!username || !password) {
             return res.status(400).json({ error: 'Username and password required' });
         }
+
+        const policyError = await checkPasswordPolicy(password);
+        if (policyError) return res.status(400).json({ error: policyError });
 
         // Check if user exists
         const existing = await db.query('SELECT id FROM users WHERE username = $1', [username]);
@@ -210,6 +302,8 @@ router.put('/users/:id', authenticateToken, async (req, res) => {
             updates.push(`email = $${params.length}`);
         }
         if (password) {
+            const policyError = await checkPasswordPolicy(password);
+            if (policyError) return res.status(400).json({ error: policyError });
             const hashedPassword = await bcrypt.hash(password, 10);
             params.push(hashedPassword);
             updates.push(`password_hash = $${params.length}`);

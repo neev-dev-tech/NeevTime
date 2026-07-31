@@ -8,6 +8,15 @@ const useStore = create((set) => ({
     set({ auth: user });
   },
   logout: () => {
+    // Record the audit entry before the token is discarded. Fire-and-forget:
+    // a failed call must never block the user from signing out.
+    const token = localStorage.getItem('token');
+    if (token) {
+      fetch('/api/logout', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` }
+      }).catch(() => {});
+    }
     localStorage.removeItem('user');
     localStorage.removeItem('token');
     set({ auth: null });

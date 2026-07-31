@@ -30,6 +30,47 @@ export default function DatabaseTools() {
     });
     const [recomputing, setRecomputing] = useState(false);
 
+    // Automatic backup schedule (Settings → Database)
+    const [autoBackup, setAutoBackup] = useState({
+        backup_enabled: false,
+        backup_frequency: 'daily',
+        backup_time: '02:00',
+        backup_retention_count: 7
+    });
+    const [savingSchedule, setSavingSchedule] = useState(false);
+
+    const fetchAutoBackup = async () => {
+        try {
+            const res = await api.get('/api/settings');
+            const db = res.data?.database || {};
+            const val = (key, fallback) => {
+                const entry = db[key];
+                if (!entry) return fallback;
+                return entry && typeof entry === 'object' && 'value' in entry ? entry.value : entry;
+            };
+            setAutoBackup({
+                backup_enabled: String(val('backup_enabled', false)) === 'true',
+                backup_frequency: val('backup_frequency', 'daily'),
+                backup_time: String(val('backup_time', '02:00')).slice(0, 5),
+                backup_retention_count: Number(val('backup_retention_count', 7))
+            });
+        } catch {
+            // Leave the defaults in place; the panel still saves
+        }
+    };
+
+    const handleSaveSchedule = async () => {
+        setSavingSchedule(true);
+        try {
+            await api.put('/api/settings/database', autoBackup);
+            toast.success('Backup schedule saved');
+        } catch (err) {
+            toast.error(err.response?.data?.error || 'Failed to save backup schedule');
+        } finally {
+            setSavingSchedule(false);
+        }
+    };
+
     const handleRecompute = async () => {
         const ok = await confirm({
             title: 'Recompute Attendance',
@@ -56,6 +97,7 @@ export default function DatabaseTools() {
 
     useEffect(() => {
         fetchData();
+        fetchAutoBackup();
     }, []);
 
     const fetchData = async () => {
@@ -445,27 +487,56 @@ export default function DatabaseTools() {
                     </p>
                 </div>
                 <div className="p-6">
+                    <label className="flex items-center gap-3 mb-6 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            checked={autoBackup.backup_enabled}
+                            onChange={(e) => setAutoBackup(p => ({ ...p, backup_enabled: e.target.checked }))}
+                            className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-orange-600 focus:ring-orange-500"
+                        />
+                        <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                            Take backups automatically
+                        </span>
+                    </label>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div className="space-y-2">
                             <label className={FIELD_LABEL}>Frequency</label>
-                            <select className={`${FIELD} w-full`}>
+                            <select
+                                value={autoBackup.backup_frequency}
+                                onChange={(e) => setAutoBackup(p => ({ ...p, backup_frequency: e.target.value }))}
+                                className={`${FIELD} w-full`}
+                            >
                                 <option value="daily">Daily</option>
-                                <option value="weekly">Weekly</option>
-                                <option value="monthly">Monthly</option>
+                                <option value="weekly">Weekly (Mondays)</option>
+                                <option value="monthly">Monthly (1st)</option>
                             </select>
                         </div>
                         <div className="space-y-2">
                             <label className={FIELD_LABEL}>Preferred Time</label>
-                            <input type="time" defaultValue="02:00" className={`${FIELD} w-full`} />
+                            <input
+                                type="time"
+                                value={autoBackup.backup_time}
+                                onChange={(e) => setAutoBackup(p => ({ ...p, backup_time: e.target.value }))}
+                                className={`${FIELD} w-full`}
+                            />
                         </div>
                         <div className="space-y-2">
                             <label className={FIELD_LABEL}>Retention (Count)</label>
-                            <input type="number" defaultValue="7" className={`${FIELD} w-full`} />
+                            <input
+                                type="number"
+                                min="1"
+                                value={autoBackup.backup_retention_count}
+                                onChange={(e) => setAutoBackup(p => ({ ...p, backup_retention_count: Number(e.target.value) }))}
+                                className={`${FIELD} w-full`}
+                            />
+                            <p className="text-xs text-slate-500 dark:text-slate-400">
+                                Older automatic backups are deleted once this many exist.
+                            </p>
                         </div>
                     </div>
                     <div className="mt-6 flex justify-end">
-                        <Button variant="dark" icon={Save}>
-                            Save Settings
+                        <Button variant="dark" icon={Save} onClick={handleSaveSchedule} disabled={savingSchedule}>
+                            {savingSchedule ? 'Saving…' : 'Save Settings'}
                         </Button>
                     </div>
                 </div>

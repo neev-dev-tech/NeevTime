@@ -73,36 +73,52 @@ router.get('/backups', (req, res) => {
     }
 });
 
-// Create Backup
-router.post('/backups', (req, res) => {
+/**
+ * Run pg_dump into BACKUP_DIR. Shared by the manual endpoint and the scheduler
+ * so both produce identical artefacts.
+ */
+const createBackup = (prefix = 'backup') => new Promise((resolve, reject) => {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const filename = `backup-${timestamp}.sql`;
+    const filename = `${prefix}-${timestamp}.sql`;
     const filepath = path.join(BACKUP_DIR, filename);
 
-    // Get DB config from env
     const { DB_USER, DB_HOST, DB_NAME, DB_PASSWORD, DB_PORT } = process.env;
-
-    // Construct pg_dump command
-    // Note: Assuming pg_dump is in PATH or using standard postgres env vars
     const env = { ...process.env, PGPASSWORD: DB_PASSWORD };
     const cmd = `pg_dump -h ${DB_HOST || 'localhost'} -U ${DB_USER || 'postgres'} -p ${DB_PORT || 5432} -F c -f "${filepath}" ${DB_NAME || 'attendance_db'}`;
 
-    exec(cmd, { env }, (error, stdout, stderr) => {
-        if (error) {
-            console.error(`Backup error: ${error.message}`);
-            return res.status(500).json({ error: 'Backup failed', details: error.message });
-        }
-
+    exec(cmd, { env }, (error) => {
+        if (error) return reject(error);
         const stats = fs.statSync(filepath);
-        res.json({
-            success: true,
-            backup: {
-                name: filename,
-                size: stats.size,
-                created_at: stats.birthtime
-            }
-        });
+        resolve({ name: filename, size: stats.size, created_at: stats.birthtime });
     });
+});
+
+/** Keep only the newest `keep` auto-* backups. */
+const pruneAutoBackups = (keep) => {
+    if (!keep || keep < 1) return;
+    const files = fs.readdirSync(BACKUP_DIR)
+        .filter(f => f.startsWith('auto-'))
+        .map(f => ({ f, t: fs.statSync(path.join(BACKUP_DIR, f)).birthtime }))
+        .sort((a, b) => b.t - a.t);
+
+    for (const stale of files.slice(keep)) {
+        try {
+            fs.unlinkSync(path.join(BACKUP_DIR, stale.f));
+        } catch (err) {
+            console.error('Failed to prune backup', stale.f, err.message);
+        }
+    }
+};
+
+// Create Backup
+router.post('/backups', async (req, res) => {
+    try {
+        const backup = await createBackup('backup');
+        res.json({ success: true, backup });
+    } catch (error) {
+        console.error(`Backup error: ${error.message}`);
+        res.status(500).json({ error: 'Backup failed', details: error.message });
+    }
 });
 
 // Delete Backup
@@ -163,4 +179,50 @@ router.post('/restore', (req, res) => {
     });
 });
 
+/**
+ * Unattended backups, driven by Settings → Database (backup_frequency,
+ * backup_time, backup_retention_count). Checks once a minute and fires when the
+ * local clock reaches the configured time on a matching day, tracking the last
+ * run so a restart inside the same minute cannot double-fire.
+ */
+let lastAutoBackupDate = null;
+
+const shouldRunToday = (frequency, now) => {
+    if (frequency === 'daily') return true;
+    if (frequency === 'weekly') return now.getDay() === 1; // Monday
+    if (frequency === 'monthly') return now.getDate() === 1;
+    return false;
+};
+
+const startAutoBackup = () => {
+    const settingsStore = require('../utils/settings');
+
+    setInterval(async () => {
+        try {
+            const enabled = await settingsStore.get('database', 'backup_enabled', false);
+            if (!enabled) return;
+
+            const frequency = await settingsStore.get('database', 'backup_frequency', 'daily');
+            const time = await settingsStore.get('database', 'backup_time', '02:00');
+            const retention = await settingsStore.get('database', 'backup_retention_count', 7);
+
+            const now = new Date();
+            const stamp = now.toISOString().slice(0, 10);
+            const current = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+            if (lastAutoBackupDate === stamp) return;
+            if (current !== String(time).slice(0, 5)) return;
+            if (!shouldRunToday(frequency, now)) return;
+
+            lastAutoBackupDate = stamp;
+            const backup = await createBackup('auto');
+            pruneAutoBackups(Number(retention));
+            console.log(`[AutoBackup] Created ${backup.name}`);
+        } catch (err) {
+            console.error('[AutoBackup] failed:', err.message);
+        }
+    }, 60 * 1000);
+};
+
 module.exports = router;
+module.exports.startAutoBackup = startAutoBackup;

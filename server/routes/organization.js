@@ -89,7 +89,7 @@ router.get('/areas', async (req, res) => {
     try {
         const result = await db.query(`
             SELECT a.*, 
-                   parent.name as parent_name,
+                   parent.name as parent_area_name,
                    (SELECT COUNT(*)::int FROM employees e WHERE e.area_id = a.id AND (e.status IS DISTINCT FROM 'resigned')) as employee_count,
                    (SELECT COUNT(*)::int FROM devices d WHERE d.area_id = a.id) as device_count,
                    (SELECT COUNT(*)::int FROM employees e WHERE e.area_id = a.id AND e.status = 'resigned') as resigned_count,

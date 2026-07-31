@@ -160,7 +160,7 @@ export default function Resign() {
             action: async () => {
                 try {
                     await Promise.all(selectedIds.map(id =>
-                        api.patch(`/api/employees/${id}`, { attendance_enabled: false })
+                        api.patch(`/api/employees/${id}`, { attendance_required: false })
                     ));
                     toast.success('Attendance disabled successfully');
                     closeConfirmModal();

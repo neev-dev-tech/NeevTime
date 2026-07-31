@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { Lock, User, Fingerprint, Clock, Shield, Users } from 'lucide-react';
 import loginIllustration from '../assets/login_illustration.png';
+import { loadReportSettings } from '../utils/reportSettings';
 
 export default function Login({ setAuth }) {
     const [username, setUsername] = useState('');
@@ -19,6 +20,8 @@ export default function Login({ setAuth }) {
             localStorage.setItem('token', token);
             localStorage.setItem('user', JSON.stringify(user));
             setAuth(user);
+            // Company + PDF settings for report exports; failure is non-fatal
+            loadReportSettings();
             navigate('/');
         } catch (err) {
             setError(err.response?.data?.error || 'Login failed');
@@ -145,11 +148,9 @@ export default function Login({ setAuth }) {
                             </div>
                         </div>
 
-                        <div className="flex items-center justify-between text-sm">
-                            <label className="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" className="rounded border-slate-300 dark:border-slate-600 dark:bg-slate-900 text-saffron focus:ring-saffron" />
-                                <span className="text-slate-grey">Remember me</span>
-                            </label>
+                        {/* Session length is set by the Security settings, so there is
+                            no "remember me" for the user to choose. */}
+                        <div className="flex items-center justify-end text-sm">
                             <a href="/forgot-password" className="text-saffron hover:underline font-medium">Forgot password?</a>
                         </div>
 
@@ -158,12 +159,6 @@ export default function Login({ setAuth }) {
                         </button>
                     </form>
 
-                    {/* Footer */}
-                    <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-700 text-center">
-                        <p className="text-xs text-slate-grey">
-                            Demo credentials: <span className="font-mono bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded">admin / admin</span>
-                        </p>
-                    </div>
                 </div>
             </div>
         </div>

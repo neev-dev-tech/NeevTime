@@ -668,14 +668,8 @@ async function fixProductionSchema() {
         { category: 'attendance', key: 'grace_period_minutes', value: '15', type: 'number', desc: 'Grace period (minutes) before marking as late' },
         { category: 'attendance', key: 'half_day_threshold_hours', value: '4', type: 'number', desc: 'Minimum hours for half-day attendance' },
         { category: 'attendance', key: 'full_day_threshold_hours', value: '8', type: 'number', desc: 'Minimum hours for full-day attendance' },
-        { category: 'attendance', key: 'overtime_start_after_hours', value: '9', type: 'number', desc: 'Hours after which overtime starts' },
-        { category: 'attendance', key: 'auto_punch_out_enabled', value: 'false', type: 'boolean', desc: 'Automatically punch out at end of day' },
-        { category: 'attendance', key: 'auto_punch_out_time', value: '23:59', type: 'string', desc: 'Time for automatic punch out' },
-        { category: 'attendance', key: 'minimum_break_minutes', value: '30', type: 'number', desc: 'Minimum break duration in minutes' },
-        { category: 'attendance', key: 'allow_multiple_punches', value: 'true', type: 'boolean', desc: 'Allow multiple IN/OUT punches per day' },
 
         // Weekend Rules
-        { category: 'weekend', key: 'weekend_days', value: '["Saturday", "Sunday"]', type: 'json', desc: 'Days considered as weekend' },
         { category: 'weekend', key: 'first_saturday_off', value: 'false', type: 'boolean', desc: 'First Saturday of month is off' },
         { category: 'weekend', key: 'second_saturday_off', value: 'true', type: 'boolean', desc: 'Second Saturday of month is off' },
         { category: 'weekend', key: 'third_saturday_off', value: 'false', type: 'boolean', desc: 'Third Saturday of month is off' },
@@ -691,7 +685,6 @@ async function fixProductionSchema() {
         { category: 'notifications', key: 'smtp_from_email', value: '', type: 'string', desc: 'From email address' },
         { category: 'notifications', key: 'smtp_from_name', value: 'NeevTime', type: 'string', desc: 'From name in emails' },
         { category: 'notifications', key: 'smtp_secure', value: 'true', type: 'boolean', desc: 'Use TLS/SSL for SMTP' },
-        { category: 'notifications', key: 'email_notifications_enabled', value: 'true', type: 'boolean', desc: 'Enable email notifications' },
 
         // Security Settings
         { category: 'security', key: 'session_timeout_minutes', value: '480', type: 'number', desc: 'Session timeout in minutes (default 8 hours)' },
@@ -699,34 +692,16 @@ async function fixProductionSchema() {
         { category: 'security', key: 'lockout_duration_minutes', value: '30', type: 'number', desc: 'Account lockout duration in minutes' },
         { category: 'security', key: 'password_min_length', value: '8', type: 'number', desc: 'Minimum password length' },
         { category: 'security', key: 'require_special_char', value: 'true', type: 'boolean', desc: 'Require special character in password' },
-        { category: 'security', key: 'two_factor_enabled', value: 'false', type: 'boolean', desc: 'Enable two-factor authentication' },
-        { category: 'security', key: 'force_password_change_days', value: '90', type: 'number', desc: 'Force password change after N days (0 = disabled)' },
 
         // WhatsApp Settings
-        { category: 'whatsapp', key: 'whatsapp_enabled', value: 'false', type: 'boolean', desc: 'Enable WhatsApp notifications' },
-        { category: 'whatsapp', key: 'whatsapp_api_url', value: '', type: 'string', desc: 'WhatsApp Business API URL' },
-        { category: 'whatsapp', key: 'whatsapp_api_key', value: '', type: 'string', desc: 'WhatsApp API key' },
-        { category: 'whatsapp', key: 'whatsapp_sender_number', value: '', type: 'string', desc: 'WhatsApp sender phone number' },
-        { category: 'whatsapp', key: 'whatsapp_late_alert', value: 'true', type: 'boolean', desc: 'Send WhatsApp alert for late arrivals' },
-        { category: 'whatsapp', key: 'whatsapp_absent_alert', value: 'true', type: 'boolean', desc: 'Send WhatsApp alert for absences' },
 
         // SMS Settings
-        { category: 'sms', key: 'sms_enabled', value: 'false', type: 'boolean', desc: 'Enable SMS notifications' },
-        { category: 'sms', key: 'sms_provider', value: 'twilio', type: 'string', desc: 'SMS provider (twilio, msg91, textlocal)' },
-        { category: 'sms', key: 'sms_api_key', value: '', type: 'string', desc: 'SMS provider API key' },
-        { category: 'sms', key: 'sms_api_secret', value: '', type: 'string', desc: 'SMS provider API secret' },
-        { category: 'sms', key: 'sms_sender_id', value: 'NEEVTM', type: 'string', desc: 'SMS sender ID' },
-        { category: 'sms', key: 'sms_late_alert', value: 'false', type: 'boolean', desc: 'Send SMS alert for late arrivals' },
-        { category: 'sms', key: 'sms_absent_alert', value: 'false', type: 'boolean', desc: 'Send SMS alert for absences' },
 
         // Auto Reports Settings
-        { category: 'reports', key: 'auto_daily_report_enabled', value: 'false', type: 'boolean', desc: 'Send daily attendance report automatically' },
         { category: 'reports', key: 'daily_report_time', value: '18:00', type: 'string', desc: 'Time to send daily report (HH:MM)' },
         { category: 'reports', key: 'daily_report_recipients', value: '', type: 'string', desc: 'Email addresses for daily report (comma-separated)' },
-        { category: 'reports', key: 'auto_weekly_report_enabled', value: 'false', type: 'boolean', desc: 'Send weekly attendance report automatically' },
         { category: 'reports', key: 'weekly_report_day', value: 'Monday', type: 'string', desc: 'Day to send weekly report' },
         { category: 'reports', key: 'weekly_report_recipients', value: '', type: 'string', desc: 'Email addresses for weekly report (comma-separated)' },
-        { category: 'reports', key: 'auto_monthly_report_enabled', value: 'false', type: 'boolean', desc: 'Send monthly attendance report automatically' },
         { category: 'reports', key: 'monthly_report_recipients', value: '', type: 'string', desc: 'Email addresses for monthly report (comma-separated)' },
 
         // PDF Settings

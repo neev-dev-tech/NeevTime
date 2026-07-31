@@ -35,6 +35,8 @@ const MAX_PDF_ROWS = 1000;
  * @version 2.0.0
  */
 
+import { getPdfDefaults, getCompanyInfo } from './reportSettings';
+
 // Default company settings (can be overridden)
 const DEFAULT_COMPANY = {
     name: 'NeevTime',
@@ -66,6 +68,11 @@ const COLORS = {
  * Main PDF export function with branding
  */
 export const exportToPDF = (options) => {
+    // Settings → PDF Settings and → Company supply the defaults; an explicit
+    // option passed by a caller still wins.
+    const pdfPrefs = getPdfDefaults();
+    const companyInfo = getCompanyInfo();
+
     const {
         data,
         filename,
@@ -75,14 +82,14 @@ export const exportToPDF = (options) => {
         columns,
         dateRange,
         filters = {},
-        orientation = 'landscape',
-        format = 'a4',
-        company = DEFAULT_COMPANY,
-        showLogo = true,
+        orientation = pdfPrefs.orientation || 'landscape',
+        format = pdfPrefs.format || 'a4',
+        company = companyInfo || DEFAULT_COMPANY,
+        showLogo = pdfPrefs.showLogo ?? true,
         showFooter = true,
         showPageNumbers = true,
         showTimestamp = true,
-        showSignature = false,
+        showSignature = pdfPrefs.showSignature ?? false,
         signatureLabels = ['Prepared By', 'Approved By', 'Authorized By'],
         watermark = null,
         summaryData = null

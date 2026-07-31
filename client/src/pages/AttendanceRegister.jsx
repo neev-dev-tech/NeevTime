@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import api from '../api';
 import { Calendar, Clock, AlertTriangle, CheckCircle, XCircle, Filter, FileDown, FileSpreadsheet, RefreshCw, AlertCircle } from 'lucide-react';
 import { exportToPDF } from '../utils/pdfExport';
@@ -9,23 +9,23 @@ const BADGE_BASE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px
 
 export default function AttendanceRegister() {
     const toast = useToast();
-    const [data, setData] = useState([]);
+    const [rawData, setRawData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [filters, setFilters] = useState({ status: '', department: '' });
 
-    useEffect(() => { fetchData(); }, [date, filters]);
+    // Only the date needs a refetch — filtering is client-side, and the raw rows
+    // are kept so the filter dropdowns can list every value, not just the ones
+    // that survive the current filter.
+    useEffect(() => { fetchData(); }, [date]);
 
     const fetchData = async () => {
         setLoading(true);
         setError(null);
         try {
             const res = await api.get('/api/attendance/summary', { params: { date } });
-            let filtered = res.data;
-            if (filters.status) filtered = filtered.filter(r => r.status === filters.status);
-            if (filters.department) filtered = filtered.filter(r => r.department === filters.department);
-            setData(filtered);
+            setRawData(res.data || []);
         } catch (err) {
             console.error(err);
             setError(err.response?.data?.error || 'Could not load attendance records');
@@ -33,12 +33,29 @@ export default function AttendanceRegister() {
         setLoading(false);
     };
 
+    const data = useMemo(() => {
+        let rows = rawData;
+        if (filters.status) rows = rows.filter(r => r.status === filters.status);
+        if (filters.department) rows = rows.filter(r => r.department === filters.department);
+        return rows;
+    }, [rawData, filters]);
+
+    const statusOptions = useMemo(
+        () => [...new Set(rawData.map(r => r.status).filter(Boolean))].sort(),
+        [rawData]
+    );
+    const departmentOptions = useMemo(
+        () => [...new Set(rawData.map(r => r.department).filter(Boolean))].sort(),
+        [rawData]
+    );
+
     const getStatusStyle = (status) => {
         const styles = {
             'Present': 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
             'Absent': 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300',
             'Late': 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
             'Half Day': 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
+            'Short Day': 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
             'Miss Punch': 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
             'Weekly Off': 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
             'Holiday': 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300',
@@ -132,7 +149,29 @@ export default function AttendanceRegister() {
                             onChange={e => setDate(e.target.value)}
                             className="rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm tabular-nums text-slate-700 dark:text-slate-100 py-1.5 px-3 focus:outline-none focus:border-orange-400 dark:focus:border-orange-500"
                         />
-                        <Button variant="secondary" icon={Filter}>Filters</Button>
+                        {/* The filter state and predicates already existed; this is the
+                            UI that was missing, so the button did nothing. */}
+                        <select
+                            value={filters.status}
+                            onChange={e => setFilters(f => ({ ...f, status: e.target.value }))}
+                            className="rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-100 py-1.5 px-3 focus:outline-none focus:border-orange-400 dark:focus:border-orange-500"
+                        >
+                            <option value="">All statuses</option>
+                            {statusOptions.map(s => <option key={s} value={s}>{s}</option>)}
+                        </select>
+                        <select
+                            value={filters.department}
+                            onChange={e => setFilters(f => ({ ...f, department: e.target.value }))}
+                            className="rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-100 py-1.5 px-3 focus:outline-none focus:border-orange-400 dark:focus:border-orange-500"
+                        >
+                            <option value="">All departments</option>
+                            {departmentOptions.map(d => <option key={d} value={d}>{d}</option>)}
+                        </select>
+                        {isFiltered && (
+                            <Button variant="ghost" size="sm" icon={Filter} onClick={() => setFilters({ status: '', department: '' })}>
+                                Clear
+                            </Button>
+                        )}
                         <Button variant="danger" icon={FileDown} onClick={handleExportPDF} title="Export PDF">PDF</Button>
                         <Button variant="success" icon={FileSpreadsheet} onClick={handleExportXLSX} title="Export Excel">XLSX</Button>
                     </>

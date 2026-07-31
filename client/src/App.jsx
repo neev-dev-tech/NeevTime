@@ -61,6 +61,7 @@ import PortalLogin from './pages/portal/PortalLogin';
 import EmployeePortal from './pages/portal/EmployeePortal';
 
 import useStore from './store/useStore';
+import { loadReportSettings } from './utils/reportSettings';
 
 // Setup Axios Interceptor for Token
 axios.interceptors.request.use(config => {
@@ -128,6 +129,8 @@ export default function App() {
   useEffect(() => {
     // Initial load is handled by useStore default value, but we signal ready here
     setLoading(false);
+    // Prime company + PDF settings so exports pick them up without awaiting
+    if (localStorage.getItem('token')) loadReportSettings();
   }, []);
 
   if (loading) return null;

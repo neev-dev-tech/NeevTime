@@ -445,7 +445,6 @@ router.get('/types', (req, res) => {
 // ==========================================
 
 const scheduledReports = require('../services/scheduled-reports');
-const emailService = require('../services/email');
 
 // Get all scheduled reports
 router.get('/scheduled', async (req, res) => {
@@ -530,42 +529,9 @@ router.get('/history', async (req, res) => {
     }
 });
 
-// ==========================================
-// EMAIL SETTINGS
-// ==========================================
-
-// Get email configuration
-router.get('/email-settings', async (req, res) => {
-    try {
-        const config = await emailService.getEmailConfig();
-        res.json(config || {});
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// Save email configuration
-router.post('/email-settings', async (req, res) => {
-    try {
-        const result = await emailService.saveEmailConfig(req.body);
-        res.json(result);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// Test email configuration
-router.post('/email-settings/test', async (req, res) => {
-    try {
-        const { test_email } = req.body;
-        if (!test_email) {
-            return res.status(400).json({ error: 'Test email address required' });
-        }
-        const result = await emailService.testEmailConfig(test_email);
-        res.json(result);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
+// EMAIL SETTINGS routes removed. They wrote to the legacy email_settings
+// table, a second store the mailer only falls back to when app_settings has
+// no smtp_host. Settings -> Email/SMTP is the single source of truth, and
+// nothing in the client ever called these.
 
 module.exports = router;

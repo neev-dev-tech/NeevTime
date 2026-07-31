@@ -39,47 +39,8 @@ const createCrud = (table, fields) => {
     });
 };
 
-// Custom Area Routes with Hierarchy and Counts
-router.get('/areas', async (req, res) => {
-    try {
-        const query = `
-            SELECT 
-                a.*,
-                p.name as parent_area_name,
-                (SELECT COUNT(*)::int FROM employees e WHERE e.area_id = a.id AND (e.status IS DISTINCT FROM 'resigned')) as employee_count,
-                (SELECT COUNT(*)::int FROM devices d WHERE d.area_id = a.id) as device_count,
-                (SELECT COUNT(*)::int FROM employees e WHERE e.area_id = a.id AND e.status = 'resigned') as resigned_count,
-                (SELECT COALESCE(SUM(e.fingerprint_count), 0)::int FROM employees e WHERE e.area_id = a.id) as fp_count,
-                (SELECT COALESCE(SUM(e.face_count), 0)::int FROM employees e WHERE e.area_id = a.id) as face_count,
-                (SELECT COUNT(*)::int FROM employees e WHERE e.area_id = a.id AND e.card_number IS NOT NULL AND e.card_number != '') as card_count
-            FROM areas a
-            LEFT JOIN areas p ON a.parent_area_id = p.id
-            ORDER BY a.id ASC
-        `;
-        const result = await db.query(query);
-        res.json(result.rows);
-    } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-router.post('/areas', async (req, res) => {
-    const { name, code, parent_area_id } = req.body;
-    try {
-        const result = await db.query(
-            'INSERT INTO areas (name, code, parent_area_id) VALUES ($1, $2, $3) RETURNING *',
-            [name, code, parent_area_id || null]
-        );
-        res.json(result.rows[0]);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-router.delete('/areas/:id', async (req, res) => {
-    try {
-        await db.query('DELETE FROM areas WHERE id = $1', [req.params.id]);
-        res.json({ message: 'Deleted' });
-    } catch (err) { res.status(500).json({ error: err.message }); }
-});
+// NOTE: /areas is owned by routes/organization.js, which mounts first. The
+// duplicate handlers that lived here were unreachable and have been removed.
 
 // Generate CRUDs for others
 createCrud('holiday_locations', ['name', 'description']);

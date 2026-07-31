@@ -100,6 +100,9 @@ router.put('/:category', async (req, res) => {
 
         await client.query('COMMIT');
 
+        // Drop the settings cache so enforcement picks up the new values at once
+        require('../utils/settings').invalidate();
+
         // Return updated settings
         const result = await db.query(`
             SELECT setting_key, setting_value, data_type
@@ -125,6 +128,13 @@ router.put('/:category', async (req, res) => {
         // SMTP config changed — rebuild the cached transporter
         if (category === 'notifications') {
             require('../services/email').initTransporter().catch(() => {});
+        }
+
+        // Auto Reports tab changed — reconcile the scheduler's rows with it
+        if (category === 'reports') {
+            require('../services/scheduled-reports').syncFromSettings().catch(err => {
+                console.error('Auto report sync failed:', err.message);
+            });
         }
     } catch (err) {
         await client.query('ROLLBACK');
@@ -168,6 +178,7 @@ router.put('/:category/:key', async (req, res) => {
             return res.status(404).json({ error: 'Setting not found' });
         }
 
+        require('../utils/settings').invalidate();
         res.json({ success: true, setting: result.rows[0] });
     } catch (err) {
         res.status(500).json({ error: err.message });

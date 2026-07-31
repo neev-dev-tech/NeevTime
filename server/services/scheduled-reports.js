@@ -295,6 +295,95 @@ const runScheduledReport = async (scheduleId) => {
 };
 
 /**
+ * Mirror the Settings → Auto Reports tab into scheduled_reports rows.
+ *
+ * The scheduler runs off table rows, but the only UI for auto reports is the
+ * Settings tab, whose values previously went nowhere. This reconciles the two:
+ * each of the three cadences becomes at most one managed row, created, updated,
+ * or deactivated to match what the tab says. Rows created by hand are left
+ * alone — only names in MANAGED_NAMES are touched.
+ */
+const MANAGED_NAMES = {
+    daily: 'Auto Daily Attendance (Settings)',
+    weekly: 'Auto Weekly Attendance (Settings)',
+    monthly: 'Auto Monthly Summary (Settings)'
+};
+
+const parseRecipients = (raw) => {
+    if (!raw) return [];
+    if (Array.isArray(raw)) return raw;
+    return String(raw).split(/[,;\s]+/).map(s => s.trim()).filter(Boolean);
+};
+
+const syncFromSettings = async () => {
+    const settingsStore = require('../utils/settings');
+    const cfg = await settingsStore.getCategory('reports', {});
+
+    const plans = [
+        {
+            cadence: 'daily',
+            enabled: cfg.daily_report_enabled,
+            time: cfg.daily_report_time || '08:00',
+            day: null,
+            recipients: parseRecipients(cfg.daily_report_recipients),
+            reportType: 'daily_attendance'
+        },
+        {
+            cadence: 'weekly',
+            enabled: cfg.weekly_report_enabled,
+            time: cfg.daily_report_time || '08:00',
+            day: Number(cfg.weekly_report_day) || 1,
+            recipients: parseRecipients(cfg.weekly_report_recipients),
+            reportType: 'daily_attendance'
+        },
+        {
+            cadence: 'monthly',
+            enabled: cfg.monthly_report_enabled,
+            time: cfg.daily_report_time || '08:00',
+            day: Number(cfg.monthly_report_day) || 1,
+            recipients: parseRecipients(cfg.monthly_report_recipients),
+            reportType: 'monthly_summary'
+        }
+    ];
+
+    for (const plan of plans) {
+        const name = MANAGED_NAMES[plan.cadence];
+        const existing = await db.query('SELECT id FROM scheduled_reports WHERE name = $1', [name]);
+
+        // Enabled but with nobody to send to is a misconfiguration, not a schedule
+        const active = Boolean(plan.enabled) && plan.recipients.length > 0;
+
+        if (existing.rows.length === 0) {
+            if (!active) continue;
+            await createScheduledReport({
+                name,
+                report_type: plan.reportType,
+                schedule_type: plan.cadence,
+                schedule_time: plan.time,
+                schedule_day: plan.day,
+                recipients: plan.recipients,
+                format: 'csv',
+                is_active: true,
+                created_by: null
+            });
+        } else {
+            await updateScheduledReport(existing.rows[0].id, {
+                name,
+                report_type: plan.reportType,
+                schedule_type: plan.cadence,
+                schedule_time: plan.time,
+                schedule_day: plan.day,
+                recipients: plan.recipients,
+                format: 'csv',
+                is_active: active
+            });
+        }
+    }
+
+    log('INFO', 'Auto report schedules synced from settings');
+};
+
+/**
  * Check and run due scheduled reports
  */
 const checkDueReports = async () => {
@@ -364,5 +453,6 @@ module.exports = {
     checkDueReports,
     getReportHistory,
     startScheduler,
+    syncFromSettings,
     calculateNextRun
 };

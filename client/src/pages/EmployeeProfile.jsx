@@ -16,6 +16,9 @@ export default function EmployeeProfile() {
     const [showEditModal, setShowEditModal] = useState(false);
     const [departments, setDepartments] = useState([]);
     const [areas, setAreas] = useState([]);
+    const [docs, setDocs] = useState([]);
+    const [docsLoading, setDocsLoading] = useState(false);
+    const [uploadingDoc, setUploadingDoc] = useState(false);
 
     // Edit Form Data
     const [editForm, setEditForm] = useState({});
@@ -32,7 +35,10 @@ export default function EmployeeProfile() {
             setEmployee(res.data);
             setEditForm(res.data); // Pre-fill edit form
             // Summary rows are keyed by employee_code, not the numeric route id
-            if (res.data?.employee_code) fetchAttendance(res.data.employee_code);
+            if (res.data?.employee_code) {
+                fetchAttendance(res.data.employee_code);
+                fetchDocs(res.data.employee_code);
+            }
         } catch (err) {
             console.error(err);
             setError(err.response?.data?.error || 'Could not load this employee');
@@ -45,6 +51,66 @@ export default function EmployeeProfile() {
             const res = await api.get('/api/attendance/summary', { params: { employee_code: employeeCode } });
             setAttendance((res.data || []).slice(0, 30));
         } catch (err) { console.error(err); }
+    };
+
+    const fetchDocs = async (employeeCode) => {
+        setDocsLoading(true);
+        try {
+            const res = await api.get(`/api/employee-docs/${employeeCode}`);
+            setDocs(res.data || []);
+        } catch (err) {
+            console.error(err);
+            setDocs([]);
+        }
+        setDocsLoading(false);
+    };
+
+    // Files are stored as base64 by the API, so keep uploads small enough that
+    // the row stays sane — 5 MB is well under any practical column limit.
+    const MAX_DOC_BYTES = 5 * 1024 * 1024;
+
+    const handleDocUpload = async (event) => {
+        const file = event.target.files?.[0];
+        event.target.value = '';
+        if (!file || !employee?.employee_code) return;
+
+        if (file.size > MAX_DOC_BYTES) {
+            toast.error('File is larger than 5 MB');
+            return;
+        }
+
+        setUploadingDoc(true);
+        try {
+            const fileData = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = () => reject(new Error('Could not read the file'));
+                reader.readAsDataURL(file);
+            });
+
+            await api.post('/api/employee-docs', {
+                employee_code: employee.employee_code,
+                doc_name: file.name,
+                file_data: fileData,
+                file_type: file.type || 'application/octet-stream'
+            });
+            toast.success('Document uploaded');
+            fetchDocs(employee.employee_code);
+        } catch (err) {
+            toast.error(err.response?.data?.error || err.message || 'Upload failed');
+        } finally {
+            setUploadingDoc(false);
+        }
+    };
+
+    const handleDocDelete = async (docId) => {
+        try {
+            await api.delete(`/api/employee-docs/${docId}`);
+            toast.success('Document deleted');
+            fetchDocs(employee.employee_code);
+        } catch (err) {
+            toast.error(err.response?.data?.error || 'Delete failed');
+        }
     };
 
     const fetchDepsAndAreas = async () => {
@@ -308,13 +374,70 @@ export default function EmployeeProfile() {
                 )}
 
                 {activeTab === 'documents' && (
-                    <div className="text-center py-16 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl">
-                        <FileText className="mx-auto text-slate-300 dark:text-slate-600 mb-3" size={40} />
-                        <h4 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No documents uploaded</h4>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
-                            Contracts and ID proofs for this employee will appear here.
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between flex-wrap gap-2">
+                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                                Contracts and ID proofs for this employee. Maximum 5 MB per file.
+                            </p>
+                            <div className="relative inline-block">
+                                <Button variant="successSolid" disabled={uploadingDoc} className="pointer-events-none">
+                                    {uploadingDoc ? 'Uploading…' : 'Upload Document'}
+                                </Button>
+                                <input
+                                    type="file"
+                                    onChange={handleDocUpload}
+                                    disabled={uploadingDoc}
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
+                                />
+                            </div>
+                        </div>
+
+                        {docsLoading ? (
+                            <div className="space-y-2">
+                                {[...Array(3)].map((_, i) => (
+                                    <div key={i} className="h-12 rounded-lg bg-slate-100 dark:bg-slate-700/40 animate-pulse" />
+                                ))}
+                            </div>
+                        ) : docs.length === 0 ? (
+                            <div className="text-center py-16 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl">
+                                <FileText className="mx-auto text-slate-300 dark:text-slate-600 mb-3" size={40} />
+                                <h4 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No documents uploaded</h4>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">
+                                    Use Upload Document to add the first one.
+                                </p>
+                            </div>
+                        ) : (
+                            <ul className="divide-y divide-slate-100 dark:divide-slate-700 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+                                {docs.map(doc => (
+                                    <li key={doc.id} className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-orange-50/50 dark:hover:bg-slate-700/40">
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            <FileText size={18} className="text-orange-500 dark:text-orange-400 shrink-0" />
+                                            <div className="min-w-0">
+                                                <p className="font-semibold text-slate-800 dark:text-slate-100 truncate">{doc.doc_name}</p>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                                    {doc.uploaded_at ? new Date(doc.uploaded_at).toLocaleDateString() : '—'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2 shrink-0">
+                                            {doc.file_path && (
+                                                <a
+                                                    href={doc.file_path}
+                                                    download={doc.doc_name}
+                                                    className="text-xs font-semibold text-orange-600 dark:text-orange-400 hover:underline"
+                                                >
+                                                    Download
+                                                </a>
+                                            )}
+                                            <Button variant="danger" size="sm" icon={Trash2} onClick={() => handleDocDelete(doc.id)} aria-label="Delete document" />
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                            {docs.length} {docs.length === 1 ? 'document' : 'documents'}
                         </p>
-                        <Button variant="primary" className="mt-4 mx-auto">Upload Document</Button>
                     </div>
                 )}
             </div>

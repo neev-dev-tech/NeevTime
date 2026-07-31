@@ -60,41 +60,57 @@ const logEvent = async (logData) => {
     }
 };
 
+const METHOD_ACTION = { POST: 'CREATE', PUT: 'UPDATE', PATCH: 'UPDATE', DELETE: 'DELETE' };
+
+// Bodies that must never reach the audit table
+const SENSITIVE_KEYS = /password|passwd|token|secret|api_key|apikey|hash/i;
+
+const redact = (body) => {
+    if (!body || typeof body !== 'object') return null;
+    const out = {};
+    for (const [key, value] of Object.entries(body)) {
+        if (SENSITIVE_KEYS.test(key)) out[key] = '[redacted]';
+        else if (typeof value === 'object' && value !== null) out[key] = '[object]';
+        else out[key] = value;
+    }
+    return out;
+};
+
 /**
- * Express middleware to log API requests
- * Add this middleware to routes that should be logged
+ * Records every successful mutating API call in system_logs.
+ *
+ * Mounted once on /api rather than wired into each route: a per-route call is a
+ * line every future handler has to remember, and the ones that forget are
+ * invisible. res.json is wrapped up front but read at send time, so req.user is
+ * already populated by whichever authenticateToken guard ran in between.
  */
-const logRequest = (action, entityTypeExtractor = null) => {
-    return async (req, res, next) => {
-        // Store original res.json to intercept response
-        const originalJson = res.json.bind(res);
-        
-        res.json = function(data) {
-            // Log after successful response
-            if (res.statusCode < 400 && req.user) {
-                const entityType = entityTypeExtractor 
-                    ? entityTypeExtractor(req) 
-                    : req.path.split('/').filter(Boolean)[1] || 'unknown';
+const auditMutations = (req, res, next) => {
+    const action = METHOD_ACTION[req.method];
+    if (!action) return next();
 
-                logEvent({
-                    user_id: req.user.id,
-                    username: req.user.username,
-                    action: action,
-                    entity_type: entityTypeExtractor ? entityType(req) : entityType,
-                    entity_id: req.params.id ? parseInt(req.params.id) : null,
-                    ip_address: req.ip || req.connection.remoteAddress,
-                    user_agent: req.get('user-agent')
-                }).catch(err => {
-                    // Silent fail - don't break the response
-                    console.error('Logging failed:', err);
-                });
-            }
-            
-            return originalJson(data);
-        };
+    const originalJson = res.json.bind(res);
+    res.json = function (data) {
+        if (res.statusCode < 400 && req.user) {
+            const segments = req.path.split('/').filter(Boolean);
+            const entityType = segments[0] || 'unknown';
+            const idSegment = segments.find(s => /^\d+$/.test(s));
 
-        next();
+            logEvent({
+                user_id: req.user.id,
+                username: req.user.username || String(req.user.id),
+                action,
+                entity_type: entityType,
+                entity_id: idSegment ? parseInt(idSegment) : null,
+                new_values: action === 'DELETE' ? null : redact(req.body),
+                old_values: null,
+                ip_address: req.ip || req.connection?.remoteAddress,
+                user_agent: req.get('user-agent')
+            }).catch(err => console.error('Audit logging failed:', err.message));
+        }
+        return originalJson(data);
     };
+
+    next();
 };
 
 /**
@@ -214,7 +230,7 @@ const logSync = async (username, entityType, syncType, ipAddress, userId = null)
 
 module.exports = {
     logEvent,
-    logRequest,
+    auditMutations,
     logLogin,
     logLogout,
     logCreate,
