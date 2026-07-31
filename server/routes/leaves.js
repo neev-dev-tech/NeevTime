@@ -157,38 +157,29 @@ router.put('/leave-applications/:id/status', async (req, res) => {
 
         const app = appRes.rows[0];
 
-        // Already in the requested state — nothing to do. Without this, a second
+        // The balance arithmetic lives in services/leave_balance.js so it can be
+        // tested without a database — see server/tests/leave_balance.test.js.
+        const { planStatusChange } = require('../services/leave_balance');
+        const plan = planStatusChange(app.status, status, app.total_days);
+
+        // Re-applying the same status is a no-op. Without this, a second
         // approval (double click, retry, two reviewers) deducted the balance
         // again, silently taking days the employee never used.
-        if (app.status === status) {
+        if (plan.outcome === 'unchanged') {
             await client.query('ROLLBACK');
             return res.json({ success: true, status, unchanged: true });
-        }
-
-        // Approving something already approved-and-deducted is the same trap
-        if (status === 'Approved' && app.status === 'Approved') {
-            await client.query('ROLLBACK');
-            return res.status(409).json({ error: 'Application is already approved' });
         }
 
         await client.query(`
             UPDATE leave_applications SET status=$1, rejection_reason=$2, approved_at=NOW() WHERE id=$3
         `, [status, rejection_reason, id]);
 
-        const year = new Date(app.from_date).getFullYear();
-
-        if (status === 'Approved') {
+        if (plan.usedDelta !== 0) {
+            const year = new Date(app.from_date).getFullYear();
             await client.query(`
                 UPDATE leave_balances SET used = used + $1, balance = balance - $1, updated_at = NOW()
                 WHERE employee_code=$2 AND leave_type_id=$3 AND year=$4
-            `, [app.total_days, app.employee_code, app.leave_type_id, year]);
-        } else if (app.status === 'Approved') {
-            // Moving away from Approved (rejected or reverted after the fact)
-            // must give the days back, or the balance drifts down permanently.
-            await client.query(`
-                UPDATE leave_balances SET used = used - $1, balance = balance + $1, updated_at = NOW()
-                WHERE employee_code=$2 AND leave_type_id=$3 AND year=$4
-            `, [app.total_days, app.employee_code, app.leave_type_id, year]);
+            `, [plan.usedDelta, app.employee_code, app.leave_type_id, year]);
         }
 
         await client.query('COMMIT');
