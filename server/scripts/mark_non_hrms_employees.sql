@@ -17,7 +17,7 @@ BEGIN;
 UPDATE employees
 SET exclude_from_hrms = true
 WHERE employee_code IN (
-    '1',        -- 219 punches, still active — looks like a device admin enrolment
+    '1',        -- 219 punches. IN USE DAILY — see the retirement section below
     '1010',     -- 5,435 punches, marked resigned
     '1011',     -- 5,193 punches, 341 in the last week
     '1012',     -- 3,300 punches, 179 in the last week
@@ -26,9 +26,33 @@ WHERE employee_code IN (
     '1015',     -- 461 punches
     '1016',     -- Rudre Gowda, 82 punches
     'DE001', 'DE002', 'DE004', 'DE005',
-    'OMN004',   -- named "test" — confirm this is a real person before keeping it
+    'OMN004',   -- named "test", dormant since 2026-07-23
     'OMN006'    -- mukesh
 );
+
+-- ── Retiring an account ────────────────────────────────────────────────────
+--
+-- These are NOT deleted. attendance_logs has a foreign key to employees with
+-- NO ACTION, so Postgres refuses to remove an employee that has punches — the
+-- history would have to be destroyed first, and attendance is the one thing
+-- here that cannot be reconstructed from anywhere else.
+--
+-- Marking the account resigned takes it out of the active lists and reports
+-- while leaving every punch attributable.
+--
+-- OMN004 ("test") is dormant — last punch 2026-07-23, nothing since.
+UPDATE employees SET status = 'resigned' WHERE employee_code = 'OMN004';
+
+-- Code '1' is deliberately NOT retired here.
+--
+-- It punched at 16:47 and 16:53 today, and 21:18 the night before, in clean
+-- IN/OUT pairs across both readers. Somebody is working with it. Retiring the
+-- record does not by itself revoke door access — enrolment lives on the reader —
+-- but it does hide a working person from attendance reports.
+--
+-- Find out who is using it first. If the access really should end, delete the
+-- user from the biometric devices, then uncomment:
+-- UPDATE employees SET status = 'resigned' WHERE employee_code = '1';
 
 -- Settle their existing backlog so it is not reconsidered on future cycles.
 UPDATE attendance_logs al
