@@ -15,6 +15,7 @@
 const axios = require('axios');
 const https = require('https');
 const { BaseIntegration } = require('../hrms-integration');
+const { formatLocal, localDate, isCheckIn, resolveDeviceDirections } = require('./punch_format');
 
 // Create HTTPS agent that allows self-signed certificates
 const httpsAgent = new https.Agent({
@@ -116,10 +117,15 @@ class BambooHRIntegration extends BaseIntegration {
         const stats = { processed: 0, success: 0, failed: 0 };
         const db = require('../../db');
 
-        // Group by employee and date
+        // Reader directions resolve punch states the device left ambiguous
+        const directions = await resolveDeviceDirections(records);
+
+        // Group by employee and date, using the local calendar date — grouping on
+        // the UTC date filed early-morning punches under the previous day.
         const grouped = {};
         for (const record of records) {
-            const date = new Date(record.punch_time).toISOString().split('T')[0];
+            const date = localDate(record.punch_time);
+            if (!date) continue;
             const key = `${record.employee_code}_${date}`;
             if (!grouped[key]) {
                 grouped[key] = {
@@ -158,15 +164,19 @@ class BambooHRIntegration extends BaseIntegration {
 
                 // Sort and find in/out times
                 group.records.sort((a, b) => new Date(a.punch_time) - new Date(b.punch_time));
-                const firstIn = group.records.find(r => r.punch_state <= 1);
-                const lastOut = [...group.records].reverse().find(r => r.punch_state > 1);
+                // 0 is IN and 1 is OUT, so the old `<= 1` test matched both and
+                // `> 1` matched neither — every punch became an entry and the exit
+                // was always null.
+                const dirOf = (r) => directions[r.device_serial] || 'in';
+                const firstIn = group.records.find(r => isCheckIn(r.punch_state, dirOf(r)));
+                const lastOut = [...group.records].reverse().find(r => !isCheckIn(r.punch_state, dirOf(r)));
 
                 if (firstIn) {
                     // Add time tracking entry
                     await this.client.post(`/employees/${group.bamboohr_id}/time_tracking/clock_entries`, {
                         date: group.date,
-                        start: new Date(firstIn.punch_time).toISOString().split('T')[1].substring(0, 5),
-                        end: lastOut ? new Date(lastOut.punch_time).toISOString().split('T')[1].substring(0, 5) : null
+                        start: formatLocal(firstIn.punch_time).timeShort,
+                        end: lastOut ? formatLocal(lastOut.punch_time).timeShort : null
                     });
                 }
 

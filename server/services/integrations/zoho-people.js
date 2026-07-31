@@ -15,6 +15,7 @@
 const axios = require('axios');
 const https = require('https');
 const { BaseIntegration } = require('../hrms-integration');
+const { formatLocal, localDate, isCheckIn, resolveDeviceDirections } = require('./punch_format');
 
 // Create HTTPS agent that allows self-signed certificates
 const httpsAgent = new https.Agent({
@@ -149,19 +150,25 @@ class ZohoPeopleIntegration extends BaseIntegration {
         const stats = { processed: 0, success: 0, failed: 0 };
         const db = require('../../db');
 
+        const directions = await resolveDeviceDirections(records);
+
         for (const record of records) {
             stats.processed++;
             try {
-                const date = new Date(record.punch_time).toISOString().split('T')[0];
-                const time = new Date(record.punch_time).toISOString().split('T')[1].substring(0, 5);
-                const isCheckIn = record.punch_state <= 1;
+                // Zoho People expects the employee's local wall clock; sending UTC
+                // logged everyone one offset early.
+                const local = formatLocal(record.punch_time);
+                if (!local) { stats.failed++; continue; }
+                const date = local.date;
+                const time = local.timeShort;
+                const isEntry = isCheckIn(record.punch_state, directions[record.device_serial] || 'in');
 
                 // Zoho People attendance API
                 const attendanceData = {
                     dateFormat: 'yyyy-MM-dd',
                     empId: record.employee_code,
-                    checkIn: isCheckIn ? `${date} ${time}` : undefined,
-                    checkOut: !isCheckIn ? `${date} ${time}` : undefined
+                    checkIn: isEntry ? `${date} ${time}` : undefined,
+                    checkOut: isEntry ? undefined : `${date} ${time}`
                 };
 
                 await this.request('POST', 'attendance', attendanceData);

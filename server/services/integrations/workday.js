@@ -13,6 +13,7 @@
 const axios = require('axios');
 const https = require('https');
 const { BaseIntegration } = require('../hrms-integration');
+const { formatLocal, localDate, isCheckIn, resolveDeviceDirections } = require('./punch_format');
 
 // Create HTTPS agent that allows self-signed certificates
 const httpsAgent = new https.Agent({
@@ -156,10 +157,13 @@ class WorkdayIntegration extends BaseIntegration {
         const stats = { processed: 0, success: 0, failed: 0 };
         const db = require('../../db');
 
-        // Group by employee and date
+        const directions = await resolveDeviceDirections(records);
+
+        // Group on the local calendar date, not the UTC one
         const grouped = {};
         for (const record of records) {
-            const date = new Date(record.punch_time).toISOString().split('T')[0];
+            const date = localDate(record.punch_time);
+            if (!date) continue;
             const key = `${record.employee_code}_${date}`;
             if (!grouped[key]) {
                 grouped[key] = {
@@ -177,8 +181,9 @@ class WorkdayIntegration extends BaseIntegration {
                 // Sort records
                 group.records.sort((a, b) => new Date(a.punch_time) - new Date(b.punch_time));
 
-                const firstIn = group.records.find(r => r.punch_state <= 1);
-                const lastOut = [...group.records].reverse().find(r => r.punch_state > 1);
+                const dirOf = (r) => directions[r.device_serial] || 'in';
+                const firstIn = group.records.find(r => isCheckIn(r.punch_state, dirOf(r)));
+                const lastOut = [...group.records].reverse().find(r => !isCheckIn(r.punch_state, dirOf(r)));
 
                 if (firstIn) {
                     // Calculate hours worked

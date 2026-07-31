@@ -15,6 +15,7 @@
 const axios = require('axios');
 const https = require('https');
 const { BaseIntegration } = require('../hrms-integration');
+const { formatLocal, decodeDirection } = require('./punch_format');
 
 // Create HTTPS agent that allows self-signed certificates
 const httpsAgent = new https.Agent({
@@ -106,47 +107,34 @@ class ERPNextIntegration extends BaseIntegration {
         for (const record of records) {
             stats.processed++;
             try {
-                // Format timestamp manually using UTC to perfectly reconstruct the bare string 
-                // the device originally sent, reversing local Node.js timezone shifts.
-                const d = new Date(record.punch_time);
-                const dateKey = d.getUTCFullYear() + "-" +
-                    ("0" + (d.getUTCMonth() + 1)).slice(-2) + "-" +
-                    ("0" + d.getUTCDate()).slice(-2);
-                const timestamp = dateKey + " " +
-                    ("0" + d.getUTCHours()).slice(-2) + ":" +
-                    ("0" + d.getUTCMinutes()).slice(-2) + ":" +
-                    ("0" + d.getUTCSeconds()).slice(-2);
-
-                // Determine Log Type (IN or OUT)
-                let logType = 'IN';
-                const state = parseInt(record.punch_state);
-
-                if (!isNaN(state) && [1, 2, 5].includes(state)) {
-                    // Explicit OUT states: 1=CheckOut, 2=BreakOut, 5=OT-Out
-                    logType = 'OUT';
-                } else if (!isNaN(state) && [3, 4].includes(state)) {
-                    // Explicit IN states: 3=BreakIn, 4=OT-In
-                    logType = 'IN';
-                } else {
-                    // State is 255, 0, NaN, or unrecognized
-                    // → Determine IN/OUT from device_direction setting
-                    const deviceSerial = record.device_serial;
-
-                    if (deviceSerial && deviceDirectionCache[deviceSerial] === undefined) {
-                        const devResult = await db.query(
-                            'SELECT device_direction FROM devices WHERE serial_number = $1',
-                            [deviceSerial]
-                        );
-                        deviceDirectionCache[deviceSerial] = devResult.rows[0]?.device_direction || 'in';
-                    }
-
-                    const direction = deviceDirectionCache[deviceSerial] || 'in';
-                    if (direction === 'out') {
-                        logType = 'OUT';
-                    } else {
-                        logType = 'IN';
-                    }
+                // Reconstruct the wall clock the device originally sent. This used
+                // to read UTC components, which was only correct while the server
+                // ran in UTC; server.js now pins the process to the attendance
+                // timezone, so that produced times one offset early.
+                const local = formatLocal(record.punch_time);
+                if (!local) {
+                    stats.failed++;
+                    continue;
                 }
+                const dateKey = local.date;
+                const timestamp = local.datetime;
+
+                // Ambiguous states fall back to how the reader is configured, so
+                // the direction is looked up before decoding. Same rules as
+                // before, now shared with every other integration.
+                const deviceSerial = record.device_serial;
+                if (deviceSerial && deviceDirectionCache[deviceSerial] === undefined) {
+                    const devResult = await db.query(
+                        'SELECT device_direction FROM devices WHERE serial_number = $1',
+                        [deviceSerial]
+                    );
+                    deviceDirectionCache[deviceSerial] = devResult.rows[0]?.device_direction || 'in';
+                }
+
+                const logType = decodeDirection(
+                    record.punch_state,
+                    deviceDirectionCache[deviceSerial] || 'in'
+                );
 
                 await this.client.post('/api/resource/Employee Checkin', {
                     employee: record.employee_code,

@@ -13,6 +13,7 @@
 const axios = require('axios');
 const https = require('https');
 const { BaseIntegration } = require('../hrms-integration');
+const { formatLocal, localDate, isCheckIn, resolveDeviceDirections } = require('./punch_format');
 
 // Create HTTPS agent that allows self-signed certificates
 const httpsAgent = new https.Agent({
@@ -170,12 +171,16 @@ class SAPSuccessFactorsIntegration extends BaseIntegration {
         const stats = { processed: 0, success: 0, failed: 0 };
         const db = require('../../db');
 
-        // Group by employee and date
+        const directions = await resolveDeviceDirections(records);
+
+        // Group by employee and local calendar date
         const grouped = {};
         for (const record of records) {
-            const key = `${record.employee_code}_${new Date(record.punch_time).toISOString().split('T')[0]}`;
+            const recordDate = localDate(record.punch_time);
+            if (!recordDate) continue;
+            const key = `${record.employee_code}_${recordDate}`;
             if (!grouped[key]) {
-                grouped[key] = { employee: record.employee_code, date: new Date(record.punch_time).toISOString().split('T')[0], records: [] };
+                grouped[key] = { employee: record.employee_code, date: recordDate, records: [] };
             }
             grouped[key].records.push(record);
         }
@@ -186,16 +191,19 @@ class SAPSuccessFactorsIntegration extends BaseIntegration {
                 // Sort records
                 group.records.sort((a, b) => new Date(a.punch_time) - new Date(b.punch_time));
 
-                const firstIn = group.records.find(r => r.punch_state <= 1);
-                const lastOut = group.records.reverse().find(r => r.punch_state > 1);
+                const dirOf = (r) => directions[r.device_serial] || 'in';
+                const firstIn = group.records.find(r => isCheckIn(r.punch_state, dirOf(r)));
+                // reverse() mutates, so copy first — the original sorted the array
+                // in place and then searched the reversed copy of itself
+                const lastOut = [...group.records].reverse().find(r => !isCheckIn(r.punch_state, dirOf(r)));
 
                 // Create time entry in SAP
                 await this.odata('EmployeeTime', 'POST', {
                     userId: group.employee,
                     timeType: 'ATTENDANCE',
                     startDate: `/Date(${new Date(group.date).getTime()})/`,
-                    startTime: firstIn ? new Date(firstIn.punch_time).toISOString().split('T')[1].substring(0, 8) : null,
-                    endTime: lastOut ? new Date(lastOut.punch_time).toISOString().split('T')[1].substring(0, 8) : null
+                    startTime: firstIn ? formatLocal(firstIn.punch_time).time : null,
+                    endTime: lastOut ? formatLocal(lastOut.punch_time).time : null
                 });
 
                 const ids = group.records.map(r => r.id);

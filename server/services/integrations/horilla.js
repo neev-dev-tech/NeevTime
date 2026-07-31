@@ -16,6 +16,7 @@
 const axios = require('axios');
 const https = require('https');
 const { BaseIntegration } = require('../hrms-integration');
+const { formatLocal, localDate, isCheckIn, resolveDeviceDirections } = require('./punch_format');
 
 // Create HTTPS agent that allows self-signed certificates
 const httpsAgent = new https.Agent({
@@ -131,18 +132,25 @@ class HorillaIntegration extends BaseIntegration {
         const stats = { processed: 0, success: 0, failed: 0 };
         const db = require('../../db');
 
+        const directions = await resolveDeviceDirections(records);
+
         for (const record of records) {
             stats.processed++;
             try {
-                const attendanceDate = new Date(record.punch_time).toISOString().split('T')[0];
+                // attendance_date is a calendar date, so it must be the local one —
+                // the UTC date filed early-morning punches under the previous day.
+                // The timestamp itself stays a UTC instant, which is what Horilla's
+                // Django datetime fields expect.
+                const attendanceDate = localDate(record.punch_time);
                 const punchTime = new Date(record.punch_time).toISOString();
+                const isIn = isCheckIn(record.punch_state, directions[record.device_serial] || 'in');
 
                 // Horilla attendance format
                 const attendanceData = {
                     employee: record.employee_code,  // or horilla_id
                     attendance_date: attendanceDate,
-                    attendance_clock_in: record.punch_state <= 1 ? punchTime : null,
-                    attendance_clock_out: record.punch_state > 1 ? punchTime : null,
+                    attendance_clock_in: isIn ? punchTime : null,
+                    attendance_clock_out: isIn ? null : punchTime,
                     shift: null,  // Will use default shift
                     is_validate: true
                 };

@@ -15,6 +15,7 @@
 const axios = require('axios');
 const https = require('https');
 const { BaseIntegration } = require('../hrms-integration');
+const { formatLocal, localDate, isCheckIn, resolveDeviceDirections } = require('./punch_format');
 
 // Create HTTPS agent that allows self-signed certificates
 const httpsAgent = new https.Agent({
@@ -165,6 +166,8 @@ class OdooIntegration extends BaseIntegration {
         const stats = { processed: 0, success: 0, failed: 0 };
         const db = require('../../db');
 
+        const directions = await resolveDeviceDirections(records);
+
         // Group by employee for check-in/check-out pairing
         const byEmployee = {};
         for (const record of records) {
@@ -195,10 +198,14 @@ class OdooIntegration extends BaseIntegration {
                 for (const record of empRecords) {
                     stats.processed++;
                     try {
+                        // Odoo stores hr.attendance datetimes in UTC and renders them
+                        // in the user's timezone, so a UTC instant is correct here —
+                        // unlike the other integrations, which want local wall clocks.
                         const checkTime = new Date(record.punch_time).toISOString().replace('T', ' ').substring(0, 19);
-                        const isCheckIn = record.punch_state <= 1;  // 0 or 1 is check-in
+                        // 0 is IN and 1 is OUT; the old `<= 1` matched both
+                        const isEntry = isCheckIn(record.punch_state, directions[record.device_serial] || 'in');
 
-                        if (isCheckIn) {
+                        if (isEntry) {
                             // Create check-in record
                             await this.rpc('hr.attendance', 'create', [{
                                 employee_id: odooEmployeeId,
