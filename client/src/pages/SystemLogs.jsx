@@ -5,6 +5,7 @@ import {
     Database, Users, ChevronDown, Monitor, AlertCircle
 } from 'lucide-react';
 import { Button, PageHeader } from '../components';
+import { toLocalDateString } from '../utils/dateFormat';
 
 const BADGE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide';
 const CELL_MONO = 'font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold';
@@ -99,11 +100,11 @@ export default function SystemLogs() {
         if (filters.entity_type && log.entity_type !== filters.entity_type) return false;
         if (filters.user_id && log.username !== filters.user_id) return false;
         if (filters.dateFrom) {
-            const logDate = new Date(log.created_at).toISOString().split('T')[0];
+            const logDate = toLocalDateString(log.created_at);
             if (logDate < filters.dateFrom) return false;
         }
         if (filters.dateTo) {
-            const logDate = new Date(log.created_at).toISOString().split('T')[0];
+            const logDate = toLocalDateString(log.created_at);
             if (logDate > filters.dateTo) return false;
         }
         return true;

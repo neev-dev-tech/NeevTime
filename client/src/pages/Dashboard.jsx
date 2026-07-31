@@ -9,7 +9,7 @@ import {
     Activity, Target, Zap, BarChart3, TrendingDown, Brain, Info, ExternalLink,
     ChevronRight, Circle
 } from 'lucide-react';
-import { formatTimeShort } from '../utils/dateFormat';
+import { formatTimeShort, toLocalDateString } from '../utils/dateFormat';
 
 export default function Dashboard() {
     const navigate = useNavigate();
@@ -126,8 +126,8 @@ export default function Dashboard() {
     const fetchStats = async () => {
         try {
             const today = new Date().toISOString().split('T')[0];
-            const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-            const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+            const yesterday = toLocalDateString(new Date(Date.now() - 24 * 60 * 60 * 1000));
+            const sevenDaysAgo = toLocalDateString(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
 
             const [employeesRes, devicesRes, summaryRes, logsRes, yesterdaySummaryRes] = await Promise.all([
                 api.get('/api/employees'),
@@ -270,7 +270,7 @@ export default function Dashboard() {
 
     const fetchAttendanceTrends = async () => {
         try {
-            const start = new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+            const start = toLocalDateString(new Date(Date.now() - 6 * 24 * 60 * 60 * 1000));
             const end = new Date().toISOString().split('T')[0];
             const [lateEarlyRes, absentRes] = await Promise.all([
                 api.get('/api/reports/late-early', { params: { start_date: start, end_date: end } }),
@@ -280,7 +280,7 @@ export default function Dashboard() {
             const byDate = {};
             for (let i = 6; i >= 0; i--) {
                 const date = new Date(Date.now() - i * 24 * 60 * 60 * 1000);
-                const key = date.toISOString().split('T')[0];
+                const key = toLocalDateString(date);
                 byDate[key] = {
                     date: date.toLocaleDateString('en-US', { weekday: 'short' }),
                     fullDate: key,

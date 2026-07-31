@@ -11,6 +11,7 @@ import {
 import { exportToPDF } from '../utils/pdfExport';
 import { exportToExcel as exportToExcelUtil } from '../utils/excelExport';
 import { Button } from '../components';
+import { toLocalDateString } from '../utils/dateFormat';
 
 // Stat tile tones — written out in full so Tailwind's scanner keeps the classes
 const STAT_TONES = {
@@ -369,7 +370,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
             if (['transaction_log', 'mobile_trans', 'total_punches', 'transaction'].includes(reportType)) {
                 const logsRes = await api.get('/api/logs', { params: { limit: 500 } });
                 data = (logsRes.data || []).filter(log => {
-                    const punchDate = new Date(log.punch_time).toISOString().split('T')[0];
+                    const punchDate = toLocalDateString(log.punch_time);
                     return punchDate >= dateFrom && punchDate <= dateTo;
                 });
             } else if (['daily_attendance', 'scheduled_log', 'time_card', 'daily_details', 'daily_summary', 'daily_status'].includes(reportType)) {
@@ -460,7 +461,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                         department: emp.department_name,
                         dob: String(emp.dob).split('T')[0],
                         age: today.getFullYear() - dob.getFullYear(),
-                        upcoming: next.toISOString().split('T')[0]
+                        upcoming: toLocalDateString(next)
                     };
                 }).sort((a, b) => a.upcoming.localeCompare(b.upcoming));
             } else {

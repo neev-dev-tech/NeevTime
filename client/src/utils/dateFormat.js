@@ -1,13 +1,29 @@
 /**
  * Date/Time formatting utilities for NeevTime
- * 
- * IMPORTANT: The database stores timestamps in LOCAL timezone (not UTC).
- * Using new Date().toLocaleString() will incorrectly add timezone offset again.
- * Use these functions to format timestamps correctly.
+ *
+ * The API returns timestamps in two shapes, and they must be treated
+ * differently:
+ *
+ *  1. A real instant — "2026-07-31T07:41:52.000Z". The database columns are
+ *     `timestamp without time zone`, but the pg driver reads them as JS Dates
+ *     using the server's timezone, so JSON.stringify emits a correct UTC
+ *     instant. These must be converted back to the viewer's local time.
+ *  2. A bare wall clock — "2026-07-31 13:11:52" or "2026-07-31", produced by
+ *     to_char() in SQL. There is no zone to convert; the text is already what
+ *     should be shown, and parsing it as a Date would shift it.
+ *
+ * This previously stripped the trailing Z and read the UTC clock face
+ * literally, which displayed every timestamp one UTC offset early — 5h30m in
+ * IST. Detecting the shape is what keeps both cases correct.
  */
 
+const pad = (n) => String(n).padStart(2, '0');
+
+/** True when the string carries a zone (Z or ±HH:MM), i.e. an absolute instant. */
+const hasTimezone = (str) => /[zZ]$|[+-]\d{2}:?\d{2}$/.test(str.trim());
+
 /**
- * Format a database timestamp without timezone conversion
+ * Format a database timestamp for display.
  * @param {string} timestamp - Database timestamp string
  * @returns {object} { date: 'M/D/YYYY', time: 'h:mm:ss AM/PM', datetime: 'M/D/YYYY h:mm:ss AM/PM' }
  */
@@ -17,11 +33,17 @@ export const formatTimestamp = (timestamp) => {
     const str = String(timestamp);
     let datePart, timePart;
 
-    if (str.includes('T')) {
-        // ISO format: 2026-01-05T17:52:00.000Z
+    if (str.includes('T') && hasTimezone(str)) {
+        // Absolute instant — render it in the viewer's own timezone
+        const d = new Date(str);
+        if (Number.isNaN(d.getTime())) return { date: '-', time: '-', datetime: '-' };
+        datePart = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+        timePart = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    } else if (str.includes('T')) {
+        // ISO shape but no zone: a wall clock, e.g. 2026-01-05T17:52:00
         const [d, t] = str.split('T');
         datePart = d;
-        timePart = t.split('.')[0].replace('Z', '');
+        timePart = t.split('.')[0];
     } else if (str.includes(' ')) {
         // Space format: 2026-01-05 17:52:00
         const [d, t] = str.split(' ');
@@ -51,6 +73,23 @@ export const formatTimestamp = (timestamp) => {
         time: formattedTime,
         datetime: `${formattedDate} ${formattedTime}`
     };
+};
+
+/**
+ * YYYY-MM-DD for a Date, in the viewer's own timezone.
+ *
+ * Use this instead of toISOString().split('T')[0]. toISOString converts to UTC
+ * first, so in any zone ahead of UTC every moment before the offset — midnight
+ * to 05:30 in IST — reports the previous day. That silently mis-buckets early
+ * punches and shifts "today" filters.
+ *
+ * @param {Date|string|number} value
+ * @returns {string} 'YYYY-MM-DD'
+ */
+export const toLocalDateString = (value = new Date()) => {
+    const d = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(d.getTime())) return '';
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 };
 
 /**
