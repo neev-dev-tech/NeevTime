@@ -159,42 +159,26 @@ const processAttendanceLogLine = async (line, SN, deviceDirection, io) => {
     if (deviceDirection === 'in') finalState = '0';
     else if (deviceDirection === 'out') finalState = '1';
 
-    try {
-        await db.query(`INSERT INTO employees (employee_code, name) VALUES ($1, 'Unknown') ON CONFLICT DO NOTHING`, [userId]);
-        const istTimestamp = moment.tz(timestamp, 'Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
+    // Storage, dedup, summary recompute, live feed and HRMS push are shared with
+    // every other vendor integration — see services/punch_ingest.js.
+    const { recordPunch } = require('./punch_ingest');
+    const result = await recordPunch(
+        {
+            employeeCode: userId,
+            timestamp,
+            deviceSerial: SN,
+            state: finalState,
+            verifyMode: Number.parseInt(verifyMode || 0),
+            raw: line
+        },
+        { io }
+    );
 
-        await db.query(`
-            INSERT INTO attendance_logs 
-            (employee_code, device_serial, punch_time, punch_state, verification_mode, raw_data, source, is_attendance, upload_time)
-            VALUES ($1, $2, $3, $4, $5, $6, 1, 1, NOW())
-            ON CONFLICT (employee_code, punch_time) DO UPDATE 
-            SET upload_time = NOW(), punch_state = EXCLUDED.punch_state
-        `, [userId, SN, istTimestamp, finalState, Number.parseInt(verifyMode || 0), line]);
-
-        io.emit('new_punch', { employee_code: userId, device_serial: SN, timestamp: istTimestamp, state: finalState });
-        // Recompute this employee's daily summary for the punch date
-        const punchDate = istTimestamp.substring(0, 10);
-        await attendanceEngine.processDateRange(punchDate, punchDate, null, userId);
-
-        // Background HRMS Sync
-        (async () => {
-            try {
-                const hrmsIntegration = require('./hrms-integration');
-                const integrations = await hrmsIntegration.getActiveIntegrations();
-                for (const integration of integrations) {
-                    if (integration.sync_attendance) {
-                        const instance = await hrmsIntegration.getIntegrationInstance(integration.id);
-                        await instance.pushAttendance([{ employee_code: userId, punch_time: timestamp, punch_state: finalState, device_serial: SN }]);
-                    }
-                }
-            } catch (err) { console.log(`[ADMS] ERPNext push skipped: ${err.message}`); }
-        })();
-
-        return true;
-    } catch (e) {
-        console.error('Log Insert Error:', e.message);
+    if (!result.stored) {
+        console.error('Log Insert Error:', result.reason);
         return false;
     }
+    return true;
 };
 
 // Helper to process Key=Value lines (BIODATA/FP/FACE)
@@ -382,8 +366,8 @@ const handleHandshake = async (req, res, io) => {
     try {
         // Register/Update Device
         await db.query(`
-            INSERT INTO devices (serial_number, status, last_activity)
-            VALUES ($1, 'online', NOW())
+            INSERT INTO devices (serial_number, status, last_activity, vendor, approval_status, first_seen_at)
+            VALUES ($1, 'online', NOW(), 'adms', 'pending', NOW())
             ON CONFLICT (serial_number) 
             -- A retired device must not resurrect itself just by staying on the
             -- network; last_activity still updates so the fleet view is honest.
@@ -446,8 +430,8 @@ const handleAttendanceLogs = async (req, res, io) => {
     if (SN) {
         try {
             const deviceRes = await db.query(`
-                INSERT INTO devices (serial_number, status, last_activity)
-                VALUES ($1, 'online', NOW())
+                INSERT INTO devices (serial_number, status, last_activity, vendor, approval_status, first_seen_at)
+                VALUES ($1, 'online', NOW(), 'adms', 'pending', NOW())
                 ON CONFLICT (serial_number) 
                 DO UPDATE SET
                     status = CASE WHEN devices.status = 'retired' THEN 'retired' ELSE 'online' END,
@@ -574,6 +558,17 @@ const handleAttendanceLogs = async (req, res, io) => {
     if (table === 'ATTLOG' || !table) {
         console.log(`[ADMS DEBUG] Processing ATTLOG for ${SN}`);
 
+        // Only enforced when Settings → Security → require_device_approval is on.
+        // The device is still ACKed so it clears its buffer rather than retrying
+        // this batch forever; the punches are refused, not queued.
+        const { isDeviceAllowed } = require('./device_registry');
+        const trust = await isDeviceAllowed(SN);
+        if (!trust.allowed) {
+            logger.adms(`[ADMS] Refused ATTLOG from ${SN}: ${trust.reason}`);
+            res.set('Content-Type', 'text/plain');
+            return res.send('OK');
+        }
+
         let rawData = req.body;
         // If body-parser parsed it as JSON/Object (sometimes devices send weird headers)
         if (typeof rawData === 'object' && rawData !== null) {
@@ -656,8 +651,8 @@ const handleGetRequest = async (req, res, io) => {
     // Auto-register device if not exists, otherwise update last seen
     // Also update model, firmware, and IP if available from INFO
     const deviceResult = await db.query(`
-        INSERT INTO devices (serial_number, status, last_activity, device_model, firmware_version, ip_address)
-        VALUES ($1, 'online', NOW(), $2, $3, $4)
+        INSERT INTO devices (serial_number, status, last_activity, device_model, firmware_version, ip_address, vendor, approval_status, first_seen_at)
+        VALUES ($1, 'online', NOW(), $2, $3, $4, 'adms', 'pending', NOW())
         ON CONFLICT (serial_number) 
         DO UPDATE SET 
             status = CASE WHEN devices.status = 'retired' THEN 'retired' ELSE 'online' END,

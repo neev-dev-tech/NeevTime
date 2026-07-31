@@ -306,6 +306,11 @@ app.get('/api/health', async (req, res) => {
 // route's own authenticateToken has populated it.
 app.use('/api', require('./utils/systemLogger').auditMutations);
 
+// Vendor-neutral punch intake. Authenticated by a per-device token rather than
+// a user session, so it is mounted before the authenticateToken routers.
+app.set('io', io);
+app.use('/api/ingest', require('./routes/vendor_ingest'));
+
 // Employee self-service portal — own auth realm, must mount before the
 // authenticateToken-wrapped /api routers below (their middleware runs for
 // every /api/* path, which would 401 the public portal login).
@@ -1390,6 +1395,67 @@ createCrudRoutes('departments', 'departments');
  * are left untouched. Pending commands are cleared, since a retired device will
  * never execute them.
  */
+// Devices seen for the first time register as pending. Approving one is what
+// makes its punches trusted when require_device_approval is enabled.
+app.post('/api/devices/:serial/approve', requireAdmin, async (req, res) => {
+    try {
+        const { setApproval } = require('./services/device_registry');
+        const updated = await setApproval(req.params.serial, req.body?.approved !== false);
+        if (!updated) return res.status(404).json({ error: 'Device not found' });
+        res.json({ success: true, ...updated });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+/**
+ * Issue (or rotate) the token a non-ADMS device uses to POST punches to
+ * /api/ingest/punch. Returned once — it is stored for comparison, and there is
+ * no endpoint that reads it back.
+ */
+app.post('/api/devices/:serial/ingest-token', requireAdmin, async (req, res) => {
+    try {
+        const token = require('node:crypto').randomBytes(32).toString('hex');
+        const result = await db.query(
+            'UPDATE devices SET ingest_token = $1 WHERE serial_number = $2 RETURNING serial_number',
+            [token, req.params.serial]
+        );
+        if (result.rows.length === 0) return res.status(404).json({ error: 'Device not found' });
+
+        res.json({
+            success: true,
+            serial_number: result.rows[0].serial_number,
+            ingest_token: token,
+            usage: 'Send as "Authorization: Bearer <token>" to POST /api/ingest/punch'
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+/**
+ * Register a device that does not speak ADMS, so it can be given a token.
+ * ADMS devices self-register on first contact and never need this.
+ */
+app.post('/api/devices/external', requireAdmin, async (req, res) => {
+    try {
+        const { serial_number, vendor, device_model, area_id } = req.body || {};
+        if (!serial_number) return res.status(400).json({ error: 'serial_number is required' });
+
+        const result = await db.query(`
+            INSERT INTO devices (serial_number, vendor, device_model, area_id, status, approval_status, first_seen_at, last_activity)
+            VALUES ($1, $2, $3, $4, 'offline', 'approved', NOW(), NOW())
+            ON CONFLICT (serial_number) DO UPDATE
+            SET vendor = EXCLUDED.vendor, device_model = COALESCE(EXCLUDED.device_model, devices.device_model)
+            RETURNING serial_number, vendor, approval_status
+        `, [serial_number, vendor || 'webhook', device_model || null, area_id || null]);
+
+        res.json({ success: true, device: result.rows[0] });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 app.delete('/api/devices/:serial', async (req, res) => {
     const { serial } = req.params;
     const client = await db.getClient();
@@ -1515,6 +1581,17 @@ const ensureSchema = async () => {
         `ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_login_attempts INTEGER DEFAULT 0`,
         `ALTER TABLE users ADD COLUMN IF NOT EXISTS locked_until TIMESTAMP`,
         `ALTER TABLE devices ADD COLUMN IF NOT EXISTS retired_at TIMESTAMP`,
+        // Protocol family this reader speaks. 'adms' is the ZKTeco/eSSL iclock push
+        // protocol — the only one that has ever registered a device here.
+        `ALTER TABLE devices ADD COLUMN IF NOT EXISTS vendor VARCHAR(30) DEFAULT 'adms'`,
+        `UPDATE devices SET vendor = 'adms' WHERE vendor IS NULL`,
+        // Devices already in the table were trusted before this existed, so they
+        // stay approved; only serials seen for the first time arrive as pending.
+        `ALTER TABLE devices ADD COLUMN IF NOT EXISTS approval_status VARCHAR(20) DEFAULT 'approved'`,
+        `UPDATE devices SET approval_status = 'approved' WHERE approval_status IS NULL`,
+        `ALTER TABLE devices ADD COLUMN IF NOT EXISTS first_seen_at TIMESTAMP`,
+        // Shared secret for webhook-based vendors; NULL for push-protocol devices
+        `ALTER TABLE devices ADD COLUMN IF NOT EXISTS ingest_token VARCHAR(64)`,
         // Marks a summary row as hand-corrected so a recompute leaves it alone
         `ALTER TABLE attendance_daily_summary ADD COLUMN IF NOT EXISTS is_finalized BOOLEAN DEFAULT false`
     ];
@@ -1533,7 +1610,11 @@ const ensureSchema = async () => {
         ['database', 'backup_time', '02:00', 'string', 'Server local time to run the backup'],
         ['database', 'backup_retention_count', '7', 'number', 'How many automatic backups to keep'],
         ['timezone', 'system_timezone', 'Asia/Kolkata', 'string',
-            'Zone used to decide which day a punch belongs to and to measure shift start, lateness and overtime']
+            'Zone used to decide which day a punch belongs to and to measure shift start, lateness and overtime'],
+        // Off by default so enabling it is a deliberate decision — turning it on
+        // without approving your readers first would stop attendance collection.
+        ['security', 'require_device_approval', 'false', 'boolean',
+            'Reject punches from devices that have not been approved in the Devices page']
     ];
     for (const [category, key, value, type, description] of seeds) {
         try {

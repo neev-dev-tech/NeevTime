@@ -2,14 +2,35 @@ const express = require('express');
 const router = express.Router();
 
 // Device Data Routes - Work Code
+/**
+ * Work codes as reported by the readers.
+ *
+ * This previously returned two invented rows ("Department Code - Engineering"
+ * and similar) behind a "replace with actual database query" comment, so the
+ * page showed data that does not exist. Work codes arrive on ATTLOG lines and
+ * are stored on the punch, so they are read from there — an empty result now
+ * means no device has ever sent one, which is the truth.
+ */
 router.get('/data/work-code', async (req, res) => {
     try {
-        // Mock data for now - replace with actual database query
-        const data = [
-            { id: 'WC001', details: 'Department Code - Engineering', timestamp: new Date() },
-            { id: 'WC002', details: 'Department Code - Operations', timestamp: new Date() }
-        ];
-        res.json(data);
+        const db = require('../db');
+        const result = await db.query(`
+            SELECT work_code AS id,
+                   COUNT(*)::int AS punch_count,
+                   MIN(punch_time) AS first_seen,
+                   MAX(punch_time) AS timestamp,
+                   COUNT(DISTINCT employee_code)::int AS employee_count
+            FROM attendance_logs
+            WHERE work_code IS NOT NULL AND work_code::text <> '' AND work_code::text <> '0'
+            GROUP BY work_code
+            ORDER BY MAX(punch_time) DESC
+            LIMIT 500
+        `);
+
+        res.json(result.rows.map(row => ({
+            ...row,
+            details: `Used on ${row.punch_count} punch${row.punch_count === 1 ? '' : 'es'} by ${row.employee_count} employee${row.employee_count === 1 ? '' : 's'}`
+        })));
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

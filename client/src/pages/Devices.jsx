@@ -6,7 +6,7 @@ import {
     TabletSmartphone, RefreshCw, Power, Plus, Edit2, Trash2, X, Save,
     Wifi, WifiOff, Users, Fingerprint, Clock, Activity, Settings, Check,
     Upload, Download, ChevronDown, AlertTriangle, Briefcase, Camera, FileText,
-    FileQuestion, Database, AlertCircle, FileSpreadsheet, Table2, Inbox
+    FileQuestion, Database, AlertCircle, FileSpreadsheet, Table2, Inbox, ShieldAlert
 } from 'lucide-react';
 import SkeletonLoader from '../components/SkeletonLoader';
 import { useToast, Button, PageHeader } from '../components';
@@ -260,6 +260,23 @@ export default function Devices() {
     const [showModal, setShowModal] = useState(false);
     const [editingDevice, setEditingDevice] = useState(null);
     const [syncing, setSyncing] = useState({});
+    const [approving, setApproving] = useState({});
+
+    // A first-seen serial arrives as pending; approving it is what makes its
+    // punches trusted once require_device_approval is enabled.
+    const approveDevice = async (serial) => {
+        setApproving(prev => ({ ...prev, [serial]: true }));
+        try {
+            await api.post(`/api/devices/${serial}/approve`, { approved: true });
+            showToast(`${serial} approved`, 'success');
+            fetchDevices();
+        } catch (err) {
+            showToast(err.response?.data?.error || 'Could not approve device', 'error');
+        } finally {
+            setApproving(prev => ({ ...prev, [serial]: false }));
+        }
+    };
+
     const [selectedDevices, setSelectedDevices] = useState([]);
     const [showTransferMenu, setShowTransferMenu] = useState(false);
     const [showSyncAllMenu, setShowSyncAllMenu] = useState(false);
@@ -703,6 +720,27 @@ export default function Devices() {
                                         <Clock size={12} className="opacity-60" />
                                         <span>{timeSince(device.last_activity)}</span>
                                     </div>
+
+                                    {/* A serial seen for the first time registers as pending. Its
+                                        punches are still accepted unless Settings → Security →
+                                        require_device_approval is on, but it is called out here so a
+                                        reader nobody installed does not blend into the fleet. */}
+                                    {device.approval_status === 'pending' && (
+                                        <div className="flex items-center gap-2 flex-wrap px-2.5 py-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+                                            <ShieldAlert size={14} className="text-amber-600 dark:text-amber-400 shrink-0" />
+                                            <span className="text-xs text-amber-800 dark:text-amber-300 flex-1 min-w-0">
+                                                New device — not yet approved
+                                            </span>
+                                            <Button
+                                                variant="successSolid"
+                                                size="sm"
+                                                onClick={() => approveDevice(device.serial_number)}
+                                                disabled={approving[device.serial_number]}
+                                            >
+                                                {approving[device.serial_number] ? 'Approving…' : 'Approve'}
+                                            </Button>
+                                        </div>
+                                    )}
 
                                     {/* metrics */}
                                     <div className="dv-metrics">
