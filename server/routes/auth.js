@@ -18,9 +18,25 @@ if (!JWT_SECRET) {
     process.exit(1);
 }
 
-// Helper: Get User by Username
+/**
+ * Look a user up for sign-in.
+ *
+ * Matching is case-insensitive and ignores surrounding whitespace. It used to be
+ * an exact comparison, so an account created as "Mukesh" could not be signed
+ * into as "mukesh" — and because a missing user and a wrong password return the
+ * same message, the account simply appeared broken. A username is a name, not a
+ * secret; the password carries the case sensitivity that matters.
+ *
+ * A unique index on lower(username) (see ensureSchema) keeps this unambiguous —
+ * without it, two accounts differing only by case would make this lookup
+ * arbitrary about which one it returned.
+ */
 const getUserByUsername = async (username) => {
-    const res = await db.query('SELECT * FROM users WHERE username = $1', [username]);
+    if (typeof username !== 'string' || !username.trim()) return undefined;
+    const res = await db.query(
+        'SELECT * FROM users WHERE lower(username) = lower($1)',
+        [username.trim()]
+    );
     return res.rows[0];
 };
 
@@ -265,8 +281,11 @@ router.post('/users', authenticateToken, async (req, res) => {
         const policyError = await checkPasswordPolicy(password);
         if (policyError) return res.status(400).json({ error: policyError });
 
-        // Check if user exists
-        const existing = await db.query('SELECT id FROM users WHERE username = $1', [username]);
+        // Compared case-insensitively to match how sign-in looks accounts up.
+        // Allowing both "Mukesh" and "mukesh" to exist would make that lookup
+        // ambiguous, and one of the two accounts unreachable.
+        const cleanUsername = username.trim();
+        const existing = await db.query('SELECT id FROM users WHERE lower(username) = lower($1)', [cleanUsername]);
         if (existing.rows.length > 0) {
             return res.status(400).json({ error: 'Username already exists' });
         }
@@ -274,7 +293,7 @@ router.post('/users', authenticateToken, async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
         const result = await db.query(
             'INSERT INTO users (username, password_hash, role, email) VALUES ($1, $2, $3, $4) RETURNING id, username, role, email, created_at',
-            [username, hashedPassword, role || 'user', email || null]
+            [cleanUsername, hashedPassword, role || 'user', email || null]
         );
         res.json({ success: true, user: result.rows[0] });
     } catch (err) {
@@ -296,7 +315,17 @@ router.put('/users/:id', authenticateToken, async (req, res) => {
         const updates = [];
 
         if (username) {
-            params.push(username);
+            // Same rule as creation: no two accounts may differ only by case,
+            // or sign-in cannot tell them apart.
+            const cleanUsername = username.trim();
+            const clash = await db.query(
+                'SELECT id FROM users WHERE lower(username) = lower($1) AND id <> $2',
+                [cleanUsername, id]
+            );
+            if (clash.rows.length > 0) {
+                return res.status(400).json({ error: 'Username already exists' });
+            }
+            params.push(cleanUsername);
             updates.push(`username = $${params.length}`);
         }
         if (role) {

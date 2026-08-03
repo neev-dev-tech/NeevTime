@@ -1624,7 +1624,18 @@ const ensureSchema = async () => {
         // Shared secret for webhook-based vendors; NULL for push-protocol devices
         `ALTER TABLE devices ADD COLUMN IF NOT EXISTS ingest_token VARCHAR(64)`,
         // Marks a summary row as hand-corrected so a recompute leaves it alone
-        `ALTER TABLE attendance_daily_summary ADD COLUMN IF NOT EXISTS is_finalized BOOLEAN DEFAULT false`
+        `ALTER TABLE attendance_daily_summary ADD COLUMN IF NOT EXISTS is_finalized BOOLEAN DEFAULT false`,
+        // Sign-in matches usernames case-insensitively, because an account made
+        // as "Mukesh" that cannot be signed into as "mukesh" just looks broken —
+        // a missing user and a wrong password return the same message. That
+        // lookup is only well defined if no two accounts differ solely by case,
+        // which this index guarantees from here on.
+        //
+        // It will fail loudly on an install that already has such a pair. That
+        // is the right outcome: the duplicate has to be renamed by a human who
+        // knows which account is the real one. The loop below logs and continues,
+        // so a clash cannot stop the server from booting.
+        `CREATE UNIQUE INDEX IF NOT EXISTS users_username_lower_uniq ON users (lower(username))`
     ];
     for (const sql of statements) {
         try {
