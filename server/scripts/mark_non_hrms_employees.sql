@@ -1,3 +1,16 @@
+-- SUPERSEDED, 2026-08-03. Twelve of these fourteen codes are already flagged in
+-- production, so running this now is mostly a no-op — but it is also incomplete
+-- and slightly wrong, and should not be treated as the current list:
+--
+--   * DE006 is missing. It is facility staff like the rest of the DE block.
+--     Use server/sql/flag_de006_non_hrms.sql.
+--   * OMN004 and OMN006 are here, but they turned out to be test accounts
+--     rather than contractors. Use server/sql/remove_test_users_from_devices.sql,
+--     which also removes them from the readers — flagging alone leaves them able
+--     to punch.
+--
+-- Kept for the reasoning below, which still explains why the flag exists.
+--
 -- Mark the biometric-only accounts so their attendance is never pushed to ERPNext.
 --
 -- These are facility and security contractors. They hold door access but are not
