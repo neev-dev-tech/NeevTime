@@ -83,8 +83,9 @@ export default function MainLayout({ children }) {
           <div className="flex items-center gap-10">
             <div className="flex items-center gap-2.5">
                {/* Same mark as the browser tab, so the two agree. Swapping
-                   public/favicon.svg updates both. */}
-               <img src="/favicon.svg" alt="" aria-hidden="true" className="w-8 h-8 rounded-lg" />
+                   public/logo.png updates both. Already a circle with
+                   transparent corners, so it needs no rounding of its own. */}
+               <img src="/logo.png" alt="" aria-hidden="true" className="w-8 h-8" />
                {/* The wordmark is one word. It needs its own wrapper because the
                    row's gap would otherwise push "Neev" and "Time" apart. */}
                <span className="text-2xl font-bold">
