@@ -15,7 +15,11 @@
  */
 
 import jsPDF from 'jspdf';
-import { autoTable } from 'jspdf-autotable';
+// jspdf-autotable 3.x exports the function as its DEFAULT export — there is no
+// named `autoTable`. Importing it as a named binding left Vite's CJS interop
+// resolving it to a property on the module namespace object, so every PDF
+// export died with "PJ.autoTable is not a function" once minified.
+import autoTable from 'jspdf-autotable';
 
 // Maximum rows for PDF export (browser memory limit)
 const MAX_PDF_ROWS = 1000;
