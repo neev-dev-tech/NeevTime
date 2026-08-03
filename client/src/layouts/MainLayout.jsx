@@ -85,8 +85,11 @@ export default function MainLayout({ children }) {
                {/* Same mark as the browser tab, so the two agree. Swapping
                    public/favicon.svg updates both. */}
                <img src="/favicon.svg" alt="" aria-hidden="true" className="w-8 h-8 rounded-lg" />
-               <span className="text-2xl font-bold text-slate-800 dark:text-slate-100">Neev</span>
-               <span className="text-2xl font-bold text-orange-500">Time</span>
+               {/* The wordmark is one word. It needs its own wrapper because the
+                   row's gap would otherwise push "Neev" and "Time" apart. */}
+               <span className="text-2xl font-bold">
+                  <span className="text-slate-800 dark:text-slate-100">Neev</span><span className="text-orange-500">Time</span>
+               </span>
             </div>
 
             <nav className="hidden md:flex items-center gap-1 p-1 rounded-full border border-orange-100 bg-orange-50/30">
@@ -215,9 +218,8 @@ export default function MainLayout({ children }) {
         {showAbout && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4" onClick={() => setShowAbout(false)}>
             <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-sm text-center" onClick={e => e.stopPropagation()}>
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <span className="text-3xl font-bold text-slate-800 dark:text-slate-100">Neev</span>
-                <span className="text-3xl font-bold text-orange-500">Time</span>
+              <div className="text-3xl font-bold mb-2">
+                <span className="text-slate-800 dark:text-slate-100">Neev</span><span className="text-orange-500">Time</span>
               </div>
               <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Simplicity Attendance — biometric attendance management</p>
               <div className="flex justify-center mb-4"><VersionDisplay /></div>
