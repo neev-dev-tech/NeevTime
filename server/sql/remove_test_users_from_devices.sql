@@ -43,6 +43,30 @@ SET exclude_from_hrms = TRUE
 WHERE employee_code IN ('OMN004', 'OMN006');
 -- Expect 2 rows.
 
+-- ── 2b. OPTIONAL: the two staff this bug already let through ─────────────────
+-- INT110 and INT115 were deleted from the app on 2025-12-30. Their removal
+-- commands were rejected the same way, and their employee records are gone, so
+-- there is no longer anything in the database that can tell you whether they are
+-- still enrolled on the readers. Neither has punched since, which is reassuring
+-- but not proof — an enrolled finger that nobody uses looks identical to one
+-- that was removed.
+--
+-- Sending a delete for a PIN a reader does not hold is harmless; it simply has
+-- nothing to remove. Uncomment if you want the certainty.
+--
+-- INSERT INTO device_commands (device_serial, command, status)
+-- SELECT d.serial_number, c.cmd, 'pending'
+-- FROM devices d
+-- CROSS JOIN (VALUES
+--     ('DATA DELETE FINGERTMP PIN=INT110'),
+--     ('DATA DELETE FACE PIN=INT110'),
+--     ('DATA DELETE USERINFO PIN=INT110'),
+--     ('DATA DELETE FINGERTMP PIN=INT115'),
+--     ('DATA DELETE FACE PIN=INT115'),
+--     ('DATA DELETE USERINFO PIN=INT115')
+-- ) AS c(cmd)
+-- WHERE d.serial_number IS NOT NULL AND d.serial_number <> '' AND d.retired_at IS NULL;
+
 -- ── 3. Clear the commands that can never succeed ─────────────────────────────
 -- These are the malformed ones only: `DATA DELETE USER` (12 rows, 0 of which
 -- ever succeeded) and `DATA QUERY USERVF` (44 rows, likewise). Both keywords are
