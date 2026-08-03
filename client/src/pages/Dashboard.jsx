@@ -333,6 +333,28 @@ export default function Dashboard() {
             chip: 'bg-slate-100 text-slate-600 dark:bg-slate-700/60 dark:text-slate-300',
             value: 'text-slate-900 dark:text-slate-50'
         },
+        // Identity colours: the icon is coloured by what it counts, while the
+        // figure itself stays near-black so the numbers remain the thing you read.
+        people: {
+            chip: 'bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-300',
+            value: 'text-slate-900 dark:text-slate-50'
+        },
+        device: {
+            chip: 'bg-violet-100 text-violet-600 dark:bg-violet-900/40 dark:text-violet-300',
+            value: 'text-slate-900 dark:text-slate-50'
+        },
+        biometric: {
+            chip: 'bg-cyan-100 text-cyan-600 dark:bg-cyan-900/40 dark:text-cyan-300',
+            value: 'text-slate-900 dark:text-slate-50'
+        },
+        activity: {
+            chip: 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/40 dark:text-indigo-300',
+            value: 'text-slate-900 dark:text-slate-50'
+        },
+        time: {
+            chip: 'bg-teal-100 text-teal-600 dark:bg-teal-900/40 dark:text-teal-300',
+            value: 'text-slate-900 dark:text-slate-50'
+        },
         good: {
             chip: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
             value: 'text-emerald-700 dark:text-emerald-300'
@@ -474,18 +496,20 @@ export default function Dashboard() {
                             label="Punches"
                             value={stats.totalPunches || 0}
                             subtitle="today"
+                            tone="activity"
                         />
                         <StatCard
                             icon={Clock}
                             label="Avg Hours"
                             value={`${stats.avgHours || 0}h`}
                             subtitle="per employee"
+                            tone="time"
                         />
                     </div>
 
                     {/* Standing facts — neutral, so they do not compete with the above */}
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-                        <StatCard icon={Users} label="Employees" value={stats.employees} />
+                        <StatCard icon={Users} label="Employees" value={stats.employees} tone="people" />
                         <StatCard
                             icon={UserPlus}
                             label="New Joinees"
@@ -503,14 +527,14 @@ export default function Dashboard() {
                             icon={Tablet}
                             label="Devices"
                             value={stats.devices}
-                            tone={stats.devices > 0 && stats.devicesOnline < stats.devices ? 'bad' : 'neutral'}
+                            tone={stats.devices > 0 && stats.devicesOnline < stats.devices ? 'bad' : 'device'}
                             trend={stats.devices > 0
                                 ? (stats.devicesOnline === stats.devices
                                     ? { text: 'all online', color: '#059669' }
                                     : { text: `${stats.devices - stats.devicesOnline} offline`, color: '#DC2626' })
                                 : null}
                         />
-                        <StatCard icon={Fingerprint} label="Verifications" value={stats.verificationCount} />
+                        <StatCard icon={Fingerprint} label="Verifications" value={stats.verificationCount} tone="biometric" />
                     </div>
                 </div>
             )}

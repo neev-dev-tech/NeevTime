@@ -3,8 +3,8 @@ import { LayoutDashboard, Users, Clock, TabletSmartphone, Settings2, Grid, MapPi
 export const modules = [
   { name: 'Dashboard', icon: LayoutDashboard, path: '/', iconColor: '#F97316' },
   { name: 'Personnel', icon: Users, path: '/employees', iconColor: '#3B82F6' },
-  { name: 'Device', icon: TabletSmartphone, path: '/devices', iconColor: '#10B981' },
-  { name: 'Attendance', icon: Clock, path: '/logs', iconColor: '#8B5CF6' },
+  { name: 'Device', icon: TabletSmartphone, path: '/devices', iconColor: '#8B5CF6' },
+  { name: 'Attendance', icon: Clock, path: '/logs', iconColor: '#14B8A6' },
   { name: 'System', icon: Settings2, path: '/settings', iconColor: '#64748B' },
 ];
 

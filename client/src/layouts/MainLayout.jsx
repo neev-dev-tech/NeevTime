@@ -112,7 +112,10 @@ export default function MainLayout({ children }) {
                         style={{ zIndex: -1 }}
                       />
                     )}
-                    <mod.icon size={18} />
+                    {/* Each module keeps its own colour when inactive, matching the
+                        page header you land on. The active pill is solid orange,
+                        so its icon goes white for contrast. */}
+                    <mod.icon size={18} style={isActive ? undefined : { color: mod.iconColor }} />
                     {mod.name}
                   </button>
                 );

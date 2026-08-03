@@ -1,5 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { useLocation } from 'react-router-dom';
+import { chipClass, toneForPath } from '../../utils/iconTones';
 
 /**
  * Standard page header: icon chip + title + subtitle on the left,
@@ -8,12 +10,17 @@ import PropTypes from 'prop-types';
  *   <PageHeader icon={Users} title="Employees" subtitle="Manage personnel"
  *               actions={<Button icon={Plus}>Add</Button>} />
  */
-export default function PageHeader({ icon: Icon, title, subtitle, actions, className = '' }) {
+export default function PageHeader({ icon: Icon, title, subtitle, actions, tone, className = '' }) {
+    // Every page in a module shares its module's colour, so the chip says where
+    // you are. Pass `tone` to override; otherwise it follows the route.
+    const { pathname } = useLocation();
+    const resolved = tone || toneForPath(pathname);
+
     return (
         <div className={`flex items-center justify-between flex-wrap gap-3 mb-6 ${className}`}>
             <div className="flex items-center gap-3 min-w-0">
                 {Icon && (
-                    <div className="p-2.5 bg-orange-50 border border-orange-100 rounded-xl text-orange-600 shrink-0 dark:bg-orange-900/30 dark:border-orange-800 dark:text-orange-400">
+                    <div className={`p-2.5 border rounded-xl shrink-0 ${chipClass(resolved)}`}>
                         <Icon size={22} />
                     </div>
                 )}
@@ -32,5 +39,6 @@ PageHeader.propTypes = {
     title: PropTypes.node.isRequired,
     subtitle: PropTypes.node,
     actions: PropTypes.node,
+    tone: PropTypes.string,
     className: PropTypes.string
 };
