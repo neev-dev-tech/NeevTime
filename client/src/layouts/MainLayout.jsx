@@ -82,6 +82,9 @@ export default function MainLayout({ children }) {
         <div className="px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-10">
             <div className="flex items-center gap-2.5">
+               {/* Same mark as the browser tab, so the two agree. Swapping
+                   public/favicon.svg updates both. */}
+               <img src="/favicon.svg" alt="" aria-hidden="true" className="w-8 h-8 rounded-lg" />
                <span className="text-2xl font-bold text-slate-800 dark:text-slate-100">Neev</span>
                <span className="text-2xl font-bold text-orange-500">Time</span>
             </div>

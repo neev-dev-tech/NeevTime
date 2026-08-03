@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="NeevTime">
+  <!--
+    Placeholder brand mark: a clock face in the app's orange (#F97316).
+    index.html referenced /favicon.png, which has never existed in the repo — the
+    tab icon 404'd. Drawn as SVG so it stays sharp at every size and needs no
+    binary asset. Replace with the real NeevTime logo when there is one; keep the
+    filename or update the <link> in index.html.
+  -->
+  <rect width="64" height="64" rx="14" fill="#F97316"/>
+  <circle cx="32" cy="32" r="19" fill="none" stroke="#FFFFFF" stroke-width="4"/>
+  <!-- hands at roughly 9:00, the start of a working day -->
+  <path d="M32 20 V32 H22" fill="none" stroke="#FFFFFF" stroke-width="4"
+        stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
