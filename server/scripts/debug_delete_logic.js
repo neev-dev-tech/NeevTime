@@ -18,7 +18,7 @@ async function run() {
         console.log('Queueing device commands...');
         const devices = await client.query('SELECT serial_number FROM devices');
         for (const code of employeeCodes) {
-            const cmd = `DATA DELETE USER PIN=${code}`;
+            const cmd = `DATA DELETE USERINFO PIN=${code}`;
             for (const dev of devices.rows) {
                 await client.query(
                     `INSERT INTO device_commands (device_serial, command, status) VALUES ($1, $2, 'pending')`,

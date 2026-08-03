@@ -447,12 +447,15 @@ router.post('/employee-actions/pull', async (req, res) => {
             for (const emp of employees.rows) {
                 const cmdUser = `DATA QUERY USERINFO PIN=${emp.employee_code}`;
                 const cmdFinger = `DATA QUERY FINGERTMP PIN=${emp.employee_code}`;
-                const cmdFaceV7 = `DATA QUERY facev7 PIN=${emp.employee_code}`;
-                const cmdTmplV10 = `DATA QUERY templatev10 PIN=${emp.employee_code}`;
+                // facev7 / templatev10 were tried here and are not keywords these
+                // readers accept — every one was rejected. FACE and BIODATA fetch
+                // the same templates and are accepted.
+                const cmdFace = `DATA QUERY FACE PIN=${emp.employee_code}`;
+                const cmdBio = `DATA QUERY BIODATA PIN=${emp.employee_code}`;
                 const cmdAttLog = `DATA QUERY ATTLOG PIN=${emp.employee_code}`; // Control to verify query works
 
                 for (const dev of devices.rows) {
-                    const cmds = [cmdUser, cmdFinger, cmdFaceV7, cmdTmplV10, cmdAttLog];
+                    const cmds = [cmdUser, cmdFinger, cmdFace, cmdBio, cmdAttLog];
                     for (const c of cmds) {
                         await client.query(`INSERT INTO device_commands (device_serial, command, status) VALUES ($1, $2, 'pending')`, [dev.serial_number, c]);
                     }
@@ -660,17 +663,18 @@ router.post('/sync/all/download-biometrics', async (req, res) => {
                 `INSERT INTO device_commands (device_serial, command, status) VALUES ($1, $2, 'pending')`,
                 [dev.serial_number, 'DATA QUERY FACE']
             );
-            // Query palm templates (just in case)
-            await db.query(
-                `INSERT INTO device_commands (device_serial, command, status) VALUES ($1, $2, 'pending')`,
-                [dev.serial_number, 'DATA QUERY USERVF'] // USERVF often includes face/palm
-            );
-            // Query BIODATA (Critical for newer devices that store templates here)
+            // USERVF used to be queried here on the theory that it carried face
+            // and palm data. These readers do not know the keyword: 44 attempts,
+            // 0 accepted, and it produced 20 of the queue's 28 dead-lettered
+            // commands. FACE and BIODATA below return the same templates and are
+            // accepted every time, so nothing is lost by dropping it.
+
+            // BIODATA matters on newer firmware, which stores templates there
             await db.query(
                 `INSERT INTO device_commands (device_serial, command, status) VALUES ($1, $2, 'pending')`,
                 [dev.serial_number, 'DATA QUERY BIODATA']
             );
-            commandCount += 4;
+            commandCount += 3;
         }
 
         res.json({

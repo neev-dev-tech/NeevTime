@@ -824,13 +824,28 @@ app.delete('/api/employees', async (req, res) => {
             try {
                 const devices = await client.query('SELECT serial_number FROM devices WHERE serial_number IS NOT NULL AND serial_number != \'\'');
                 for (const code of employeeCodes) {
-                    const cmd = `DATA DELETE USER PIN=${code}`;
+                    // The ADMS keyword is USERINFO. This said USER, which every
+                    // reader rejects with Return=-1004 — 12 attempts, 0 accepted,
+                    // against 9,385 successful DATA DELETE FACE commands. So no
+                    // employee deleted through this endpoint was ever removed from
+                    // the readers: the record vanished from the app while the
+                    // finger kept opening the door.
+                    //
+                    // Templates go first. Deleting the user record on a device
+                    // does not always take its enrolled biometrics with it.
+                    const cmds = [
+                        `DATA DELETE FINGERTMP PIN=${code}`,
+                        `DATA DELETE FACE PIN=${code}`,
+                        `DATA DELETE USERINFO PIN=${code}`
+                    ];
                     for (const dev of devices.rows) {
                         if (dev.serial_number) {
-                            await client.query(
-                                `INSERT INTO device_commands (device_serial, command, status) VALUES ($1, $2, 'pending')`,
-                                [dev.serial_number, cmd]
-                            );
+                            for (const cmd of cmds) {
+                                await client.query(
+                                    `INSERT INTO device_commands (device_serial, command, status) VALUES ($1, $2, 'pending')`,
+                                    [dev.serial_number, cmd]
+                                );
+                            }
                         }
                     }
                 }
