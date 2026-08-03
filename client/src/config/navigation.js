@@ -1,4 +1,5 @@
-import { LayoutDashboard, Users, Clock, TabletSmartphone, Settings2, Grid, MapPin, Plane, UserCheck, GitBranch, GitCommit, Calendar, Database, Activity, ClipboardList, UserX, Briefcase, Building2, Timer, CalendarDays, CalendarCheck, Upload, Download, Shield, ShieldCheck, UserCircle, FolderOpen, FileCheck, TrendingUp, Server, FileText, PieChart, Globe, Network, MessageSquare, Workflow, BarChart3, Zap, Fingerprint, Camera, FileQuestion, AlertCircle, Building } from 'lucide-react';
+import {
+  RefreshCw, LayoutDashboard, Users, Clock, TabletSmartphone, Settings2, Grid, MapPin, Plane, UserCheck, GitBranch, GitCommit, Calendar, Database, Activity, ClipboardList, UserX, Briefcase, Building2, Timer, CalendarDays, CalendarCheck, Upload, Download, Shield, ShieldCheck, UserCircle, FolderOpen, FileCheck, TrendingUp, Server, FileText, PieChart, Globe, Network, MessageSquare, Workflow, BarChart3, Zap, Fingerprint, Camera, FileQuestion, AlertCircle, Building } from 'lucide-react';
 
 export const modules = [
   { name: 'Dashboard', icon: LayoutDashboard, path: '/', iconColor: '#F97316' },
@@ -57,6 +58,7 @@ export const deviceSidebar = [
     items: [
       { label: 'Device', path: '/devices', icon: TabletSmartphone, iconColor: '#2563EB' },
       { label: 'Device Command', path: '/device-commands', icon: Zap, iconColor: '#D97706' },
+      { label: 'Sync & Queue', path: '/device-sync', icon: RefreshCw, iconColor: '#7C3AED' },
       { label: 'Message', path: '/device-messages', icon: MessageSquare, iconColor: '#059669' },
     ]
   },

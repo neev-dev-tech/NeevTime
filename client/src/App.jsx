@@ -52,6 +52,7 @@ import DeviceCommands from './pages/DeviceCommands';
 import SystemLogs from './pages/SystemLogs';
 import DatabaseTools from './pages/DatabaseTools';
 import DeviceData from './pages/DeviceData';
+import DeviceSync from './pages/DeviceSync';
 import Integrations from './pages/Integrations';
 import Geofences from './pages/Geofences';
 import MobilePunch from './pages/MobilePunch';
@@ -167,6 +168,7 @@ export default function App() {
                         <Route path="/devices" element={<Devices />} />
                         <Route path="/devices/data" element={<DeviceData />} />
                         <Route path="/device-commands" element={<DeviceCommands />} />
+                        <Route path="/device-sync" element={<DeviceSync />} />
                         <Route path="/device-messages" element={<DeviceMessages />} />
                         <Route path="/attendance-rules" element={<AttendanceRules />} />
                         <Route path="/holiday-locations" element={<HolidayLocation />} />

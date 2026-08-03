@@ -59,6 +59,7 @@ const ROUTE_TONES = [
     // Devices — violet family
     ['/devices', 'violet'],
     ['/device-commands', 'violet'],
+    ['/device-sync', 'violet'],
     ['/device-messages', 'pink'],
 
     // Attendance — teal / green family
