@@ -1625,6 +1625,16 @@ const ensureSchema = async () => {
         `ALTER TABLE devices ADD COLUMN IF NOT EXISTS ingest_token VARCHAR(64)`,
         // Marks a summary row as hand-corrected so a recompute leaves it alone
         `ALTER TABLE attendance_daily_summary ADD COLUMN IF NOT EXISTS is_finalized BOOLEAN DEFAULT false`,
+        // Why a row was corrected by hand. Manual Entry requires a reason and
+        // regularisation approval carries the employee's, and both write it
+        // here — but the column was never created, so every manual correction
+        // and every approved regularisation failed with a 500. An attendance
+        // override that does not record its justification is worth little at
+        // payroll time anyway.
+        `ALTER TABLE attendance_daily_summary ADD COLUMN IF NOT EXISTS remarks TEXT`,
+        // Avoids a failed INSERT and a retry on every document upload; the
+        // route already falls back when this is absent.
+        `ALTER TABLE employee_docs ADD COLUMN IF NOT EXISTS file_type VARCHAR(100)`,
         // Sign-in matches usernames case-insensitively, because an account made
         // as "Mukesh" that cannot be signed into as "mukesh" just looks broken —
         // a missing user and a wrong password return the same message. That
