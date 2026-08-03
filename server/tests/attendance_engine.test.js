@@ -175,6 +175,45 @@ test('calculateDayStats works without explicit rules, using the defaults', () =>
     assert.strictEqual(s.status, 'Present');
 });
 
+// ───────────────────── a day that has not finished yet ──────────────────────
+
+// These use the real current date, because "in progress" is defined relative to
+// now. Mid-morning, a person who has punched in is at work — not a Short Day and
+// not a Miss Punch. Judging an unfinished day was labelling the whole workforce
+// Short Day every morning and showing 0% attendance on the dashboard.
+const todayStr = () => {
+    const d = new Date();
+    const p = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+};
+
+test('someone still at work today is Present, not Short Day', () => {
+    const today = todayStr();
+    const s = day([`${today}T09:00:00+05:30`, `${today}T11:30:00+05:30`], today);
+    assert.strictEqual(s.status, 'Present', 'a 2.5h-so-far day was scored as if it had ended');
+    assert.strictEqual(s.durationMinutes, 150, 'hours so far are still recorded');
+});
+
+test('a single punch today is Present, not Miss Punch', () => {
+    const today = todayStr();
+    const s = day([`${today}T09:00:00+05:30`], today);
+    assert.strictEqual(s.status, 'Present', 'someone who has not left yet has not missed a punch');
+});
+
+test('no punch at all today is still Absent', () => {
+    const today = todayStr();
+    const s = day([], today);
+    assert.ok(['Absent', 'Weekly Off'].includes(s.status));
+});
+
+test('yesterday is complete, so thresholds do apply', () => {
+    const d = new Date(Date.now() - 86400000);
+    const p = (n) => String(n).padStart(2, '0');
+    const y = `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+    const s = day([`${y}T09:00:00+05:30`, `${y}T11:30:00+05:30`], y);
+    assert.strictEqual(s.status, 'Short Day', 'a finished 2.5h day should be judged');
+});
+
 test('isWeekOff is driven by the rules it is given', () => {
     assert.strictEqual(engine.isWeekOff(SUNDAY, RULES), true);
     assert.strictEqual(engine.isWeekOff(WEDNESDAY, RULES), false);

@@ -152,8 +152,18 @@ export default function Dashboard() {
             const devicesOnline = devicesList.filter(d => d.status === 'online').length;
             const verificationCount = devicesList.reduce((sum, d) => sum + (d.fingerprint_count || 0) + (d.face_count || 0), 0);
 
-            const present = summary.filter(r => r.status === 'Present').length;
-            const absent = summary.filter(r => r.status === 'Absent').length;
+            // "Present" means the person turned up. Matching the literal status
+            // string missed everyone on a Half Day, Short Day or Miss Punch, so
+            // 57 people with punches counted as neither present nor absent and
+            // attendance read 0%. Anything that is not an explicit non-attendance
+            // status is someone who came in.
+            const NON_ATTENDING = ['Absent', 'Weekly Off', 'Holiday', 'On Leave'];
+            const present = summary.filter(r => !NON_ATTENDING.includes(r.status)).length;
+            // Only employees who punched get a summary row, so counting rows marked
+            // 'Absent' missed everyone who simply never turned up — it read 0 while
+            // 36 people were unaccounted for. Absent is everyone not present.
+            const onLeaveCount = summary.filter(r => r.status === 'On Leave').length;
+            const absent = Math.max(0, employees.length - present - onLeaveCount);
             const late = summary.filter(r => (r.late_minutes || 0) > 0).length;
             const earlyLeave = summary.filter(r => (r.early_leave_minutes || 0) > 0).length;
             const onLeave = summary.filter(r => r.status === 'On Leave').length;
@@ -168,7 +178,7 @@ export default function Dashboard() {
                 : 0;
 
             // Calculate yesterday's stats for benchmarking
-            const yesterdayPresent = yesterdaySummary.filter(r => r.status === 'Present').length;
+            const yesterdayPresent = yesterdaySummary.filter(r => !NON_ATTENDING.includes(r.status)).length;
             const yesterdayLate = yesterdaySummary.filter(r => (r.late_minutes || 0) > 0).length;
             const yesterdayAttendanceRate = totalEmployees > 0 ? Math.round((yesterdayPresent / totalEmployees) * 100) : 0;
             const yesterdayPunctualityRate = totalEmployees > 0 ? Math.round(((totalEmployees - yesterdayLate) / totalEmployees) * 100) : 0;
@@ -307,34 +317,64 @@ export default function Dashboard() {
         } catch (err) { console.error(err); }
     };
 
-    const StatCard = ({ icon: Icon, label, value, color, bgColor, subtitle, tooltip, benchmark, trend }) => {
+    /**
+     * A stat tile.
+     *
+     * Colour carries meaning rather than decorating: plain counts stay neutral so
+     * the eye is not pulled nine ways at once, and only figures that represent a
+     * judgement — a rate that is good or bad, a device that is offline — take a
+     * semantic tone. The previous version gave all nine tiles a different pastel,
+     * which made everything equally loud and therefore nothing readable.
+     *
+     * tone: 'neutral' | 'good' | 'warn' | 'bad'
+     */
+    const TONES = {
+        neutral: {
+            chip: 'bg-slate-100 text-slate-600 dark:bg-slate-700/60 dark:text-slate-300',
+            value: 'text-slate-900 dark:text-slate-50'
+        },
+        good: {
+            chip: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
+            value: 'text-emerald-700 dark:text-emerald-300'
+        },
+        warn: {
+            chip: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
+            value: 'text-amber-700 dark:text-amber-300'
+        },
+        bad: {
+            chip: 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300',
+            value: 'text-rose-700 dark:text-rose-300'
+        }
+    };
+
+    const StatCard = ({ icon: Icon, label, value, subtitle, tooltip, trend, tone = 'neutral' }) => {
+        const t = TONES[tone] || TONES.neutral;
         return (
-            <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm flex items-center gap-4 hover:shadow-md transition-all duration-300 group">
-                <div className={`p-3 rounded-lg ${bgColor} ${color} group-hover:scale-110 transition-transform`}>
-                    <Icon size={24} />
+            <div className="card-base !p-4 flex items-center gap-3.5 hover:-translate-y-0.5 transition-transform">
+                <div className={`shrink-0 w-11 h-11 rounded-xl flex items-center justify-center ${t.chip}`}>
+                    <Icon size={20} strokeWidth={2.2} />
                 </div>
                 <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-0.5">
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider truncate">{label}</p>
-                        {tooltip && <Info size={12} className="text-slate-300 cursor-help" title={tooltip} />}
+                    <div className="flex items-center gap-1">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.04em] text-slate-500 dark:text-slate-400 leading-tight">{label}</p>
+                        {tooltip && <Info size={11} className="text-slate-400 cursor-help shrink-0" title={tooltip} />}
                     </div>
-                    <div className="flex items-baseline gap-2">
-                        <p className="text-2xl font-bold text-slate-800 dark:text-slate-100 truncate">{value}</p>
-                    </div>
-                    {(subtitle || trend) && (
-                        <div className="flex items-center gap-2 mt-1">
-                            {trend && (
-                                <span className={`text-[10px] font-bold ${trend.color ? '' : 'text-emerald-600'}`} style={{ color: trend.color }}>
-                                    {trend.text}
-                                </span>
-                            )}
-                            {subtitle && !trend && <span className="text-[10px] text-slate-400 font-medium truncate">{subtitle}</span>}
-                        </div>
+                    <p className={`text-[26px] leading-tight font-bold tabular-nums truncate ${t.value}`}>{value}</p>
+                    {(trend || subtitle) && (
+                        <p className="text-[11px] leading-tight truncate mt-0.5"
+                           style={trend?.color ? { color: trend.color } : undefined}>
+                            <span className={trend ? 'font-semibold' : 'text-slate-500 dark:text-slate-400'}>
+                                {trend ? trend.text : subtitle}
+                            </span>
+                        </p>
                     )}
                 </div>
             </div>
         );
     };
+
+    /** Rates read as good/warn/bad; everything else stays neutral. */
+    const rateTone = (pct) => (pct >= 85 ? 'good' : pct >= 60 ? 'warn' : 'bad');
 
     const AttendanceStatusCard = ({ label, value, type = 'success', trend }) => {
         const cardClasses = {
@@ -411,82 +451,67 @@ export default function Dashboard() {
                     ))}
                 </div>
             ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    <StatCard
-                        icon={Users}
-                        label="Employees"
-                        value={stats.employees}
-                        color="text-blue-600 dark:text-blue-300"
-                        bgColor="bg-blue-50 dark:bg-blue-900/30"
-                    />
-                    <StatCard
-                        icon={UserPlus}
-                        label="New Joinees"
-                        value={stats.newJoinees}
-                        color="text-emerald-600 dark:text-emerald-300"
-                        bgColor="bg-emerald-50 dark:bg-emerald-900/30"
-                        subtitle="Last 7 Days"
-                    />
-                    <StatCard
-                        icon={UserMinus}
-                        label="Resigned"
-                        value={stats.resigned}
-                        color="text-rose-600 dark:text-rose-300"
-                        bgColor="bg-rose-50 dark:bg-rose-900/30"
-                    />
-                    <StatCard
-                        icon={Tablet}
-                        label="Devices"
-                        value={stats.devices}
-                        color="text-indigo-600 dark:text-indigo-300"
-                        bgColor="bg-indigo-50 dark:bg-indigo-900/30"
-                        trend={stats.devicesOnline === stats.devices && stats.devices > 0
-                            ? { text: 'All online', color: '#059669' }
-                            : stats.devices > 0 && stats.devicesOnline < stats.devices
-                                ? { text: `${stats.devices - stats.devicesOnline} offline`, color: '#DC2626' }
-                                : null
-                        }
-                    />
-                    <StatCard
-                        icon={Fingerprint}
-                        label="Verifications"
-                        value={stats.verificationCount}
-                        color="text-purple-600 dark:text-purple-300"
-                        bgColor="bg-purple-50 dark:bg-purple-900/30"
-                    />
-                    <StatCard
-                        icon={Percent}
-                        label="Attendance"
-                        value={`${stats.attendanceRate || 0}%`}
-                        color="text-teal-600 dark:text-teal-300"
-                        bgColor="bg-teal-50 dark:bg-teal-900/30"
-                        subtitle="Today"
-                        tooltip="Based on today's punches"
-                    />
-                    <StatCard
-                        icon={Target}
-                        label="Punctuality"
-                        value={`${stats.punctualityRate || 0}%`}
-                        color="text-sky-600 dark:text-sky-300"
-                        bgColor="bg-sky-50 dark:bg-sky-900/30"
-                        subtitle="On Time"
-                    />
-                    <StatCard
-                        icon={Activity}
-                        label="Punches"
-                        value={stats.totalPunches || 0}
-                        color="text-amber-600 dark:text-amber-300"
-                        bgColor="bg-amber-50 dark:bg-amber-900/30"
-                        subtitle="Today"
-                    />
-                    <StatCard
-                        icon={Clock}
-                        label="Avg Hours"
-                        value={`${stats.avgHours || 0}h`}
-                        color="text-blue-600 dark:text-blue-300"
-                        bgColor="bg-blue-50 dark:bg-blue-900/30"
-                        subtitle="Per Employee"
-                    />
+                <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    {/* Today first — these are the numbers someone opens the app to check */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <StatCard
+                            icon={Percent}
+                            label="Attendance"
+                            value={`${stats.attendanceRate || 0}%`}
+                            subtitle={`${stats.present || 0} of ${stats.employees || 0} in`}
+                            tone={rateTone(stats.attendanceRate || 0)}
+                            tooltip="Share of employees with at least one punch today"
+                        />
+                        <StatCard
+                            icon={Target}
+                            label="Punctuality"
+                            value={`${stats.punctualityRate || 0}%`}
+                            subtitle={stats.late ? `${stats.late} late` : 'nobody late'}
+                            tone={rateTone(stats.punctualityRate || 0)}
+                        />
+                        <StatCard
+                            icon={Activity}
+                            label="Punches"
+                            value={stats.totalPunches || 0}
+                            subtitle="today"
+                        />
+                        <StatCard
+                            icon={Clock}
+                            label="Avg Hours"
+                            value={`${stats.avgHours || 0}h`}
+                            subtitle="per employee"
+                        />
+                    </div>
+
+                    {/* Standing facts — neutral, so they do not compete with the above */}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                        <StatCard icon={Users} label="Employees" value={stats.employees} />
+                        <StatCard
+                            icon={UserPlus}
+                            label="New Joinees"
+                            value={stats.newJoinees}
+                            subtitle="last 7 days"
+                            tone={stats.newJoinees > 0 ? 'good' : 'neutral'}
+                        />
+                        <StatCard
+                            icon={UserMinus}
+                            label="Resigned"
+                            value={stats.resigned}
+                            tone={stats.resigned > 0 ? 'bad' : 'neutral'}
+                        />
+                        <StatCard
+                            icon={Tablet}
+                            label="Devices"
+                            value={stats.devices}
+                            tone={stats.devices > 0 && stats.devicesOnline < stats.devices ? 'bad' : 'neutral'}
+                            trend={stats.devices > 0
+                                ? (stats.devicesOnline === stats.devices
+                                    ? { text: 'all online', color: '#059669' }
+                                    : { text: `${stats.devices - stats.devicesOnline} offline`, color: '#DC2626' })
+                                : null}
+                        />
+                        <StatCard icon={Fingerprint} label="Verifications" value={stats.verificationCount} />
+                    </div>
                 </div>
             )}
             </div>
@@ -640,41 +665,72 @@ export default function Dashboard() {
 
                 {/* Attendance Exception Chart - Staggered */}
                 <div className="card-base animate-slide-up stagger-4">
-                    <h2 className="font-semibold mb-4 flex items-center gap-2 text-base text-slate-800 dark:text-slate-100">
-                        <TrendingUp className="text-saffron" size={18} /> Attendance Exception
-                    </h2>
-                    <div className="h-48 pt-4">
-                        {/* Simple Bar Chart */}
-                        <div className="flex items-end justify-between h-full gap-3">
-                            {attendanceTrends.map((day, i) => (
-                                <div key={i} className="flex-1 flex flex-col items-center gap-2 group cursor-default">
-                                    <div className="flex flex-col items-center w-full gap-0.5" style={{ height: '140px' }}>
-                                        <div
-                                            className="w-full bg-saffron-light rounded-t-sm opacity-80 group-hover:opacity-100 transition-opacity"
-                                            style={{ height: `${Math.min(day.late * 3, 40)}px` }}
-                                            title={`Late: ${day.late}`}
-                                        />
-                                        <div
-                                            className="w-full bg-saffron opacity-90 group-hover:opacity-100 transition-opacity"
-                                            style={{ height: `${Math.min(day.earlyLeave * 3, 40)}px` }}
-                                            title={`Early Leave: ${day.earlyLeave}`}
-                                        />
-                                        <div
-                                            className="w-full bg-saffron-dark rounded-b-sm group-hover:opacity-100 transition-opacity"
-                                            style={{ height: `${Math.min(day.absent * 2, 40)}px` }}
-                                            title={`Absent: ${day.absent}`}
-                                        />
-                                    </div>
-                                    <span className="text-[10px] text-slate-grey font-bold uppercase tracking-wider">{day.date}</span>
+                    <div className="flex items-center justify-between mb-1">
+                        <h2 className="font-semibold flex items-center gap-2 text-base text-slate-800 dark:text-slate-100">
+                            <TrendingUp className="text-orange-500" size={18} /> Attendance Exceptions
+                        </h2>
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400">last 7 days</span>
+                    </div>
+                    {(() => {
+                        // One shared scale across every bar. The previous version
+                        // multiplied each series by a different constant and capped
+                        // it at 40px, so bar heights carried no information — and
+                        // all three series were shades of the same orange, which
+                        // made them impossible to tell apart.
+                        const peak = Math.max(
+                            1,
+                            ...attendanceTrends.map(d => (d.late || 0) + (d.earlyLeave || 0) + (d.absent || 0))
+                        );
+                        const H = 150;
+                        const px = (n) => (n > 0 ? Math.max(3, Math.round((n / peak) * H)) : 0);
+                        const anyData = attendanceTrends.some(d => (d.late || 0) + (d.earlyLeave || 0) + (d.absent || 0) > 0);
+
+                        if (!attendanceTrends.length) {
+                            return <div className="h-[190px] rounded-xl bg-slate-100 dark:bg-slate-700/40 animate-pulse" />;
+                        }
+                        if (!anyData) {
+                            return (
+                                <div className="h-[190px] flex flex-col items-center justify-center text-center">
+                                    <CheckCircle size={26} className="text-emerald-500 mb-2" />
+                                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">No exceptions</p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                                        Nobody was late, left early or absent in the last 7 days.
+                                    </p>
                                 </div>
-                            ))}
-                        </div>
-                    </div>
-                    <div className="flex justify-center gap-4 mt-6 text-[10px] font-bold text-slate-grey uppercase tracking-wider">
-                        <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 bg-saffron-light rounded-full" /> Late</div>
-                        <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 bg-saffron rounded-full" /> Early Leave</div>
-                        <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 bg-saffron-dark rounded-full" /> Absent</div>
-                    </div>
+                            );
+                        }
+                        return (
+                            <>
+                                <div className="flex items-end justify-between gap-2 mt-3" style={{ height: `${H + 26}px` }}>
+                                    {attendanceTrends.map((day, i) => {
+                                        const total = (day.late || 0) + (day.earlyLeave || 0) + (day.absent || 0);
+                                        return (
+                                            <div key={i} className="flex-1 flex flex-col items-center justify-end gap-1.5 min-w-0">
+                                                <span className="text-[10px] font-semibold tabular-nums text-slate-500 dark:text-slate-400">
+                                                    {total || ''}
+                                                </span>
+                                                <div className="w-full flex flex-col justify-end rounded-md overflow-hidden"
+                                                     style={{ height: `${H}px` }}
+                                                     title={`${day.date} — late ${day.late || 0}, early leave ${day.earlyLeave || 0}, absent ${day.absent || 0}`}>
+                                                    <div style={{ height: `${px(day.late)}px` }} className="w-full bg-amber-400" />
+                                                    <div style={{ height: `${px(day.earlyLeave)}px` }} className="w-full bg-orange-500" />
+                                                    <div style={{ height: `${px(day.absent)}px` }} className="w-full bg-rose-500" />
+                                                </div>
+                                                <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 truncate w-full text-center">
+                                                    {day.date}
+                                                </span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                                <div className="flex justify-center gap-5 mt-4 text-[11px] text-slate-600 dark:text-slate-300">
+                                    <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-amber-400" /> Late</div>
+                                    <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-orange-500" /> Early leave</div>
+                                    <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-rose-500" /> Absent</div>
+                                </div>
+                            </>
+                        );
+                    })()}
                 </div>
 
                 {/* Real-Time Monitor - Staggered */}

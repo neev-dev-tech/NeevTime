@@ -162,6 +162,12 @@ class AttendanceEngine {
         let lateMinutes = 0;
         let otMinutes = 0;
 
+        // A day that has not finished cannot be judged against a full-day
+        // threshold. At 13:00 everyone who arrived at 09:00 is four hours in, and
+        // scoring them now labels the whole workforce Short Day, or Miss Punch if
+        // they simply have not left yet. Verdicts wait until the day is over.
+        const dayInProgress = date === moment().tz(r.timezone).format('YYYY-MM-DD');
+
         if (logs.length > 0) {
             const sortedLogs = logs.sort((a, b) => moment(a).valueOf() - moment(b).valueOf());
             inTime = sortedLogs[0];
@@ -169,15 +175,19 @@ class AttendanceEngine {
 
             if (outTime) {
                 durationMinutes = Math.floor(moment(outTime).diff(moment(inTime), 'minutes'));
+                if (durationMinutes > r.overtimeAfterMinutes) {
+                    otMinutes = durationMinutes - r.overtimeAfterMinutes;
+                }
+            }
 
+            if (dayInProgress) {
+                // They are at work; hours so far are recorded, the verdict is not
+                status = 'Present';
+            } else if (outTime) {
                 // Thresholds come from Settings → Attendance Rules
                 if (durationMinutes >= r.fullDayMinutes) status = 'Present';
                 else if (durationMinutes >= r.halfDayMinutes) status = 'Half Day';
                 else status = 'Short Day';
-
-                if (durationMinutes > r.overtimeAfterMinutes) {
-                    otMinutes = durationMinutes - r.overtimeAfterMinutes;
-                }
             } else {
                 status = 'Miss Punch';
             }
