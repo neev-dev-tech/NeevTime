@@ -1635,7 +1635,37 @@ const ensureSchema = async () => {
         // is the right outcome: the duplicate has to be renamed by a human who
         // knows which account is the real one. The loop below logs and continues,
         // so a clash cannot stop the server from booting.
-        `CREATE UNIQUE INDEX IF NOT EXISTS users_username_lower_uniq ON users (lower(username))`
+        `CREATE UNIQUE INDEX IF NOT EXISTS users_username_lower_uniq ON users (lower(username))`,
+        // The Attendance Rules page has never worked on this install. An early
+        // key/value stub (setting_name / setting_value) claimed the
+        // attendance_rules name, so the CREATE TABLE IF NOT EXISTS that would
+        // have built the real one silently did nothing, and every read failed
+        // with `column "rule_type" does not exist`.
+        //
+        // The stub is empty and nothing reads it — the attendance engine takes
+        // its thresholds from app_settings — so the columns are added alongside
+        // it rather than dropping and recreating the table. setting_name loses
+        // its NOT NULL because new rows have no value for it.
+        `ALTER TABLE attendance_rules ALTER COLUMN setting_name DROP NOT NULL`,
+        `ALTER TABLE attendance_rules ADD COLUMN IF NOT EXISTS rule_type VARCHAR(50) NOT NULL DEFAULT 'global'`,
+        `ALTER TABLE attendance_rules ADD COLUMN IF NOT EXISTS department_id INTEGER REFERENCES departments(id)`,
+        `ALTER TABLE attendance_rules ADD COLUMN IF NOT EXISTS name VARCHAR(100)`,
+        `ALTER TABLE attendance_rules ADD COLUMN IF NOT EXISTS late_threshold_minutes INTEGER DEFAULT 15`,
+        `ALTER TABLE attendance_rules ADD COLUMN IF NOT EXISTS early_leave_threshold_minutes INTEGER DEFAULT 15`,
+        `ALTER TABLE attendance_rules ADD COLUMN IF NOT EXISTS half_day_threshold_minutes INTEGER DEFAULT 240`,
+        `ALTER TABLE attendance_rules ADD COLUMN IF NOT EXISTS absent_threshold_minutes INTEGER DEFAULT 480`,
+        `ALTER TABLE attendance_rules ADD COLUMN IF NOT EXISTS overtime_enabled BOOLEAN DEFAULT false`,
+        `ALTER TABLE attendance_rules ADD COLUMN IF NOT EXISTS overtime_threshold_minutes INTEGER DEFAULT 30`,
+        `ALTER TABLE attendance_rules ADD COLUMN IF NOT EXISTS overtime_multiplier NUMERIC(3,1) DEFAULT 1.5`,
+        `ALTER TABLE attendance_rules ADD COLUMN IF NOT EXISTS grace_period_minutes INTEGER DEFAULT 5`,
+        `ALTER TABLE attendance_rules ADD COLUMN IF NOT EXISTS grace_late_allowed_per_month INTEGER DEFAULT 3`,
+        `ALTER TABLE attendance_rules ADD COLUMN IF NOT EXISTS week_off_days TEXT[] DEFAULT ARRAY['sunday']`,
+        `ALTER TABLE attendance_rules ADD COLUMN IF NOT EXISTS alternate_saturday BOOLEAN DEFAULT false`,
+        `ALTER TABLE attendance_rules ADD COLUMN IF NOT EXISTS round_off_minutes INTEGER DEFAULT 15`,
+        `ALTER TABLE attendance_rules ADD COLUMN IF NOT EXISTS minimum_punch_gap_minutes INTEGER DEFAULT 30`,
+        `ALTER TABLE attendance_rules ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true`,
+        `ALTER TABLE attendance_rules ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
+        `ALTER TABLE attendance_rules ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`
     ];
     for (const sql of statements) {
         try {
