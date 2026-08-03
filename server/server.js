@@ -100,6 +100,14 @@ app.use(async (req, res, next) => {
 
 app.use(express.json());
 
+// Role enforcement for every mutating /api call, mounted before any route is
+// registered. Central on purpose: a guard that must be remembered on each new
+// endpoint eventually is not. Position matters as much as the logic — mounted
+// lower down it silently missed the attendance routes declared above it, which
+// is exactly the class of bug it exists to prevent. Reads pass through; writes
+// are denied unless the role allows them. See utils/rbac.js.
+app.use('/api', require('./utils/rbac').enforceRole);
+
 // Attendance Processing API
 app.use((req, res, next) => {
     // Skip logging high-volume static assets if any, or health checks usually
@@ -306,11 +314,6 @@ app.get('/api/health', async (req, res) => {
 // route's own authenticateToken has populated it.
 app.use('/api', require('./utils/systemLogger').auditMutations);
 
-// Role enforcement for every mutating /api call. Central on purpose: a guard
-// that must be remembered on each new route eventually is not, and the gap only
-// shows when someone finds it. Reads pass through; writes are denied unless the
-// role allows them. See utils/rbac.js for the tiers.
-app.use('/api', require('./utils/rbac').enforceRole);
 
 // Vendor-neutral punch intake. Authenticated by a per-device token rather than
 // a user session, so it is mounted before the authenticateToken routers.

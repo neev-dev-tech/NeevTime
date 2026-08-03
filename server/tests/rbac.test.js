@@ -130,3 +130,29 @@ test('a garbage authorization header does not throw', () => {
     assert.doesNotThrow(() => attempt({ method: 'POST', malformed: 'Bearer not.a.jwt' }));
     assert.doesNotThrow(() => attempt({ method: 'POST', malformed: 'Basic abc123' }));
 });
+
+// ───────────────────── mount order (structural) ─────────────────────────
+
+test('the guard is mounted before every /api route in server.js', () => {
+    // Unit tests exercise the middleware in isolation and cannot see where it is
+    // mounted. It was originally placed below the early attendance handlers, so
+    // a viewer POSTing to /api/attendance/manual sailed past it and was stopped
+    // only by that route's own field validation. Caught in production, not here
+    // — hence this check.
+    const fs = require('node:fs');
+    const path = require('node:path');
+    const src = fs.readFileSync(path.join(__dirname, '../server.js'), 'utf8').split('\n');
+
+    const guardLine = src.findIndex(l => l.includes("rbac').enforceRole"));
+    assert.ok(guardLine > -1, 'enforceRole is not mounted at all');
+
+    const routesAbove = [];
+    src.slice(0, guardLine).forEach((line, i) => {
+        if (/^app\.(get|post|put|patch|delete)\(\s*['"`]\/api/.test(line)) {
+            routesAbove.push(`${i + 1}: ${line.trim().slice(0, 70)}`);
+        }
+    });
+
+    assert.deepStrictEqual(routesAbove, [],
+        'these /api routes are registered above the role guard and bypass it:\n' + routesAbove.join('\n'));
+});
