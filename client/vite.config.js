@@ -21,6 +21,20 @@ export default defineConfig({
       'lucide-react': path.resolve(here, 'src/icons/index.jsx')
     }
   },
+  build: {
+    rollupOptions: {
+      output: {
+        // Only the framework is grouped by hand. jspdf, xlsx and recharts are
+        // left to Rollup: they are reached through dynamic imports, and naming
+        // them here pulled them back into the eager graph — the pdf chunk was
+        // being fetched on the login page, which defeats the split entirely.
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom']
+        }
+      }
+    },
+    chunkSizeWarningLimit: 900
+  },
   server: {
     proxy: {
       '/api': target,

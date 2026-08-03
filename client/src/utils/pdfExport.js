@@ -14,12 +14,26 @@
  * @version 2.1.0
  */
 
-import jsPDF from 'jspdf';
+// jsPDF and autoTable are ~400 KB and are only needed when someone actually
+// exports, so they load on demand rather than on first paint. Callers already
+// treat exportToPDF as fire-and-forget, so returning a promise changes nothing
+// for them.
+let pdfLibs = null;
+const loadPdfLibs = async () => {
+    if (!pdfLibs) {
+        const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+            import('jspdf'),
+            import('jspdf-autotable')
+        ]);
+        pdfLibs = { jsPDF, autoTable };
+    }
+    return pdfLibs;
+};
 // jspdf-autotable 3.x exports the function as its DEFAULT export — there is no
 // named `autoTable`. Importing it as a named binding left Vite's CJS interop
 // resolving it to a property on the module namespace object, so every PDF
-// export died with "PJ.autoTable is not a function" once minified.
-import autoTable from 'jspdf-autotable';
+// export died with "PJ.autoTable is not a function" once minified. The dynamic
+// import above takes .default for the same reason.
 
 // Maximum rows for PDF export (browser memory limit)
 const MAX_PDF_ROWS = 1000;
@@ -71,7 +85,7 @@ const COLORS = {
 /**
  * Main PDF export function with branding
  */
-export const exportToPDF = (options) => {
+export const exportToPDF = async (options) => {
     // Settings → PDF Settings and → Company supply the defaults; an explicit
     // option passed by a caller still wins.
     const pdfPrefs = getPdfDefaults();
@@ -129,6 +143,8 @@ export const exportToPDF = (options) => {
     }
 
     // Create PDF document
+    const { jsPDF, autoTable } = await loadPdfLibs();
+
     let doc;
     try {
         doc = new jsPDF({

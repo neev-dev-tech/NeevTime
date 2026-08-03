@@ -115,7 +115,9 @@ PrivateRoute.propTypes = {
 function AdminRoute({ children }) {
   const auth = useStore(state => state.auth);
   if (!auth) return <Navigate to="/login" />;
-  return auth.role === 'admin' ? children : <Navigate to="/" />;
+  // Matches server/utils/rbac.js: only a true admin reaches settings, database,
+  // integrations, system logs and user management.
+  return String(auth.role).toLowerCase() === 'admin' ? children : <Navigate to="/" />;
 }
 
 AdminRoute.propTypes = {

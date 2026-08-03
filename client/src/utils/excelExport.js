@@ -3,7 +3,13 @@
  * Provides premium Excel/XLSX generation with styling across all reports
  */
 
-import * as XLSX from 'xlsx';
+// xlsx is ~280 KB and only needed on an actual export, so it loads on demand.
+// Every caller of these helpers already awaits them.
+let XLSX = null;
+const loadXlsx = async () => {
+    if (!XLSX) XLSX = await import('xlsx');
+    return XLSX;
+};
 
 /**
  * Export data to Excel/XLSX format with enhanced styling
@@ -122,6 +128,7 @@ export const exportToExcel = async (options) => {
         if (onProgress) onProgress(30);
 
         // Create workbook
+        const XLSX = await loadXlsx();
         const wb = XLSX.utils.book_new();
 
         // Convert data to worksheet

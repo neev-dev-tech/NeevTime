@@ -10,11 +10,13 @@ import AnimatedBackground from '../components/AnimatedBackground';
 import NotificationCenter from '../components/NotificationCenter';
 import VersionDisplay from '../components/VersionDisplay';
 import useStore from '../store/useStore';
+import { usePermissions } from '../hooks/usePermissions';
 
 export default function MainLayout({ children }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { auth, logout } = useStore();
+  const { isViewer } = usePermissions();
   const [activeModule, setActiveModule] = useState('Dashboard');
   const [expandedGroups, setExpandedGroups] = useState({});
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -69,6 +71,13 @@ export default function MainLayout({ children }) {
   return (
     <div className="app-shell flex flex-col min-h-screen font-sans">
       <AnimatedBackground />
+      {/* A read-only account should be told so once, rather than discovering it
+          as a failed save on every button it presses. */}
+      {isViewer && (
+        <div className="relative z-50 px-6 py-2 text-center text-xs font-semibold bg-amber-100 text-amber-900 border-b border-amber-200 dark:bg-amber-900/40 dark:text-amber-200 dark:border-amber-800">
+          Read-only access — you can view everything here, but changes are disabled for your account.
+        </div>
+      )}
       <GlobalSearch />
       {/* Top Navigation */}
       <motion.header

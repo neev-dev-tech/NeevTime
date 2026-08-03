@@ -3,7 +3,14 @@ import { Plus, Trash2, Edit2, X, Check, RefreshCw, Users, Shield, AlertCircle } 
 import api from '../api';
 import { Button, PageHeader, ExportMenu } from '../components';
 
-const ROLES = ['admin', 'hr', 'user'];
+// Tiers enforced by server/utils/rbac.js. 'user' is retired — legacy accounts
+// still holding it are treated as hr — so it is not offered for new accounts.
+const ROLES = ['admin', 'hr', 'viewer'];
+const ROLE_HELP = {
+    admin: 'Full access, including settings, database, integrations and user management.',
+    hr: 'Personnel, attendance, leave and devices. Cannot change settings, database or users.',
+    viewer: 'Read-only. Can see every page but cannot change anything.'
+};
 
 const BADGE = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide';
 const ROLE_TINTS = {
@@ -24,7 +31,7 @@ export default function UsersPage() {
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editUser, setEditUser] = useState(null);
-    const [formData, setFormData] = useState({ username: '', password: '', role: 'user', email: '' });
+    const [formData, setFormData] = useState({ username: '', password: '', role: 'viewer', email: '' });
     const [error, setError] = useState('');
     const [loadError, setLoadError] = useState(null);
     const [toast, setToast] = useState(null);
@@ -69,7 +76,7 @@ export default function UsersPage() {
             }
             setShowModal(false);
             setEditUser(null);
-            setFormData({ username: '', password: '', role: 'user', email: '' });
+            setFormData({ username: '', password: '', role: 'viewer', email: '' });
             fetchUsers();
         } catch (err) {
             setError(err.response?.data?.error || 'Operation failed');
@@ -116,7 +123,7 @@ export default function UsersPage() {
 
     const openNewModal = () => {
         setEditUser(null);
-        setFormData({ username: '', password: '', role: 'user', email: '' });
+        setFormData({ username: '', password: '', role: 'viewer', email: '' });
         setError('');
         setShowModal(true);
     };
@@ -323,6 +330,9 @@ export default function UsersPage() {
                                         <option key={role} value={role}>{role}</option>
                                     ))}
                                 </select>
+                                <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
+                                    {ROLE_HELP[formData.role]}
+                                </p>
                             </div>
 
                             <div className="flex gap-2 pt-4 border-t border-slate-100 dark:border-slate-700">

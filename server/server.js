@@ -306,6 +306,12 @@ app.get('/api/health', async (req, res) => {
 // route's own authenticateToken has populated it.
 app.use('/api', require('./utils/systemLogger').auditMutations);
 
+// Role enforcement for every mutating /api call. Central on purpose: a guard
+// that must be remembered on each new route eventually is not, and the gap only
+// shows when someone finds it. Reads pass through; writes are denied unless the
+// role allows them. See utils/rbac.js for the tiers.
+app.use('/api', require('./utils/rbac').enforceRole);
+
 // Vendor-neutral punch intake. Authenticated by a per-device token rather than
 // a user session, so it is mounted before the authenticateToken routers.
 app.set('io', io);
