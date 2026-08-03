@@ -35,8 +35,7 @@ const KNOWN_ENTITIES = new Set([
 const SOURCES = [
     'server.js',
     'routes/device_sync.js',
-    'services/adms.js',
-    'scripts/debug_delete_logic.js'
+    'services/adms.js'
 ];
 
 /** Every `DATA <verb> <entity>` literal built anywhere in the server. */

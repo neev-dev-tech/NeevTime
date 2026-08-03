@@ -94,13 +94,6 @@ const insertSites = () => {
  * the query instead — the whole point is that the list only ever shrinks.
  */
 const BASELINE = new Set([
-    // REAL — mobile punching writes six columns attendance_logs does not have,
-    // and the geofences table it references does not exist at all. The feature
-    // was never provisioned in this database. Left failing deliberately: fixing
-    // it means deciding whether GPS attendance is wanted, which is not a
-    // question a schema patch should answer quietly.
-    'routes/mobile_attendance.js|attendance_logs',
-
     // FALSE POSITIVE — all present in production
     'server.js|devices',
     'services/hrms-integration.js|integration_sync_logs',

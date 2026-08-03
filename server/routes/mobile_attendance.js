@@ -148,7 +148,7 @@ router.post('/punch', async (req, res) => {
 
         const result = await db.query(
             `INSERT INTO attendance_logs 
-             (employee_code, punch_time, punch_state, device_serial, verify_mode, 
+             (employee_code, punch_time, punch_state, device_serial, verification_mode,
               punch_source, latitude, longitude, is_geofence_verified, geofence_id)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) 
              RETURNING *`,

@@ -1635,6 +1635,34 @@ const ensureSchema = async () => {
         // Avoids a failed INSERT and a retry on every document upload; the
         // route already falls back when this is absent.
         `ALTER TABLE employee_docs ADD COLUMN IF NOT EXISTS file_type VARCHAR(100)`,
+        // Mobile punching and the Geofences page are both routed and both have
+        // always failed: the geofences table was never created here, and
+        // attendance_logs lacks the location columns the punch writes. The
+        // migration that would have built them (scripts/migration_phase3_geofence.js)
+        // was never run.
+        //
+        // Deliberately NO seed row. That script also inserts a 200m fence at MG
+        // Road, Bangalore, and since no employee has an assigned fence, the punch
+        // route falls back to matching *any* active one — so seeding it would let
+        // anyone standing near that address mark themselves present. With the
+        // table empty, every mobile punch is refused with a 403 until a real
+        // location is configured, which is the correct default for this install.
+        `CREATE TABLE IF NOT EXISTS geofences (
+            id SERIAL PRIMARY KEY,
+            name VARCHAR(100) NOT NULL,
+            latitude DECIMAL(10, 8) NOT NULL,
+            longitude DECIMAL(11, 8) NOT NULL,
+            radius_meters INTEGER DEFAULT 100,
+            address TEXT,
+            is_active BOOLEAN DEFAULT TRUE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )`,
+        `ALTER TABLE attendance_logs ADD COLUMN IF NOT EXISTS punch_source VARCHAR(50) DEFAULT 'biometric'`,
+        `ALTER TABLE attendance_logs ADD COLUMN IF NOT EXISTS latitude DECIMAL(10, 8)`,
+        `ALTER TABLE attendance_logs ADD COLUMN IF NOT EXISTS longitude DECIMAL(11, 8)`,
+        `ALTER TABLE attendance_logs ADD COLUMN IF NOT EXISTS is_geofence_verified BOOLEAN DEFAULT FALSE`,
+        `ALTER TABLE attendance_logs ADD COLUMN IF NOT EXISTS geofence_id INTEGER REFERENCES geofences(id) ON DELETE SET NULL`,
+        `ALTER TABLE employees ADD COLUMN IF NOT EXISTS assigned_geofence_id INTEGER REFERENCES geofences(id) ON DELETE SET NULL`,
         // Sign-in matches usernames case-insensitively, because an account made
         // as "Mukesh" that cannot be signed into as "mukesh" just looks broken —
         // a missing user and a wrong password return the same message. That
