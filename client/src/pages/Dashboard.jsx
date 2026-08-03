@@ -605,24 +605,23 @@ export default function Dashboard() {
                             <ChevronRight size={14} />
                         </a>
                     </div>
-                    <div className="flex items-center justify-center mb-6 py-4">
-                        {/* Simple CSS Pie Chart - Enterprise Style */}
-                        <div className="relative w-36 h-36">
+                    {/* A donut for a single ratio was 140px of chart to say "4 of 4".
+                        A bar carries the same fact in a fraction of the space, and
+                        the fleet is listed in full under Connected Devices. */}
+                    <div className="mb-5">
+                        <div className="flex items-baseline gap-2">
+                            <span className="text-[34px] leading-none font-bold tabular-nums text-slate-900 dark:text-slate-50">
+                                {stats.devicesOnline}
+                            </span>
+                            <span className="text-sm text-slate-500 dark:text-slate-400">
+                                of {stats.devices} online
+                            </span>
+                        </div>
+                        <div className="mt-3 h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
                             <div
-                                className="absolute inset-0 rounded-full"
-                                style={{
-                                    background: `conic-gradient(
-                                        #2EAD6D 0deg ${onlinePercent * 3.6}deg,
-                                        #E5E7EB ${onlinePercent * 3.6}deg 360deg
-                                    )`,
-                                    border: '2px solid #FFFFFF'
-                                }}
+                                className={`h-full rounded-full transition-all ${onlinePercent === 100 ? 'bg-emerald-500' : onlinePercent >= 50 ? 'bg-amber-500' : 'bg-rose-500'}`}
+                                style={{ width: `${onlinePercent}%` }}
                             />
-                            <div className="absolute inset-0 rounded-full scale-[0.88] bg-white" />
-                            <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                <span className="text-[28px] font-bold text-slate-900 dark:text-slate-100">{stats.devices}</span>
-                                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Total Devices</span>
-                            </div>
                         </div>
                     </div>
                     <div className="space-y-2 text-sm">
@@ -837,58 +836,9 @@ export default function Dashboard() {
 
             {/* Bottom Row - Device List & Quick Stats */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Today's Summary - Staggered */}
-                <div className="card-tier-2 animate-slide-up stagger-6">
-                    <h2 className="font-semibold mb-6 flex items-center gap-2 text-base text-slate-800 dark:text-slate-100">
-                        <Calendar className="text-indigo-500" size={18} /> Today's Summary
-                    </h2>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="summary-card-success">
-                            <div className="flex items-start justify-between">
-                                <div className="flex-1">
-                                    <div className="card-title mb-1">Check-ins</div>
-                                    <div className="card-value">{stats.present}</div>
-                                </div>
-                                <div className="p-2 rounded-lg" style={{ backgroundColor: 'rgba(46, 173, 109, 0.1)' }}>
-                                    <ArrowUpRight size={20} style={{ color: '#2EAD6D' }} />
-                                </div>
-                            </div>
-                        </div>
-                        <div className="summary-card-error">
-                            <div className="flex items-start justify-between">
-                                <div className="flex-1">
-                                    <div className="card-title mb-1">Absent</div>
-                                    <div className="card-value">{stats.absent}</div>
-                                </div>
-                                <div className="p-2 rounded-lg" style={{ backgroundColor: 'rgba(229, 83, 61, 0.1)' }}>
-                                    <ArrowDownRight size={20} style={{ color: '#E5533D' }} />
-                                </div>
-                            </div>
-                        </div>
-                        <div className="summary-card-warning">
-                            <div className="flex items-start justify-between">
-                                <div className="flex-1">
-                                    <div className="card-title mb-1">Late Arrivals</div>
-                                    <div className="card-value">{stats.late}</div>
-                                </div>
-                                <div className="p-2 rounded-lg" style={{ backgroundColor: 'rgba(224, 155, 45, 0.1)' }}>
-                                    <Timer size={20} style={{ color: '#E09B2D' }} />
-                                </div>
-                            </div>
-                        </div>
-                        <div className="summary-card-neutral">
-                            <div className="flex items-start justify-between">
-                                <div className="flex-1">
-                                    <div className="card-title mb-1">On Leave</div>
-                                    <div className="card-value">{stats.onLeave}</div>
-                                </div>
-                                <div className="p-2 rounded-lg" style={{ backgroundColor: 'rgba(156, 163, 175, 0.1)' }}>
-                                    <Calendar size={20} className="text-slate-500 dark:text-slate-400" />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                {/* "Today's Summary" removed: it repeated Present, Absent, Late
+                    Arrivals and On Leave from Today's Attendance Status above,
+                    with the same values from the same fields. */}
 
                 {/* Device List - Staggered */}
                 <div className="card-tier-2 animate-slide-up stagger-6">
