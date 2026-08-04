@@ -176,3 +176,34 @@ necessarily what your hardware sends. Still unknown until a device arrives:
 
 The value is that everything *around* those unknowns is already working, so the
 day hardware arrives the only variable left is the hardware.
+
+## Enabling the Hikvision route
+
+The adapter is mounted only when `ADAPTERS_ENABLED=true`. Unset, the route does
+not exist — there is no half-enabled state in which a misconfigured device could
+post punches into attendance.
+
+    ADAPTERS_ENABLED=true node server/server.js
+
+Then register a device with `vendor: 'Hikvision'`, mint its token with
+`POST /api/devices/<serial>/ingest-token`, and point the simulator at it:
+
+    node server/scripts/simulate_vendor_device.js hikvision \
+      --url http://localhost:3001 --token PASTE_TOKEN_HERE --code INT089
+
+Note: no angle brackets around the token. `<token>` in a shell is a redirect.
+
+### Why the mount sits where it does
+
+It is registered immediately after the RBAC guard and **above** every
+`app.use('/api', authenticateToken, ...)` line. Those apply to every `/api` path
+regardless of which router matches — this codebase has been caught by that three
+times already. The adapter authenticates with a per-device ingest token in the
+query string, not a JWT, so mounted further down every event would be rejected as
+unauthenticated before the adapter ran. The symptom would look exactly like a
+device fault: events arriving, nothing stored.
+
+`server/tests/adapter_mount.test.js` asserts the ordering, that the guard is an
+explicit `=== 'true'` rather than something that defaults on, and that the ingest
+route never answers with an error status — a Hikvision controller retries an
+errored event indefinitely, so one bad payload becomes a flood.

@@ -109,6 +109,23 @@ app.use((req, res, next) => {
     next();
 });
 
+// ─── Vendor adapters (opt-in, off by default) ────────────────────────────────
+// Mounted HERE, above every `app.use('/api', authenticateToken, ...)` below,
+// and that placement is the whole point. Those mounts apply to *every* /api
+// path regardless of which router matches — a trap this codebase has already
+// fallen into three times. This endpoint authenticates with a per-device ingest
+// token in the query string, not a JWT, so if it were registered further down
+// the file every event would be rejected as unauthenticated before the adapter
+// ever saw it. adapter_mount.test.js asserts the ordering.
+//
+// Inert unless ADAPTERS_ENABLED=true. Off, the route does not exist at all and
+// production behaves exactly as before; there is no half-enabled state where a
+// misconfigured device could post punches into attendance.
+if (process.env.ADAPTERS_ENABLED === 'true') {
+    app.use('/api/adapters/hikvision', require('./routes/adapter_hikvision'));
+    console.log('[adapters] Hikvision ingest enabled at /api/adapters/hikvision/event');
+} 
+
 const attendanceEngine = require('./services/attendance_engine');
 // Auth middleware needed for the early-registered attendance routes below
 const { router: authRouter, authenticateToken } = require('./routes/auth');
