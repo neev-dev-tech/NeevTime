@@ -165,7 +165,33 @@ const supremaServer = () => {
                 return res.end(JSON.stringify({ EventCollection: { rows, total: rows.length } }));
             }
 
-            console.log(`[sim] unhandled ${req.method} ${req.url}`);
+            // Opening the port in a browser is the first thing anyone does,
+            // and a bare 404 reads as "broken" rather than "wrong verb".
+            if (req.method === 'GET' && (req.url === '/' || req.url.startsWith('/?'))) {
+                res.writeHead(200, { 'Content-Type': 'text/plain' });
+                return res.end(
+                    'NeevTime — fake BioStar server\n\n' +
+                    'This is an API, not a web page. It answers exactly two calls,\n' +
+                    'both POST, which is what the Suprema poller makes:\n\n' +
+                    '  POST /api/login          -> returns a bs-session-id header\n' +
+                    '  POST /api/events/search  -> returns one event row\n\n' +
+                    `Currently emitting: ${deny ? 'DENIED events (must NOT become attendance)' : 'successful verifications'}\n` +
+                    `Employee code:      ${code}\n` +
+                    `Searches served:    ${served}\n\n` +
+                    'Drive it by hand:\n' +
+                    `  curl -si -X POST http://localhost:${port}/api/login \\\n` +
+                    `    -H 'Content-Type: application/json' \\\n` +
+                    `    -d '{"User":{"login_id":"x","password":"y"}}' | grep -i bs-session-id\n\n` +
+                    `  curl -s -X POST http://localhost:${port}/api/events/search \\\n` +
+                    `    -H 'bs-session-id: SESSION_FROM_ABOVE' \\\n` +
+                    `    -H 'Content-Type: application/json' -d '{"Query":{"limit":10}}'\n`
+                );
+            }
+            if (req.method === 'GET' && req.url === '/favicon.ico') {
+                res.writeHead(204); return res.end();
+            }
+
+            console.log(`[sim] unhandled ${req.method} ${req.url} (this server only answers POST /api/login and POST /api/events/search)`);
             res.writeHead(404); res.end('{}');
         });
     });
