@@ -132,3 +132,47 @@ Write a module that turns the vendor's payload into this shape and hand it to
 
 If the vendor has middleware or a cloud that can send an HTTP request, prefer
 `POST /api/ingest/punch` — it already accepts this shape and needs no new code.
+
+## Testing without hardware
+
+`server/scripts/simulate_vendor_device.js` drives both adapters with no device
+present. The parsing half was already covered by unit tests; this exercises what
+was not — the ingest-token check, the device-approval gate, the punch reaching
+attendance_logs, and the Socket.IO event reaching the dashboard.
+
+Hikvision, posting events the way a camera would:
+
+    node server/scripts/simulate_vendor_device.js hikvision \
+      --url http://localhost:3001 --token <ingest_token> --code INT089 --count 5
+
+Register the device and mint the token first (`POST /api/devices`, then
+`POST /api/devices/<serial>/ingest-token`).
+
+Suprema, running a fake BioStar for the poller to talk to:
+
+    node server/scripts/simulate_vendor_device.js suprema --port 8890
+
+then point `startSupremaPoller({ baseUrl: 'http://localhost:8890', ... })` at it.
+The fake refuses an event search that arrives without a valid session, so the
+poller's re-login path gets exercised too — otherwise only reachable when a real
+session expires.
+
+Add `--deny` to either mode to emit access-denied events instead. **Run that case
+first.** A denied event becoming attendance is the worst failure either adapter
+can have, and it is silent: someone refused at the door appears present. Verified
+against both parsers — Hikvision sub-event 21 and BioStar code 4360 are ignored,
+not stored.
+
+### What this still does not prove
+
+The simulator emits what the vendor documentation describes, which is not
+necessarily what your hardware sends. Still unknown until a device arrives:
+
+- the event type codes your BioStar version emits for a successful verification
+  (they differ across 2.7, 2.8 and 2.9)
+- whether your Hikvision firmware posts the multipart shape assumed here
+- whether `user_id` carries your employee code or an internal id needing a map
+- whether your BioStar presents a self-signed certificate
+
+The value is that everything *around* those unknowns is already working, so the
+day hardware arrives the only variable left is the hardware.
