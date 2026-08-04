@@ -167,8 +167,10 @@ const supremaServer = () => {
 
             // Opening the port in a browser is the first thing anyone does,
             // and a bare 404 reads as "broken" rather than "wrong verb".
-            if (req.method === 'GET' && (req.url === '/' || req.url.startsWith('/?'))) {
-                res.writeHead(200, { 'Content-Type': 'text/plain' });
+            if ((req.method === 'GET' || req.method === 'HEAD') && (req.url === '/' || req.url.startsWith('/?'))) {
+                // charset matters: the em-dash below is UTF-8, and without it a
+                // browser falls back to latin-1 and renders "NeevTime \u00e2\u20ac\u201d".
+                res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
                 return res.end(
                     'NeevTime — fake BioStar server\n\n' +
                     'This is an API, not a web page. It answers exactly two calls,\n' +
@@ -187,7 +189,7 @@ const supremaServer = () => {
                     `    -H 'Content-Type: application/json' -d '{"Query":{"limit":10}}'\n`
                 );
             }
-            if (req.method === 'GET' && req.url === '/favicon.ico') {
+            if ((req.method === 'GET' || req.method === 'HEAD') && req.url === '/favicon.ico') {
                 res.writeHead(204); return res.end();
             }
 
