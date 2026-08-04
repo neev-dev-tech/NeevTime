@@ -10,6 +10,10 @@ require('dotenv').config();
 
 const db = require('./db');
 const adms = require('./services/adms');
+// Cached typed reader for app_settings. Note the distinction from the
+// settingsRouter mounted further down: this is the value reader, that is the
+// HTTP surface.
+const settings = require('./utils/settings');
 
 const logger = require('./utils/logger');
 
@@ -431,15 +435,28 @@ app.use('/api/mobile', authenticateToken, requireAdmin, mobileAttendanceRouter);
 // Pending-work summary for the notification bell
 app.get('/api/notifications/summary', authenticateToken, async (req, res) => {
     try {
-        const [leave, reg, offline] = await Promise.all([
+        // A device awaiting approval is not a cosmetic notice. Once
+        // require_device_approval is on, its punches are refused and — because
+        // the reader is still ACKed so it clears its buffer — they are dropped,
+        // not queued. Approving it later does not backfill them. Nothing in the
+        // app surfaced this, so an unapproved reader looked exactly like a group
+        // of people who simply never punched.
+        const [leave, reg, offline, pendingDevices, enforcing] = await Promise.all([
             db.query(`SELECT COUNT(*)::int AS n FROM leave_applications WHERE LOWER(status) = 'pending'`),
             db.query(`SELECT COUNT(*)::int AS n FROM attendance_regularizations WHERE status = 'pending'`),
-            db.query(`SELECT COUNT(*)::int AS n FROM devices WHERE status = 'offline'`)
+            db.query(`SELECT COUNT(*)::int AS n FROM devices WHERE status = 'offline'`),
+            db.query(`SELECT COUNT(*)::int AS n FROM devices
+                      WHERE approval_status = 'pending' AND status IS DISTINCT FROM 'retired'`),
+            settings.get('security', 'require_device_approval', false)
         ]);
         res.json({
             pending_leave: leave.rows[0].n,
             pending_regularizations: reg.rows[0].n,
-            devices_offline: offline.rows[0].n
+            devices_offline: offline.rows[0].n,
+            devices_pending_approval: pendingDevices.rows[0].n,
+            // Lets the client say whether those devices are merely waiting or
+            // are actively losing punches right now.
+            device_approval_enforced: enforcing === true || enforcing === 'true'
         });
     } catch (err) {
         res.status(500).json({ error: err.message });

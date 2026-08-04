@@ -506,11 +506,37 @@ export default function Devices() {
     const timeSince = (d) => d ? Math.floor((new Date() - new Date(d)) / 60000) + 'm ago' : 'Never';
     const getDirectionLabel = (d) => d === 'in' ? 'IN' : d === 'out' ? 'OUT' : 'IN/OUT';
 
+    // Readers a human still has to accept. Worth a banner and not only the row
+    // badge: once require_device_approval is on, punches from an unapproved
+    // reader are refused — and because the reader is still ACKed and clears its
+    // buffer, they are gone. Approving later does not backfill them.
+    const awaitingApproval = devices.filter(
+        d => d.approval_status === 'pending' && d.status !== 'retired'
+    );
+
     const renderContent = () => {
         switch (activeView) {
             case 'devices':
                 return (
                     <div className="space-y-6">
+                        {awaitingApproval.length > 0 && (
+                            <div className="card-base !p-4 border-l-4 border-rose-500 flex items-start gap-3">
+                                <ShieldAlert size={20} className="text-rose-500 shrink-0 mt-0.5" />
+                                <div className="flex-1 min-w-0">
+                                    <p className="font-semibold text-slate-800 dark:text-slate-100">
+                                        {awaitingApproval.length} device{awaitingApproval.length === 1 ? '' : 's'} awaiting approval
+                                    </p>
+                                    <p className="text-sm font-mono text-slate-600 dark:text-slate-300 mt-0.5 break-all">
+                                        {awaitingApproval.map(d => d.serial_number).join(', ')}
+                                    </p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                        While device approval is enforced, punches from an unapproved reader are
+                                        refused and cannot be recovered afterwards. Approve it below, or retire it
+                                        if you do not recognise the serial.
+                                    </p>
+                                </div>
+                            </div>
+                        )}
                         <PageHeader
                             icon={TabletSmartphone}
                             title="Connected Devices"
