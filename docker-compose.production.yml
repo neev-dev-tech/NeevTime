@@ -21,7 +21,12 @@ services:
     # NOW() actually reads. No data is rewritten; only new writes change.
     command: postgres -c timezone=${APP_TIMEZONE:-Asia/Kolkata} -c log_timezone=${APP_TIMEZONE:-Asia/Kolkata}
     ports:
-      - "${DB_PORT:-5432}:5432"
+      # Bound to loopback, not 0.0.0.0. The database was reachable from every
+      # host on the LAN; the only client that has ever connected is the app
+      # container over the Docker network below, which this does not affect.
+      # If something off-box genuinely needs it, tunnel rather than republish:
+      #   ssh -L 5432:127.0.0.1:5432 <user>@<host>
+      - "127.0.0.1:${DB_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./database:/docker-entrypoint-initdb.d:ro
@@ -40,9 +45,14 @@ services:
     container_name: attendance_app
     restart: always
     ports:
+      # Port 80 only. nginx and node share this container, and nginx reaches
+      # node over 127.0.0.1:3001 inside it — publishing 3001 to the host let
+      # callers bypass nginx entirely. 8080 was never bound by anything: the
+      # app has no listener on it and the logs contain no request to it.
+      #
+      # The readers are unaffected; they arrive on port 80 (/iclock/...), and
+      # the ERPNext sync dials out rather than being called in.
       - "${HTTP_PORT:-80}:80"
-      - "${API_PORT:-3001}:3001"
-      - "${ADMS_PORT:-8080}:8080"
     environment:
       NODE_ENV: production
       TZ: ${APP_TIMEZONE:-Asia/Kolkata}

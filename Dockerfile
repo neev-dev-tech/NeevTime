@@ -53,6 +53,10 @@ COPY database /app/database
 
 # Copy Nginx configuration
 COPY nginx-docker.conf /etc/nginx/conf.d/default.conf
+# Deliberately NOT under conf.d/: nginx.conf auto-includes conf.d/*.conf at
+# the http level, which would apply these globally — including to /iclock/ —
+# and duplicate every header. It is included per-location by default.conf.
+COPY nginx-security-headers.conf /etc/nginx/security-headers.conf
 
 # Expose ports
 EXPOSE 80 3001 8080
