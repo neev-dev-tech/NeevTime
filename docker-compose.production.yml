@@ -53,11 +53,22 @@ services:
       # The readers are unaffected; they arrive on port 80 (/iclock/...), and
       # the ERPNext sync dials out rather than being called in.
       - "${HTTP_PORT:-80}:80"
+      # Only listens when TLS_ENABLED=true. Publishing it while TLS is off is
+      # harmless — nothing binds it inside the container.
+      - "${HTTPS_PORT:-443}:443"
     environment:
       NODE_ENV: production
       TZ: ${APP_TIMEZONE:-Asia/Kolkata}
       PORT: 3001
       SERVER_URL: ${SERVER_URL:-http://localhost}
+      # TLS is opt-in and off by default. Set TLS_ENABLED=true and TLS_HOST to
+      # the address people actually type (the IP, or a DNS name once this box
+      # has one) — the certificate's SAN is built from it, and a browser that
+      # does not find its address there rejects the certificate whatever else
+      # it says. Mount a real certificate at /etc/nginx/certs to replace the
+      # generated self-signed pair.
+      TLS_ENABLED: ${TLS_ENABLED:-false}
+      TLS_HOST: ${TLS_HOST:-localhost}
       DB_HOST: db
       DB_PORT: 5432
       DB_NAME: ${DB_NAME:-attendance_db}
@@ -76,6 +87,11 @@ services:
     volumes:
       - ./server/logs:/app/logs
       - ./server/backups:/app/backups
+      # Certificates persist across rebuilds. Without this, every deploy would
+      # mint a fresh self-signed pair and every browser would warn again as
+      # though it were a new site. Drop a real server.crt/server.key in here to
+      # replace the generated one.
+      - tls_certs:/etc/nginx/certs
     networks:
       - attendance-network
     healthcheck:
@@ -87,6 +103,8 @@ services:
 
 volumes:
   postgres_data:
+    driver: local
+  tls_certs:
     driver: local
 
 networks:
