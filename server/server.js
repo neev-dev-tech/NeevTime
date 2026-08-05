@@ -441,19 +441,30 @@ app.get('/api/notifications/summary', authenticateToken, async (req, res) => {
         // not queued. Approving it later does not backfill them. Nothing in the
         // app surfaced this, so an unapproved reader looked exactly like a group
         // of people who simply never punched.
-        const [leave, reg, offline, pendingDevices, enforcing] = await Promise.all([
+        const [leave, reg, offline, pendingDevices, enforcing, pushOff] = await Promise.all([
             db.query(`SELECT COUNT(*)::int AS n FROM leave_applications WHERE LOWER(status) = 'pending'`),
             db.query(`SELECT COUNT(*)::int AS n FROM attendance_regularizations WHERE status = 'pending'`),
             db.query(`SELECT COUNT(*)::int AS n FROM devices WHERE status = 'offline'`),
             db.query(`SELECT COUNT(*)::int AS n FROM devices
                       WHERE approval_status = 'pending' AND status IS DISTINCT FROM 'retired'`),
-            settings.get('security', 'require_device_approval', false)
+            settings.get('security', 'require_device_approval', false),
+            // An active HRMS integration with attendance push switched off is
+            // silent by nature: punches keep arriving, reports keep working, and
+            // nothing reaches payroll. It sat that way from 31 July to 4 August
+            // and only surfaced when someone noticed records missing at the far
+            // end. Surfacing it is the whole fix.
+            db.query(`SELECT name FROM hrms_integrations
+                      WHERE is_active IS TRUE AND sync_attendance IS NOT TRUE
+                      ORDER BY name`)
         ]);
         res.json({
             pending_leave: leave.rows[0].n,
             pending_regularizations: reg.rows[0].n,
             devices_offline: offline.rows[0].n,
             devices_pending_approval: pendingDevices.rows[0].n,
+            // Names, not just a count — "InnopayHR is not pushing attendance"
+            // is actionable in a way that "1 integration" is not.
+            attendance_push_disabled: pushOff.rows.map(r => r.name),
             // Lets the client say whether those devices are merely waiting or
             // are actively losing punches right now.
             device_approval_enforced: enforcing === true || enforcing === 'true'

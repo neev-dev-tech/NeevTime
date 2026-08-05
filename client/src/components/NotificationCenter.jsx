@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, Plane, FileCheck, WifiOff, AlertTriangle, LogIn, X, ShieldAlert } from 'lucide-react';
+import { Bell, Plane, FileCheck, WifiOff, AlertTriangle, LogIn, X, ShieldAlert, CloudOff } from 'lucide-react';
 import io from 'socket.io-client';
 import api from '../api';
 
@@ -15,7 +15,8 @@ export default function NotificationCenter() {
     const [open, setOpen] = useState(false);
     const [summary, setSummary] = useState({
         pending_leave: 0, pending_regularizations: 0, devices_offline: 0,
-        devices_pending_approval: 0, device_approval_enforced: false
+        devices_pending_approval: 0, device_approval_enforced: false,
+        attendance_push_disabled: []
     });
     const [feed, setFeed] = useState([]);
     const [unseen, setUnseen] = useState(0);
@@ -65,8 +66,11 @@ export default function NotificationCenter() {
         };
     }, []);
 
+    const pushOff = summary.attendance_push_disabled || [];
+
     const pendingTotal = summary.pending_leave + summary.pending_regularizations
-        + summary.devices_offline + (summary.devices_pending_approval || 0);
+        + summary.devices_offline + (summary.devices_pending_approval || 0)
+        + pushOff.length;
 
     // A device waiting for approval while enforcement is on is losing punches
     // right now, and they are not recoverable — the reader is ACKed and clears
@@ -123,6 +127,20 @@ export default function NotificationCenter() {
                                 <span className="flex items-center gap-2.5 text-sm text-slate-600 dark:text-slate-300"><FileCheck size={15} className="text-orange-600" /> Pending regularizations</span>
                                 <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${summary.pending_regularizations > 0 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400'}`}>{summary.pending_regularizations}</span>
                             </button>
+                            {pushOff.length > 0 && (
+                                <button onClick={() => go('/integrations')} className="w-full px-4 py-2.5 flex items-center justify-between text-left bg-rose-50 hover:bg-rose-100 dark:bg-rose-900/20 dark:hover:bg-rose-900/40">
+                                    <span className="flex items-center gap-2.5 text-sm text-slate-700 dark:text-slate-200">
+                                        <CloudOff size={15} className="text-rose-600 shrink-0" />
+                                        <span>
+                                            Attendance is not reaching {pushOff.join(', ')}
+                                            <span className="block text-[11px] font-normal text-rose-600 dark:text-rose-400">
+                                                Punches are recorded here but never pushed to payroll
+                                            </span>
+                                        </span>
+                                    </span>
+                                    <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300 shrink-0">off</span>
+                                </button>
+                            )}
                             {summary.devices_pending_approval > 0 && (
                                 <button onClick={() => go('/devices')} className={`w-full px-4 py-2.5 flex items-center justify-between text-left ${losingPunches ? 'bg-rose-50 hover:bg-rose-100 dark:bg-rose-900/20 dark:hover:bg-rose-900/40' : 'hover:bg-orange-50 dark:hover:bg-slate-700'}`}>
                                     <span className="flex items-center gap-2.5 text-sm text-slate-700 dark:text-slate-200">

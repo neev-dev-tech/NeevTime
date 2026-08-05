@@ -131,14 +131,47 @@ const recordPunch = async (punch, options = {}) => {
                 const hrmsIntegration = require('./hrms-integration');
                 const integrations = await hrmsIntegration.getActiveIntegrations();
                 for (const integration of integrations) {
-                    if (integration.sync_attendance) {
-                        const instance = await hrmsIntegration.getIntegrationInstance(integration.id);
-                        await instance.pushAttendance([{
-                            employee_code: employeeCode,
-                            punch_time: localTimestamp,
-                            punch_state: state,
-                            device_serial: deviceSerial
-                        }]);
+                    if (!integration.sync_attendance) continue;
+                    const instance = await hrmsIntegration.getIntegrationInstance(integration.id);
+                    const record = {
+                        employee_code: employeeCode,
+                        punch_time: localTimestamp,
+                        punch_state: state,
+                        device_serial: deviceSerial
+                    };
+
+                    try {
+                        const stats = await instance.pushAttendance([record]);
+                        const failed = stats?.failed || 0;
+
+                        // Heartbeat only — one integration_sync_logs row per punch
+                        // would add hundreds of rows a day and bury the batch
+                        // entries. This keeps "is the push alive?" answerable
+                        // without the noise. It matters: that table read "last
+                        // push 31 July" for four days while the real-time path
+                        // was the only thing running, which is what made the
+                        // outage so hard to see.
+                        await instance.updateSyncStatus(
+                            failed ? 'partial' : 'success',
+                            failed
+                                ? `Live push: ${employeeCode} rejected`
+                                : `Live push: ${employeeCode} at ${localTimestamp}`
+                        );
+
+                        // Failures DO get a row. They are rare, and each one is a
+                        // punch that never reached payroll — exactly what someone
+                        // reviewing sync health needs to find.
+                        if (failed) {
+                            await instance.logSync('attendance', 'push', 'partial', stats);
+                        }
+                    } catch (pushErr) {
+                        await instance.updateSyncStatus('failed', `Live push failed: ${pushErr.message}`);
+                        await instance.logSync(
+                            'attendance', 'push', 'failed',
+                            { processed: 1, success: 0, failed: 1 },
+                            pushErr.message
+                        );
+                        throw pushErr;
                     }
                 }
             } catch (err) {
