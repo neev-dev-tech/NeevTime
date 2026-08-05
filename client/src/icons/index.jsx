@@ -22,6 +22,7 @@ import {
     AlarmIcon as PAlarmIcon,
     ArrowCounterClockwise as PArrowCounterClockwise,
     ArrowDownRight as PArrowDownRight,
+    CloudSlash as PCloudSlash,
     ArrowLeft as PArrowLeft,
     ArrowRight as PArrowRight,
     ArrowSquareOut as PArrowSquareOut,
@@ -295,6 +296,8 @@ export const UserX = solid(PUserMinus, 'UserX');
 export const Users = solid(PUsersThree, 'Users');
 export const Wifi = solid(PWifiHigh, 'Wifi');
 export const WifiOff = solid(PWifiSlash, 'WifiOff');
+// Attendance not reaching an external HRMS — same slash idiom as WifiOff.
+export const CloudOff = solid(PCloudSlash, 'CloudOff');
 export const Workflow = solid(PFlowArrow, 'Workflow');
 export const X = solid(PX, 'X');
 export const XCircle = solid(PXCircle, 'XCircle');
