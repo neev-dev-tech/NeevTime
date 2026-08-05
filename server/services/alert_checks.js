@@ -223,15 +223,35 @@ const checkDeadLetters = async () => {
     });
 };
 
+/**
+ * Repeated saves of the same settings form collapse into one alert. Five
+ * minutes is long enough to cover someone adjusting several fields and saving
+ * between each, short enough that a genuinely separate change an hour later
+ * still reports.
+ */
+const CONFIG_ALERT_QUIET_MS = 5 * 60 * 1000;
+const lastConfigAlert = new Map();
+
 /** Reports config changes, so a repeat of 31 July is noticed the same day. */
 const notifyConfigChange = async ({ username, entity, action, summary }) => {
     try {
         const cfg = await alerts.alertConfig();
         if (!cfg.enabled || cfg.notify_config_changes !== true) return;
 
-        // Not deduped: each change is its own event, and there is nothing to
-        // "resolve". The timestamp in the key keeps them distinct.
-        await alerts.raise(`config_change:${entity}:${Date.now()}`, {
+        // Saving a settings form several times in a minute is one act of
+        // configuration, not six incidents. Without this, six saves in thirty
+        // seconds sent six emails — the fastest possible way to teach someone
+        // to filter this sender.
+        const now = Date.now();
+        const last = lastConfigAlert.get(entity) || 0;
+        if (now - last < CONFIG_ALERT_QUIET_MS) return;
+        lastConfigAlert.set(entity, now);
+
+        // transient: this reports an event, not a condition. Nothing recovers
+        // from "a setting changed", so it closes itself rather than sitting in
+        // the open-issues list and every digest from now on.
+        await alerts.raise(`config_change:${entity}:${now}`, {
+            transient: true,
             severity: 'medium',
             subject: `${entity} settings changed by ${username || 'unknown user'}`,
             body: `${action} on ${entity}\n\nBy: ${username || 'unknown'}\n\n${summary || ''}\n\n`

@@ -198,3 +198,32 @@ test('repeated failed sign-ins raise an alert', () => {
     assert.ok(/locked_until > NOW\(\)/.test(src),
         'the lockout check should only report currently-locked accounts, not historic ones');
 });
+
+test('an event-shaped alert closes itself instead of sitting open forever', () => {
+    // Config changes report something that happened, not a state that persists.
+    // Left open they accumulate one row per save — seven appeared within an hour
+    // of the feature going live — and every one shows in the daily digest as an
+    // outstanding issue. A list that is always full is a list nobody reads.
+    const src = read('services/alerts.js');
+    assert.ok(/transient = false/.test(src), 'raise() no longer supports transient alerts');
+    assert.ok(/if \(transient\)[\s\S]{0,200}resolved_at = NOW\(\)/.test(src),
+        'a transient alert is not closed after sending');
+
+    const checks = read('services/alert_checks.js');
+    assert.ok(/transient: true/.test(checks),
+        'the config-change notice no longer marks itself transient');
+});
+
+test('repeated saves of the same form do not send repeated mail', () => {
+    // Six saves in thirty seconds sent six emails. That is the fastest possible
+    // way to train someone to filter this sender — and the one that matters
+    // would go with it.
+    const src = read('services/alert_checks.js');
+    assert.ok(/CONFIG_ALERT_QUIET_MS/.test(src), 'the config-change debounce is gone');
+    assert.ok(/now - last < CONFIG_ALERT_QUIET_MS/.test(src),
+        'the debounce is defined but not applied');
+
+    const quiet = /CONFIG_ALERT_QUIET_MS = (\d+) \* 60 \* 1000/.exec(src);
+    assert.ok(quiet && Number(quiet[1]) >= 1 && Number(quiet[1]) <= 30,
+        'the quiet period should be minutes, not seconds or hours');
+});

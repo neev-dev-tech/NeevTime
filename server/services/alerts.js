@@ -88,7 +88,7 @@ const deliver = async (key, subject, body, details) => {
  *
  * @param {string} key    stable identity for the issue, e.g. `device_offline:NYU7254000077`
  */
-const raise = async (key, { subject, body, severity = 'medium', details = {} } = {}) => {
+const raise = async (key, { subject, body, severity = 'medium', details = {}, transient = false } = {}) => {
     try {
         // ON CONFLICT makes this safe against two checks racing: the first
         // insert wins and only it reports rowCount, so only one mail goes out.
@@ -118,7 +118,21 @@ const raise = async (key, { subject, body, severity = 'medium', details = {} } =
         if (row.notified_at) {
             return { sent: false, reason: 'already open' };
         }
-        return await deliver(key, subject, body, { ...details, severity });
+        const result = await deliver(key, subject, body, { ...details, severity });
+
+        // A transient alert reports something that happened rather than a state
+        // that persists — a config change has nothing to "recover" from. Left
+        // open it would sit in the issues list and every daily digest forever,
+        // one row per event, which is how a useful list becomes ignored. Closed
+        // immediately, and silently: a recovery mail for "someone changed a
+        // setting" would just double the noise.
+        if (transient) {
+            await db.query(
+                'UPDATE alert_state SET resolved_at = NOW() WHERE alert_key = $1',
+                [key]
+            ).catch(() => {});
+        }
+        return result;
     } catch (err) {
         log('ERROR', 'raise failed', { key, error: err.message });
         return { sent: false, reason: err.message };
