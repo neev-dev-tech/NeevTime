@@ -41,6 +41,7 @@ export default function Settings() {
     const [formData, setFormData] = useState({});
     const [testEmail, setTestEmail] = useState('');
     const [testingEmail, setTestingEmail] = useState(false);
+    const [testingAlert, setTestingAlert] = useState(false);
 
     // Fetch all settings on mount
     useEffect(() => {
@@ -117,6 +118,22 @@ export default function Settings() {
 
     const showToast = (message, type = 'info') => {
         (globalToast[type] || globalToast.info)(message);
+    };
+
+    // Fires a real alert through raise()/resolve() rather than calling the mail
+    // service directly — a test that skips the plumbing only proves SMTP works,
+    // which the Email tab already tells you.
+    const handleTestAlert = async () => {
+        setTestingAlert(true);
+        try {
+            const res = await api.post('/api/settings/test-alert');
+            showToast(res.data.message || 'Test alert sent', 'success');
+        } catch (err) {
+            const d = err.response?.data || {};
+            showToast([d.error, d.hint].filter(Boolean).join(' — ') || 'Test alert failed', 'error');
+        } finally {
+            setTestingAlert(false);
+        }
     };
 
     const handleTestEmail = async () => {
@@ -360,6 +377,21 @@ export default function Settings() {
                             {sortedSettings.map(([key, config]) =>
                                 renderInput(key, config)
                             )}
+                        </div>
+                    )}
+
+                    {/* Alert test — only on the Alerts tab */}
+                    {activeTab === 'alerts' && (
+                        <div className="mt-6 p-4 bg-slate-50/70 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl">
+                            <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 mb-1">Send a test alert</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
+                                Goes to the recipients above, through the same path a real alert takes.
+                                Expect two messages: the alert, then confirmation it cleared. Save your
+                                settings first.
+                            </p>
+                            <Button variant="dark" icon={BellRing} onClick={handleTestAlert} disabled={testingAlert}>
+                                {testingAlert ? 'Sending...' : 'Send Test Alert'}
+                            </Button>
                         </div>
                     )}
 

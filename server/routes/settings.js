@@ -159,6 +159,68 @@ router.post('/test-email', async (req, res) => {
     }
 });
 
+/**
+ * Fire a real alert on demand, so delivery can be proven without waiting for
+ * something to actually break.
+ *
+ * This is deliberately not a shortcut to sendEmail: it goes through raise() and
+ * resolve() exactly as a genuine alert does, so it exercises the recipient list,
+ * the dedupe state, the mail formatting and SMTP together. A test that skips the
+ * plumbing proves only that SMTP works, which the Email tab already tells you.
+ *
+ * Two mails are expected — the alert, then the recovery — which also confirms
+ * the resolve half is wired, the half that is easy to leave broken because
+ * nothing complains when it is.
+ */
+router.post('/test-alert', async (req, res) => {
+    try {
+        const alerts = require('../services/alerts');
+        const cfg = await alerts.alertConfig();
+
+        if (cfg.recipientList.length === 0) {
+            return res.status(400).json({
+                error: 'No alert recipients configured. Set them under Settings → Alerts.'
+            });
+        }
+
+        // A fixed key, cleared first, so repeated tests are not swallowed by the
+        // dedupe that exists precisely to swallow repeats.
+        const key = 'test_alert';
+        await db.query('DELETE FROM alert_state WHERE alert_key = $1', [key]);
+
+        const raised = await alerts.raise(key, {
+            severity: 'low',
+            subject: 'NeevTime test alert',
+            body: 'This is a test, triggered from Settings.\n\n'
+                + 'If this arrived, alerting works: the recipient list, the mail '
+                + 'formatting and SMTP are all connected.\n\n'
+                + 'A second mail should follow immediately confirming it cleared. '
+                + 'Real alerts behave the same way — one when something breaks, '
+                + 'one when it recovers, and nothing in between however long it lasts.',
+            details: { triggeredBy: req.user?.username || 'unknown' }
+        });
+
+        if (!raised.sent) {
+            return res.status(400).json({
+                success: false,
+                error: `Alert not delivered: ${raised.reason}`,
+                hint: 'Alerting is email-only. Send a test from the Email/SMTP tab first.'
+            });
+        }
+
+        const resolved = await alerts.resolve(key);
+
+        res.json({
+            success: true,
+            recipients: cfg.recipientList,
+            message: `Sent to ${cfg.recipientList.join(', ')}. Expect two mails: the alert and its recovery.`,
+            recovery_sent: resolved.sent === true
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // ================= UPDATE SINGLE SETTING =================
 router.put('/:category/:key', async (req, res) => {
     try {
