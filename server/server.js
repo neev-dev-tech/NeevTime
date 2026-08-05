@@ -1772,9 +1772,12 @@ const ensureSchema = async () => {
             'Zone used to decide which day a punch belongs to and to measure shift start, lateness and overtime'],
         // Off by default so enabling it is a deliberate decision — turning it on
         // without approving your readers first would stop attendance collection.
-        ['alerts', 'enabled', 'false', 'boolean',
-            'Send email when something needs attention. Off until recipients are set.'],
-        ['alerts', 'recipients', '', 'string',
+        // Seeded on, with the address this install asked for. ON CONFLICT DO
+        // NOTHING means these apply once, on first boot, and never overwrite a
+        // later change made in Settings.
+        ['alerts', 'enabled', 'true', 'boolean',
+            'Send email when something needs attention. Nothing is sent while recipients is empty.'],
+        ['alerts', 'recipients', 'it@innopay.in', 'string',
             'Comma-separated addresses. Alerts are dropped if this is empty.'],
         ['alerts', 'device_offline_minutes', '30', 'number',
             'Raise an alert when a reader has been silent this long'],

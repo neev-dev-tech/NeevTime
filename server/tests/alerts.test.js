@@ -62,14 +62,28 @@ test('delivery failure is recorded rather than swallowed', () => {
         'the app does not surface undeliverable alerts, so broken alerting is invisible');
 });
 
-test('alerting is off until recipients are configured', () => {
+test('nothing is sent without an explicit recipient', () => {
+    // The real invariant. The seed ships enabled with this install's own
+    // address, so "off by default" is no longer the protection — the guard on
+    // an empty recipient list is. Without it, enabling alerting with a blank
+    // recipients field would attempt a send on every check and record a
+    // delivery failure each time.
     const src = read('services/alerts.js');
     assert.ok(/if \(!cfg\.enabled\) return/.test(src), 'alerts send even when disabled');
     assert.ok(/recipientList\.length === 0/.test(src), 'alerts are attempted with no recipients');
+});
 
+test('the seeded alert settings are coherent', () => {
+    // Enabled with no recipient would be a feature that looks on and does
+    // nothing — the silent failure this whole thing exists to remove.
     const server = read('server.js');
-    assert.ok(/\['alerts', 'enabled', 'false', 'boolean'/.test(server),
-        'alerting must be seeded off — a fresh install must not mail an address nobody chose');
+    const enabled = /\['alerts', 'enabled', '(true|false)'/.exec(server);
+    const recipients = /\['alerts', 'recipients', '([^']*)'/.exec(server);
+    assert.ok(enabled && recipients, 'the alert settings are no longer seeded');
+    if (enabled[1] === 'true') {
+        assert.ok(recipients[1].includes('@'),
+            'alerting is seeded on with no recipient address — it would silently send nothing');
+    }
 });
 
 test('every check pairs a raise with a resolve', () => {
