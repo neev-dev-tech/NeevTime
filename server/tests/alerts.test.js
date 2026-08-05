@@ -106,6 +106,38 @@ test('the digest cannot send twice after a restart', () => {
         'the daily digest is not guarded against sending more than once a day');
 });
 
+test('restarting after the send time does not fire a digest', () => {
+    // It did: lastDigestDate started null, so the first tick after any restart
+    // past 08:00 decided today's digest was still owed. A container restarted
+    // three times in an afternoon would send three "daily" summaries. Seeding
+    // the date at startup is what prevents it.
+    const src = read('services/alert_checks.js');
+    const start = src.indexOf('const startAlertChecks');
+    const body = src.slice(start, src.indexOf('setInterval(async', start));
+    assert.ok(/digestTimeReached\(cfg\)/.test(body) && /lastDigestDate = localDate\(\)/.test(body),
+        'startup does not mark an already-due digest as sent, so a restart will send one');
+});
+
+test('the digest compares local time against a local date', () => {
+    // toISOString() yields the UTC date while the hour check uses local hours.
+    // In IST that pair disagrees every night until 05:30, so the guard would
+    // either skip or repeat the digest.
+    const { localDate, digestTimeReached } = require('../services/alert_checks.js');
+    const at = (h, m) => { const d = new Date(); d.setHours(h, m, 0, 0); return d; };
+
+    assert.strictEqual(digestTimeReached({ digest_time: '08:00' }, at(7, 59)), false);
+    assert.strictEqual(digestTimeReached({ digest_time: '08:00' }, at(8, 0)), true);
+
+    const now = new Date();
+    const expected = [now.getFullYear(),
+        String(now.getMonth() + 1).padStart(2, '0'),
+        String(now.getDate()).padStart(2, '0')].join('-');
+    assert.strictEqual(localDate(), expected, 'localDate() is not returning the local calendar date');
+
+    assert.ok(!/toISOString\(\)\.slice\(0, 10\)/.test(read('services/alert_checks.js')),
+        'the UTC date string is back; it will disagree with the local hour check');
+});
+
 test('sync health is judged on the data, not a status field', () => {
     // Status fields have misreported twice: sync_attendance off produced no
     // signal at all, and a batch where every record was rejected wrote

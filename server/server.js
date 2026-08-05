@@ -1847,7 +1847,10 @@ server.listen(PORT, '0.0.0.0', async () => {
     // ever left the building, which is how attendance sync stayed off for four
     // days in July without anyone knowing. Off until recipients are configured.
     try {
-        require('./services/alert_checks').startAlertChecks();
+        // async now: it reads the digest time at startup so a restart after
+        // the send hour does not fire one immediately. Nothing awaits it.
+        require('./services/alert_checks').startAlertChecks().catch(err =>
+            console.log('Alert checks: startup check failed -', err.message));
     } catch (err) {
         console.log('Alert checks: not available -', err.message);
     }

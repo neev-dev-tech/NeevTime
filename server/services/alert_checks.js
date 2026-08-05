@@ -237,22 +237,52 @@ const runChecks = async () => {
  * The digest guards on the date it last ran so a restart cannot send it twice.
  */
 let lastDigestDate = null;
-const startAlertChecks = () => {
+
+/**
+ * Local calendar date. toISOString() would give the UTC date, and the time
+ * comparison below uses local hours — mixing the two makes the guard wrong
+ * between midnight and the UTC offset, which in IST is every night until 05:30.
+ */
+const localDate = (d = new Date()) => [
+    d.getFullYear(),
+    String(d.getMonth() + 1).padStart(2, '0'),
+    String(d.getDate()).padStart(2, '0')
+].join('-');
+
+/** Has the configured send time already passed today? */
+const digestTimeReached = (cfg, now = new Date()) => {
+    const [h, m] = String(cfg.digest_time || '08:00').split(':').map(Number);
+    return now.getHours() > h || (now.getHours() === h && now.getMinutes() >= (m || 0));
+};
+
+const startAlertChecks = async () => {
     const CHECK_MS = 5 * 60 * 1000;
 
     setInterval(() => { runChecks().catch(() => {}); }, CHECK_MS);
+
+    // Without this, restarting after the send time fires a digest immediately:
+    // lastDigestDate is null, the time has passed, so the first tick decides
+    // today's is still owed. A container restarted three times in an afternoon
+    // sends three "daily" summaries. Treat today's as already sent and wait for
+    // tomorrow — a missed digest is a far smaller problem than a feature that
+    // cries wolf on every deploy.
+    try {
+        const cfg = await alerts.alertConfig();
+        if (digestTimeReached(cfg)) {
+            lastDigestDate = localDate();
+            log('INFO', 'Digest already due today; next one tomorrow', { at: cfg.digest_time });
+        }
+    } catch { /* fall through: worst case is one extra digest */ }
 
     setInterval(async () => {
         try {
             const cfg = await alerts.alertConfig();
             if (!cfg.enabled || cfg.digest_enabled !== true) return;
 
-            const now = new Date();
-            const today = now.toISOString().slice(0, 10);
+            const today = localDate();
             if (lastDigestDate === today) return;
 
-            const [h, m] = String(cfg.digest_time || '08:00').split(':').map(Number);
-            if (now.getHours() > h || (now.getHours() === h && now.getMinutes() >= (m || 0))) {
+            if (digestTimeReached(cfg)) {
                 lastDigestDate = today;
                 await sendDigest();
             }
@@ -264,5 +294,6 @@ const startAlertChecks = () => {
 
 module.exports = {
     runChecks, sendDigest, startAlertChecks, notifyConfigChange,
+    localDate, digestTimeReached,
     checkAttendancePush, checkSyncBacklog, checkDevicesOffline, checkDeadLetters
 };
