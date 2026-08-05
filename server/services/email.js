@@ -63,15 +63,32 @@ const initTransporter = async () => {
             emailConfig = result.rows[0];
         }
 
-        transporter = nodemailer.createTransport({
+        // Credentials are omitted entirely when no username is set, rather than
+        // sent as empty strings. That is what makes unauthenticated relay work —
+        // Microsoft 365 "Direct Send" accepts mail addressed to your own domain
+        // from any host on port 25 with no credentials at all, which avoids
+        // needing a licensed mailbox and avoids SMTP AUTH, which Microsoft now
+        // disables by default. An empty auth block is not the same as no auth
+        // block: it invites the client to attempt a login that the server never
+        // offered.
+        const transportOptions = {
             host: emailConfig.smtp_host,
             port: emailConfig.smtp_port,
-            secure: emailConfig.smtp_secure ?? emailConfig.smtp_port === 465,
-            auth: {
+            secure: emailConfig.smtp_secure ?? emailConfig.smtp_port === 465
+        };
+
+        if (emailConfig.smtp_user) {
+            transportOptions.auth = {
                 user: emailConfig.smtp_user,
                 pass: emailConfig.smtp_password
-            }
-        });
+            };
+        } else {
+            // Opportunistic STARTTLS: relays on port 25 usually offer it, but
+            // requiring it would break the ones that do not.
+            transportOptions.tls = { rejectUnauthorized: false };
+        }
+
+        transporter = nodemailer.createTransport(transportOptions);
 
         // Verify connection
         await transporter.verify();
