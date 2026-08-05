@@ -59,6 +59,43 @@ const checkAttendancePush = async () => {
     }
 };
 
+/**
+ * Records that have not reached the HR system. This watches the data itself
+ * rather than a status field, and that distinction has earned its place twice
+ * in one day: sync_attendance being off reported nothing at all, and a batch
+ * where every record was rejected reported "success — Synced 0 attendance
+ * records". A backlog cannot lie in the same way. If punches are not arriving
+ * at payroll, this fires regardless of what any flag says.
+ */
+const checkSyncBacklog = async () => {
+    const res = await db.query(`
+        SELECT count(*)::int AS n, min(punch_time) AS oldest
+        FROM attendance_logs
+        WHERE sync_status IS DISTINCT FROM 'synced'
+          AND sync_status IS DISTINCT FROM 'skipped'
+          AND punch_time > NOW() - INTERVAL '7 days'
+    `);
+    const { n, oldest } = res.rows[0];
+
+    // A handful in flight between the punch and the next cycle is normal; a
+    // stuck hour is not. The age matters more than the count — a backlog that
+    // stops advancing is the signal, and anything older than the 7-day retry
+    // window can never be recovered at all.
+    const stuck = n > 0 && oldest && (Date.now() - new Date(oldest)) > 60 * 60 * 1000;
+
+    await alerts.track('sync_backlog', stuck, {
+        severity: 'high',
+        subject: `${n} attendance records have not reached the HR system`,
+        body: `${n} punches are waiting to sync, the oldest from ${oldest}.\n\n`
+            + 'They are recorded safely in NeevTime — this is about them not reaching '
+            + 'payroll. Records are retried automatically, but only for 7 days after '
+            + 'the punch; anything older than that is never sent.\n\n'
+            + 'Common causes: the HR system rejecting inserts, credentials expired, '
+            + 'or attendance push switched off under Integrations.',
+        details: { count: n }
+    });
+};
+
 /** A reader that has stopped talking is a reader whose punches are not arriving. */
 const checkDevicesOffline = async () => {
     const cfg = await alerts.alertConfig();
@@ -183,6 +220,7 @@ const runChecks = async () => {
 
     for (const [name, fn] of [
         ['attendance push', checkAttendancePush],
+        ['sync backlog', checkSyncBacklog],
         ['devices offline', checkDevicesOffline],
         ['dead letters', checkDeadLetters]
     ]) {
@@ -226,5 +264,5 @@ const startAlertChecks = () => {
 
 module.exports = {
     runChecks, sendDigest, startAlertChecks, notifyConfigChange,
-    checkAttendancePush, checkDevicesOffline, checkDeadLetters
+    checkAttendancePush, checkSyncBacklog, checkDevicesOffline, checkDeadLetters
 };

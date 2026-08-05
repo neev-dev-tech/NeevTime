@@ -407,10 +407,24 @@ const syncAttendanceToHRMS = async (integration) => {
 
         const stats = await integration.pushAttendance(result.rows);
 
-        await integration.logSync(SYNC_TYPE.ATTENDANCE, SYNC_DIRECTION.PUSH,
-            stats.failed > 0 ? 'partial' : 'success', stats);
+        const outcome = stats.failed > 0
+            ? (stats.success > 0 ? 'partial' : 'failed')
+            : 'success';
 
-        await integration.updateSyncStatus('success', `Synced ${stats.success} attendance records`);
+        await integration.logSync(SYNC_TYPE.ATTENDANCE, SYNC_DIRECTION.PUSH, outcome, stats);
+
+        // This used to report 'success' unconditionally, so a batch where every
+        // record was rejected still showed "success — Synced 0 attendance
+        // records" on the Integrations page. That is how a two-hour ERPNext
+        // outage looked healthy from inside the app, and it also made the
+        // sync_failing alert unreachable: it watches for last_sync_status
+        // 'failed', a value nothing ever wrote.
+        await integration.updateSyncStatus(
+            outcome,
+            stats.failed > 0
+                ? `Synced ${stats.success}, rejected ${stats.failed}`
+                : `Synced ${stats.success} attendance records`
+        );
 
         return stats;
     } catch (err) {
@@ -454,10 +468,21 @@ const syncEmployeesFromHRMS = async (integration) => {
             }
         }
 
-        await integration.logSync(SYNC_TYPE.EMPLOYEES, SYNC_DIRECTION.PULL,
-            stats.failed > 0 ? 'partial' : 'success', stats);
+        // Same hardcoded 'success' as the attendance push had, found by the test
+        // written for that one. An employee pull where every record failed
+        // reported success just as loudly.
+        const outcome = stats.failed > 0
+            ? (stats.success > 0 ? 'partial' : 'failed')
+            : 'success';
 
-        await integration.updateSyncStatus('success', `Synced ${stats.success} employees`);
+        await integration.logSync(SYNC_TYPE.EMPLOYEES, SYNC_DIRECTION.PULL, outcome, stats);
+
+        await integration.updateSyncStatus(
+            outcome,
+            stats.failed > 0
+                ? `Synced ${stats.success} employees, ${stats.failed} failed`
+                : `Synced ${stats.success} employees`
+        );
 
         return stats;
     } catch (err) {

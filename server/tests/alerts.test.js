@@ -91,7 +91,7 @@ test('every check pairs a raise with a resolve', () => {
     // thing. track() makes the pairing structural instead of remembered.
     const src = read('services/alert_checks.js');
     const raises = (src.match(/alerts\.track\(/g) || []).length;
-    assert.ok(raises >= 3, `expected the health checks to use track(); found ${raises}`);
+    assert.ok(raises >= 4, `expected the health checks to use track(); found ${raises}`);
 
     // Config changes are the one deliberate exception: each is its own event
     // with nothing to resolve.
@@ -104,4 +104,29 @@ test('the digest cannot send twice after a restart', () => {
     const src = read('services/alert_checks.js');
     assert.ok(/lastDigestDate === today/.test(src),
         'the daily digest is not guarded against sending more than once a day');
+});
+
+test('sync health is judged on the data, not a status field', () => {
+    // Status fields have misreported twice: sync_attendance off produced no
+    // signal at all, and a batch where every record was rejected wrote
+    // "success — Synced 0 attendance records". A backlog of unsynced rows
+    // cannot lie in the same way.
+    const src = read('services/alert_checks.js');
+    assert.ok(/checkSyncBacklog/.test(src), 'the backlog check is gone');
+    assert.ok(/sync_status IS DISTINCT FROM 'synced'/.test(src),
+        'the backlog check no longer looks at per-record sync status');
+    assert.ok(/INTERVAL '7 days'/.test(src),
+        'the backlog check should be bounded by the same window the retry uses');
+});
+
+test('a batch that fails is not reported as a success', () => {
+    // The bug this replaced: updateSyncStatus was called with a hardcoded
+    // 'success' whatever the outcome, so the Integrations page showed success
+    // through a two-hour outage — and made the sync_failing alert unreachable,
+    // because nothing ever wrote the 'failed' value it watches for.
+    const src = read('services/hrms-integration.js');
+    assert.ok(!/updateSyncStatus\('success', `Synced \$\{stats\.success\}/.test(src),
+        'sync status is hardcoded to success again');
+    assert.ok(/stats\.success > 0 \? 'partial' : 'failed'/.test(src),
+        'a batch where every record is rejected must report failed, not partial or success');
 });
