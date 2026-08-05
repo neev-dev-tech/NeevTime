@@ -29,7 +29,10 @@ const log = (level, msg, data = {}) => {
 /**
  * Initialize email transporter from database settings
  */
+let lastInitError = null;
+
 const initTransporter = async () => {
+    lastInitError = null;
     try {
         // Primary source: Settings page (app_settings, category 'notifications').
         // Fallback: legacy email_settings table.
@@ -98,6 +101,10 @@ const initTransporter = async () => {
     } catch (err) {
         log('ERROR', 'Failed to initialize email transporter', { error: err.message });
         transporter = null;
+        // Kept so callers can report why rather than "unavailable". Connecting
+        // to port 25 with TLS enabled, or an outbound firewall, both land here,
+        // and the two need completely different fixes.
+        lastInitError = err.message;
         return null;
     }
 };
@@ -131,7 +138,15 @@ const sendEmail = async (options) => {
     const transport = await getTransporter();
 
     if (!transport) {
-        throw new Error('Email not configured or unavailable');
+        // Surface the real cause. "unavailable" sent whoever hit this looking
+        // at settings that were already correct.
+        const detail = lastInitError ? `: ${lastInitError}` : '';
+        const hint = /wrong version number|SSL routines|ECONNRESET/i.test(lastInitError || '')
+            ? ' — this usually means SMTP Secure is on for a STARTTLS port; turn it off for port 25 or 587.'
+            : /ETIMEDOUT|ECONNREFUSED|EHOSTUNREACH/i.test(lastInitError || '')
+                ? ' — the server could not be reached; check the host, the port, and whether outbound traffic on that port is allowed.'
+                : '';
+        throw new Error(`Email not configured or unavailable${detail}${hint}`);
     }
 
     const mailOptions = {
