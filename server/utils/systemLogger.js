@@ -84,6 +84,25 @@ const redact = (body) => {
  * invisible. res.json is wrapped up front but read at send time, so req.user is
  * already populated by whichever authenticateToken guard ran in between.
  */
+/**
+ * A short, readable description of what a request changed — the alert body is
+ * read on a phone, not parsed. Only the fields worth waking someone for, and
+ * never anything credential-shaped.
+ */
+const NOTABLE = [
+    'sync_attendance', 'sync_employees', 'sync_leaves', 'sync_interval_minutes',
+    'is_active', 'enabled', 'require_device_approval', 'max_login_attempts',
+    'session_timeout_minutes', 'recipients', 'base_url', 'name'
+];
+
+const summarise = (body) => {
+    if (!body || typeof body !== 'object') return '';
+    return NOTABLE
+        .filter(k => body[k] !== undefined)
+        .map(k => `  ${k}: ${JSON.stringify(body[k])}`)
+        .join('\n');
+};
+
 const auditMutations = (req, res, next) => {
     const action = METHOD_ACTION[req.method];
     if (!action) return next();
@@ -106,6 +125,21 @@ const auditMutations = (req, res, next) => {
                 ip_address: req.ip || req.connection?.remoteAddress,
                 user_agent: req.get('user-agent')
             }).catch(err => console.error('Audit logging failed:', err.message));
+
+            // Changes to integrations or security settings get mailed as well as
+            // logged. The audit row that recorded attendance sync being switched
+            // off on 31 July was correct and complete — nobody read it for four
+            // days. A log nobody opens is not a control.
+            if (/^(hrms|settings|integrations)$/i.test(entityType)) {
+                try {
+                    require('../services/alert_checks').notifyConfigChange({
+                        username: req.user.username || String(req.user.id),
+                        entity: entityType,
+                        action,
+                        summary: summarise(req.body)
+                    }).catch(() => {});
+                } catch { /* alerting must never break the request it observes */ }
+            }
         }
         return originalJson(data);
     };

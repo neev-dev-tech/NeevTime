@@ -441,7 +441,7 @@ app.get('/api/notifications/summary', authenticateToken, async (req, res) => {
         // not queued. Approving it later does not backfill them. Nothing in the
         // app surfaced this, so an unapproved reader looked exactly like a group
         // of people who simply never punched.
-        const [leave, reg, offline, pendingDevices, enforcing, pushOff] = await Promise.all([
+        const [leave, reg, offline, pendingDevices, enforcing, pushOff, alertsBroken] = await Promise.all([
             db.query(`SELECT COUNT(*)::int AS n FROM leave_applications WHERE LOWER(status) = 'pending'`),
             db.query(`SELECT COUNT(*)::int AS n FROM attendance_regularizations WHERE status = 'pending'`),
             db.query(`SELECT COUNT(*)::int AS n FROM devices WHERE status = 'offline'`),
@@ -455,7 +455,13 @@ app.get('/api/notifications/summary', authenticateToken, async (req, res) => {
             // end. Surfacing it is the whole fix.
             db.query(`SELECT name FROM hrms_integrations
                       WHERE is_active IS TRUE AND sync_attendance IS NOT TRUE
-                      ORDER BY name`)
+                      ORDER BY name`),
+            // Email is the only alert channel, so a broken SMTP would mean no
+            // alerts at all and no sign of it — the exact silent-failure shape
+            // alerting exists to prevent. Surface it in the app instead.
+            db.query(`SELECT count(*)::int AS n FROM alert_state
+                      WHERE resolved_at IS NULL AND last_error IS NOT NULL`)
+                .catch(() => ({ rows: [{ n: 0 }] }))
         ]);
         res.json({
             pending_leave: leave.rows[0].n,
@@ -465,6 +471,7 @@ app.get('/api/notifications/summary', authenticateToken, async (req, res) => {
             // Names, not just a count — "InnopayHR is not pushing attendance"
             // is actionable in a way that "1 integration" is not.
             attendance_push_disabled: pushOff.rows.map(r => r.name),
+            alerts_undeliverable: alertsBroken.rows[0].n,
             // Lets the client say whether those devices are merely waiting or
             // are actively losing punches right now.
             device_approval_enforced: enforcing === true || enforcing === 'true'
@@ -1663,6 +1670,20 @@ const ensureSchema = async () => {
         // Avoids a failed INSERT and a retry on every document upload; the
         // route already falls back when this is absent.
         `ALTER TABLE employee_docs ADD COLUMN IF NOT EXISTS file_type VARCHAR(100)`,
+        // Open/closed state for outbound alerts. Without somewhere to remember
+        // what has already been reported, "one alert per issue" is impossible
+        // and a reader that flaps overnight sends hundreds of mails — which is
+        // how alerting stops being read at all.
+        `CREATE TABLE IF NOT EXISTS alert_state (
+            alert_key   VARCHAR(200) PRIMARY KEY,
+            severity    VARCHAR(20),
+            subject     TEXT,
+            opened_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            notified_at TIMESTAMP,
+            resolved_at TIMESTAMP,
+            occurrences INTEGER DEFAULT 1,
+            last_error  TEXT
+        )`,
         // Mobile punching and the Geofences page are both routed and both have
         // always failed: the geofences table was never created here, and
         // attendance_logs lacks the location columns the punch writes. The
@@ -1751,6 +1772,18 @@ const ensureSchema = async () => {
             'Zone used to decide which day a punch belongs to and to measure shift start, lateness and overtime'],
         // Off by default so enabling it is a deliberate decision — turning it on
         // without approving your readers first would stop attendance collection.
+        ['alerts', 'enabled', 'false', 'boolean',
+            'Send email when something needs attention. Off until recipients are set.'],
+        ['alerts', 'recipients', '', 'string',
+            'Comma-separated addresses. Alerts are dropped if this is empty.'],
+        ['alerts', 'device_offline_minutes', '30', 'number',
+            'Raise an alert when a reader has been silent this long'],
+        ['alerts', 'digest_enabled', 'true', 'boolean',
+            'Send a once-daily summary of collection and sync'],
+        ['alerts', 'digest_time', '08:00', 'string',
+            'Server local time to send the daily digest'],
+        ['alerts', 'notify_config_changes', 'true', 'boolean',
+            'Alert when integration or security settings are changed, and by whom'],
         ['security', 'require_device_approval', 'false', 'boolean',
             'Reject punches from devices that have not been approved in the Devices page']
     ];
@@ -1804,6 +1837,16 @@ server.listen(PORT, '0.0.0.0', async () => {
         console.log('Command Queue: retry processor + purge job started');
     } catch (err) {
         console.log('Command Queue jobs: Not available -', err.message);
+    }
+
+    // Outbound alerting. Health information already existed — health-monitor
+    // emitted alerts to any dashboard that happened to be open — but nothing
+    // ever left the building, which is how attendance sync stayed off for four
+    // days in July without anyone knowing. Off until recipients are configured.
+    try {
+        require('./services/alert_checks').startAlertChecks();
+    } catch (err) {
+        console.log('Alert checks: not available -', err.message);
     }
 
     // Device health monitor: pushes alerts to connected dashboards

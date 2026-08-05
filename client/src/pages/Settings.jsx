@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, RefreshCw, Send, Loader2, AlertCircle, Building, Timer, CalendarDays, Mail, ShieldCheck, BarChart3, FileCheck, Database as DatabaseIcon, Globe, Settings as SettingsIcon } from 'lucide-react';
+import { Save, RefreshCw, Send, Loader2, AlertCircle, Building, Timer, CalendarDays, Mail, ShieldCheck, BarChart3, FileCheck, Database as DatabaseIcon, Globe, Settings as SettingsIcon, BellRing } from 'lucide-react';
 import api from '../api';
 import { Button, PageHeader, useToast } from '../components';
 
@@ -9,6 +9,10 @@ const CATEGORIES = [
     { id: 'weekend', label: 'Weekend Rules', icon: CalendarDays, iconClass: 'text-violet-500 dark:text-violet-400' },
     { id: 'notifications', label: 'Email/SMTP', icon: Mail, iconClass: 'text-emerald-500 dark:text-emerald-400' },
     { id: 'security', label: 'Security', icon: ShieldCheck, iconClass: 'text-rose-500 dark:text-rose-400' },
+    // Fields render generically from app_settings, so this tab needed only the
+    // entry. Placed next to Email/SMTP because it depends on it: alerting is
+    // email-only, and a broken SMTP means no alerts at all.
+    { id: 'alerts', label: 'Alerts', icon: BellRing, iconClass: 'text-amber-500 dark:text-amber-400' },
     // SMS and WhatsApp tabs removed — the server has no provider integration for
     // either, so every field on them was saved and never read by anything.
     { id: 'reports', label: 'Auto Reports', icon: BarChart3, iconClass: 'text-emerald-500 dark:text-emerald-400' },
