@@ -162,3 +162,39 @@ test('a batch that fails is not reported as a success', () => {
     assert.ok(/stats\.success > 0 \? 'partial' : 'failed'/.test(src),
         'a batch where every record is rejected must report failed, not partial or success');
 });
+
+test('records are flagged before they age out of the retry window', () => {
+    // The scheduled retry only covers 7 days. Past that a punch is never
+    // attempted again and nothing says so — it just goes missing from payroll
+    // weeks later. Two tiers because the responses differ: still-fixable versus
+    // needs-the-backfill-run-by-hand.
+    const src = read('services/alert_checks.js');
+    assert.ok(/checkSyncAging/.test(src), 'the aging check is gone');
+    assert.ok(/sync_expiring/.test(src) && /sync_stranded/.test(src),
+        'both tiers must exist; a single alert cannot say whether it is still recoverable');
+
+    // The warning threshold has to sit inside the window, or it never fires.
+    const warn = Number(/WARN_AFTER_DAYS = (\d+)/.exec(src)[1]);
+    const window = Number(/RETRY_WINDOW_DAYS = (\d+)/.exec(src)[1]);
+    assert.ok(warn < window,
+        `the warning fires at ${warn} days but records expire at ${window} — it would never be seen in time`);
+});
+
+test('the aging window matches the retry window it is warning about', () => {
+    // If the scheduled sync's window changes and this does not, the alert
+    // either cries wolf or misses the cutoff entirely.
+    const checks = read('services/alert_checks.js');
+    const sync = read('services/hrms-integration.js');
+    const syncWindow = /INTERVAL '(\d+) days'/.exec(sync);
+    const alertWindow = /RETRY_WINDOW_DAYS = (\d+)/.exec(checks);
+    assert.ok(syncWindow && alertWindow, 'could not read one of the windows');
+    assert.strictEqual(alertWindow[1], syncWindow[1],
+        `the alert warns about a ${alertWindow[1]}-day window but the sync retries for ${syncWindow[1]} days`);
+});
+
+test('repeated failed sign-ins raise an alert', () => {
+    const src = read('services/alert_checks.js');
+    assert.ok(/accounts_locked/.test(src), 'account lockouts are not alerted');
+    assert.ok(/locked_until > NOW\(\)/.test(src),
+        'the lockout check should only report currently-locked accounts, not historic ones');
+});

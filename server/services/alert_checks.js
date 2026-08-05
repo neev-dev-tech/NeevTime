@@ -96,6 +96,89 @@ const checkSyncBacklog = async () => {
     });
 };
 
+/**
+ * Records running out of time to sync.
+ *
+ * The scheduled retry is bounded by 7 days (see syncAttendanceToHRMS). Past
+ * that a punch is never attempted again — it simply stays unsynced forever, and
+ * the first anyone knows is payroll coming up short weeks later. Today's outage
+ * lasted two hours so it was never close, but one spanning a long weekend plus
+ * a couple of days would strand punches silently.
+ *
+ * Two tiers, because they need different responses. Approaching the cutoff is
+ * still fixable by whatever is blocking the sync. Past it, only the backfill
+ * script can recover them, and someone has to run it deliberately.
+ */
+const RETRY_WINDOW_DAYS = 7;
+const WARN_AFTER_DAYS = 5;
+
+const checkSyncAging = async () => {
+    const res = await db.query(`
+        SELECT
+            count(*) FILTER (WHERE punch_time < NOW() - INTERVAL '${WARN_AFTER_DAYS} days'
+                               AND punch_time >= NOW() - INTERVAL '${RETRY_WINDOW_DAYS} days')::int AS expiring,
+            count(*) FILTER (WHERE punch_time < NOW() - INTERVAL '${RETRY_WINDOW_DAYS} days')::int AS stranded,
+            min(punch_time) FILTER (WHERE punch_time < NOW() - INTERVAL '${RETRY_WINDOW_DAYS} days') AS oldest_stranded
+        FROM attendance_logs
+        WHERE sync_status IS DISTINCT FROM 'synced'
+          AND sync_status IS DISTINCT FROM 'skipped'
+    `);
+    const { expiring, stranded, oldest_stranded } = res.rows[0];
+
+    await alerts.track('sync_expiring', expiring > 0, {
+        severity: 'high',
+        subject: `${expiring} attendance records will stop retrying within ${RETRY_WINDOW_DAYS - WARN_AFTER_DAYS} days`,
+        body: `${expiring} punches have been waiting to sync for more than ${WARN_AFTER_DAYS} days.\n\n`
+            + `The automatic retry only covers ${RETRY_WINDOW_DAYS} days. Once they pass that, they are `
+            + 'never attempted again and will be missing from payroll with nothing to indicate it.\n\n'
+            + 'Fix whatever is blocking the sync now and they will go through on their own.',
+        details: { count: expiring }
+    });
+
+    // Deliberately NOT auto-resolving into silence: these do not fix
+    // themselves, so the alert stays open until someone runs the backfill and
+    // the count actually reaches zero.
+    await alerts.track('sync_stranded', stranded > 0, {
+        severity: 'high',
+        subject: `${stranded} attendance records will never sync without action`,
+        body: `${stranded} punches are older than the ${RETRY_WINDOW_DAYS}-day retry window, the oldest from `
+            + `${oldest_stranded}.\n\nThey are recorded in NeevTime but will never reach the HR system on `
+            + 'their own — the scheduled sync no longer looks at them.\n\n'
+            + 'Recovering them needs the backfill run by hand:\n'
+            + '  docker exec attendance_app node scripts/sync_all_pending.js\n\n'
+            + 'Check the HR system is accepting records first, or the run will fail through the whole backlog.',
+        details: { count: stranded }
+    });
+};
+
+/**
+ * An account being locked out means repeated wrong passwords. Occasionally that
+ * is someone fat-fingering; repeatedly, across accounts, it is someone trying
+ * passwords against a system holding staff records and door access.
+ */
+const checkAccountLockouts = async () => {
+    const res = await db.query(`
+        SELECT username, locked_until
+        FROM users
+        WHERE locked_until IS NOT NULL AND locked_until > NOW()
+        ORDER BY username
+    `);
+
+    const names = res.rows.map(r => r.username);
+    await alerts.track('accounts_locked', names.length > 0, {
+        severity: names.length > 1 ? 'high' : 'medium',
+        subject: names.length > 1
+            ? `${names.length} accounts locked out`
+            : `Account "${names[0]}" locked out`,
+        body: `Locked by repeated failed sign-ins: ${names.join(', ')}\n\n`
+            + 'One account is usually a forgotten password. Several at once, or the same one '
+            + 'repeatedly, is worth treating as someone guessing — this system holds staff '
+            + 'records and controls door access.\n\n'
+            + 'Recent sign-in attempts are in System Logs.',
+        details: { accounts: names.join(', ') }
+    });
+};
+
 /** A reader that has stopped talking is a reader whose punches are not arriving. */
 const checkDevicesOffline = async () => {
     const cfg = await alerts.alertConfig();
@@ -221,6 +304,8 @@ const runChecks = async () => {
     for (const [name, fn] of [
         ['attendance push', checkAttendancePush],
         ['sync backlog', checkSyncBacklog],
+        ['sync aging', checkSyncAging],
+        ['account lockouts', checkAccountLockouts],
         ['devices offline', checkDevicesOffline],
         ['dead letters', checkDeadLetters]
     ]) {
@@ -295,5 +380,6 @@ const startAlertChecks = async () => {
 module.exports = {
     runChecks, sendDigest, startAlertChecks, notifyConfigChange,
     localDate, digestTimeReached,
-    checkAttendancePush, checkSyncBacklog, checkDevicesOffline, checkDeadLetters
+    checkAttendancePush, checkSyncBacklog, checkSyncAging, checkAccountLockouts,
+    checkDevicesOffline, checkDeadLetters
 };
