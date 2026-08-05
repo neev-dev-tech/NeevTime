@@ -91,3 +91,28 @@ test('the push still cannot delay or fail a punch', () => {
     assert.ok(/catch \(err\) \{[\s\S]{0,200}HRMS push skipped/.test(block),
         'a push failure is no longer swallowed before it can affect the punch');
 });
+
+test('the backfill script does not resurrect deliberately skipped punches', () => {
+    // It selected everything that was not 'synced', which includes 'skipped' —
+    // the facility, security and test accounts held back on purpose. That made
+    // it target 8,838 records when ~90 were stuck, and running it after an
+    // outage would have pushed every excluded person into the HR system,
+    // silently undoing exclude_from_hrms.
+    const src = read('scripts/sync_all_pending.js');
+    assert.ok(!/sync_status != 'synced'/.test(src),
+        "the backfill excludes only 'synced' again, so 'skipped' records would be pushed");
+
+    const guarded = (src.match(/NOT IN \('synced', 'skipped'\)/g) || []).length;
+    assert.ok(guarded >= 2,
+        `both the count and the batch query must exclude skipped; found ${guarded}`);
+});
+
+test('the backfill and the scheduled sync agree on what is unsynced', () => {
+    // Two queries answering the same question differently is how they drifted
+    // apart in the first place.
+    const batch = read('services/hrms-integration.js');
+    const script = read('scripts/sync_all_pending.js');
+    const shape = /NOT IN \('synced', 'skipped'\)/;
+    assert.ok(shape.test(batch) && shape.test(script),
+        'the scheduled sync and the backfill script no longer use the same definition of unsynced');
+});

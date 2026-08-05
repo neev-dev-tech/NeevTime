@@ -31,8 +31,14 @@ async function syncAllPending() {
     console.log('Connected:', connTest.message);
 
     // Count total pending
+    // 'skipped' must be excluded, not just 'synced'. It marks punches that were
+    // deliberately held back — facility, security and test accounts flagged
+    // exclude_from_hrms. Sweeping them in made this script target 8,838 records
+    // when about 90 were actually stuck, and running it after an outage would
+    // have pushed every excluded person into ERPNext, silently undoing that
+    // decision. The scheduled sync has always excluded them; this did not.
     const countResult = await db.query(
-        "SELECT COUNT(*) FROM attendance_logs WHERE sync_status IS NULL OR sync_status != 'synced'"
+        "SELECT COUNT(*) FROM attendance_logs WHERE sync_status IS NULL OR sync_status NOT IN ('synced', 'skipped')"
     );
     const totalPending = parseInt(countResult.rows[0].count);
     console.log(`\nTotal pending records: ${totalPending}`);
@@ -51,7 +57,7 @@ async function syncAllPending() {
                 e.email
             FROM attendance_logs al
             LEFT JOIN employees e ON al.employee_code = e.employee_code
-            WHERE (al.sync_status IS NULL OR al.sync_status != 'synced')
+            WHERE (al.sync_status IS NULL OR al.sync_status NOT IN ('synced', 'skipped'))
             ORDER BY al.punch_time ASC
             LIMIT $1
         `, [BATCH_SIZE]);
