@@ -218,3 +218,74 @@ test('isWeekOff is driven by the rules it is given', () => {
     assert.strictEqual(engine.isWeekOff(SUNDAY, RULES), true);
     assert.strictEqual(engine.isWeekOff(WEDNESDAY, RULES), false);
 });
+
+// ─────────────────────── punch direction (in vs out) ────────────────────────
+// Before this, out_time was simply the last punch of the day. A forgotten
+// badge-out was therefore invisible: the day silently became shorter instead of
+// being flagged. INT089 on 2026-08-05 is the case that surfaced it — in 10:30,
+// out 13:49, in 14:45, then left at 19:38 without badging. The day was recorded
+// as 10:30 to 14:45, 255 minutes, "Present".
+
+const IN = '0';
+const OUT = '1';
+const p = (date, time, state) => ({ time: at(date, time), state });
+
+test('a day ending on an entry is a Miss Punch, not a short day', () => {
+    // The real INT089 pattern.
+    const s = day([
+        p(WEDNESDAY, '10:30', IN),
+        p(WEDNESDAY, '13:49', OUT),
+        p(WEDNESDAY, '14:45', IN)
+    ]);
+    assert.strictEqual(s.status, 'Miss Punch',
+        'a trailing unmatched entry must be flagged, not absorbed as a shorter day');
+});
+
+test('the out time is the last exit, not the last punch', () => {
+    const s = day([
+        p(WEDNESDAY, '10:30', IN),
+        p(WEDNESDAY, '13:49', OUT),
+        p(WEDNESDAY, '14:45', IN)
+    ]);
+    assert.ok(String(s.outTime).includes('13:49'),
+        `out time should be the 13:49 exit, got ${s.outTime}`);
+});
+
+test('a normal in/out day is unaffected', () => {
+    const s = day([p(WEDNESDAY, '09:00', IN), p(WEDNESDAY, '18:00', OUT)]);
+    assert.strictEqual(s.status, 'Present');
+    assert.strictEqual(s.durationMinutes, 540);
+});
+
+test('multiple in/out pairs use the final exit', () => {
+    const s = day([
+        p(WEDNESDAY, '09:00', IN),
+        p(WEDNESDAY, '13:00', OUT),
+        p(WEDNESDAY, '14:00', IN),
+        p(WEDNESDAY, '18:00', OUT)
+    ]);
+    assert.strictEqual(s.status, 'Present');
+    assert.strictEqual(s.durationMinutes, 540);
+});
+
+test('a single entry with no exit is a Miss Punch', () => {
+    const s = day([p(WEDNESDAY, '09:00', IN)]);
+    assert.strictEqual(s.status, 'Miss Punch');
+    assert.strictEqual(s.outTime, null);
+});
+
+test('punches without direction fall back to the old behaviour', () => {
+    // Rows whose punch_state was never populated — older data, or a vendor that
+    // does not report it. Treating unknown as "not an exit" would relabel every
+    // historic day a Miss Punch, which is far worse than the bug being fixed.
+    const s = day([at(WEDNESDAY, '09:00'), at(WEDNESDAY, '18:00')]);
+    assert.strictEqual(s.status, 'Present');
+    assert.strictEqual(s.durationMinutes, 540);
+
+    const mixed = day([
+        { time: at(WEDNESDAY, '09:00'), state: null },
+        { time: at(WEDNESDAY, '18:00'), state: null }
+    ]);
+    assert.strictEqual(mixed.status, 'Present',
+        'null states must not be read as entries');
+});
