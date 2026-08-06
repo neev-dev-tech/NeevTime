@@ -12,6 +12,8 @@
 
 const test = require('node:test');
 const assert = require('node:assert');
+const fs = require('node:fs');
+const path = require('node:path');
 const engine = require('../services/attendance_engine');
 
 // Mirrors the shipped defaults: 8h full day, 4h half day, OT after 9h,
@@ -288,4 +290,45 @@ test('punches without direction fall back to the old behaviour', () => {
     ]);
     assert.strictEqual(mixed.status, 'Present',
         'null states must not be read as entries');
+});
+
+// ───────────────────────── former employees ─────────────────────────────────
+// Scoring every employee row regardless of status gave seven resigned people an
+// Absent record for every day in the range — 56 rows in one week, growing daily
+// and inflating every absence report. Someone who has left is not absent.
+
+test('the statuses that mean "no longer employed" are recognised', () => {
+    const src = fs.readFileSync(path.join(__dirname, '../services/attendance_engine.js'), 'utf8');
+    const m = /const HAS_LEFT = ([^;]+);/.exec(src);
+    assert.ok(m, 'the former-employee pattern is gone');
+
+    // eslint-disable-next-line no-eval
+    const pattern = eval(m[1]);
+    for (const status of ['resigned', 'Resigned', 'RESIGNED', 'terminated', 'inactive', 'left', 'exited']) {
+        assert.ok(pattern.test(status), `"${status}" is not recognised as a former employee`);
+    }
+    for (const status of ['Active', 'active', 'probation', 'on leave', 'notice']) {
+        assert.ok(!pattern.test(status),
+            `"${status}" is being treated as a former employee — they would vanish from absence reports`);
+    }
+});
+
+test('a former employee with no punches is skipped, not marked Absent', () => {
+    const src = fs.readFileSync(path.join(__dirname, '../services/attendance_engine.js'), 'utf8');
+    assert.ok(/HAS_LEFT\.test\(emp\.status \|\| ''\) && logs\.length === 0/.test(src),
+        'former employees with no punches are scored again, so Absent rows accumulate daily');
+});
+
+test('a former employee WITH punches is still scored', () => {
+    // Their real attendance up to the last day must survive, and a punch after
+    // they left is worth seeing rather than hiding.
+    const src = fs.readFileSync(path.join(__dirname, '../services/attendance_engine.js'), 'utf8');
+    assert.ok(!/HAS_LEFT\.test\(emp\.status \|\| ''\)\) continue/.test(src),
+        'former employees are skipped outright, which would erase their historic attendance');
+});
+
+test('the employee query still loads status', () => {
+    const src = fs.readFileSync(path.join(__dirname, '../services/attendance_engine.js'), 'utf8');
+    assert.ok(/SELECT employee_code, status FROM employees/.test(src),
+        'status is not loaded, so the former-employee guard silently never matches');
 });

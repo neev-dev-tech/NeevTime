@@ -3,6 +3,9 @@ const moment = require('moment-timezone');
 
 /** punch_state as written by punch_ingest.normalizeState: '0' in, '1' out. */
 const OUT_STATE = '1';
+
+/** Employment states meaning the person no longer works here. */
+const HAS_LEFT = /resign|terminat|inactive|left|exit/i;
 const settingsStore = require('../utils/settings');
 
 const DEFAULTS = {
@@ -113,7 +116,9 @@ class AttendanceEngine {
         });
 
         // 3. Get all employees (if not already filtered)
-        let empQuery = 'SELECT employee_code FROM employees';
+        // status comes along so people who have left are not marked Absent every
+        // day forever. See the guard in the loop below.
+        let empQuery = 'SELECT employee_code, status FROM employees';
         if (filterCode) empQuery += ' WHERE employee_code = $1';
         const employees = await db.query(empQuery, filterCode ? [filterCode] : []);
 
@@ -130,6 +135,19 @@ class AttendanceEngine {
             for (const emp of employees.rows) {
                 const key = `${emp.employee_code}_${dateStr}`;
                 const logs = logsMap[key] || [];
+
+                // Someone who has left is not absent, they are gone. Scoring
+                // every employee row regardless of status gave seven resigned
+                // people an Absent record for every single day, growing daily
+                // and quietly inflating every absence report.
+                //
+                // Deliberately keyed on whether punches exist rather than on a
+                // resignation date: the date is often missing, and this keeps
+                // their real attendance up to their last day while creating
+                // nothing after it. A punch that does appear is still scored,
+                // which is what you want — a former employee badging in is
+                // worth seeing, not hiding.
+                if (HAS_LEFT.test(emp.status || '') && logs.length === 0) continue;
                 
                 const stats = this.calculateDayStats(emp.employee_code, dateStr, logs, rules);
                 results.push(stats);
