@@ -1842,6 +1842,17 @@ server.listen(PORT, '0.0.0.0', async () => {
         console.log('Command Queue jobs: Not available -', err.message);
     }
 
+    // Give finished days a final verdict. The engine refuses to score a day
+    // that is still running, and nothing ever came back to score it once it
+    // ended — so the provisional "Present" became permanent for any day whose
+    // last punch landed before midnight.
+    try {
+        require('./services/attendance_recompute').startRecomputeJob().catch(err =>
+            console.log('Recompute job: startup failed -', err.message));
+    } catch (err) {
+        console.log('Recompute job: not available -', err.message);
+    }
+
     // Outbound alerting. Health information already existed — health-monitor
     // emitted alerts to any dashboard that happened to be open — but nothing
     // ever left the building, which is how attendance sync stayed off for four
