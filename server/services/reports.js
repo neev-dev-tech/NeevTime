@@ -188,57 +188,95 @@ const generateMonthlySummary = async (year, month, departmentId = null) => {
  * Generate Late/Early Report
  */
 const generateLateEarlyReport = async (startDate, endDate, shiftStartTime = '09:00', shiftEndTime = '18:00', graceMinutes = 15) => {
+    // Two things were wrong here and both inflated "late".
+    //
+    // The direction test read `punch_state::int <= 1` for an entry and `> 1`
+    // for an exit. This system writes '0' for in and '1' for out, so the entry
+    // test matched *both* directions and the exit test matched nothing at all:
+    // last_out was always NULL, so early-outs could never be reported, and
+    // first_in was the earliest punch of any kind.
+    //
+    // The shift was the bigger problem. Every employee was measured against one
+    // hardcoded 09:00 start, so anyone on a later or rotating shift was counted
+    // late every single day they worked. The employee's own shift is used where
+    // one is assigned, with the passed-in time as the fallback for those with
+    // none; the shift's own grace period wins over the caller's default, since
+    // that is the number the shift was configured with.
     const result = await db.query(`
         WITH daily_attendance AS (
-            SELECT 
+            SELECT
                 e.employee_code,
                 e.name as employee_name,
                 d.name as department_name,
                 DATE(al.punch_time) as attendance_date,
-                MIN(CASE WHEN al.punch_state::int <= 1 THEN al.punch_time::time END) as first_in,
-                MAX(CASE WHEN al.punch_state::int > 1 THEN al.punch_time::time END) as last_out
+                COALESCE(s.start_time, $3::time) as shift_start,
+                COALESCE(s.end_time, $4::time) as shift_end,
+                COALESCE(s.grace_in_minutes, $5::int) as grace_minutes,
+                -- Directional where the device told us, earliest punch where it
+                -- did not: older rows predate punch_state being populated.
+                COALESCE(
+                    MIN(al.punch_time::time) FILTER (WHERE al.punch_state = '0'),
+                    MIN(al.punch_time::time)
+                ) as first_in,
+                -- No fallback to "latest punch": with a single punch in the day
+                -- that is the arrival, and calling it a departure would report
+                -- everyone who punched once as leaving hours early.
+                MAX(al.punch_time::time) FILTER (WHERE al.punch_state = '1') as last_out
             FROM attendance_logs al
             JOIN employees e ON al.employee_code = e.employee_code
             LEFT JOIN departments d ON e.department_id = d.id
+            LEFT JOIN shifts s ON s.id = e.default_shift_id AND s.is_active IS NOT FALSE
             WHERE DATE(al.punch_time) BETWEEN $1 AND $2
-            GROUP BY e.employee_code, e.name, d.name, DATE(al.punch_time)
+              AND EXTRACT(DOW FROM al.punch_time) NOT IN (0, 6)
+              AND NOT EXISTS (
+                  SELECT 1 FROM holidays h WHERE h.date = DATE(al.punch_time)
+              )
+            GROUP BY e.employee_code, e.name, d.name, DATE(al.punch_time),
+                     s.start_time, s.end_time, s.grace_in_minutes
         )
-        SELECT 
+        SELECT
             employee_code,
             employee_name,
             department_name,
             attendance_date,
             first_in,
             last_out,
-            CASE 
-                WHEN first_in > ($3::time + ($5 || ' minutes')::interval) THEN 'Late'
+            CASE
+                WHEN first_in > (shift_start + (grace_minutes || ' minutes')::interval) THEN 'Late'
                 WHEN first_in IS NULL THEN 'No Check-in'
                 ELSE 'On Time'
             END as in_status,
-            CASE 
-                WHEN last_out < $4::time THEN 'Early Out'
+            CASE
+                WHEN last_out < shift_end THEN 'Early Out'
                 WHEN last_out IS NULL THEN 'No Check-out'
                 ELSE 'Normal'
             END as out_status,
-            CASE 
-                WHEN first_in > ($3::time + ($5 || ' minutes')::interval)
-                THEN EXTRACT(EPOCH FROM (first_in - $3::time))/60
+            CASE
+                WHEN first_in > (shift_start + (grace_minutes || ' minutes')::interval)
+                THEN EXTRACT(EPOCH FROM (first_in - shift_start))/60
                 ELSE 0
             END as late_minutes,
-            CASE 
-                WHEN last_out < $4::time
-                THEN EXTRACT(EPOCH FROM ($4::time - last_out))/60
+            CASE
+                WHEN last_out < shift_end
+                THEN EXTRACT(EPOCH FROM (shift_end - last_out))/60
                 ELSE 0
             END as early_minutes
         FROM daily_attendance
-        WHERE first_in > ($3::time + ($5 || ' minutes')::interval) OR last_out < $4::time
+        WHERE first_in > (shift_start + (grace_minutes || ' minutes')::interval)
+           OR last_out < shift_end
         ORDER BY attendance_date DESC, late_minutes DESC
     `, [startDate, endDate, shiftStartTime, shiftEndTime, graceMinutes]);
 
     const summary = {
         late_count: result.rows.filter(r => r.in_status === 'Late').length,
         early_out_count: result.rows.filter(r => r.out_status === 'Early Out').length,
-        total_late_hours: Math.round(result.rows.reduce((sum, r) => sum + (r.late_minutes || 0), 0) / 60),
+        // Number(): EXTRACT returns numeric, which the pg driver hands back as
+        // a string to avoid precision loss. `sum + r.late_minutes` therefore
+        // concatenated instead of adding, and Math.round of the resulting
+        // string was NaN — the field serialised as null on every report.
+        total_late_hours: Math.round(
+            result.rows.reduce((sum, r) => sum + (Number(r.late_minutes) || 0), 0) / 60
+        ),
         frequent_late_employees: getFrequentOffenders(result.rows, 'in_status', 'Late', 3)
     };
 
@@ -265,12 +303,19 @@ const generateAbsentReport = async (startDate, endDate, departmentId = null) => 
         params.push(departmentId);
     }
 
+    // "Absent" is every day a person was expected and did not punch. Getting
+    // "expected" wrong is what made this report unusable: it counted a public
+    // holiday as the entire company being absent, counted approved leave as
+    // absence, and counted every working day before someone was hired. Over six
+    // months that inflated the figure several times over, which is exactly how
+    // it was noticed — the dashboard donut showed thousands of absences for a
+    // company of ninety.
     const result = await db.query(`
         WITH date_series AS (
             SELECT generate_series($1::date, $2::date, '1 day'::interval)::date as work_date
         ),
         expected_attendance AS (
-            SELECT 
+            SELECT
                 e.employee_code,
                 e.name as employee_name,
                 d.name as department_name,
@@ -279,24 +324,54 @@ const generateAbsentReport = async (startDate, endDate, departmentId = null) => 
             CROSS JOIN date_series ds
             LEFT JOIN departments d ON e.department_id = d.id
             WHERE e.status = 'active'
+            -- Anyone the company does not expect to punch at all: contractors
+            -- and staff on the payroll without a reader between them and their
+            -- desk. Marking them absent every day buried the real absences.
+            AND e.attendance_required IS NOT FALSE
             AND EXTRACT(DOW FROM ds.work_date) NOT IN (0, 6)  -- Exclude weekends
+            -- Nobody is absent before their first day. COALESCE because three
+            -- joining-date columns exist on this table and which one is
+            -- populated varies with how the record was created.
+            AND (
+                COALESCE(e.joining_date, e.date_of_joining, e.join_date) IS NULL
+                OR ds.work_date >= COALESCE(e.joining_date, e.date_of_joining, e.join_date)
+            )
+            AND NOT EXISTS (
+                SELECT 1 FROM holidays h WHERE h.date = ds.work_date
+            )
+            -- A day on which nobody in the company punched at all is a day the
+            -- system was not collecting: before this deployment existed, while
+            -- the readers were down, or an unlisted company holiday. Treating
+            -- those as absences made every employee absent for every such day,
+            -- which is what produced thousands of absences for a company of
+            -- ninety. No data is not the same as nobody came in.
+            AND EXISTS (
+                SELECT 1 FROM attendance_logs al2
+                WHERE DATE(al2.punch_time) = ds.work_date
+            )
+            AND NOT EXISTS (
+                SELECT 1 FROM leave_applications la
+                WHERE la.employee_code = e.employee_code
+                  AND LOWER(la.status) = 'approved'
+                  AND ds.work_date BETWEEN la.from_date AND la.to_date
+            )
             ${departmentFilter}
         ),
         actual_attendance AS (
-            SELECT DISTINCT 
+            SELECT DISTINCT
                 employee_code,
                 DATE(punch_time) as attendance_date
             FROM attendance_logs
             WHERE DATE(punch_time) BETWEEN $1 AND $2
         )
-        SELECT 
+        SELECT
             ea.employee_code,
             ea.employee_name,
             ea.department_name,
             ea.work_date as absent_date,
             'Absent' as status
         FROM expected_attendance ea
-        LEFT JOIN actual_attendance aa ON ea.employee_code = aa.employee_code 
+        LEFT JOIN actual_attendance aa ON ea.employee_code = aa.employee_code
             AND ea.work_date = aa.attendance_date
         WHERE aa.employee_code IS NULL
         ORDER BY ea.work_date DESC, ea.department_name, ea.employee_name

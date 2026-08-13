@@ -404,49 +404,73 @@ export default function Dashboard() {
     const TONES = {
         neutral: {
             chip: 'bg-slate-100 text-slate-600 dark:bg-slate-700/60 dark:text-slate-300',
-            value: 'text-slate-900 dark:text-slate-50'
+            value: 'text-slate-900 dark:text-slate-50',
+            rule: 'bg-slate-400'
         },
         // Identity colours: the icon is coloured by what it counts, while the
         // figure itself stays near-black so the numbers remain the thing you read.
         people: {
             chip: 'bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-300',
-            value: 'text-slate-900 dark:text-slate-50'
+            value: 'text-slate-900 dark:text-slate-50',
+            rule: 'bg-blue-500'
         },
         device: {
             chip: 'bg-violet-100 text-violet-600 dark:bg-violet-900/40 dark:text-violet-300',
-            value: 'text-slate-900 dark:text-slate-50'
+            value: 'text-slate-900 dark:text-slate-50',
+            rule: 'bg-violet-500'
         },
         biometric: {
             chip: 'bg-cyan-100 text-cyan-600 dark:bg-cyan-900/40 dark:text-cyan-300',
-            value: 'text-slate-900 dark:text-slate-50'
+            value: 'text-slate-900 dark:text-slate-50',
+            rule: 'bg-cyan-500'
         },
         activity: {
             chip: 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/40 dark:text-indigo-300',
-            value: 'text-slate-900 dark:text-slate-50'
+            value: 'text-slate-900 dark:text-slate-50',
+            rule: 'bg-indigo-500'
         },
         time: {
             chip: 'bg-teal-100 text-teal-600 dark:bg-teal-900/40 dark:text-teal-300',
-            value: 'text-slate-900 dark:text-slate-50'
+            value: 'text-slate-900 dark:text-slate-50',
+            rule: 'bg-teal-500'
         },
         good: {
             chip: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
-            value: 'text-emerald-700 dark:text-emerald-300'
+            value: 'text-emerald-700 dark:text-emerald-300',
+            rule: 'bg-emerald-500'
         },
         warn: {
             chip: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
-            value: 'text-amber-700 dark:text-amber-300'
+            value: 'text-amber-700 dark:text-amber-300',
+            rule: 'bg-amber-500'
         },
         bad: {
             chip: 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300',
-            value: 'text-rose-700 dark:text-rose-300'
+            value: 'text-rose-700 dark:text-rose-300',
+            rule: 'bg-rose-500'
         }
     };
 
+    /**
+     * The same glass language as the headline cards, dialled down: no bloom, a
+     * thinner ring, and the figure in near-black rather than the accent. These
+     * are reference numbers rather than headlines, and eight cards each glowing
+     * in their own colour would undo the point of having a headline row at all.
+     */
     const StatCard = ({ icon: Icon, label, value, subtitle, tooltip, trend, tone = 'neutral' }) => {
         const t = TONES[tone] || TONES.neutral;
         return (
-            <div className="card-base !p-4 flex items-center gap-3.5 hover:-translate-y-0.5 transition-transform">
-                <div className={`shrink-0 w-11 h-11 rounded-xl flex items-center justify-center ${t.chip}`}>
+            <div className="group relative overflow-hidden rounded-2xl !p-4 flex items-center gap-3.5
+                            bg-white/70 dark:bg-slate-800/60 backdrop-blur-xl
+                            shadow-sm ring-1 ring-slate-900/[0.06] dark:ring-white/[0.07]
+                            hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300">
+                {/* A hairline that lights up on hover, so the row still has
+                    motion without every tile carrying a permanent colour. */}
+                <span
+                    aria-hidden="true"
+                    className={`absolute inset-x-0 top-0 h-px opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${t.rule || 'bg-slate-400'}`}
+                />
+                <div className={`shrink-0 w-11 h-11 rounded-xl flex items-center justify-center transition-transform duration-300 group-hover:scale-105 ${t.chip}`}>
                     <Icon size={20} strokeWidth={2.2} />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -454,7 +478,7 @@ export default function Dashboard() {
                         <p className="text-[10px] font-bold uppercase tracking-[0.04em] text-slate-500 dark:text-slate-400 leading-tight">{label}</p>
                         {tooltip && <Info size={11} className="text-slate-400 cursor-help shrink-0" title={tooltip} />}
                     </div>
-                    <p className={`text-[26px] leading-tight font-bold tabular-nums truncate ${t.value}`}>{value}</p>
+                    <p className={`text-[26px] leading-tight font-bold tabular-nums truncate tracking-tight ${t.value}`}>{value}</p>
                     {(trend || subtitle) && (
                         <p className="text-[11px] leading-tight truncate mt-0.5"
                            style={trend?.color ? { color: trend.color } : undefined}>
@@ -471,35 +495,6 @@ export default function Dashboard() {
     /** Rates read as good/warn/bad; everything else stays neutral. */
     const rateTone = (pct) => (pct >= 85 ? 'good' : pct >= 60 ? 'warn' : 'bad');
 
-    const AttendanceStatusCard = ({ label, value, type = 'success', trend }) => {
-        const cardClasses = {
-            success: 'summary-card-success',
-            warning: 'summary-card-warning',
-            error: 'summary-card-error',
-            info: 'summary-card-info'
-        };
-        const accentColors = {
-            success: '#2EAD6D',
-            warning: '#E09B2D',
-            error: '#E5533D',
-            info: '#4C6FFF'
-        };
-        return (
-            <div className={cardClasses[type] || cardClasses.success}>
-                <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                        <div className="card-title mb-1">{label}</div>
-                        <div className="card-value">{value}</div>
-                        {trend && (
-                            <div className="card-meta mt-1.5" style={{ color: accentColors[type] }}>
-                                {trend}
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
-        );
-    };
 
     // Calculate device status percentages for pie chart visualization
     const onlinePercent = stats.devices > 0 ? (stats.devicesOnline / stats.devices) * 100 : 0;
@@ -567,6 +562,9 @@ export default function Dashboard() {
                             value={stats.present || 0}
                             accent={themeColors.success}
                             hint={`${stats.attendanceRate || 0}% attendance`}
+                            trend={yesterdayStats.present > 0
+                                ? `${stats.present >= yesterdayStats.present ? '↑' : '↓'} ${Math.abs(Math.round(((stats.present - yesterdayStats.present) / yesterdayStats.present) * 100))}% vs yesterday`
+                                : undefined}
                             onClick={() => navigate('/attendance-register')}
                         />
                         <HeroStat
@@ -643,6 +641,23 @@ export default function Dashboard() {
                                 : null}
                         />
                         <StatCard icon={Fingerprint} label="Verifications" value={stats.verificationCount} tone="biometric" />
+                        {/* Moved up from the removed attendance-status row —
+                            the only two figures on it that were not already
+                            stated by the headline cards. */}
+                        <StatCard
+                            icon={LogOutIcon}
+                            label="Early Leave"
+                            value={stats.earlyLeave}
+                            subtitle="left before shift end"
+                            tone={stats.earlyLeave > 0 ? 'warn' : 'neutral'}
+                        />
+                        <StatCard
+                            icon={Calendar}
+                            label="On Leave"
+                            value={stats.onLeave}
+                            subtitle="approved today"
+                            tone="neutral"
+                        />
                     </div>
                 </div>
             )}
@@ -716,39 +731,12 @@ export default function Dashboard() {
                 />
             </div>
 
-            {/* Attendance Status Row - Staggered */}
-            <div className="card-tier-2 animate-fade-in stagger-2">
-                <div className="flex items-center justify-between mb-6">
-                    <h2 className="font-semibold flex items-center gap-2 text-base text-slate-800 dark:text-slate-100">
-                        <Clock className="text-blue-500" size={18} /> Today's Attendance Status
-                    </h2>
-                    <a
-                        href="/attendance-register"
-                        className="flex items-center gap-1 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
-                        onClick={(e) => {
-                            e.preventDefault();
-                            navigate('/attendance-register');
-                        }}
-                    >
-                        View Attendance Details
-                        <ChevronRight size={14} />
-                    </a>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                    <AttendanceStatusCard
-                        label="Present"
-                        value={stats.present}
-                        type="success"
-                        trend={yesterdayStats.present > 0
-                            ? `${stats.present >= yesterdayStats.present ? '↑' : '↓'} ${Math.abs(Math.round(((stats.present - yesterdayStats.present) / yesterdayStats.present) * 100))}% vs yesterday`
-                            : undefined}
-                    />
-                    <AttendanceStatusCard label="Absent" value={stats.absent} type="error" />
-                    <AttendanceStatusCard label="Late Arrival" value={stats.late} type="warning" />
-                    <AttendanceStatusCard label="Early Leave" value={stats.earlyLeave} type="warning" />
-                    <AttendanceStatusCard label="On Leave" value={stats.onLeave} type="neutral" />
-                </div>
-            </div>
+            {/* "Today's Attendance Status" lived here and was removed: Present,
+                Absent and Late Arrival simply restated the headline cards a
+                screen above, in the same colours, so the page said everything
+                twice. Early Leave and On Leave were the only figures unique to
+                it and have moved up into the tile grid; the vs-yesterday
+                comparison moved onto the Present card. */}
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Device Status Widget - Staggered */}
