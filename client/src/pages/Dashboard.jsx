@@ -544,7 +544,7 @@ export default function Dashboard() {
                             label="Employees"
                             value={stats.employees || 0}
                             accent={themeColors.info}
-                            hint="on the payroll"
+                            hint={stats.resigned ? `${stats.resigned} resigned` : 'on the payroll'}
                             onClick={() => navigate('/employees')}
                         />
                         <HeroStat
@@ -552,7 +552,8 @@ export default function Dashboard() {
                             label="Present"
                             value={stats.present || 0}
                             accent={themeColors.success}
-                            hint={`${stats.attendanceRate || 0}% attendance`}
+                            share={stats.employees ? stats.present / stats.employees : null}
+                            shareLabel={`${stats.present || 0} of ${stats.employees || 0} in today`}
                             trend={yesterdayStats.present > 0
                                 ? `${stats.present >= yesterdayStats.present ? '↑' : '↓'} ${Math.abs(Math.round(((stats.present - yesterdayStats.present) / yesterdayStats.present) * 100))}% vs yesterday`
                                 : undefined}
@@ -563,7 +564,10 @@ export default function Dashboard() {
                             label="Absent"
                             value={stats.absent || 0}
                             accent={themeColors.error}
-                            hint={stats.onLeave ? `${stats.onLeave} on leave` : 'excluding leave'}
+                            share={stats.employees ? stats.absent / stats.employees : null}
+                            shareLabel={stats.onLeave
+                                ? `${stats.onLeave} more on approved leave`
+                                : `${stats.absent || 0} of ${stats.employees || 0}, excluding leave`}
                             onClick={() => navigate('/attendance-register')}
                         />
                         <HeroStat
@@ -571,7 +575,8 @@ export default function Dashboard() {
                             label="Late Corners"
                             value={stats.late || 0}
                             accent={themeColors.warning}
-                            hint={`${stats.punctualityRate || 0}% punctual`}
+                            share={stats.present ? stats.late / stats.present : null}
+                            shareLabel={`${stats.late || 0} of ${stats.present || 0} who came in`}
                             onClick={() => navigate('/reports/first-last')}
                         />
                     </div>
