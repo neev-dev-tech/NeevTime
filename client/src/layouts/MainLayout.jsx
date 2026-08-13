@@ -288,18 +288,26 @@ export default function MainLayout({ children }) {
         )}
 
         <main className="flex-1 overflow-auto">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={location.pathname}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-              className="p-6"
-            >
-              {children}
-            </motion.div>
-          </AnimatePresence>
+          {/* Plain div, and deliberately not animated.
+              This was `<AnimatePresence mode="wait">` with an exit of opacity
+              0, which is what made every navigation blink: the old page faded
+              fully out over 200ms, `mode="wait"` held the new one back until
+              that finished, then the new page faded up from zero. Between them
+              sat a frame of nothing — about 400ms of content vanishing and
+              returning.
+
+              Replacing it with a keyed fade-in was worse, not better: the
+              initial opacity landed as an inline style that the animation
+              never cleared, so the whole page sat permanently dimmed.
+
+              Swapping on the key alone is what was actually wanted. React
+              commits the new subtree in a single pass, so the new page paints
+              in the same frame the old one leaves and there is no gap to see
+              at all. Sections still fade in individually via .animate-fade-in;
+              the page container itself has no business animating. */}
+          <div className="p-6">
+            {children}
+          </div>
         </main>
       </div>
     </div>
