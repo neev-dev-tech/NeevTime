@@ -3419,3 +3419,32 @@ tr:focus-within .dv-quiet { opacity: 1; transform: none; }
 .dark .dark\:hover\:text-orange-400:hover { color: var(--color-primary) !important; }
 .dark .dark\:border-orange-600 { border-color: var(--color-primary-dark) !important; }
 .dark .dark\:focus\:border-orange-500:focus { border-color: var(--color-primary) !important; }
+
+/* ==========================================================================
+   SCROLL REVEAL
+   ==========================================================================
+   Note the default: a `.reveal` element with no data-reveal attribute is fully
+   visible. The hiding is opt-in and applied by useReveal at runtime, so if the
+   script never runs, the observer never fires, or the browser is old, the
+   content is simply there. Hidden-by-default plus a JS reveal is how a page
+   ends up permanently blank when one thing goes wrong. */
+
+[data-reveal='pending'] {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+[data-reveal='shown'] {
+  opacity: 1;
+  transform: none;
+  transition: opacity 380ms ease-out, transform 380ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal='pending'],
+  [data-reveal='shown'] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

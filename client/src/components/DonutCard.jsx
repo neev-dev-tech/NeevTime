@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import useReveal from '../hooks/useReveal';
 
 /**
  * A donut breaking one total down by day or by month, with the total in the
@@ -22,11 +23,12 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
  * first use in the app.
  */
 export default function DonutCard({ title, subtitle, data, colors, emptyMessage, loading }) {
+    const revealRef = useReveal();
     const total = data.reduce((sum, d) => sum + (d.value || 0), 0);
     const slices = data.filter(d => d.value > 0);
 
     return (
-        <div className="card-base flex flex-col">
+        <div ref={revealRef} className="card-base flex flex-col">
             <div className="mb-1">
                 <h3 className="font-semibold text-base text-slate-800 dark:text-slate-100">{title}</h3>
                 {subtitle && (

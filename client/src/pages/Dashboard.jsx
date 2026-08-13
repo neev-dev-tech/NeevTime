@@ -12,6 +12,7 @@ import {
 import { formatTimeShort, toLocalDateString } from '../utils/dateFormat';
 import { useTheme } from '../components/Theme';
 import HeroStat from '../components/HeroStat';
+import useReveal from '../hooks/useReveal';
 import DonutCard from '../components/DonutCard';
 import { categoricalPalette } from '../utils/chartPalette';
 
@@ -450,8 +451,9 @@ export default function Dashboard() {
      */
     const StatCard = ({ icon: Icon, label, value, subtitle, tooltip, trend, tone = 'neutral' }) => {
         const t = TONES[tone] || TONES.neutral;
+        const revealRef = useReveal();
         return (
-            <div className="group relative overflow-hidden rounded-xl !p-3 flex items-center gap-3
+            <div ref={revealRef} className="group relative overflow-hidden rounded-xl !p-3 flex items-center gap-3
                             bg-white/70 dark:bg-slate-800/60 backdrop-blur-xl
                             shadow-sm ring-1 ring-slate-900/[0.06] dark:ring-white/[0.07]
                             hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300">
@@ -532,7 +534,7 @@ export default function Dashboard() {
                     ))}
                 </div>
             ) : (
-                <div className="space-y-4 animate-fade-in">
+                <div className="space-y-4">
                     {/* The four headline counts. Who is on the payroll, who is
                         in, who is missing, who was late — the questions the page
                         exists to answer, given the weight to match. Each one
@@ -700,7 +702,7 @@ export default function Dashboard() {
                 say whether that is normal. A single day's count is unreadable
                 without it — four absent means nothing until you can see that
                 last Tuesday had eleven. */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 animate-fade-in stagger-1">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <DonutCard
                     title="Absentees — last 7 days"
                     subtitle="Unplanned absences per day"
