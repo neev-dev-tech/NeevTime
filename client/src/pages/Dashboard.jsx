@@ -13,17 +13,18 @@ import { formatTimeShort, toLocalDateString } from '../utils/dateFormat';
 import { useTheme } from '../components/Theme';
 import HeroStat from '../components/HeroStat';
 import DonutCard from '../components/DonutCard';
-import { buildPalette } from '../utils/chartPalette';
+import { categoricalPalette } from '../utils/chartPalette';
 
 export default function Dashboard() {
     const navigate = useNavigate();
     // Charts follow the palette chosen in Settings → Appearance rather than
     // hardcoding orange, so a rebranded deployment does not end up with an
     // orange dashboard sitting inside its own colours.
-    const { themeColors } = useTheme();
-    // Seven, because the widest of these charts is a seven-day breakdown; the
-    // six-month donut simply uses the first six.
-    const donutPalette = useMemo(() => buildPalette(themeColors.primary, 7), [themeColors.primary]);
+    const { themeColors, isDarkMode } = useTheme();
+    // A fixed, validated categorical order rather than anything derived from
+    // the brand colour — see chartPalette for why generated hues were the wrong
+    // trade for slices that only need to be told apart.
+    const donutPalette = useMemo(() => categoricalPalette(isDarkMode), [isDarkMode]);
     const [stats, setStats] = useState({
         employees: 0,
         newJoinees: 0,
@@ -450,7 +451,7 @@ export default function Dashboard() {
     const StatCard = ({ icon: Icon, label, value, subtitle, tooltip, trend, tone = 'neutral' }) => {
         const t = TONES[tone] || TONES.neutral;
         return (
-            <div className="group relative overflow-hidden rounded-2xl !p-4 flex items-center gap-3.5
+            <div className="group relative overflow-hidden rounded-xl !p-3 flex items-center gap-3
                             bg-white/70 dark:bg-slate-800/60 backdrop-blur-xl
                             shadow-sm ring-1 ring-slate-900/[0.06] dark:ring-white/[0.07]
                             hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300">
@@ -460,17 +461,17 @@ export default function Dashboard() {
                     aria-hidden="true"
                     className={`absolute inset-x-0 top-0 h-px opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${t.rule || 'bg-slate-400'}`}
                 />
-                <div className={`shrink-0 w-11 h-11 rounded-xl flex items-center justify-center transition-transform duration-300 group-hover:scale-105 ${t.chip}`}>
-                    <Icon size={20} strokeWidth={2.2} />
+                <div className={`shrink-0 w-9 h-9 rounded-lg flex items-center justify-center transition-transform duration-300 group-hover:scale-105 ${t.chip}`}>
+                    <Icon size={17} strokeWidth={2.2} />
                 </div>
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.04em] text-slate-500 dark:text-slate-400 leading-tight">{label}</p>
+                        <p className="text-[9px] font-bold uppercase tracking-[0.05em] text-slate-500 dark:text-slate-400 leading-tight">{label}</p>
                         {tooltip && <Info size={11} className="text-slate-400 cursor-help shrink-0" title={tooltip} />}
                     </div>
-                    <p className={`text-[26px] leading-tight font-bold tabular-nums truncate tracking-tight ${t.value}`}>{value}</p>
+                    <p className={`text-xl leading-tight font-bold tabular-nums truncate tracking-tight ${t.value}`}>{value}</p>
                     {(trend || subtitle) && (
-                        <p className="text-[11px] leading-tight truncate mt-0.5"
+                        <p className="text-[10px] leading-tight truncate"
                            style={trend?.color ? { color: trend.color } : undefined}>
                             <span className={trend ? 'font-semibold' : 'text-slate-500 dark:text-slate-400'}>
                                 {trend ? trend.text : subtitle}
@@ -531,7 +532,7 @@ export default function Dashboard() {
                     ))}
                 </div>
             ) : (
-                <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="space-y-4 animate-fade-in">
                     {/* The four headline counts. Who is on the payroll, who is
                         in, who is missing, who was late — the questions the page
                         exists to answer, given the weight to match. Each one
@@ -576,7 +577,7 @@ export default function Dashboard() {
                     </div>
 
                     {/* Standing facts — neutral, so they do not compete with the above */}
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
                         <StatCard
                             icon={Percent}
                             label="Attendance"
