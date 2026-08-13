@@ -133,13 +133,32 @@ app.get('/api/branding', async (req, res) => {
     try {
         const result = await db.query(
             `SELECT setting_key, setting_value FROM app_settings
-             WHERE category = 'company' AND setting_key IN ('company_name', 'company_logo')`
+             WHERE category = 'company'
+               AND setting_key IN ('company_name', 'company_logo', 'theme_preset', 'theme_custom_colors')`
         );
         const cfg = Object.fromEntries(result.rows.map(r => [r.setting_key, r.setting_value]));
-        res.json({ name: cfg.company_name || 'NeevTime', logo: cfg.company_logo || '' });
+
+        // The colour scheme is served alongside the logo because it is the same
+        // kind of thing: how the company's install looks. It used to live only
+        // in each browser's localStorage, so uploading a logo changed the app
+        // for everyone while changing the palette changed it for one machine —
+        // and the same account on a second laptop showed different colours.
+        let custom = null;
+        if (cfg.theme_custom_colors) {
+            // Stored as JSON text. A malformed value must not take branding
+            // down with it — falling back to the preset is a fine answer.
+            try { custom = JSON.parse(cfg.theme_custom_colors); } catch { custom = null; }
+        }
+
+        res.json({
+            name: cfg.company_name || 'NeevTime',
+            logo: cfg.company_logo || '',
+            theme_preset: cfg.theme_preset || null,
+            theme_custom_colors: custom
+        });
     } catch (err) {
         // Branding must never block sign-in. Defaults are a fine answer.
-        res.json({ name: 'NeevTime', logo: '' });
+        res.json({ name: 'NeevTime', logo: '', theme_preset: null, theme_custom_colors: null });
     }
 });
 
@@ -164,9 +183,53 @@ app.post('/api/attendance/process', authenticateToken, async (req, res) => {
 });
 
 // Get Attendance Summary (Processed)
+/**
+ * Which optional columns and tables this database actually has.
+ *
+ * The pieces the register needs are spread across six schema files
+ * (schema.sql, schema_easytime.sql, schema_leaves.sql, schema_expansion.sql
+ * and friends), and a deployment that has not applied all of them is missing
+ * some of the columns below. Referencing one that does not exist fails the
+ * whole statement, which is how the register query took the dashboard down to
+ * zeroes on a database that never ran schema_easytime.sql.
+ *
+ * Probed once and cached: this cannot change without a restart.
+ */
+let registerSchemaPromise = null;
+const getRegisterSchema = () => {
+    if (!registerSchemaPromise) {
+        registerSchemaPromise = (async () => {
+            const [cols, tables] = await Promise.all([
+                db.query(`SELECT column_name FROM information_schema.columns
+                          WHERE table_schema = 'public' AND table_name = 'employees'`),
+                db.query(`SELECT table_name FROM information_schema.tables
+                          WHERE table_schema = 'public'
+                            AND table_name IN ('holidays', 'leave_applications')`)
+            ]);
+            const has = new Set(cols.rows.map(r => r.column_name));
+            const tbl = new Set(tables.rows.map(r => r.table_name));
+            const joinCols = ['joining_date', 'date_of_joining', 'join_date'].filter(c => has.has(c));
+            return {
+                attendanceRequired: has.has('attendance_required'),
+                joinDateExpr: joinCols.length
+                    ? `COALESCE(${joinCols.map(c => `e.${c}`).join(', ')})`
+                    : null,
+                holidays: tbl.has('holidays'),
+                leaves: tbl.has('leave_applications')
+            };
+        })().catch(() => ({
+            // A failed probe must not take the endpoint with it — fall back to
+            // the plainest query that works on any schema.
+            attendanceRequired: false, joinDateExpr: null, holidays: false, leaves: false
+        }));
+    }
+    return registerSchemaPromise;
+};
+
 app.get('/api/attendance/summary', authenticateToken, async (req, res) => {
     try {
         const { date, employee_code } = req.query;
+        const schema = await getRegisterSchema();
 
         // For a single day, drive the query from the employee list rather than
         // from the summary table.
@@ -182,7 +245,29 @@ app.get('/api/attendance/summary', authenticateToken, async (req, res) => {
         // precedence the absent report uses, so the two agree: an approved
         // leave is leave, a listed holiday is a holiday, the weekend is a
         // weekly off, and what remains is a genuine absence.
+        // Each optional clause is included only where the database has what it
+        // needs. A missing leave table means leave is simply not distinguished
+        // from absence — a worse answer than the full query gives, but a far
+        // better one than a 500.
         if (date && !employee_code) {
+            const onLeaveWhen = schema.leaves
+                ? `WHEN EXISTS (
+                       SELECT 1 FROM leave_applications la
+                       WHERE la.employee_code = e.employee_code
+                         AND LOWER(la.status) = 'approved'
+                         AND $1::date BETWEEN la.from_date AND la.to_date
+                   ) THEN 'On Leave'`
+                : '';
+            const holidayWhen = schema.holidays
+                ? `WHEN EXISTS (SELECT 1 FROM holidays h WHERE h.date = $1::date) THEN 'Holiday'`
+                : '';
+            const requiredClause = schema.attendanceRequired
+                ? 'AND e.attendance_required IS NOT FALSE'
+                : '';
+            const joinedClause = schema.joinDateExpr
+                ? `AND (${schema.joinDateExpr} IS NULL OR $1::date >= ${schema.joinDateExpr})`
+                : '';
+
             const result = await db.query(`
                 SELECT
                     ads.id, ads.employee_code, $1::date AS date,
@@ -192,15 +277,8 @@ app.get('/api/attendance/summary', authenticateToken, async (req, res) => {
                     COALESCE(
                         ads.status,
                         CASE
-                            WHEN EXISTS (
-                                SELECT 1 FROM leave_applications la
-                                WHERE la.employee_code = e.employee_code
-                                  AND LOWER(la.status) = 'approved'
-                                  AND $1::date BETWEEN la.from_date AND la.to_date
-                            ) THEN 'On Leave'
-                            WHEN EXISTS (
-                                SELECT 1 FROM holidays h WHERE h.date = $1::date
-                            ) THEN 'Holiday'
+                            ${onLeaveWhen}
+                            ${holidayWhen}
                             WHEN EXTRACT(DOW FROM $1::date) IN (0, 6) THEN 'Weekly Off'
                             ELSE 'Absent'
                         END
@@ -211,11 +289,8 @@ app.get('/api/attendance/summary', authenticateToken, async (req, res) => {
                 LEFT JOIN attendance_daily_summary ads
                        ON ads.employee_code = e.employee_code AND ads.date = $1::date
                 WHERE e.status = 'active'
-                  AND e.attendance_required IS NOT FALSE
-                  AND (
-                      COALESCE(e.joining_date, e.date_of_joining, e.join_date) IS NULL
-                      OR $1::date >= COALESCE(e.joining_date, e.date_of_joining, e.join_date)
-                  )
+                  ${requiredClause}
+                  ${joinedClause}
                 ORDER BY e.name ASC
             `, [date]);
             return res.json(result.rows);
@@ -1869,7 +1944,13 @@ const ensureSchema = async () => {
         ['alerts', 'notify_config_changes', 'true', 'boolean',
             'Alert when integration or security settings are changed, and by whom'],
         ['security', 'require_device_approval', 'false', 'boolean',
-            'Reject punches from devices that have not been approved in the Devices page']
+            'Reject punches from devices that have not been approved in the Devices page'],
+        // Seeded so the settings PUT has a row to update — that handler only
+        // UPDATEs, so an unseeded key is written to silently and never stored.
+        ['company', 'theme_preset', 'default', 'string',
+            'Colour scheme for the whole company. Set in Settings > Appearance.'],
+        ['company', 'theme_custom_colors', '', 'string',
+            'JSON overriding the preset colours. Empty means the preset is used as-is.']
     ];
     for (const [category, key, value, type, description] of seeds) {
         try {

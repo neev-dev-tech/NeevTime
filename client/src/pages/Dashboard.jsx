@@ -141,18 +141,37 @@ export default function Dashboard() {
             const yesterday = toLocalDateString(new Date(Date.now() - 24 * 60 * 60 * 1000));
             const sevenDaysAgo = toLocalDateString(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
 
-            const [employeesRes, devicesRes, summaryRes, logsRes, yesterdaySummaryRes] = await Promise.all([
-                api.get('/api/employees'),
-                api.get('/api/devices'),
-                api.get('/api/attendance/summary', { params: { date: today } }),
-                api.get('/api/logs', { params: { limit: 100 } }),
-                api.get('/api/attendance/summary', { params: { date: yesterday } })
-            ]);
+            // allSettled, not all. With Promise.all a single failing endpoint
+            // rejected the lot and the catch below left every figure at its
+            // initial zero — the whole dashboard read 0 employees, 0 devices,
+            // 0 punches because one query had broken. Each panel now stands or
+            // falls on its own request.
+            const [employeesRes, devicesRes, summaryRes, logsRes, yesterdaySummaryRes] =
+                await Promise.allSettled([
+                    api.get('/api/employees'),
+                    api.get('/api/devices'),
+                    api.get('/api/attendance/summary', { params: { date: today } }),
+                    api.get('/api/logs', { params: { limit: 100 } }),
+                    api.get('/api/attendance/summary', { params: { date: yesterday } })
+                ]);
 
-            const employees = employeesRes.data || [];
-            const devicesList = devicesRes.data || [];
-            const summary = summaryRes.data || [];
-            const yesterdaySummary = yesterdaySummaryRes.data || [];
+            const rowsOfSettled = (settled) =>
+                (settled.status === 'fulfilled' ? settled.value.data : null) || [];
+
+            const failed = [employeesRes, devicesRes, summaryRes, logsRes, yesterdaySummaryRes]
+                .filter(r => r.status === 'rejected');
+            if (failed.length) {
+                // Logged rather than swallowed: a panel quietly showing zero is
+                // indistinguishable from a genuine zero, which is what made the
+                // original failure so hard to place.
+                console.error('Dashboard: %d of 5 requests failed', failed.length,
+                    failed.map(f => f.reason?.response?.data?.error || f.reason?.message));
+            }
+
+            const employees = rowsOfSettled(employeesRes);
+            const devicesList = rowsOfSettled(devicesRes);
+            const summary = rowsOfSettled(summaryRes);
+            const yesterdaySummary = rowsOfSettled(yesterdaySummaryRes);
 
             // Calculate stats
             const newJoinees = employees.filter(e => {
@@ -207,7 +226,7 @@ export default function Dashboard() {
             const totalEmployees = employees.length;
             const attendanceRate = totalEmployees > 0 ? Math.round((present / totalEmployees) * 100) : 0;
             const punctualityRate = totalEmployees > 0 ? Math.round(((totalEmployees - late) / totalEmployees) * 100) : 0;
-            const totalPunches = logsRes.data?.length || 0;
+            const totalPunches = rowsOfSettled(logsRes).length;
             const avgHours = summary.length > 0
                 ? Math.round(summary.reduce((sum, r) => sum + (r.duration_minutes || 0), 0) / summary.length / 60 * 10) / 10
                 : 0;

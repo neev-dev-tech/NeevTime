@@ -1,6 +1,9 @@
+import { useState } from 'react';
 import PropTypes from 'prop-types';
-import { Sun, Moon, Palette, RefreshCw, Check, Monitor } from 'lucide-react';
+import { Sun, Moon, Palette, RefreshCw, Check, Monitor, Save, Users } from 'lucide-react';
 import { useTheme } from './Theme';
+import api from '../api';
+import { useToast } from './Toast';
 
 /**
  * Appearance settings, as a Settings tab.
@@ -11,9 +14,17 @@ import { useTheme } from './Theme';
  * where anyone expected it. Settings is where people go to change how the app
  * behaves, so the same controls live here.
  *
- * Preferences are per-browser, held in localStorage. They deliberately do NOT
- * go in app_settings: one person preferring dark should not repaint the app for
- * the whole company, and there is no per-user profile to hang it on.
+ * Two kinds of preference live here, and the split is deliberate.
+ *
+ * Light and dark are per-browser, in localStorage: someone working at night
+ * should not darken the app for the whole company, and there is no per-user
+ * profile to hang it on.
+ *
+ * The colour scheme is the company's, in app_settings, and is applied with the
+ * button at the bottom. It began as localStorage too, which was wrong in a way
+ * that only showed up across machines — an uploaded logo appeared for everyone
+ * while a palette change followed one browser around, so the same account on a
+ * second laptop rendered in different colours.
  */
 
 const SWATCHES = [
@@ -62,6 +73,33 @@ export default function ThemeSettings() {
         themeColors, customColors, setCustomColor,
         resetTheme, presets
     } = useTheme();
+    const toast = useToast();
+    const [saving, setSaving] = useState(false);
+
+    /**
+     * Publish the palette to everyone.
+     *
+     * Colour changes apply to this browser as you make them — that is the
+     * preview. They are not the company's colours until they are saved here,
+     * which is the distinction that was missing: the logo was a server setting
+     * and appeared everywhere, while the palette only ever lived in one
+     * browser's localStorage, so the same account on a second laptop showed
+     * different colours with no way to reconcile them.
+     */
+    const publish = async () => {
+        setSaving(true);
+        try {
+            await api.put('/api/settings/company', {
+                theme_preset: customColors ? 'custom' : currentTheme,
+                theme_custom_colors: customColors ? JSON.stringify(customColors) : ''
+            });
+            toast.success('Colour scheme saved for everyone in the company');
+        } catch (err) {
+            toast.error(err.response?.data?.error || 'Could not save the colour scheme');
+        } finally {
+            setSaving(false);
+        }
+    };
 
     return (
         <div className="space-y-8">
@@ -71,7 +109,7 @@ export default function ThemeSettings() {
                 <div>
                     <h3 className="font-semibold text-slate-800 dark:text-slate-100">Appearance</h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400">
-                        Applies to this browser only — it will not change the app for anyone else.
+                        A per-browser choice — it will not change the app for anyone else.
                     </p>
                 </div>
 
@@ -103,7 +141,8 @@ export default function ThemeSettings() {
                 <div>
                     <h3 className="font-semibold text-slate-800 dark:text-slate-100">Colour scheme</h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400">
-                        Sets the accent colours used across buttons, charts and status badges.
+                        Used across buttons, charts and status badges. Preview here, then apply it to the
+                        whole company at the bottom of this tab.
                     </p>
                 </div>
 
@@ -196,24 +235,37 @@ export default function ThemeSettings() {
                     </p>
                 </div>
 
-                <button
-                    type="button"
-                    onClick={resetTheme}
-                    className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold bg-slate-500 hover:bg-slate-600 text-white dark:bg-slate-600 dark:hover:bg-slate-500"
-                >
-                    <RefreshCw size={15} />
-                    Reset to defaults
-                </button>
-                <p className="text-xs text-slate-400 dark:text-slate-500">
-                    Restores the original orange scheme and light mode. Applies immediately — there is nothing
-                    to save on this tab.
+                <div className="flex gap-2 flex-wrap">
+                    <button
+                        type="button"
+                        onClick={publish}
+                        disabled={saving}
+                        className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold bg-orange-500 hover:bg-orange-600 text-white disabled:opacity-60"
+                    >
+                        <Save size={15} />
+                        {saving ? 'Saving…' : 'Apply to everyone'}
+                    </button>
+                    <button
+                        type="button"
+                        onClick={resetTheme}
+                        className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold bg-slate-500 hover:bg-slate-600 text-white dark:bg-slate-600 dark:hover:bg-slate-500"
+                    >
+                        <RefreshCw size={15} />
+                        Reset to defaults
+                    </button>
+                </div>
+                <p className="flex items-start gap-2 text-xs text-slate-500 dark:text-slate-400">
+                    <Users size={13} className="mt-0.5 shrink-0" />
+                    Colour changes preview in this browser straight away. Press <strong>Apply to everyone</strong> to
+                    make them the company&apos;s colours — the same scheme will then load on every machine and for
+                    every user, exactly as the logo does. Reset restores the original orange scheme here only.
                 </p>
             </section>
 
             <p className="flex items-start gap-2 text-xs text-slate-400 dark:text-slate-500 pt-2 border-t border-slate-100 dark:border-slate-700">
                 <Palette size={13} className="mt-0.5 shrink-0" />
-                Appearance is remembered in this browser. Signing in elsewhere, or on another machine,
-                starts from the defaults again.
+                Light and dark stay a per-browser choice — someone working at night should not darken the
+                app for the whole company. The colour scheme, once applied, is shared by everyone.
             </p>
         </div>
     );

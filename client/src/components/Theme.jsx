@@ -127,6 +127,38 @@ export function ThemeProvider({ children }) {
     // Get active theme colors
     const themeColors = customColors || THEME_PRESETS[currentTheme] || THEME_PRESETS.default;
 
+    /**
+     * Adopt the company's saved palette.
+     *
+     * The colour scheme is a property of the deployment, not of the machine
+     * looking at it — the same account on a second laptop was showing different
+     * colours, while an uploaded logo appeared everywhere, because the logo was
+     * a server setting and the palette was localStorage.
+     *
+     * localStorage stays as the first paint, so the app does not flash the
+     * default orange on every load while this request is in flight; the server
+     * is what settles the question. Dark mode is deliberately not included: one
+     * person preferring dark should not darken the app for the whole company.
+     */
+    useEffect(() => {
+        let cancelled = false;
+        fetch('/api/branding')
+            .then(res => (res.ok ? res.json() : null))
+            .then(cfg => {
+                if (cancelled || !cfg) return;
+                if (cfg.theme_custom_colors) {
+                    setCustomColors(cfg.theme_custom_colors);
+                    localStorage.setItem('theme-custom-colors', JSON.stringify(cfg.theme_custom_colors));
+                } else if (cfg.theme_preset) {
+                    setCurrentTheme(cfg.theme_preset);
+                    setCustomColors(null);
+                    localStorage.removeItem('theme-custom-colors');
+                }
+            })
+            .catch(() => { /* keep whatever localStorage gave us */ });
+        return () => { cancelled = true; };
+    }, []);
+
     // Apply theme to CSS variables
     useEffect(() => {
         const root = document.documentElement;
