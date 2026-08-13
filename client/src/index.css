@@ -3482,3 +3482,46 @@ tr:focus-within .dv-quiet { opacity: 1; transform: none; }
    letting the content hold the foreground. */
 .app-bg .bg3d-scene { opacity: 0.45; }
 .dark .app-bg .bg3d-scene { opacity: 0.55; }
+
+/* ==========================================================================
+   BRAND COLOUR — make the chosen scheme actually apply
+   --------------------------------------------------------------------------
+   The theme picker sets --color-primary, but the app was built with orange
+   Tailwind utilities written directly into the markup: 206 of them across 57
+   components, against six rules that read the variable. Choosing "Royal
+   Purple" therefore recoloured almost nothing, which is a control that looks
+   like it works and does not.
+
+   Rewriting 57 files would be a large and risky diff for a cosmetic feature.
+   Instead the brand oranges are redefined in terms of the variable — the same
+   technique the neutral-dark block above uses to remap slate surfaces without
+   touching any component.
+
+   Only the brand weights are remapped. 400 and below are decorative tints used
+   for hovers and glows; leaving them alone keeps those subtleties intact and
+   avoids a flat, single-colour look. The default value of --color-primary is
+   the original orange, so an install that never touches the theme picker looks
+   exactly as it did.
+   ========================================================================== */
+
+.bg-orange-500 { background-color: var(--color-primary) !important; }
+.bg-orange-600 { background-color: var(--color-primary-dark) !important; }
+.hover\:bg-orange-600:hover { background-color: var(--color-primary-dark) !important; }
+.hover\:bg-orange-700:hover { background-color: var(--color-primary-dark) !important; filter: brightness(0.92); }
+
+.text-orange-500 { color: var(--color-primary) !important; }
+.text-orange-600 { color: var(--color-primary-dark) !important; }
+.hover\:text-orange-600:hover { color: var(--color-primary-dark) !important; }
+
+.border-orange-500 { border-color: var(--color-primary) !important; }
+.border-orange-600 { border-color: var(--color-primary-dark) !important; }
+
+.ring-orange-500 { --tw-ring-color: var(--color-primary) !important; }
+.focus\:border-orange-400:focus { border-color: var(--color-primary) !important; }
+.focus\:border-orange-500:focus { border-color: var(--color-primary) !important; }
+
+/* Dark-mode variants of the same utilities */
+.dark .dark\:text-orange-400 { color: var(--color-primary) !important; }
+.dark .dark\:hover\:text-orange-400:hover { color: var(--color-primary) !important; }
+.dark .dark\:border-orange-600 { border-color: var(--color-primary-dark) !important; }
+.dark .dark\:focus\:border-orange-500:focus { border-color: var(--color-primary) !important; }
