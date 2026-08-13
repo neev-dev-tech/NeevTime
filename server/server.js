@@ -167,6 +167,60 @@ app.post('/api/attendance/process', authenticateToken, async (req, res) => {
 app.get('/api/attendance/summary', authenticateToken, async (req, res) => {
     try {
         const { date, employee_code } = req.query;
+
+        // For a single day, drive the query from the employee list rather than
+        // from the summary table.
+        //
+        // Only people who punched get a summary row, so an absentee had no row
+        // at all: the Attendance Register showed "Absent 0" on a day 29 people
+        // were missing, and its status filter offered only "Present" because
+        // that was the only status any returned row carried. A register that
+        // silently omits everyone who did not turn up is the opposite of what
+        // it is for.
+        //
+        // The non-attendance statuses are derived in the same order of
+        // precedence the absent report uses, so the two agree: an approved
+        // leave is leave, a listed holiday is a holiday, the weekend is a
+        // weekly off, and what remains is a genuine absence.
+        if (date && !employee_code) {
+            const result = await db.query(`
+                SELECT
+                    ads.id, ads.employee_code, $1::date AS date,
+                    ads.in_time, ads.out_time, ads.duration_minutes,
+                    ads.late_minutes, ads.early_leave_minutes, ads.overtime_minutes,
+                    ads.remarks, ads.is_finalized,
+                    COALESCE(
+                        ads.status,
+                        CASE
+                            WHEN EXISTS (
+                                SELECT 1 FROM leave_applications la
+                                WHERE la.employee_code = e.employee_code
+                                  AND LOWER(la.status) = 'approved'
+                                  AND $1::date BETWEEN la.from_date AND la.to_date
+                            ) THEN 'On Leave'
+                            WHEN EXISTS (
+                                SELECT 1 FROM holidays h WHERE h.date = $1::date
+                            ) THEN 'Holiday'
+                            WHEN EXTRACT(DOW FROM $1::date) IN (0, 6) THEN 'Weekly Off'
+                            ELSE 'Absent'
+                        END
+                    ) AS status,
+                    e.name, d.name as department
+                FROM employees e
+                LEFT JOIN departments d ON e.department_id = d.id
+                LEFT JOIN attendance_daily_summary ads
+                       ON ads.employee_code = e.employee_code AND ads.date = $1::date
+                WHERE e.status = 'active'
+                  AND e.attendance_required IS NOT FALSE
+                  AND (
+                      COALESCE(e.joining_date, e.date_of_joining, e.join_date) IS NULL
+                      OR $1::date >= COALESCE(e.joining_date, e.date_of_joining, e.join_date)
+                  )
+                ORDER BY e.name ASC
+            `, [date]);
+            return res.json(result.rows);
+        }
+
         let query = `
             SELECT ads.*, e.name, d.name as department
             FROM attendance_daily_summary ads

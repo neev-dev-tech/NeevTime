@@ -51,7 +51,7 @@ export default function Dashboard() {
     const [devices, setDevices] = useState([]);
     const [recentLogs, setRecentLogs] = useState([]);
     const [attendanceTrends, setAttendanceTrends] = useState([]);
-    const [absenteesByMonth, setAbsenteesByMonth] = useState([]);
+    const [statusMix, setStatusMix] = useState([]);
     const [loading, setLoading] = useState(true);
     const [lastUpdated, setLastUpdated] = useState(null);
     const socketRef = useRef(null);
@@ -130,8 +130,7 @@ export default function Dashboard() {
             fetchStats(),
             fetchDevices(),
             fetchRecentLogs(),
-            fetchAttendanceTrends(),
-            fetchAbsenteesByMonth()
+            fetchAttendanceTrends()
         ]);
         setLoading(false);
     };
@@ -162,6 +161,27 @@ export default function Dashboard() {
             }).length;
 
             const resigned = employees.filter(e => e.status === 'resigned' || e.resignation_date).length;
+
+            // Headcount per department, for the middle donut.
+            //
+            // It used to be absences by month, which said the same thing as the
+            // two charts either side of it — three rings all counting problems,
+            // and the monthly one covering a window most deployments have no
+            // punch history for. Headcount is a different axis entirely, needs
+            // no extra request, and answers a question nothing else on the page
+            // does: how the company is actually distributed.
+            const byDept = {};
+            employees
+                .filter(e => e.status !== 'resigned' && !e.resignation_date)
+                .forEach(e => {
+                    const name = e.department_name || 'Unassigned';
+                    byDept[name] = (byDept[name] || 0) + 1;
+                });
+            setStatusMix(
+                Object.entries(byDept)
+                    .map(([name, value]) => ({ name, value }))
+                    .sort((a, b) => b.value - a.value)
+            );
             const devicesOnline = devicesList.filter(d => d.status === 'online').length;
             const verificationCount = devicesList.reduce((sum, d) => sum + (d.fingerprint_count || 0) + (d.face_count || 0), 0);
 
@@ -172,11 +192,13 @@ export default function Dashboard() {
             // status is someone who came in.
             const NON_ATTENDING = ['Absent', 'Weekly Off', 'Holiday', 'On Leave'];
             const present = summary.filter(r => !NON_ATTENDING.includes(r.status)).length;
-            // Only employees who punched get a summary row, so counting rows marked
-            // 'Absent' missed everyone who simply never turned up — it read 0 while
-            // 36 people were unaccounted for. Absent is everyone not present.
-            const onLeaveCount = summary.filter(r => r.status === 'On Leave').length;
-            const absent = Math.max(0, employees.length - present - onLeaveCount);
+            // The summary now carries a row per expected employee rather than
+            // only those who punched, so absence is a direct count instead of
+            // a subtraction from the headcount — which drifted whenever the two
+            // sides disagreed about who was expected (exempt staff, people who
+            // had not started yet).
+            const absentRows = summary.filter(r => r.status === 'Absent').length;
+            const absent = absentRows;
             const late = summary.filter(r => (r.late_minutes || 0) > 0).length;
             const earlyLeave = summary.filter(r => (r.early_leave_minutes || 0) > 0).length;
             const onLeave = summary.filter(r => r.status === 'On Leave').length;
@@ -338,57 +360,6 @@ export default function Dashboard() {
         } catch (err) { console.error(err); }
     };
 
-    /**
-     * Absences grouped by calendar month, for the third donut.
-     *
-     * Six months rather than "this year": in January a year-to-date chart is a
-     * single slice, which is the one month it is least useful. A rolling window
-     * always has something to compare against.
-     *
-     * Kept out of fetchAttendanceTrends because it is a wider, slower range and
-     * nothing on the page waits for it — the seven-day charts should not be
-     * held back by six months of rows.
-     */
-    const fetchAbsenteesByMonth = async () => {
-        try {
-            const now = new Date();
-            const first = new Date(now.getFullYear(), now.getMonth() - 5, 1);
-            const res = await api.get('/api/reports/absent', {
-                params: {
-                    start_date: toLocalDateString(first),
-                    end_date: toLocalDateString(now)
-                }
-            });
-
-            // Seed every month in the window so a month with no absences shows
-            // as a zero in the legend rather than vanishing — a gap in the
-            // sequence reads as missing data, not as a clean month.
-            const buckets = [];
-            const index = {};
-            for (let i = 5; i >= 0; i--) {
-                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-                const key = `${d.getFullYear()}-${d.getMonth()}`;
-                const entry = { name: d.toLocaleDateString('en-US', { month: 'short' }), value: 0 };
-                index[key] = entry;
-                buckets.push(entry);
-            }
-
-            const rows = Array.isArray(res.data) ? res.data : (res.data?.data || []);
-            rows.forEach(row => {
-                if (!row.absent_date) return;
-                // Converted to the local date first. The timestamp is UTC, so
-                // in IST the 1st of a month arrives as the last evening of the
-                // month before — reading the month straight off the string
-                // would file it under the wrong month.
-                const d = new Date(row.absent_date);
-                if (Number.isNaN(d.getTime())) return;
-                const entry = index[`${d.getFullYear()}-${d.getMonth()}`];
-                if (entry) entry.value += 1;
-            });
-
-            setAbsenteesByMonth(buckets);
-        } catch (err) { console.error(err); }
-    };
 
     /**
      * A stat tile.
@@ -714,12 +685,12 @@ export default function Dashboard() {
                     emptyMessage="No absences in the last 7 days"
                 />
                 <DonutCard
-                    title="Absentees — by month"
-                    subtitle="Last 6 months"
+                    title="Workforce by department"
+                    subtitle="Active headcount"
                     loading={loading}
-                    data={absenteesByMonth}
+                    data={statusMix}
                     colors={donutPalette}
-                    emptyMessage="No absences recorded in this period"
+                    emptyMessage="No employees on the payroll yet"
                 />
                 <DonutCard
                     title="Late Corners — last 7 days"
