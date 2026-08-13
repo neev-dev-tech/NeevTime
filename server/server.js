@@ -475,9 +475,14 @@ app.get('/api/notifications/summary', authenticateToken, async (req, res) => {
             // nothing reaches payroll. It sat that way from 31 July to 4 August
             // and only surfaced when someone noticed records missing at the far
             // end. Surfacing it is the whole fix.
+            // Guarded: hrms_integrations comes from the HRMS setup, not
+            // schema.sql, so a deployment with no integration has no table —
+            // and one missing optional table would 500 the whole bell,
+            // hiding the leave and device counts that did load.
             db.query(`SELECT name FROM hrms_integrations
                       WHERE is_active IS TRUE AND sync_attendance IS NOT TRUE
-                      ORDER BY name`),
+                      ORDER BY name`)
+                .catch(() => ({ rows: [] })),
             // Email is the only alert channel, so a broken SMTP would mean no
             // alerts at all and no sign of it — the exact silent-failure shape
             // alerting exists to prevent. Surface it in the app instead.

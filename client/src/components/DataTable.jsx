@@ -14,13 +14,14 @@
  * @version 1.0.0
  */
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useRef } from 'react';
 import {
     ChevronUp, ChevronDown, ChevronsUpDown,
     ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight,
     Search, Settings2, Download, Eye, EyeOff, Columns3,
     Check, X
 } from 'lucide-react';
+import useDismissable from '../hooks/useDismissable';
 
 /**
  * Sort state constants
@@ -71,6 +72,14 @@ export default function DataTable({
         columns.reduce((acc, col) => ({ ...acc, [col.key]: col.visible !== false }), {})
     );
     const [showColumnMenu, setShowColumnMenu] = useState(false);
+    const columnMenuRef = useRef(null);
+    const columnTriggerRef = useRef(null);
+
+    // Replaces a `fixed inset-0 z-10` backdrop. That pattern only closes the
+    // menu while nothing on the page outpaints z-10 — the header popovers used
+    // the same trick at z-30 and silently stopped working. This does not depend
+    // on stacking order, and it adds Escape, which the backdrop never handled.
+    useDismissable(showColumnMenu, () => setShowColumnMenu(false), columnMenuRef, columnTriggerRef);
 
     // Auto-generate columns from data if not provided
     const tableColumns = useMemo(() => {
@@ -335,6 +344,7 @@ export default function DataTable({
                     {showColumnToggle && (
                         <div className="relative">
                             <button
+                                ref={columnTriggerRef}
                                 onClick={() => setShowColumnMenu(!showColumnMenu)}
                                 className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
                                 title="Toggle columns"
@@ -343,33 +353,30 @@ export default function DataTable({
                             </button>
 
                             {showColumnMenu && (
-                                <>
-                                    <div
-                                        className="fixed inset-0 z-10"
-                                        onClick={() => setShowColumnMenu(false)}
-                                    />
-                                    <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg z-20 py-2">
-                                        <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b dark:border-slate-700">
-                                            Visible Columns
-                                        </div>
-                                        <div className="max-h-64 overflow-y-auto">
-                                            {tableColumns.map(col => (
-                                                <label
-                                                    key={col.key}
-                                                    className="flex items-center gap-3 px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer"
-                                                >
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={visibleColumns[col.key]}
-                                                        onChange={() => toggleColumn(col.key)}
-                                                        className="rounded border-slate-300 dark:border-slate-600 text-orange-500 focus:ring-orange-400"
-                                                    />
-                                                    <span className="text-sm text-slate-700 dark:text-slate-300">{col.label}</span>
-                                                </label>
-                                            ))}
-                                        </div>
+                                <div
+                                    ref={columnMenuRef}
+                                    className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg z-20 py-2"
+                                >
+                                    <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b dark:border-slate-700">
+                                        Visible Columns
                                     </div>
-                                </>
+                                    <div className="max-h-64 overflow-y-auto">
+                                        {tableColumns.map(col => (
+                                            <label
+                                                key={col.key}
+                                                className="flex items-center gap-3 px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer"
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    checked={visibleColumns[col.key]}
+                                                    onChange={() => toggleColumn(col.key)}
+                                                    className="rounded border-slate-300 dark:border-slate-600 text-orange-500 focus:ring-orange-400"
+                                                />
+                                                <span className="text-sm text-slate-700 dark:text-slate-300">{col.label}</span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
                             )}
                         </div>
                     )}

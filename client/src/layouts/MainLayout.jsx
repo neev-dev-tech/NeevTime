@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ChevronDown, ChevronRight, LogOut, Info, HelpCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 import { modules, personnelSidebar, deviceSidebar, attendanceSidebar, systemSidebar } from '../config/navigation';
 import { ThemeButton } from '../components';
 import useBranding from '../hooks/useBranding';
+import useDismissable from '../hooks/useDismissable';
 import GlobalSearch from '../components/GlobalSearch';
 import AnimatedBackground from '../components/AnimatedBackground';
 import NotificationCenter from '../components/NotificationCenter';
@@ -22,6 +23,11 @@ export default function MainLayout({ children }) {
   const [activeModule, setActiveModule] = useState('Dashboard');
   const [expandedGroups, setExpandedGroups] = useState({});
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const profileMenuRef = useRef(null);
+  const profileTriggerRef = useRef(null);
+  // Declared after showProfileMenu on purpose: the hook reads it, and placing
+  // the call above the useState throws "cannot access before initialization".
+  useDismissable(showProfileMenu, () => setShowProfileMenu(false), profileMenuRef, profileTriggerRef);
   const [showAbout, setShowAbout] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
 
@@ -155,6 +161,7 @@ export default function MainLayout({ children }) {
 
             <div className="relative">
               <button
+                ref={profileTriggerRef}
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
                 className="flex items-center gap-2 px-3 py-2 rounded-full hover:bg-orange-50 transition-colors"
               >
@@ -166,33 +173,31 @@ export default function MainLayout({ children }) {
 
               <AnimatePresence>
                 {showProfileMenu && (
-                  <>
-                    <div className="fixed inset-0 z-30" onClick={() => setShowProfileMenu(false)} />
-                    <motion.div 
-                      initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                      className="absolute right-0 mt-2 w-56 bg-white shadow-xl rounded-2xl overflow-hidden z-40 border border-orange-100"
-                    >
-                      <div className="px-4 py-3 border-b border-orange-50 bg-orange-50/50">
-                        <p className="text-sm font-bold text-slate-800">{auth?.username}</p>
-                        <p className="text-xs text-slate-500">{auth?.role}</p>
-                      </div>
-                      <div className="py-2">
-                        <button onClick={() => { setShowProfileMenu(false); setShowAbout(true); }} className="w-full px-4 py-2 text-left text-sm text-slate-600 dark:text-slate-300 hover:bg-orange-50 dark:hover:bg-slate-700 flex items-center gap-3">
-                          <Info size={16} /> <span>About</span>
-                        </button>
-                        <button onClick={() => { setShowProfileMenu(false); setShowHelp(true); }} className="w-full px-4 py-2 text-left text-sm text-slate-600 dark:text-slate-300 hover:bg-orange-50 dark:hover:bg-slate-700 flex items-center gap-3">
-                          <HelpCircle size={16} /> <span>Help</span>
-                        </button>
-                      </div>
-                      <div className="border-t border-orange-50">
-                        <button onClick={logout} className="w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-3 font-semibold">
-                          <LogOut size={16} /> <span>Logout</span>
-                        </button>
-                      </div>
-                    </motion.div>
-                  </>
+                  <motion.div 
+                    ref={profileMenuRef}
+                    initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                    className="absolute right-0 mt-2 w-56 bg-white shadow-xl rounded-2xl overflow-hidden z-40 border border-orange-100"
+                  >
+                    <div className="px-4 py-3 border-b border-orange-50 bg-orange-50/50">
+                      <p className="text-sm font-bold text-slate-800">{auth?.username}</p>
+                      <p className="text-xs text-slate-500">{auth?.role}</p>
+                    </div>
+                    <div className="py-2">
+                      <button onClick={() => { setShowProfileMenu(false); setShowAbout(true); }} className="w-full px-4 py-2 text-left text-sm text-slate-600 dark:text-slate-300 hover:bg-orange-50 dark:hover:bg-slate-700 flex items-center gap-3">
+                        <Info size={16} /> <span>About</span>
+                      </button>
+                      <button onClick={() => { setShowProfileMenu(false); setShowHelp(true); }} className="w-full px-4 py-2 text-left text-sm text-slate-600 dark:text-slate-300 hover:bg-orange-50 dark:hover:bg-slate-700 flex items-center gap-3">
+                        <HelpCircle size={16} /> <span>Help</span>
+                      </button>
+                    </div>
+                    <div className="border-t border-orange-50">
+                      <button onClick={logout} className="w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-3 font-semibold">
+                        <LogOut size={16} /> <span>Logout</span>
+                      </button>
+                    </div>
+                  </motion.div>
                 )}
               </AnimatePresence>
             </div>

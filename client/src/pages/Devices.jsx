@@ -8,7 +8,7 @@ import {
     Upload, Download, ChevronDown, AlertTriangle, Briefcase, Camera, FileText,
     FileQuestion, Database, AlertCircle, FileSpreadsheet, Table2, Inbox, ShieldAlert
 } from 'lucide-react';
-import SkeletonLoader from '../components/SkeletonLoader';
+import { TableSkeleton } from '../components/SkeletonLoader';
 import { useToast, Button, PageHeader } from '../components';
 import { exportToExcel, exportToCSV } from '../utils/excelExport';
 
@@ -196,7 +196,7 @@ const DataView = ({ title, endpoint, columns, icon: Icon = Database }) => {
                 {/* Table Content */}
                 {loading ? (
                     <div className="p-6">
-                        <SkeletonLoader rows={10} columns={columns.length} showHeader={true} />
+                        <TableSkeleton rows={10} cols={columns.length} />
                     </div>
                 ) : (
                     <div className="table-premium-wrapper">
