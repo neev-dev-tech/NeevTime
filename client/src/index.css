@@ -727,20 +727,26 @@ body {
   }
 
   /* Staggered Animation Classes */
+  /* Entry animations are deliberately short and start from *almost* visible.
+     They used to declare `opacity: 0` as a base with `forwards`, so an element
+     with a stagger delay sat completely invisible until its delay elapsed —
+     up to 300ms of blank page. Every navigation blanked and then popped, which
+     reads as a flicker rather than as an entrance.
+
+     `both` fill mode holds the from-state during the delay, the from-state is
+     no longer fully transparent, and the travel is 6px rather than 20px. The
+     page is legible the moment it paints and merely settles. */
   .animate-fade-in {
-    animation: fadeIn 0.4s var(--ease-snappy) forwards;
-    opacity: 0;
+    animation: fadeIn 180ms var(--ease-snappy) both;
   }
 
   .animate-slide-up {
-    animation: slideUp 0.4s var(--ease-snappy) forwards;
-    opacity: 0;
-    transform: translateY(20px);
+    animation: slideUp 200ms var(--ease-snappy) both;
   }
 
   @keyframes fadeIn {
     from {
-      opacity: 0;
+      opacity: 0.35;
     }
 
     to {
@@ -750,8 +756,8 @@ body {
 
   @keyframes slideUp {
     from {
-      opacity: 0;
-      transform: translateY(20px);
+      opacity: 0.35;
+      transform: translateY(6px);
     }
 
     to {
@@ -766,27 +772,27 @@ body {
   }
 
   .stagger-2 {
-    animation-delay: 50ms;
+    animation-delay: 20ms;
   }
 
   .stagger-3 {
-    animation-delay: 100ms;
+    animation-delay: 40ms;
   }
 
   .stagger-4 {
-    animation-delay: 150ms;
+    animation-delay: 55ms;
   }
 
   .stagger-5 {
-    animation-delay: 200ms;
+    animation-delay: 70ms;
   }
 
   .stagger-6 {
-    animation-delay: 250ms;
+    animation-delay: 85ms;
   }
 
   .stagger-7 {
-    animation-delay: 300ms;
+    animation-delay: 100ms;
   }
 
   .stagger-8 {
@@ -2571,50 +2577,11 @@ body {
   to { background-position: 0 64px; }
 }
 
-/* Depth orbs — each on its own Z plane so they parallax against each other */
-.app-bg__orb {
-  position: absolute;
-  border-radius: 9999px;
-  filter: blur(60px);
-  will-change: transform;
-}
 
-.app-bg__orb--1 {
-  width: 46vw; height: 46vw;
-  top: -12vw; left: -8vw;
-  background: radial-gradient(circle at 30% 30%, rgba(249, 115, 22, 0.45), rgba(249, 115, 22, 0) 70%);
-  transform: translateZ(-220px);
-  animation: bg-float-a 30s ease-in-out infinite;
-}
 
-.app-bg__orb--2 {
-  width: 38vw; height: 38vw;
-  top: 8vh; right: -10vw;
-  background: radial-gradient(circle at 60% 40%, rgba(245, 158, 11, 0.38), rgba(245, 158, 11, 0) 70%);
-  transform: translateZ(-140px);
-  animation: bg-float-b 38s ease-in-out infinite;
-}
 
-.app-bg__orb--3 {
-  width: 32vw; height: 32vw;
-  bottom: -8vw; left: 22vw;
-  background: radial-gradient(circle at 40% 60%, rgba(16, 185, 129, 0.30), rgba(16, 185, 129, 0) 70%);
-  transform: translateZ(-320px);
-  animation: bg-float-c 44s ease-in-out infinite;
-}
 
-.app-bg__orb--4 {
-  width: 26vw; height: 26vw;
-  bottom: 14vh; right: 16vw;
-  background: radial-gradient(circle at 50% 50%, rgba(234, 88, 12, 0.28), rgba(234, 88, 12, 0) 70%);
-  transform: translateZ(-60px);
-  animation: bg-float-a 34s ease-in-out infinite reverse;
-}
 
-.dark .app-bg__orb--1 { background: radial-gradient(circle at 30% 30%, rgba(249, 115, 22, 0.22), rgba(249, 115, 22, 0) 70%); }
-.dark .app-bg__orb--2 { background: radial-gradient(circle at 60% 40%, rgba(217, 119, 6, 0.20), rgba(217, 119, 6, 0) 70%); }
-.dark .app-bg__orb--3 { background: radial-gradient(circle at 40% 60%, rgba(5, 150, 105, 0.18), rgba(5, 150, 105, 0) 70%); }
-.dark .app-bg__orb--4 { background: radial-gradient(circle at 50% 50%, rgba(124, 45, 18, 0.28), rgba(124, 45, 18, 0) 70%); }
 
 @keyframes bg-float-a {
   0%, 100% { transform: translateZ(-220px) translate3d(0, 0, 0) scale(1); }
@@ -2650,7 +2617,9 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .app-bg__grid,
-  .app-bg__orb {
+  .animate-fade-in,
+  .animate-slide-up,
+  .animate-fade-in-up {
     animation: none !important;
   }
 }
@@ -2942,180 +2911,111 @@ body {
 .dark header.dark\:bg-slate-900\/80 { backdrop-filter: blur(18px) saturate(140%); }
 
 /* ==========================================================================
-   3D SCENE — wireframe geometry on real Z planes
-   ========================================================================== */
+   AMBIENT FIELD — slow drifting light, no hard geometry
+   ==========================================================================
+   This was a set of CSS-3D wireframe cubes, rings and planes. Two problems
+   with it. Their edges are hard lines at full contrast, so they crossed
+   headings and figures and read as rendering artefacts sitting on top of the
+   UI rather than as depth behind it. And their colours were hardcoded orange
+   and emerald, so a deployment that rebranded to another palette still had
+   orange wireframes drifting through it.
 
-.bg3d-scene {
+   What replaces it is soft-edged and derived from the theme: three wide,
+   heavily blurred washes tinted with the brand colours, drifting slowly past
+   each other. Nothing has an edge to collide with the content, and recolouring
+   the app recolours the background with it.
+
+   Transform and opacity only, so the whole thing composites on the GPU and
+   never triggers layout or paint. */
+
+.bg-field {
   position: absolute;
-  inset: 0;
-  transform-style: preserve-3d;
-  perspective: 1200px;
-  perspective-origin: 55% 45%;
+  inset: -20%;
+  pointer-events: none;
+  overflow: hidden;
 }
 
-/* ---- cubes ---- */
-.bg3d-cube {
+.bg-field__wash {
   position: absolute;
-  width: 190px;
-  height: 190px;
-  transform-style: preserve-3d;
-  opacity: 0.85;
-}
-
-.bg3d-face {
-  position: absolute;
-  inset: 0;
-  border: 1.5px solid rgba(249, 115, 22, 0.55);
-  background: linear-gradient(135deg, rgba(249, 115, 22, 0.055), rgba(249, 115, 22, 0));
-  border-radius: 8px;
-}
-
-.bg3d-face--front  { transform: translateZ(95px); }
-.bg3d-face--back   { transform: rotateY(180deg) translateZ(95px); }
-.bg3d-face--right  { transform: rotateY(90deg) translateZ(95px); }
-.bg3d-face--left   { transform: rotateY(-90deg) translateZ(95px); }
-.bg3d-face--top    { transform: rotateX(90deg) translateZ(95px); }
-.bg3d-face--bottom { transform: rotateX(-90deg) translateZ(95px); }
-
-.bg3d-cube--a {
-  top: 14%; left: 8%;
-  animation: bg3d-spin-a 34s linear infinite, bg3d-bob 13s ease-in-out infinite;
-}
-
-.bg3d-cube--b {
-  top: 58%; right: 12%;
-  width: 108px; height: 108px;
-  opacity: 0.38;
-  animation: bg3d-spin-b 46s linear infinite, bg3d-bob 17s ease-in-out infinite reverse;
-}
-.bg3d-cube--b .bg3d-face { border-color: rgba(16, 185, 129, 0.38); background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(16, 185, 129, 0)); }
-.bg3d-cube--b .bg3d-face--front { transform: translateZ(54px); }
-.bg3d-cube--b .bg3d-face--back { transform: rotateY(180deg) translateZ(54px); }
-.bg3d-cube--b .bg3d-face--right { transform: rotateY(90deg) translateZ(54px); }
-.bg3d-cube--b .bg3d-face--left { transform: rotateY(-90deg) translateZ(54px); }
-.bg3d-cube--b .bg3d-face--top { transform: rotateX(90deg) translateZ(54px); }
-.bg3d-cube--b .bg3d-face--bottom { transform: rotateX(-90deg) translateZ(54px); }
-
-.bg3d-cube--c {
-  bottom: 12%; left: 26%;
-  width: 74px; height: 74px;
-  opacity: 0.3;
-  animation: bg3d-spin-c 28s linear infinite, bg3d-bob 11s ease-in-out infinite;
-}
-.bg3d-cube--c .bg3d-face { border-color: rgba(245, 158, 11, 0.42); }
-.bg3d-cube--c .bg3d-face--front { transform: translateZ(37px); }
-.bg3d-cube--c .bg3d-face--back { transform: rotateY(180deg) translateZ(37px); }
-.bg3d-cube--c .bg3d-face--right { transform: rotateY(90deg) translateZ(37px); }
-.bg3d-cube--c .bg3d-face--left { transform: rotateY(-90deg) translateZ(37px); }
-.bg3d-cube--c .bg3d-face--top { transform: rotateX(90deg) translateZ(37px); }
-.bg3d-cube--c .bg3d-face--bottom { transform: rotateX(-90deg) translateZ(37px); }
-
-@keyframes bg3d-spin-a {
-  from { transform: rotateX(-22deg) rotateY(0deg) rotateZ(6deg); }
-  to   { transform: rotateX(-22deg) rotateY(360deg) rotateZ(6deg); }
-}
-@keyframes bg3d-spin-b {
-  from { transform: rotateX(18deg) rotateY(0deg) rotateZ(-10deg); }
-  to   { transform: rotateX(18deg) rotateY(-360deg) rotateZ(-10deg); }
-}
-@keyframes bg3d-spin-c {
-  from { transform: rotateX(35deg) rotateY(0deg); }
-  to   { transform: rotateX(35deg) rotateY(360deg); }
-}
-@keyframes bg3d-bob {
-  0%, 100% { margin-top: 0; }
-  50%      { margin-top: -26px; }
-}
-
-/* ---- orbital rings (3 nested circles rotated onto different planes) ---- */
-.bg3d-ring {
-  position: absolute;
-  width: 300px;
-  height: 300px;
-  transform-style: preserve-3d;
-  opacity: 0.55;
-}
-
-.bg3d-ring i {
-  position: absolute;
-  inset: 0;
-  border: 1.5px solid rgba(249, 115, 22, 0.5);
   border-radius: 50%;
+  /* Blurred far past its own radius: the point is that no edge is ever
+     visible, only the falloff. */
+  filter: blur(90px);
+  will-change: transform;
 }
 
-.bg3d-ring i:nth-child(1) { transform: rotateY(72deg); }
-.bg3d-ring i:nth-child(2) { transform: rotateY(0deg) rotateX(66deg); }
-.bg3d-ring i:nth-child(3) { transform: rotateX(24deg) rotateY(38deg); border-color: rgba(16, 185, 129, 0.42); }
-
-.bg3d-ring--a {
-  top: 6%; right: 16%;
-  animation: bg3d-orbit-a 40s linear infinite;
+.bg-field__wash--1 {
+  width: 46vw; height: 46vw;
+  top: -6%; left: -4%;
+  /* Fallback first: color-mix needs Chrome 111 / Safari 16.2, and without
+     this an older browser gets no wash at all rather than a plain tint. */
+  background: radial-gradient(circle at 50% 50%, rgba(249, 115, 22, 0.26), transparent 68%);
+  background: radial-gradient(circle at 50% 50%,
+              color-mix(in srgb, var(--color-primary) 26%, transparent),
+              transparent 68%);
+  animation: bg-drift-1 34s ease-in-out infinite alternate;
 }
 
-.bg3d-ring--b {
-  bottom: 4%; right: 34%;
-  width: 180px; height: 180px;
-  opacity: 0.24;
-  animation: bg3d-orbit-b 56s linear infinite;
+.bg-field__wash--2 {
+  width: 40vw; height: 40vw;
+  top: 30%; right: -8%;
+  /* Fallback first: color-mix needs Chrome 111 / Safari 16.2, and without
+     this an older browser gets no wash at all rather than a plain tint. */
+  background: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.22), transparent 68%);
+  background: radial-gradient(circle at 50% 50%,
+              color-mix(in srgb, var(--color-info) 22%, transparent),
+              transparent 68%);
+  animation: bg-drift-2 42s ease-in-out infinite alternate;
 }
 
-@keyframes bg3d-orbit-a {
-  from { transform: rotateZ(0deg) rotateX(14deg); }
-  to   { transform: rotateZ(360deg) rotateX(14deg); }
-}
-@keyframes bg3d-orbit-b {
-  from { transform: rotateZ(0deg) rotateX(-20deg); }
-  to   { transform: rotateZ(-360deg) rotateX(-20deg); }
-}
-
-/* ---- tilted glass planes drifting in depth ---- */
-.bg3d-plane {
-  position: absolute;
-  border-radius: 20px;
-  border: 1px solid rgba(249, 115, 22, 0.26);
-  background: linear-gradient(135deg, rgba(249, 115, 22, 0.07), rgba(249, 115, 22, 0));
-  opacity: 0.5;
+.bg-field__wash--3 {
+  width: 38vw; height: 38vw;
+  bottom: -10%; left: 26%;
+  /* Fallback first: color-mix needs Chrome 111 / Safari 16.2, and without
+     this an older browser gets no wash at all rather than a plain tint. */
+  background: radial-gradient(circle at 50% 50%, rgba(34, 197, 94, 0.18), transparent 68%);
+  background: radial-gradient(circle at 50% 50%,
+              color-mix(in srgb, var(--color-success) 18%, transparent),
+              transparent 70%);
+  animation: bg-drift-3 38s ease-in-out infinite alternate;
 }
 
-.bg3d-plane--a {
-  top: 34%; left: 42%;
-  width: 300px; height: 190px;
-  animation: bg3d-plane-a 30s ease-in-out infinite;
-}
+/* Dark mode needs more of the wash, not less: the same tint over a near-black
+   ground is almost invisible. */
+.dark .bg-field__wash--1,
+.dark .bg-field__wash--2,
+.dark .bg-field__wash--3 { opacity: 1.15; filter: blur(110px); }
 
-.bg3d-plane--b {
-  top: 8%; left: 58%;
-  width: 210px; height: 140px;
-  border-color: rgba(16, 185, 129, 0.22);
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.06), rgba(16, 185, 129, 0));
-  animation: bg3d-plane-b 38s ease-in-out infinite;
-}
+.bg-field { opacity: 0.85; }
+.dark .bg-field { opacity: 0.6; }
 
-@keyframes bg3d-plane-a {
-  0%, 100% { transform: perspective(900px) rotateX(58deg) rotateZ(-18deg) translateZ(-120px); }
-  50%      { transform: perspective(900px) rotateX(46deg) rotateZ(-6deg) translateZ(20px); }
+/* Long, prime-ish durations so the three never resynchronise into an obvious
+   loop. Small translations only — large ones read as movement rather than as
+   ambience, and pull the eye off the content. */
+@keyframes bg-drift-1 {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(6vw, 4vh, 0) scale(1.12); }
 }
-@keyframes bg3d-plane-b {
-  0%, 100% { transform: perspective(900px) rotateX(-42deg) rotateZ(16deg) translateZ(-180px); }
-  50%      { transform: perspective(900px) rotateX(-30deg) rotateZ(4deg) translateZ(-40px); }
+@keyframes bg-drift-2 {
+  from { transform: translate3d(0, 0, 0) scale(1.08); }
+  to   { transform: translate3d(-5vw, -5vh, 0) scale(1); }
 }
-
-/* dark-mode geometry reads brighter against charcoal */
-.dark .bg3d-face { border-color: rgba(249, 115, 22, 0.5); }
-.dark .bg3d-cube--b .bg3d-face { border-color: rgba(16, 185, 129, 0.42); }
-.dark .bg3d-ring i { border-color: rgba(249, 115, 22, 0.55); }
-.dark .bg3d-ring i:nth-child(3) { border-color: rgba(16, 185, 129, 0.45); }
-.dark .bg3d-cube { opacity: 0.7; }
-.dark .bg3d-ring { opacity: 0.45; }
-.dark .bg3d-plane { opacity: 0.55; }
+@keyframes bg-drift-3 {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(-4vw, 3vh, 0) scale(1.15); }
+}
 
 @media (prefers-reduced-motion: reduce) {
-  .bg3d-cube, .bg3d-ring, .bg3d-plane { animation: none !important; }
+  /* Kept, not hidden. The washes are what gives the page its ground; without
+     motion they are simply a static gradient, which is the right answer for
+     someone who asked for no animation. */
+  .bg-field__wash { animation: none !important; }
 }
 
-/* geometry is decoration — hide on small screens where space is tight */
-@media (max-width: 900px) {
-  .bg3d-scene { display: none; }
+/* Below this width the washes are wider than the viewport and just tint the
+   whole screen, which is muddy rather than atmospheric. */
+@media (max-width: 700px) {
+  .bg-field { display: none; }
 }
 
 /* Page shells must not paint over the depth field — only real cards do */
@@ -3476,12 +3376,6 @@ tr:focus-within .dv-quiet { opacity: 1; transform: none; }
 .app-shell .text-slate-400 { color: #64748B; }
 .dark .app-shell .text-slate-400 { color: #94A3B8; }
 
-/* The depth field should sit behind the work, not compete with it. At full
-   strength the wireframe edges cross headings and figures, which is what made
-   the dashboard read as cluttered. Halving it keeps the sense of depth while
-   letting the content hold the foreground. */
-.app-bg .bg3d-scene { opacity: 0.45; }
-.dark .app-bg .bg3d-scene { opacity: 0.55; }
 
 /* ==========================================================================
    BRAND COLOUR — make the chosen scheme actually apply
