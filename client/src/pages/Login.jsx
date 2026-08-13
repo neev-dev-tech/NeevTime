@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import useBranding from '../hooks/useBranding';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { Lock, User, Fingerprint, Clock, Shield, Users } from 'lucide-react';
@@ -6,6 +7,7 @@ import loginIllustration from '../assets/login_illustration.png';
 import { loadReportSettings } from '../utils/reportSettings';
 
 export default function Login({ setAuth }) {
+    const { logo, hasLogo, name } = useBranding();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -88,9 +90,12 @@ export default function Login({ setAuth }) {
                     {/* Logo */}
                     <div className="text-center mb-8">
                         <div className="mb-4 flex justify-center">
+                            {/* A customer logo replaces the product mark here.
+                                Fetched from the public branding endpoint, since
+                                nobody has a token on this screen yet. */}
                             <img
-                                src="/vayutime_logo.png?v=5"
-                                alt="NeevTime"
+                                src={hasLogo ? logo : '/vayutime_logo.png?v=5'}
+                                alt={name}
                                 className="mx-auto object-contain"
                                 style={{
                                     height: '160px',

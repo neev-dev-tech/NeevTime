@@ -179,16 +179,40 @@ export const exportToPDF = async (options) => {
     doc.setFillColor(...COLORS.primary);
     doc.rect(0, 0, pageWidth, 28, 'F');
 
+    // Company logo, if one has been uploaded under Settings → Company.
+    // showLogo was read from preferences but never used, so the option existed
+    // and did nothing. The text shifts right to make room rather than being
+    // drawn over.
+    let textX = margin;
+    if (showLogo && company.logo) {
+        try {
+            // The stored image is a data URI; jsPDF needs the format name.
+            const fmt = /^data:image\/(png|jpe?g|webp)/i.exec(company.logo);
+            if (fmt) {
+                const boxH = 14;
+                const props = doc.getImageProperties(company.logo);
+                const drawW = Math.min(40, (props.width / props.height) * boxH);
+                doc.addImage(company.logo, fmt[1].toUpperCase() === 'JPG' ? 'JPEG' : fmt[1].toUpperCase(),
+                    margin, 7, drawW, boxH);
+                textX = margin + drawW + 5;
+            }
+            // SVG is skipped deliberately: jsPDF cannot rasterise it, and a
+            // thrown error here would take the whole export down.
+        } catch {
+            // A malformed logo must not cost someone their report.
+        }
+    }
+
     // Company name (left side)
     doc.setFontSize(18);
     doc.setTextColor(255, 255, 255);
     doc.setFont('helvetica', 'bold');
-    doc.text(company.name || 'NeevTime', margin, 12);
+    doc.text(company.name || 'NeevTime', textX, 12);
 
     // Tagline
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
-    doc.text(company.tagline || 'Attendance Management System', margin, 18);
+    doc.text(company.tagline || 'Attendance Management System', textX, 18);
 
     // Company contact info (right side)
     if (company.phone || company.email) {

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Save, RefreshCw, Send, Loader2, AlertCircle, Building, Timer, CalendarDays, Mail, ShieldCheck, BarChart3, FileCheck, Database as DatabaseIcon, Globe, Settings as SettingsIcon, BellRing } from 'lucide-react';
+import { Save, RefreshCw, Send, Loader2, AlertCircle, Building, Timer, CalendarDays, Mail, ShieldCheck, BarChart3, FileCheck, Database as DatabaseIcon, Globe, Settings as SettingsIcon, BellRing, Palette } from 'lucide-react';
 import api from '../api';
 import { Button, PageHeader, useToast } from '../components';
+import LogoUpload from '../components/LogoUpload';
+import ThemeSettings from '../components/ThemeSettings';
 
 const CATEGORIES = [
     { id: 'company', label: 'Company', icon: Building, iconClass: 'text-blue-500 dark:text-blue-400' },
@@ -13,6 +15,12 @@ const CATEGORIES = [
     // entry. Placed next to Email/SMTP because it depends on it: alerting is
     // email-only, and a broken SMTP means no alerts at all.
     { id: 'alerts', label: 'Alerts', icon: BellRing, iconClass: 'text-amber-500 dark:text-amber-400' },
+    // Appearance lives in the browser, not app_settings, so this tab renders its
+    // own component instead of the generic field list. It is here because this
+    // is where people look — the controls previously existed only in a slide-over
+    // panel behind a palette icon in the header, which is why the theme toggle
+    // was reported as not working when it worked fine.
+    { id: 'appearance', label: 'Appearance', icon: Palette, iconClass: 'text-violet-500 dark:text-violet-400' },
     // SMS and WhatsApp tabs removed — the server has no provider integration for
     // either, so every field on them was saved and never read by anything.
     { id: 'reports', label: 'Auto Reports', icon: BarChart3, iconClass: 'text-emerald-500 dark:text-emerald-400' },
@@ -189,6 +197,22 @@ export default function Settings() {
         const value = formData[key];
         const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
+        // The logo is a picture, not a string. It was rendered as a text input
+        // because the generic renderer keys off data_type, and the setting is
+        // stored as a base64 data URI — which is technically a string and
+        // completely unusable as one.
+        if (key === 'company_logo') {
+            return (
+                <LogoUpload
+                    key={key}
+                    value={value || ''}
+                    onChange={(v) => handleChange(key, v)}
+                    label={label}
+                    description={config.description}
+                />
+            );
+        }
+
         if (config.data_type === 'boolean') {
             return (
                 <label key={key} className="flex items-center justify-between p-4 rounded-xl transition-colors border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900/50 group hover:border-orange-200 dark:hover:border-orange-800 hover:shadow-sm cursor-pointer">
@@ -364,7 +388,9 @@ export default function Settings() {
 
                 {/* Tab Content */}
                 <div className="p-6 bg-white/70 dark:bg-slate-800/70">
-                    {sortedSettings.length === 0 ? (
+                    {activeTab === 'appearance' ? (
+                        <ThemeSettings />
+                    ) : sortedSettings.length === 0 ? (
                         <div className="py-12 text-center">
                             <SettingsIcon size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
                             <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Nothing to configure here</h3>
@@ -415,13 +441,18 @@ export default function Settings() {
                         </div>
                     )}
 
-                    {/* Actions */}
-                    <div className="flex items-center gap-3 mt-8 pt-6 border-t border-slate-100 dark:border-slate-700">
-                        <Button icon={saving ? Loader2 : Save} onClick={handleSave} disabled={saving}>
-                            {saving ? 'Saving...' : 'Save Changes'}
-                        </Button>
-                        <Button variant="secondary" icon={RefreshCw} onClick={handleReset}>Reset</Button>
-                    </div>
+                    {/* Actions. Hidden on Appearance: those preferences live in
+                        this browser and apply the moment they are chosen, so a
+                        Save button would either do nothing or PUT to a settings
+                        category that does not exist. */}
+                    {activeTab !== 'appearance' && (
+                        <div className="flex items-center gap-3 mt-8 pt-6 border-t border-slate-100 dark:border-slate-700">
+                            <Button icon={saving ? Loader2 : Save} onClick={handleSave} disabled={saving}>
+                                {saving ? 'Saving...' : 'Save Changes'}
+                            </Button>
+                            <Button variant="secondary" icon={RefreshCw} onClick={handleReset}>Reset</Button>
+                        </div>
+                    )}
                 </div>
             </div>
 

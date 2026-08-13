@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import PropTypes from 'prop-types';
 import { modules, personnelSidebar, deviceSidebar, attendanceSidebar, systemSidebar } from '../config/navigation';
 import { ThemeButton } from '../components';
+import useBranding from '../hooks/useBranding';
 import GlobalSearch from '../components/GlobalSearch';
 import AnimatedBackground from '../components/AnimatedBackground';
 import NotificationCenter from '../components/NotificationCenter';
@@ -13,6 +14,7 @@ import useStore from '../store/useStore';
 import { usePermissions } from '../hooks/usePermissions';
 
 export default function MainLayout({ children }) {
+  const { logo, hasLogo, name } = useBranding();
   const location = useLocation();
   const navigate = useNavigate();
   const { auth, logout } = useStore();
@@ -94,12 +96,27 @@ export default function MainLayout({ children }) {
                {/* Same mark as the browser tab, so the two agree. Swapping
                    public/logo.png updates both. Already a circle with
                    transparent corners, so it needs no rounding of its own. */}
-               <img src="/logo.png" alt="" aria-hidden="true" className="w-8 h-8" />
-               {/* The wordmark is one word. It needs its own wrapper because the
-                   row's gap would otherwise push "Neev" and "Time" apart. */}
-               <span className="text-2xl font-bold">
-                  <span className="text-slate-800 dark:text-slate-100">Neev</span><span className="text-orange-500">Time</span>
-               </span>
+               {hasLogo ? (
+                  /* A customer logo replaces the mark AND the wordmark: most
+                     company logos already contain their own name, and showing
+                     both reads as two brands stapled together. Height-bounded
+                     with width auto so a wide logo is not squashed into a
+                     square. */
+                  <img
+                     src={logo}
+                     alt={name}
+                     className="h-8 w-auto max-w-[190px] object-contain"
+                  />
+               ) : (
+                  <>
+                     <img src="/logo.png" alt="" aria-hidden="true" className="w-8 h-8" />
+                     {/* The wordmark is one word. It needs its own wrapper because the
+                         row's gap would otherwise push "Neev" and "Time" apart. */}
+                     <span className="text-2xl font-bold">
+                        <span className="text-slate-800 dark:text-slate-100">Neev</span><span className="text-orange-500">Time</span>
+                     </span>
+                  </>
+               )}
             </div>
 
             <nav className="hidden md:flex items-center gap-1 p-1 rounded-full border border-orange-100 bg-orange-50/30">

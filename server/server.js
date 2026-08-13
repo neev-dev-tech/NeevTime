@@ -121,6 +121,28 @@ app.use((req, res, next) => {
     next();
 });
 
+// Company name and logo for the sign-in page, which renders before anyone has
+// a token. Mounted HERE, above every `app.use('/api', authenticateToken, ...)`
+// below — those apply to every /api path whichever router matches, so further
+// down this would 401 and the sign-in page would silently fall back to the
+// default mark.
+//
+// Deliberately narrow: two fields that are meant to be looked at. It exposes
+// nothing an unauthenticated visitor could not already see by loading the page.
+app.get('/api/branding', async (req, res) => {
+    try {
+        const result = await db.query(
+            `SELECT setting_key, setting_value FROM app_settings
+             WHERE category = 'company' AND setting_key IN ('company_name', 'company_logo')`
+        );
+        const cfg = Object.fromEntries(result.rows.map(r => [r.setting_key, r.setting_value]));
+        res.json({ name: cfg.company_name || 'NeevTime', logo: cfg.company_logo || '' });
+    } catch (err) {
+        // Branding must never block sign-in. Defaults are a fine answer.
+        res.json({ name: 'NeevTime', logo: '' });
+    }
+});
+
 const attendanceEngine = require('./services/attendance_engine');
 // Auth middleware needed for the early-registered attendance routes below
 const { router: authRouter, authenticateToken } = require('./routes/auth');

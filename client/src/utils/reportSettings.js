@@ -41,7 +41,11 @@ export const loadReportSettings = async () => {
                 address: company.company_address || '',
                 phone: company.company_phone || '',
                 email: company.company_email || '',
-                website: company.company_website || ''
+                website: company.company_website || '',
+                // Uploaded under Settings → Company, stored as a data URI.
+                // Empty means "use the built-in mark", which is what every
+                // consumer falls back to.
+                logo: company.company_logo || ''
             },
             pdf: {
                 orientation: pdf.pdf_orientation || 'landscape',

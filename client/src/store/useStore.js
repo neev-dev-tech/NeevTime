@@ -22,12 +22,11 @@ const useStore = create((set) => ({
     set({ auth: null });
   },
 
-  // UI State
-  theme: localStorage.getItem('theme') || 'light',
-  setTheme: (theme) => {
-    localStorage.setItem('theme', theme);
-    set({ theme });
-  },
+  // Theme state used to live here as well, under its own 'theme' localStorage
+  // key, writing state that nothing read and touching no DOM class. Nothing
+  // consumed it, but a control wired to it by mistake would have looked exactly
+  // like a toggle that does nothing. ThemeProvider in components/Theme.jsx is
+  // the single owner: it holds 'theme-dark-mode' and applies the `dark` class.
 
   // Notifications
   notifications: [],
