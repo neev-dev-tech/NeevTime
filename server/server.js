@@ -199,28 +199,44 @@ let registerSchemaPromise = null;
 const getRegisterSchema = () => {
     if (!registerSchemaPromise) {
         registerSchemaPromise = (async () => {
-            const [cols, tables] = await Promise.all([
+            const [cols, summaryCols, tables] = await Promise.all([
                 db.query(`SELECT column_name FROM information_schema.columns
                           WHERE table_schema = 'public' AND table_name = 'employees'`),
+                db.query(`SELECT column_name FROM information_schema.columns
+                          WHERE table_schema = 'public' AND table_name = 'attendance_daily_summary'`),
                 db.query(`SELECT table_name FROM information_schema.tables
                           WHERE table_schema = 'public'
                             AND table_name IN ('holidays', 'leave_applications')`)
             ]);
             const has = new Set(cols.rows.map(r => r.column_name));
+            const summaryHas = new Set(summaryCols.rows.map(r => r.column_name));
             const tbl = new Set(tables.rows.map(r => r.table_name));
             const joinCols = ['joining_date', 'date_of_joining', 'join_date'].filter(c => has.has(c));
+            // The summary table varies between deployments too — one of them
+            // has no early_leave_minutes, which failed the register outright.
+            // Absent columns are selected as NULL so the shape the client
+            // destructures stays the same whatever the database is missing.
+            const OPTIONAL_SUMMARY = [
+                'id', 'in_time', 'out_time', 'duration_minutes',
+                'late_minutes', 'early_leave_minutes', 'overtime_minutes',
+                'remarks', 'is_finalized'
+            ];
             return {
                 attendanceRequired: has.has('attendance_required'),
                 joinDateExpr: joinCols.length
                     ? `COALESCE(${joinCols.map(c => `e.${c}`).join(', ')})`
                     : null,
                 holidays: tbl.has('holidays'),
-                leaves: tbl.has('leave_applications')
+                leaves: tbl.has('leave_applications'),
+                summarySelect: OPTIONAL_SUMMARY
+                    .map(c => (summaryHas.has(c) ? `ads.${c}` : `NULL AS ${c}`))
+                    .join(',\n                    ')
             };
         })().catch(() => ({
             // A failed probe must not take the endpoint with it — fall back to
             // the plainest query that works on any schema.
-            attendanceRequired: false, joinDateExpr: null, holidays: false, leaves: false
+            attendanceRequired: false, joinDateExpr: null, holidays: false, leaves: false,
+            summarySelect: 'ads.id'
         }));
     }
     return registerSchemaPromise;
@@ -270,10 +286,8 @@ app.get('/api/attendance/summary', authenticateToken, async (req, res) => {
 
             const result = await db.query(`
                 SELECT
-                    ads.id, ads.employee_code, $1::date AS date,
-                    ads.in_time, ads.out_time, ads.duration_minutes,
-                    ads.late_minutes, ads.early_leave_minutes, ads.overtime_minutes,
-                    ads.remarks, ads.is_finalized,
+                    e.employee_code, $1::date AS date,
+                    ${schema.summarySelect},
                     COALESCE(
                         ads.status,
                         CASE
