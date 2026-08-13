@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
 import io from 'socket.io-client';
@@ -10,9 +10,20 @@ import {
     ChevronRight, Circle
 } from 'lucide-react';
 import { formatTimeShort, toLocalDateString } from '../utils/dateFormat';
+import { useTheme } from '../components/Theme';
+import HeroStat from '../components/HeroStat';
+import DonutCard from '../components/DonutCard';
+import { buildPalette } from '../utils/chartPalette';
 
 export default function Dashboard() {
     const navigate = useNavigate();
+    // Charts follow the palette chosen in Settings → Appearance rather than
+    // hardcoding orange, so a rebranded deployment does not end up with an
+    // orange dashboard sitting inside its own colours.
+    const { themeColors } = useTheme();
+    // Seven, because the widest of these charts is a seven-day breakdown; the
+    // six-month donut simply uses the first six.
+    const donutPalette = useMemo(() => buildPalette(themeColors.primary, 7), [themeColors.primary]);
     const [stats, setStats] = useState({
         employees: 0,
         newJoinees: 0,
@@ -40,6 +51,7 @@ export default function Dashboard() {
     const [devices, setDevices] = useState([]);
     const [recentLogs, setRecentLogs] = useState([]);
     const [attendanceTrends, setAttendanceTrends] = useState([]);
+    const [absenteesByMonth, setAbsenteesByMonth] = useState([]);
     const [loading, setLoading] = useState(true);
     const [lastUpdated, setLastUpdated] = useState(null);
     const socketRef = useRef(null);
@@ -118,7 +130,8 @@ export default function Dashboard() {
             fetchStats(),
             fetchDevices(),
             fetchRecentLogs(),
-            fetchAttendanceTrends()
+            fetchAttendanceTrends(),
+            fetchAbsenteesByMonth()
         ]);
         setLoading(false);
     };
@@ -302,18 +315,78 @@ export default function Dashboard() {
 
             // Report endpoints wrap rows in {summary, data}
             const rowsOf = (res) => (Array.isArray(res.data) ? res.data : (res.data?.data || []));
+
+            // Splitting the timestamp on "T" took the UTC date, and the buckets
+            // above are keyed by local date. In IST a row for the 13th arrives
+            // as 2026-08-12T18:30:00Z, so every absence and late arrival landed
+            // on the day before — the whole chart was shifted back one day, and
+            // today's own rows fell outside the window entirely and vanished.
+            const localKey = (value) => (value ? toLocalDateString(new Date(value)) : null);
+
             rowsOf(lateEarlyRes).forEach(row => {
-                const key = row.attendance_date ? String(row.attendance_date).split('T')[0] : null;
+                const key = localKey(row.attendance_date);
                 if (!key || !byDate[key]) return;
                 if (row.late_minutes > 0) byDate[key].late += 1;
                 if (row.early_minutes > 0) byDate[key].earlyLeave += 1;
             });
             rowsOf(absentRes).forEach(row => {
-                const key = row.absent_date ? String(row.absent_date).split('T')[0] : null;
+                const key = localKey(row.absent_date);
                 if (key && byDate[key]) byDate[key].absent += 1;
             });
 
             setAttendanceTrends(Object.values(byDate));
+        } catch (err) { console.error(err); }
+    };
+
+    /**
+     * Absences grouped by calendar month, for the third donut.
+     *
+     * Six months rather than "this year": in January a year-to-date chart is a
+     * single slice, which is the one month it is least useful. A rolling window
+     * always has something to compare against.
+     *
+     * Kept out of fetchAttendanceTrends because it is a wider, slower range and
+     * nothing on the page waits for it — the seven-day charts should not be
+     * held back by six months of rows.
+     */
+    const fetchAbsenteesByMonth = async () => {
+        try {
+            const now = new Date();
+            const first = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+            const res = await api.get('/api/reports/absent', {
+                params: {
+                    start_date: toLocalDateString(first),
+                    end_date: toLocalDateString(now)
+                }
+            });
+
+            // Seed every month in the window so a month with no absences shows
+            // as a zero in the legend rather than vanishing — a gap in the
+            // sequence reads as missing data, not as a clean month.
+            const buckets = [];
+            const index = {};
+            for (let i = 5; i >= 0; i--) {
+                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                const key = `${d.getFullYear()}-${d.getMonth()}`;
+                const entry = { name: d.toLocaleDateString('en-US', { month: 'short' }), value: 0 };
+                index[key] = entry;
+                buckets.push(entry);
+            }
+
+            const rows = Array.isArray(res.data) ? res.data : (res.data?.data || []);
+            rows.forEach(row => {
+                if (!row.absent_date) return;
+                // Converted to the local date first. The timestamp is UTC, so
+                // in IST the 1st of a month arrives as the last evening of the
+                // month before — reading the month straight off the string
+                // would file it under the wrong month.
+                const d = new Date(row.absent_date);
+                if (Number.isNaN(d.getTime())) return;
+                const entry = index[`${d.getFullYear()}-${d.getMonth()}`];
+                if (entry) entry.value += 1;
+            });
+
+            setAbsenteesByMonth(buckets);
         } catch (err) { console.error(err); }
     };
 
@@ -474,8 +547,48 @@ export default function Dashboard() {
                 </div>
             ) : (
                 <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    {/* Today first — these are the numbers someone opens the app to check */}
+                    {/* The four headline counts. Who is on the payroll, who is
+                        in, who is missing, who was late — the questions the page
+                        exists to answer, given the weight to match. Each one
+                        opens the list behind it, because the number on its own
+                        prompts "which of them?" every time. */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <HeroStat
+                            icon={Users}
+                            label="Employees"
+                            value={stats.employees || 0}
+                            accent={themeColors.info}
+                            hint="on the payroll"
+                            onClick={() => navigate('/employees')}
+                        />
+                        <HeroStat
+                            icon={CheckCircle}
+                            label="Present"
+                            value={stats.present || 0}
+                            accent={themeColors.success}
+                            hint={`${stats.attendanceRate || 0}% attendance`}
+                            onClick={() => navigate('/attendance-register')}
+                        />
+                        <HeroStat
+                            icon={XCircle}
+                            label="Absent"
+                            value={stats.absent || 0}
+                            accent={themeColors.error}
+                            hint={stats.onLeave ? `${stats.onLeave} on leave` : 'excluding leave'}
+                            onClick={() => navigate('/attendance-register')}
+                        />
+                        <HeroStat
+                            icon={Timer}
+                            label="Late Corners"
+                            value={stats.late || 0}
+                            accent={themeColors.warning}
+                            hint={`${stats.punctualityRate || 0}% punctual`}
+                            onClick={() => navigate('/reports/first-last')}
+                        />
+                    </div>
+
+                    {/* Standing facts — neutral, so they do not compete with the above */}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                         <StatCard
                             icon={Percent}
                             label="Attendance"
@@ -505,11 +618,6 @@ export default function Dashboard() {
                             subtitle="per employee"
                             tone="time"
                         />
-                    </div>
-
-                    {/* Standing facts — neutral, so they do not compete with the above */}
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-                        <StatCard icon={Users} label="Employees" value={stats.employees} tone="people" />
                         <StatCard
                             icon={UserPlus}
                             label="New Joinees"
@@ -574,6 +682,38 @@ export default function Dashboard() {
                     </div>
                 )}
             </aside>
+            </div>
+
+            {/* Breakdown donuts.
+                The headline row says how many were absent or late today; these
+                say whether that is normal. A single day's count is unreadable
+                without it — four absent means nothing until you can see that
+                last Tuesday had eleven. */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 animate-fade-in stagger-1">
+                <DonutCard
+                    title="Absentees — last 7 days"
+                    subtitle="Unplanned absences per day"
+                    loading={loading}
+                    data={attendanceTrends.map(d => ({ name: d.date, value: d.absent }))}
+                    colors={donutPalette}
+                    emptyMessage="No absences in the last 7 days"
+                />
+                <DonutCard
+                    title="Absentees — by month"
+                    subtitle="Last 6 months"
+                    loading={loading}
+                    data={absenteesByMonth}
+                    colors={donutPalette}
+                    emptyMessage="No absences recorded in this period"
+                />
+                <DonutCard
+                    title="Late Corners — last 7 days"
+                    subtitle="Arrivals after shift start"
+                    loading={loading}
+                    data={attendanceTrends.map(d => ({ name: d.date, value: d.late }))}
+                    colors={donutPalette}
+                    emptyMessage="Nobody arrived late in the last 7 days"
+                />
             </div>
 
             {/* Attendance Status Row - Staggered */}
