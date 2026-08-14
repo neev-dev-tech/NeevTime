@@ -62,12 +62,24 @@ test('a manual department assignment is not wiped by a sync that has none', () =
         'department clears one that was set by hand');
 });
 
-test('the Frappe company suffix is stripped before matching', () => {
+test('the Frappe company suffix is stripped, in either case', () => {
     // ERPNext names departments "Engineering - INN". Matched literally against
     // a local "Engineering" that finds nothing, and would then create a second
     // department per company abbreviation.
-    assert.ok(/replace\(\/\\s\+-\\s\+\[A-Z0-9\]/.test(code) || /-\s*\\s\+\[A-Z0-9\]/.test(code),
-        'the company-abbreviation suffix is not stripped from the department name');
+    //
+    // The abbreviation is whatever was typed when the company was created, so
+    // it is not necessarily uppercase: an uppercase-only first pass let
+    // "Accounts - rmss" through into the department list verbatim.
+    const m = code.match(/replace\(\/([^/]+)\/[a-z]*,\s*''\)/);
+    assert.ok(m, 'no department-name normalisation found');
+
+    const stripper = new RegExp(m[1]);
+    assert.equal('Engineering - INN'.replace(stripper, '').trim(), 'Engineering');
+    assert.equal('Accounts - rmss'.replace(stripper, '').trim(), 'Accounts',
+        'a lowercase company abbreviation is not stripped');
+    assert.equal('Accounts and Finance'.replace(stripper, '').trim(), 'Accounts and Finance',
+        'a real department name containing words must survive untouched');
+    assert.equal('Digital Marketing'.replace(stripper, '').trim(), 'Digital Marketing');
 });
 
 test('an unknown department is created rather than dropped', () => {

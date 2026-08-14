@@ -461,13 +461,25 @@ const syncEmployeesFromHRMS = async (integration) => {
          * "Engineering - INN" — so an exact match against a local "Engineering"
          * finds nothing. The suffix is stripped before matching.
          *
+         * Case-insensitively: the abbreviation is whatever was typed when the
+         * company was created, and a first pass that assumed uppercase let
+         * "Accounts - rmss" through into the department list verbatim.
+         *
+         * The bound is deliberately tight — up to 6 characters, no spaces —
+         * because this cannot tell an abbreviation from a real name. A
+         * department genuinely called "Sales - North" would be read as "Sales".
+         * That is the accepted trade: multi-company Frappe instances suffix
+         * every department, and a stray truncation is visible and fixable in
+         * the department list, whereas an unstripped suffix silently creates a
+         * duplicate department per company.
+         *
          * Unknown departments are created rather than dropped: the HRMS is the
          * source of truth for org structure, and silently discarding a
          * department is how this stayed invisible in the first place.
          */
         const resolveDepartment = async (rawName) => {
             if (!rawName || typeof rawName !== 'string') return null;
-            const name = rawName.replace(/\s+-\s+[A-Z0-9]{1,6}$/, '').trim();
+            const name = rawName.replace(/\s+-\s+[A-Za-z0-9]{1,6}$/, '').trim();
             if (!name) return null;
             if (deptCache.has(name.toLowerCase())) return deptCache.get(name.toLowerCase());
 
