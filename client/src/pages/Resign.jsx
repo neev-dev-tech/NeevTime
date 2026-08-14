@@ -36,17 +36,22 @@ export default function Resign() {
             setLoading(true);
             setError(null);
             const [resRes, empRes] = await Promise.all([
-                api.get('/api/employees?status=resigned').catch(() => ({ data: [] })),
-                api.get('/api/employees').catch(() => ({ data: [] }))
+                // ?status= was never a parameter the server read. This page
+                // worked because /api/employees returned everyone and the
+                // filtering happened below — so when the endpoint started
+                // defaulting to current staff, the resigned list emptied.
+                api.get('/api/employees?view=resigned').catch(() => ({ data: [] })),
+                api.get('/api/employees?view=active').catch(() => ({ data: [] }))
             ]);
 
-            // Filter resigned employees for the table
-            console.log('Resignation Fetch:', { resRes, empRes });
-            const resigned = (resRes?.data || []).filter(e => e.status === 'resigned' || e.status === 'terminated');
+            // The server has already scoped these; the filters stay as a
+            // backstop and are case-insensitive because this column holds both
+            // 'active' and 'Active'.
+            const isOneOf = (e, ...want) => want.includes(String(e.status || '').toLowerCase());
+            const resigned = (resRes?.data || []).filter(e => isOneOf(e, 'resigned', 'terminated'));
             setResignations(resigned);
 
-            // Filter active employees for the "Add Resignation" modal
-            const active = (empRes?.data || []).filter(e => e.status === 'active');
+            const active = (empRes?.data || []).filter(e => isOneOf(e, 'active'));
             setEmployees(active);
         } catch (err) {
             console.error(err);

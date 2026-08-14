@@ -115,3 +115,20 @@ test('deleted_at is guaranteed by ensureSchema', () => {
         'deleted_at is written by the delete routes but nothing creates it'
     );
 });
+
+test('an unrecognised view is rejected rather than silently defaulted', () => {
+    const src = stripComments(read('server.js'));
+    const i = src.indexOf("app.get('/api/employees'");
+    const body = src.slice(i, i + 2200);
+
+    assert.ok(
+        /Unknown view/.test(body) && /status\(400\)/.test(body),
+        'an unknown view falls back to the default. That is how the resigned ' +
+        'list emptied without a word: Resign.jsx asked for ?status=resigned, a ' +
+        'parameter the server never read, and quietly received current staff.'
+    );
+    assert.ok(
+        !/\?\?\s*VIEWS\.active/.test(body),
+        'the ?? fallback is back — an unknown view resolves to active again'
+    );
+});

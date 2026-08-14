@@ -1154,7 +1154,18 @@ app.get('/api/employees', async (req, res) => {
             deleted: `WHERE LOWER(e.status) = 'deleted'`,
             all: ''
         };
-        const where = VIEWS[String(req.query.view || 'active')] ?? VIEWS.active;
+        // Falling back to the default on an unknown view is how this bug hides:
+        // Resign.jsx asked for ?status=resigned, a parameter the server never
+        // read, and silently got current staff instead — so the resigned list
+        // was empty and nothing said why. An unrecognised view is an error.
+        const requested = String(req.query.view || 'active');
+        if (!(requested in VIEWS)) {
+            return res.status(400).json({
+                error: `Unknown view "${requested}"`,
+                allowed: Object.keys(VIEWS)
+            });
+        }
+        const where = VIEWS[requested];
 
         const result = await db.query(`
             SELECT 
