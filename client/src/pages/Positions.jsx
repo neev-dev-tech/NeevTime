@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import api from '../api';
+import Modal from '../components/Modal';
 import { Briefcase, Plus, Trash2, Edit2, Search, RefreshCw, X, Save, Download, Upload, AlertCircle, CheckCircle } from 'lucide-react';
 import { useToast, Button, PageHeader, ExportMenu } from '../components';
 
@@ -401,27 +402,27 @@ export default function Positions() {
 
             {/* Delete Confirmation Modal */}
             {deleteConfirm && (
-                <div className="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4" onClick={() => setDeleteConfirm(null)}>
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-sm border border-white/50 dark:border-slate-700" onClick={(e) => e.stopPropagation()}>
-                        <div className="p-6">
-                            <h3 className="text-lg font-semibold mb-4 text-slate-800 dark:text-slate-100">Confirm Delete</h3>
-                            <p className="text-slate-600 dark:text-slate-400 mb-6">
-                                {deleteConfirm.type === 'single'
-                                    ? 'Are you sure you want to delete this position? This action cannot be undone.'
-                                    : `Are you sure you want to delete ${deleteConfirm.count} selected position(s)? This action cannot be undone.`
-                                }
-                            </p>
-                            <div className="flex justify-end gap-3">
-                                <Button variant="secondary" onClick={() => setDeleteConfirm(null)}>
-                                    Cancel
-                                </Button>
-                                <Button variant="dangerSolid" onClick={confirmDelete}>
-                                    Delete
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <Modal
+                    open
+                    onClose={() => setDeleteConfirm(null)}
+                    title="Confirm Delete"
+                    size="sm"
+                    footer={<>
+                        <Button variant="secondary" onClick={() => setDeleteConfirm(null)}>
+                            Cancel
+                        </Button>
+                        <Button variant="dangerSolid" onClick={confirmDelete}>
+                            Delete
+                        </Button>
+                    </>}
+                >
+                    <p className="text-slate-600 dark:text-slate-400 mb-6">
+                        {deleteConfirm.type === 'single'
+                            ? 'Are you sure you want to delete this position? This action cannot be undone.'
+                            : `Are you sure you want to delete ${deleteConfirm.count} selected position(s)? This action cannot be undone.`
+                        }
+                    </p>
+                </Modal>
             )}
 
             {/* Import Modal */}
