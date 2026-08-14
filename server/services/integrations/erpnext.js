@@ -106,33 +106,68 @@ class ERPNextIntegration extends BaseIntegration {
      * flag decides.
      */
     async pullShifts() {
+        let names;
         try {
-            const response = await this.client.get('/api/resource/Shift Type', {
-                params: {
-                    fields: JSON.stringify([
-                        'name', 'start_time', 'end_time',
-                        'enable_entry_grace_period', 'late_entry_grace_period',
-                        'enable_exit_grace_period', 'early_exit_grace_period'
-                    ]),
-                    limit_page_length: 0
-                }
+            // Only `name`, which every doctype has.
+            //
+            // Frappe validates every requested field against the doctype and
+            // rejects the *entire* query if one is unknown — not the field, the
+            // whole request. Asking for the grace-period fields up front failed
+            // the whole pull with "Field not permitted in query:
+            // enable_entry_grace_period", because Shift Type does not carry
+            // them in this ERPNext version. One optimistic field cost every
+            // shift.
+            const list = await this.client.get('/api/resource/Shift Type', {
+                params: { limit_page_length: 0 }
             });
-
-            return (response.data.data || []).map(s => ({
-                // ERPNext's `name` is both the identifier and the label a
-                // person sees, so it lands in both columns; `code` is what the
-                // upsert matches on.
-                code: s.name,
-                name: s.name,
-                start_time: s.start_time,
-                end_time: s.end_time,
-                grace_in_minutes: s.enable_entry_grace_period ? s.late_entry_grace_period : 0,
-                grace_out_minutes: s.enable_exit_grace_period ? s.early_exit_grace_period : 0
-            }));
+            names = (list.data.data || []).map(r => r.name).filter(Boolean);
         } catch (err) {
             const detail = err.response?.data ? JSON.stringify(err.response.data) : err.message;
             throw new Error(`ERPNext pull shifts failed: ${detail}`);
         }
+
+        // Fetching each document individually returns whatever fields that
+        // doctype actually has, with no field validation to fail. It costs one
+        // request per shift, which is nothing — a company has a handful of
+        // shift types, not thousands — and it is the difference between
+        // working on any ERPNext version and working on one.
+        const shifts = [];
+        for (const name of names) {
+            try {
+                const doc = (await this.client.get(
+                    `/api/resource/Shift Type/${encodeURIComponent(name)}`
+                )).data.data || {};
+
+                if (!doc.start_time || !doc.end_time) continue;
+
+                // Read defensively: a grace period only counts when its enable
+                // flag is on, but on a version without the flag the presence of
+                // a period is the intent. Absent both, zero.
+                const graceIn = doc.enable_entry_grace_period === undefined
+                    ? (doc.late_entry_grace_period ?? 0)
+                    : (doc.enable_entry_grace_period ? (doc.late_entry_grace_period ?? 0) : 0);
+                const graceOut = doc.enable_exit_grace_period === undefined
+                    ? (doc.early_exit_grace_period ?? 0)
+                    : (doc.enable_exit_grace_period ? (doc.early_exit_grace_period ?? 0) : 0);
+
+                shifts.push({
+                    // ERPNext's `name` is both the identifier and the label a
+                    // person sees, so it lands in both columns; `code` is what
+                    // the upsert matches on.
+                    code: doc.name || name,
+                    name: doc.shift_name || doc.name || name,
+                    start_time: doc.start_time,
+                    end_time: doc.end_time,
+                    grace_in_minutes: Number(graceIn) || 0,
+                    grace_out_minutes: Number(graceOut) || 0
+                });
+            } catch (err) {
+                // One unreadable shift should not cost the other nine.
+                console.error(`ERPNext: could not read Shift Type "${name}":`, err.message);
+            }
+        }
+
+        return shifts;
     }
 
     /**

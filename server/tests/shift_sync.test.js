@@ -40,14 +40,36 @@ test('the ERPNext adapter asks for Shift Type', () => {
         'a shift without start and end times cannot measure lateness');
 });
 
-test('grace periods are read together with the flag that enables them', () => {
-    // A late_entry_grace_period of 15 means nothing when
-    // enable_entry_grace_period is unticked. Reading the number alone applies
-    // a grace period the HR team believes is switched off.
-    assert.ok(/enable_entry_grace_period\s*\?/.test(erp),
-        'the entry grace period is read without checking whether it is enabled');
-    assert.ok(/enable_exit_grace_period\s*\?/.test(erp),
-        'the exit grace period is read without checking whether it is enabled');
+test('the Shift Type list asks for no optional fields', () => {
+    // Frappe validates every requested field against the doctype and rejects
+    // the ENTIRE query if one is unknown. Asking for the grace-period fields
+    // up front failed the whole pull in production with "Field not permitted
+    // in query: enable_entry_grace_period" — one optimistic field cost every
+    // shift. The list call must stay minimal; details come per document.
+    const i = erp.indexOf("get('/api/resource/Shift Type'");
+    assert.ok(i !== -1, 'no Shift Type list request');
+    const call = erp.slice(i, i + 320);
+    assert.ok(!/fields:/.test(call),
+        'the Shift Type list request names fields; any one of them being absent on ' +
+        'this ERPNext version fails the whole query, not just that field');
+});
+
+test('grace periods are read defensively, flag or no flag', () => {
+    // A period only counts when its enable flag is on — but on a version
+    // without the flag, the presence of a period is the intent. Requiring the
+    // flag would silently zero every grace period on those versions.
+    assert.ok(/enable_entry_grace_period === undefined/.test(erp),
+        'the entry grace period assumes its enable flag exists; on a version without it ' +
+        'the grace period silently becomes zero');
+    assert.ok(/enable_exit_grace_period === undefined/.test(erp),
+        'the exit grace period assumes its enable flag exists');
+});
+
+test('one unreadable shift does not lose the others', () => {
+    const i = erp.indexOf('async pullShifts');
+    const fn = erp.slice(i, i + 2600);
+    assert.ok(/for \(const name of names\)/.test(fn) && /catch/.test(fn),
+        'a per-shift fetch failure must be caught, or one bad Shift Type costs the whole pull');
 });
 
 test('the employee pull asks for default_shift and carries it through', () => {
