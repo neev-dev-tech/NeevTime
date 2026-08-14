@@ -1828,7 +1828,20 @@ const ensureSchema = async () => {
         `ALTER TABLE shifts ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true`,
         // The upsert key. Without it every sync either duplicates every shift
         // or fails outright on ON CONFLICT.
-        `CREATE UNIQUE INDEX IF NOT EXISTS shifts_code_key ON shifts (code) WHERE code IS NOT NULL`,
+        //
+        // Not partial. `WHERE code IS NOT NULL` looks like the careful choice
+        // and is the wrong one: Postgres will not match a plain
+        // `ON CONFLICT (code)` against a partial index, so every shift upsert
+        // failed in production with "there is no unique or exclusion constraint
+        // matching the ON CONFLICT specification" while passing here, where the
+        // table already carried a full UNIQUE constraint. The predicate buys
+        // nothing either — Postgres already permits duplicate NULLs in a unique
+        // index, so rows without a code never conflict.
+        //
+        // Dropped first, because CREATE INDEX IF NOT EXISTS keeps whatever
+        // index already holds the name, partial included.
+        `DROP INDEX IF EXISTS shifts_code_key`,
+        `CREATE UNIQUE INDEX IF NOT EXISTS shifts_code_key ON shifts (code)`,
         `ALTER TABLE devices ADD COLUMN IF NOT EXISTS retired_at TIMESTAMP`,
         // Which family this reader belongs to. Installs that predate this column
         // already label their push-protocol devices 'ZKTeco' — eSSL readers speak

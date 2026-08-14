@@ -495,6 +495,7 @@ const syncShiftsFromHRMS = async (integration) => {
     }
 
     const stats = { processed: 0, success: 0, failed: 0 };
+    let firstError = null;
 
     for (const shift of shifts) {
         stats.processed++;
@@ -502,6 +503,7 @@ const syncShiftsFromHRMS = async (integration) => {
             // A shift without times cannot measure anything. Counted as failed
             // rather than skipped silently, so the sync log shows it.
             stats.failed++;
+            firstError = firstError || `Shift "${shift.code || '(unnamed)'}" has no code or times`;
             log('WARN', 'Shift missing code or times', { code: shift.code });
             continue;
         }
@@ -530,12 +532,16 @@ const syncShiftsFromHRMS = async (integration) => {
             stats.success++;
         } catch (err) {
             stats.failed++;
+            firstError = firstError || `${shift.code}: ${err.message}`;
             log('WARN', 'Shift upsert failed', { code: shift.code, error: err.message });
         }
     }
 
     const outcome = stats.failed > 0 ? (stats.success > 0 ? 'partial' : 'failed') : 'success';
-    await integration.logSync('shifts', SYNC_DIRECTION.PULL, outcome, stats);
+    // Carry the first failure into the sync log. Recording only the counts
+    // meant "3 processed, 0 succeeded" with no reason anywhere except the
+    // container log — a row that says something broke while withholding what.
+    await integration.logSync('shifts', SYNC_DIRECTION.PULL, outcome, stats, firstError);
     log('INFO', 'Shifts pulled', stats);
     return stats;
 };
