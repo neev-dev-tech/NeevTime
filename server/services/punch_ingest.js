@@ -96,8 +96,24 @@ const recordPunch = async (punch, options = {}) => {
         // A punch can arrive before the employee has been created in the app;
         // the placeholder keeps the foreign key satisfied and surfaces the
         // unknown code in Personnel rather than dropping attendance.
+        //
+        // attendance_required starts false. A placeholder is a card nobody has
+        // identified yet, and until someone does, counting it as staff means it
+        // is marked absent every working day it does not appear. Five of these
+        // — all literally named 'Unknown' — were sitting in the active headcount
+        // on this deployment, with no department and no shift, each generating
+        // absences against a fallback start time.
+        //
+        // The cost of this direction is that a real employee whose punch lands
+        // before the HRMS sync creates them stays untracked until a human turns
+        // it on. That is deliberate: the sync does not force it back to true,
+        // because doing so would also override a deliberate exclusion like a
+        // service account. Under-counting one identifiable person is recoverable;
+        // silently inflating absences for unidentified cards is what made the
+        // absence report untrustworthy in the first place.
         await db.query(
-            `INSERT INTO employees (employee_code, name) VALUES ($1, 'Unknown') ON CONFLICT DO NOTHING`,
+            `INSERT INTO employees (employee_code, name, attendance_required)
+             VALUES ($1, 'Unknown', FALSE) ON CONFLICT DO NOTHING`,
             [employeeCode]
         );
 

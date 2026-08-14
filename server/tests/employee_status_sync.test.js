@@ -119,3 +119,29 @@ test('every column these writes touch is guaranteed by ensureSchema', () => {
         'the only thing that runs everywhere, and the sync now writes this column'
     );
 });
+
+test('an unidentified card is not counted as staff', () => {
+    const src = stripComments(read('services/punch_ingest.js'));
+    const idx = src.indexOf("VALUES ($1, 'Unknown'");
+    assert.ok(idx > 0, 'the placeholder insert is gone');
+    const stmt = src.slice(idx - 200, idx + 200);
+
+    assert.ok(
+        /attendance_required/.test(stmt) && /FALSE/i.test(stmt),
+        'a placeholder employee is created attendance_required by default, so ' +
+        'every unrecognised card is marked absent for each working day it does ' +
+        'not appear — five such rows were in the active headcount on production'
+    );
+});
+
+test('the HRMS sync does not force attendance_required back on', () => {
+    const src = stripComments(read('services/hrms-integration.js'));
+    const upsert = src.slice(src.indexOf('INSERT INTO employees'), src.indexOf('stats.success++'));
+
+    assert.ok(
+        !/attendance_required\s*=\s*(TRUE|true|EXCLUDED)/.test(upsert),
+        'the employee upsert sets attendance_required, which would override a ' +
+        'deliberate exclusion — a service account in the HRMS as Active would ' +
+        'start being tracked again on the next sync'
+    );
+});
