@@ -1814,6 +1814,21 @@ const ensureSchema = async () => {
         // pushing their punches to ERPNext just produces rejections that retry
         // forever. Defaults to false, so existing staff are unaffected.
         `ALTER TABLE employees ADD COLUMN IF NOT EXISTS exclude_from_hrms BOOLEAN DEFAULT false`,
+        // The employee's shift, written by the HRMS pull and read by the
+        // late/early report. Present on this deployment but created by none of
+        // the schema files, so a fresh install would fail the employee upsert.
+        `ALTER TABLE employees ADD COLUMN IF NOT EXISTS default_shift_id INTEGER`,
+        // Populated from the HRMS Shift Type. Same reasoning: the report reads
+        // them, so a database without them measures everyone against the
+        // caller's fallback instead of their own shift.
+        `ALTER TABLE shifts ADD COLUMN IF NOT EXISTS code VARCHAR(50)`,
+        `ALTER TABLE shifts ADD COLUMN IF NOT EXISTS grace_in_minutes INTEGER DEFAULT 0`,
+        `ALTER TABLE shifts ADD COLUMN IF NOT EXISTS grace_out_minutes INTEGER DEFAULT 0`,
+        `ALTER TABLE shifts ADD COLUMN IF NOT EXISTS is_night_shift BOOLEAN DEFAULT false`,
+        `ALTER TABLE shifts ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true`,
+        // The upsert key. Without it every sync either duplicates every shift
+        // or fails outright on ON CONFLICT.
+        `CREATE UNIQUE INDEX IF NOT EXISTS shifts_code_key ON shifts (code) WHERE code IS NOT NULL`,
         `ALTER TABLE devices ADD COLUMN IF NOT EXISTS retired_at TIMESTAMP`,
         // Which family this reader belongs to. Installs that predate this column
         // already label their push-protocol devices 'ZKTeco' — eSSL readers speak

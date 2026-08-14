@@ -107,6 +107,19 @@ class BaseIntegration {
     }
 
     /**
+     * Pull shift definitions from the HRMS.
+     *
+     * Optional, unlike the methods either side of it. An HRMS that has no
+     * concept of shifts returns an empty array and the sync simply does
+     * nothing, rather than every adapter having to implement a stub. Returns
+     * `[{ code, name, start_time, end_time, grace_in_minutes,
+     *     grace_out_minutes }]`.
+     */
+    async pullShifts() {
+        return [];
+    }
+
+    /**
      * Push attendance to HRMS
      */
     async pushAttendance(records) {
@@ -437,9 +450,84 @@ const syncAttendanceToHRMS = async (integration) => {
 /**
  * Sync employees from HRMS
  */
+/**
+ * Pull shift definitions from the HRMS.
+ *
+ * Runs immediately before the employee pull, and not on its own schedule,
+ * because the two are one operation: an employee's shift arrives as a name,
+ * and resolving it to a local id requires the shift to already exist. Pulling
+ * them separately would leave a window where every employee's shift silently
+ * failed to resolve.
+ *
+ * Deliberately not behind its own `sync_shifts` toggle. `sync_leaves` is
+ * already a column and a switch in the Integrations UI that no code reads —
+ * you can turn it on and nothing happens — and adding a second toggle with the
+ * same failure mode to save one boolean is not worth it. This runs when
+ * employee sync runs.
+ */
+const syncShiftsFromHRMS = async (integration) => {
+    const shifts = await integration.pullShifts();
+    if (!shifts.length) return { processed: 0, success: 0, failed: 0 };
+
+    const stats = { processed: 0, success: 0, failed: 0 };
+
+    for (const shift of shifts) {
+        stats.processed++;
+        if (!shift.code || !shift.start_time || !shift.end_time) {
+            // A shift without times cannot measure anything. Counted as failed
+            // rather than skipped silently, so the sync log shows it.
+            stats.failed++;
+            log('WARN', 'Shift missing code or times', { code: shift.code });
+            continue;
+        }
+        try {
+            // A shift ending before it starts runs through midnight. Without
+            // this the night shift reads as a negative-length day and everyone
+            // on it looks absent.
+            const isNight = String(shift.end_time) < String(shift.start_time);
+
+            await db.query(`
+                INSERT INTO shifts (code, name, start_time, end_time,
+                                    grace_in_minutes, grace_out_minutes,
+                                    is_night_shift, is_active)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, TRUE)
+                ON CONFLICT (code) DO UPDATE SET
+                    name             = COALESCE(EXCLUDED.name, shifts.name),
+                    start_time       = COALESCE(EXCLUDED.start_time, shifts.start_time),
+                    end_time         = COALESCE(EXCLUDED.end_time, shifts.end_time),
+                    grace_in_minutes = COALESCE(EXCLUDED.grace_in_minutes, shifts.grace_in_minutes),
+                    grace_out_minutes= COALESCE(EXCLUDED.grace_out_minutes, shifts.grace_out_minutes),
+                    is_night_shift   = EXCLUDED.is_night_shift
+            `, [
+                shift.code, shift.name || shift.code, shift.start_time, shift.end_time,
+                shift.grace_in_minutes ?? 0, shift.grace_out_minutes ?? 0, isNight
+            ]);
+            stats.success++;
+        } catch (err) {
+            stats.failed++;
+            log('WARN', 'Shift upsert failed', { code: shift.code, error: err.message });
+        }
+    }
+
+    const outcome = stats.failed > 0 ? (stats.success > 0 ? 'partial' : 'failed') : 'success';
+    await integration.logSync('shifts', SYNC_DIRECTION.PULL, outcome, stats);
+    log('INFO', 'Shifts pulled', stats);
+    return stats;
+};
+
 const syncEmployeesFromHRMS = async (integration) => {
     try {
         log('INFO', 'Pulling employees from HRMS', { integration: integration.name });
+
+        // Shifts first: an employee's shift arrives as a name, and resolving
+        // it needs the shift row to exist. A failure here must not take the
+        // employee pull down with it — employees without a shift are still
+        // worth having, and the fallback start time keeps working.
+        try {
+            await syncShiftsFromHRMS(integration);
+        } catch (err) {
+            log('WARN', 'Shift pull failed; continuing with employees', { error: err.message });
+        }
 
         const employees = await integration.pullEmployees();
 
@@ -500,10 +588,36 @@ const syncEmployeesFromHRMS = async (integration) => {
             return id;
         };
 
+        /**
+         * The employee's shift arrives as a Shift Type name, matched against
+         * shifts.code, which syncShiftsFromHRMS has just populated.
+         *
+         * An unknown shift resolves to null rather than being invented. A
+         * department can be created from a name alone; a shift cannot — it
+         * needs a start and end time, and guessing those would silently decide
+         * who counts as late.
+         */
+        const shiftCache = new Map();
+        const resolveShift = async (code) => {
+            if (!code || typeof code !== 'string') return null;
+            const key = code.trim().toLowerCase();
+            if (!key) return null;
+            if (shiftCache.has(key)) return shiftCache.get(key);
+
+            const found = await db.query(
+                'SELECT id FROM shifts WHERE lower(code) = $1 LIMIT 1', [key]
+            );
+            const id = found.rows.length ? found.rows[0].id : null;
+            if (id === null) log('WARN', 'Employee references an unknown shift', { code });
+            shiftCache.set(key, id);
+            return id;
+        };
+
         for (const emp of employees) {
             stats.processed++;
             try {
                 const departmentId = await resolveDepartment(emp.department_name);
+                const shiftId = await resolveShift(emp.shift_code);
 
                 // department_id is in the update clause, not just the insert.
                 // Everyone these deployments care about already exists, so an
@@ -511,17 +625,19 @@ const syncEmployeesFromHRMS = async (integration) => {
                 // COALESCE keeps a manual assignment when the HRMS has none,
                 // rather than wiping it.
                 await db.query(`
-                    INSERT INTO employees (employee_code, name, email, mobile, department_id, designation, status)
-                    VALUES ($1, $2, $3, $4, $5, $6, 'active')
+                    INSERT INTO employees (employee_code, name, email, mobile, department_id,
+                                           default_shift_id, designation, status)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, 'active')
                     ON CONFLICT (employee_code) DO UPDATE SET
                         name = COALESCE(EXCLUDED.name, employees.name),
                         email = COALESCE(EXCLUDED.email, employees.email),
                         mobile = COALESCE(EXCLUDED.mobile, employees.mobile),
                         department_id = COALESCE(EXCLUDED.department_id, employees.department_id),
+                        default_shift_id = COALESCE(EXCLUDED.default_shift_id, employees.default_shift_id),
                         designation = COALESCE(EXCLUDED.designation, employees.designation)
                 `, [
                     emp.employee_code, emp.name, emp.email, emp.mobile,
-                    departmentId, emp.designation
+                    departmentId, shiftId, emp.designation
                 ]);
                 stats.success++;
             } catch (err) {

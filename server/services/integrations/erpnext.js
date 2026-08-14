@@ -65,7 +65,12 @@ class ERPNextIntegration extends BaseIntegration {
                 params: {
                     fields: JSON.stringify([
                         'name', 'employee_name', 'company_email', 'cell_number',
-                        'department', 'designation', 'status', 'date_of_joining'
+                        'department', 'designation', 'status', 'date_of_joining',
+                        // The employee's own shift. Without it every person is
+                        // measured against one hardcoded 09:00 start, which
+                        // makes anyone on a later shift late every day they
+                        // work.
+                        'default_shift'
                     ]),
                     filters: JSON.stringify([['status', '=', 'Active']]),
                     limit_page_length: 0  // Get all
@@ -79,7 +84,8 @@ class ERPNextIntegration extends BaseIntegration {
                 mobile: emp.cell_number,
                 department_name: emp.department,
                 designation: emp.designation,
-                joining_date: emp.date_of_joining
+                joining_date: emp.date_of_joining,
+                shift_code: emp.default_shift
             }));
 
             return employees;
@@ -87,6 +93,45 @@ class ERPNextIntegration extends BaseIntegration {
             const detail = err.response?.data ? JSON.stringify(err.response.data) : err.message;
             console.error('ERPNext pull details:', detail);
             throw new Error(`ERPNext pull employees failed: ${detail}`);
+        }
+    }
+
+    /**
+     * Pull Shift Type definitions.
+     *
+     * ERPNext keeps the grace periods behind their own enable flags — a
+     * late_entry_grace_period of 15 means nothing if enable_entry_grace_period
+     * is unticked, and reading the number without the flag would apply a grace
+     * period the HR team believes is switched off. Both are fetched and the
+     * flag decides.
+     */
+    async pullShifts() {
+        try {
+            const response = await this.client.get('/api/resource/Shift Type', {
+                params: {
+                    fields: JSON.stringify([
+                        'name', 'start_time', 'end_time',
+                        'enable_entry_grace_period', 'late_entry_grace_period',
+                        'enable_exit_grace_period', 'early_exit_grace_period'
+                    ]),
+                    limit_page_length: 0
+                }
+            });
+
+            return (response.data.data || []).map(s => ({
+                // ERPNext's `name` is both the identifier and the label a
+                // person sees, so it lands in both columns; `code` is what the
+                // upsert matches on.
+                code: s.name,
+                name: s.name,
+                start_time: s.start_time,
+                end_time: s.end_time,
+                grace_in_minutes: s.enable_entry_grace_period ? s.late_entry_grace_period : 0,
+                grace_out_minutes: s.enable_exit_grace_period ? s.early_exit_grace_period : 0
+            }));
+        } catch (err) {
+            const detail = err.response?.data ? JSON.stringify(err.response.data) : err.message;
+            throw new Error(`ERPNext pull shifts failed: ${detail}`);
         }
     }
 
