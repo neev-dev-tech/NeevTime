@@ -604,6 +604,18 @@ const syncHolidaysFromHRMS = async (integration) => {
 
     for (const list of lists) {
         if (!list.code) continue;
+
+        // A list of nothing but weekly offs yields no holidays, and creating a
+        // location for it leaves a row that looks configured and exempts
+        // nobody — which is what "Innopay Local Weekly Holidays" became on the
+        // first run. If real holidays are added to it later, the next sync
+        // creates it then.
+        const real = list.holidays.filter(h => !h.weekly_off);
+        if (!real.length) {
+            log('INFO', 'Holiday list has no dated holidays; skipping', { code: list.code });
+            continue;
+        }
+
         let locationId;
         try {
             const loc = await db.query(`
@@ -619,7 +631,7 @@ const syncHolidaysFromHRMS = async (integration) => {
             continue;
         }
 
-        for (const h of list.holidays) {
+        for (const h of real) {
             // Weekly offs are every Sunday, already covered by the weekend rule
             // in the absent report. Importing them would add 52 rows a year per
             // list and change nothing.
