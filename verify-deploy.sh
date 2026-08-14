@@ -178,7 +178,12 @@ head_ "5. Recent errors"
 # the polling check above is what actually decides whether node came up. Left
 # in the count it reports a warning on every single successful deploy, which
 # trains you to ignore the section.
-NOISE='connect() failed .*upstream'
+# Parens escaped. Unescaped, `connect()` is an empty capture group in ERE, so
+# the pattern reads as "connect" followed by " failed" — which never appears in
+# the real line ("connect() failed") and so filtered nothing. GNU grep accepted
+# it silently and matched nothing; ugrep rejects it outright as an empty
+# subexpression. Either way the noise came through on every run.
+NOISE='connect\(\) failed .*upstream'
 errline() { d logs --since 5m "$APP_CONTAINER" 2>&1 | grep -iE '\[ERROR\]|UnhandledPromise|ECONNREFUSED' | grep -vE "$NOISE"; }
 
 errs=$(errline | grep -c . || true)
