@@ -317,7 +317,7 @@ router.get('/dashboard', async (req, res) => {
             db.query(`
                 SELECT 
                     COUNT(DISTINCT employee_code) as present_today,
-                    (SELECT COUNT(*) FROM employees WHERE status = 'active') as total_employees
+                    (SELECT COUNT(*) FROM employees WHERE LOWER(status) = 'active') as total_employees
                 FROM attendance_logs
                 WHERE DATE(punch_time) = $1
             `, [today]),

@@ -90,9 +90,9 @@ router.get('/areas', async (req, res) => {
         const result = await db.query(`
             SELECT a.*, 
                    parent.name as parent_area_name,
-                   (SELECT COUNT(*)::int FROM employees e WHERE e.area_id = a.id AND (e.status IS DISTINCT FROM 'resigned')) as employee_count,
+                   (SELECT COUNT(*)::int FROM employees e WHERE e.area_id = a.id AND (LOWER(e.status) IS DISTINCT FROM 'resigned')) as employee_count,
                    (SELECT COUNT(*)::int FROM devices d WHERE d.area_id = a.id) as device_count,
-                   (SELECT COUNT(*)::int FROM employees e WHERE e.area_id = a.id AND e.status = 'resigned') as resigned_count,
+                   (SELECT COUNT(*)::int FROM employees e WHERE e.area_id = a.id AND LOWER(e.status) = 'resigned') as resigned_count,
                    (SELECT COALESCE(SUM(e.fingerprint_count), 0)::int FROM employees e WHERE e.area_id = a.id) as fp_count,
                    (SELECT COALESCE(SUM(e.face_count), 0)::int FROM employees e WHERE e.area_id = a.id) as face_count,
                    (SELECT COUNT(*)::int FROM employees e WHERE e.area_id = a.id AND e.card_number IS NOT NULL AND e.card_number != '') as card_count

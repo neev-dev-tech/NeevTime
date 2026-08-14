@@ -931,63 +931,69 @@ export default function Employees() {
             </Modal>
 
             {/* Transfer Modal */}
-            <Modal
-                open={showTransferModal}
-                onClose={() => setShowTransferModal(false)}
-                size="md"
-                hideClose
-            >
-                <div className="mb-6">
-                    <div className="w-12 h-12 bg-orange-50 dark:bg-orange-900/30 rounded-full flex items-center justify-center mb-4">
-                        <ArrowRightLeft className="text-saffron" size={24} />
+            {/* The guard stays. transferType is null until a transfer is
+                started, and the body dereferences it — Modal renders nothing
+                when closed, but its children are still constructed, so
+                open={showTransferModal} alone crashes the page on load. */}
+            {showTransferModal && transferType && (
+                <Modal
+                    open
+                    onClose={() => setShowTransferModal(false)}
+                    size="md"
+                    hideClose
+                >
+                    <div className="mb-6">
+                        <div className="w-12 h-12 bg-orange-50 dark:bg-orange-900/30 rounded-full flex items-center justify-center mb-4">
+                            <ArrowRightLeft className="text-saffron" size={24} />
+                        </div>
+                            <h3 className="font-semibold text-xl mb-1 text-slate-800 dark:text-slate-100">{transferType} Transfer</h3>
+                        <p className="text-slate-grey dark:text-slate-400 text-sm">Move <span className="font-bold text-charcoal dark:text-slate-100">{selectedIds.length}</span> employees to a new {transferType.toLowerCase()}.</p>
                     </div>
-                        <h3 className="font-semibold text-xl mb-1 text-slate-800 dark:text-slate-100">{transferType} Transfer</h3>
-                    <p className="text-slate-grey dark:text-slate-400 text-sm">Move <span className="font-bold text-charcoal dark:text-slate-100">{selectedIds.length}</span> employees to a new {transferType.toLowerCase()}.</p>
-                </div>
 
-                <div className="mb-8">
-                    <label className="block text-sm font-bold text-charcoal dark:text-slate-100 mb-2">
-                        Select New {transferType}
-                    </label>
+                    <div className="mb-8">
+                        <label className="block text-sm font-bold text-charcoal dark:text-slate-100 mb-2">
+                            Select New {transferType}
+                        </label>
 
-                    {transferType === 'Department' && (
-                        <select
-                            className="input-base"
-                            value={targetValue}
-                            onChange={(e) => setTargetValue(e.target.value)}
-                        >
-                            <option value="">Select Department</option>
-                            {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-                        </select>
-                    )}
+                        {transferType === 'Department' && (
+                            <select
+                                className="input-base"
+                                value={targetValue}
+                                onChange={(e) => setTargetValue(e.target.value)}
+                            >
+                                <option value="">Select Department</option>
+                                {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                            </select>
+                        )}
 
-                    {transferType === 'Area' && (
-                        <select
-                            className="input-base"
-                            value={targetValue}
-                            onChange={(e) => setTargetValue(e.target.value)}
-                        >
-                            <option value="">Select Area</option>
-                            {areas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-                        </select>
-                    )}
+                        {transferType === 'Area' && (
+                            <select
+                                className="input-base"
+                                value={targetValue}
+                                onChange={(e) => setTargetValue(e.target.value)}
+                            >
+                                <option value="">Select Area</option>
+                                {areas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                            </select>
+                        )}
 
-                    {transferType === 'Position' && (
-                        <input
-                            type="text"
-                            className="input-base"
-                            placeholder="Enter new position/designation"
-                            value={targetValue}
-                            onChange={(e) => setTargetValue(e.target.value)}
-                        />
-                    )}
-                </div>
+                        {transferType === 'Position' && (
+                            <input
+                                type="text"
+                                className="input-base"
+                                placeholder="Enter new position/designation"
+                                value={targetValue}
+                                onChange={(e) => setTargetValue(e.target.value)}
+                            />
+                        )}
+                    </div>
 
-                <div className="flex justify-end gap-3">
-                    <Button variant="secondary" onClick={() => setShowTransferModal(false)}>Cancel</Button>
-                    <Button variant="primary" onClick={submitTransfer}>Confirm Transfer</Button>
-                </div>
-            </Modal>
+                    <div className="flex justify-end gap-3">
+                        <Button variant="secondary" onClick={() => setShowTransferModal(false)}>Cancel</Button>
+                        <Button variant="primary" onClick={submitTransfer}>Confirm Transfer</Button>
+                    </div>
+                </Modal>
+            )}
 
             {/* Delete Confirmation Modal */}
             <Modal

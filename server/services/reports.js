@@ -67,7 +67,7 @@ const generateDailyAttendance = async (date, departmentId = null, areaId = null)
             LEFT JOIN attendance_logs al ON e.employee_code = al.employee_code AND DATE(al.punch_time) = $1
             LEFT JOIN departments d ON e.department_id = d.id
             LEFT JOIN devices dev ON al.device_serial = dev.serial_number
-            WHERE e.status = 'active'
+            WHERE LOWER(e.status) = 'active'
             ${departmentId ? 'AND e.department_id = $2' : ''}
             ${areaId ? `AND e.area_id = $${departmentId ? 3 : 2}` : ''}
             GROUP BY e.employee_code, e.name, d.name, DATE(al.punch_time), dev.device_name, al.verification_mode
@@ -150,7 +150,7 @@ const generateMonthlySummary = async (year, month, departmentId = null) => {
         LEFT JOIN attendance_logs al ON e.employee_code = al.employee_code 
             AND ${whereClause}
         LEFT JOIN departments d ON e.department_id = d.id
-        WHERE e.status = 'active'
+        WHERE LOWER(e.status) = 'active'
         GROUP BY e.employee_code, e.name, d.name
         ORDER BY d.name, e.name
     `, params);
@@ -323,7 +323,7 @@ const generateAbsentReport = async (startDate, endDate, departmentId = null) => 
             FROM employees e
             CROSS JOIN date_series ds
             LEFT JOIN departments d ON e.department_id = d.id
-            WHERE e.status = 'active'
+            WHERE LOWER(e.status) = 'active'
             -- Anyone the company does not expect to punch at all: contractors
             -- and staff on the payroll without a reader between them and their
             -- desk. Marking them absent every day buried the real absences.
@@ -573,7 +573,7 @@ const generateBiometricSummary = async () => {
         FROM employees e
         LEFT JOIN departments d ON e.department_id = d.id
         LEFT JOIN biometric_templates bt ON e.employee_code = bt.employee_code
-        WHERE e.status = 'active'
+        WHERE LOWER(e.status) = 'active'
         GROUP BY e.employee_code, e.name, d.name
         ORDER BY d.name, e.name
     `);
@@ -771,7 +771,7 @@ const generatePayrollReport = async (year, month, departmentId = null, regularHo
         LEFT JOIN departments d ON e.department_id = d.id
         LEFT JOIN summary s ON s.employee_code = e.employee_code
         LEFT JOIN leave_days l ON l.employee_code = e.employee_code
-        WHERE (e.status IS DISTINCT FROM 'resigned') ${deptFilter}
+        WHERE (LOWER(e.status) IS DISTINCT FROM 'resigned') ${deptFilter}
         ORDER BY d.name NULLS LAST, e.name
     `, params);
 

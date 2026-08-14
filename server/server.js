@@ -302,7 +302,7 @@ app.get('/api/attendance/summary', authenticateToken, async (req, res) => {
                 LEFT JOIN departments d ON e.department_id = d.id
                 LEFT JOIN attendance_daily_summary ads
                        ON ads.employee_code = e.employee_code AND ads.date = $1::date
-                WHERE e.status = 'active'
+                WHERE LOWER(e.status) = 'active'
                   ${requiredClause}
                   ${joinedClause}
                 ORDER BY e.name ASC
@@ -1385,7 +1385,7 @@ app.post('/api/devices', async (req, res) => {
 
         // Auto-sync users to newly added device
         try {
-            const employees = await db.query("SELECT * FROM employees WHERE status = 'active'");
+            const employees = await db.query("SELECT * FROM employees WHERE LOWER(status) = 'active'");
             let syncCount = 0;
             for (const emp of employees.rows) {
                 const pin = emp.employee_code;
@@ -1466,7 +1466,7 @@ app.post('/api/devices/:serial/force-online', async (req, res) => {
 
         // Auto-sync users to this device when it comes online
         try {
-            const employees = await db.query("SELECT * FROM employees WHERE status = 'active'");
+            const employees = await db.query("SELECT * FROM employees WHERE LOWER(status) = 'active'");
             let syncCount = 0;
             for (const emp of employees.rows) {
                 const pin = emp.employee_code;

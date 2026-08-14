@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run lint:break && vite build",
+    "build": "npm run lint:break && node scripts/check-modal-guards.mjs && vite build",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "lint:break": "eslint --no-eslintrc -c .eslintrc.break.json --ext js,jsx src",
     "preview": "vite preview"

@@ -22,7 +22,7 @@ router.post('/sync/all/upload-users', async (req, res) => {
             return res.status(400).json({ error: 'No devices registered' });
         }
 
-        const employees = await db.query("SELECT * FROM employees WHERE status = 'active'");
+        const employees = await db.query("SELECT * FROM employees WHERE LOWER(status) = 'active'");
         if (employees.rows.length === 0) {
             return res.status(400).json({ error: 'No active employees to sync' });
         }
@@ -161,7 +161,7 @@ router.post('/sync/upload-users', async (req, res) => {
     }
 
     try {
-        const employees = await db.query("SELECT * FROM employees WHERE status = 'active'");
+        const employees = await db.query("SELECT * FROM employees WHERE LOWER(status) = 'active'");
 
         let commandCount = 0;
         const client = await db.getClient();
@@ -535,7 +535,7 @@ router.post('/sync/all/upload-biometrics', async (req, res) => {
                 SELECT bt.*, e.name 
                 FROM biometric_templates bt
                 JOIN employees e ON bt.employee_code = e.employee_code
-                WHERE e.status = 'Active' OR e.status = 'active'
+                WHERE LOWER(e.status) = 'active'
             `);
         fs.appendFileSync('sync_debug.log', `[API] Found ${templates.rowCount} templates to sync\n`);
 

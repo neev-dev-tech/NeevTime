@@ -52,7 +52,7 @@ router.post('/login', portalLoginLimiter, async (req, res) => {
     try {
         const result = await db.query(
             `SELECT id, employee_code, name, portal_password_hash, app_login_enabled
-             FROM employees WHERE employee_code = $1 AND (status IS DISTINCT FROM 'resigned')`,
+             FROM employees WHERE employee_code = $1 AND (LOWER(status) IS DISTINCT FROM 'resigned')`,
             [employee_code]
         );
         const emp = result.rows[0];
