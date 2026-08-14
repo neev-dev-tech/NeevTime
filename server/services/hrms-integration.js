@@ -333,7 +333,12 @@ const getActiveIntegrations = async () => {
 /**
  * Run scheduled sync for all active integrations
  */
-const runScheduledSync = async () => {
+const runScheduledSync = async (options = {}) => {
+    // `force` skips the per-integration interval check. Used only by the
+    // startup run: the interval exists to stop a 5-minute timer syncing every
+    // minute, not to make a freshly deployed process wait for a clock it has
+    // no memory of.
+    const { force = false } = options;
     try {
         const integrations = await getActiveIntegrations();
 
@@ -342,7 +347,7 @@ const runScheduledSync = async () => {
             const lastSync = integration.last_sync_at;
             const interval = integration.sync_interval_minutes || 30;
 
-            if (lastSync) {
+            if (lastSync && !force) {
                 const minutesSinceSync = (Date.now() - new Date(lastSync).getTime()) / 60000;
                 if (minutesSinceSync < interval) {
                     continue;
@@ -705,7 +710,15 @@ const startScheduledSync = () => {
     // integration's own interval, so this cannot sync more often than
     // configured — it only stops the clock starting from zero on every boot.
     setTimeout(() => {
-        runScheduledSync().catch(err =>
+        // Forced. Without it the startup run still honours the interval, so a
+        // deploy that lands within one interval of the last sync does nothing
+        // at all — which is exactly what happened: the container came up at
+        // 14:41, the previous sync was 14:39, and the startup run skipped
+        // every integration. A sync-affecting deploy then looks like no change.
+        //
+        // Once per process start, so redeploying repeatedly is the only way to
+        // sync more often than configured, and that is a deliberate act.
+        runScheduledSync({ force: true }).catch(err =>
             log('ERROR', 'Startup sync failed', { error: err.message }));
     }, 30 * 1000);
 
