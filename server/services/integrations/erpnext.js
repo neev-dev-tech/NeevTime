@@ -203,6 +203,32 @@ class ERPNextIntegration extends BaseIntegration {
                 )).data.data || {};
 
                 const rows = Array.isArray(doc.holidays) ? doc.holidays : [];
+
+                // The holiday description is a rich-text field in ERPNext, so
+                // it arrives wrapped in editor markup:
+                //
+                //   <div class="ql-editor read-mode"><p>Republic Day</p></div>
+                //
+                // Stored as-is it renders literally on the Holidays screen and
+                // in every report that names the day. Only the text is wanted.
+                //
+                // Block-level tags become a space rather than nothing, so a
+                // two-line description does not run its words together.
+                const plain = (html) => {
+                    if (!html) return null;
+                    const text = String(html)
+                        .replace(/<\s*(br|\/p|\/div|\/li)\s*\/?>/gi, ' ')
+                        .replace(/<[^>]*>/g, '')
+                        .replace(/&nbsp;/gi, ' ')
+                        .replace(/&amp;/gi, '&')
+                        .replace(/&lt;/gi, '<')
+                        .replace(/&gt;/gi, '>')
+                        .replace(/&quot;/gi, '"')
+                        .replace(/&#39;/gi, "'")
+                        .replace(/\s+/g, ' ')
+                        .trim();
+                    return text || null;
+                };
                 lists.push({
                     code: doc.name || name,
                     name: doc.holiday_list_name || doc.name || name,
@@ -210,7 +236,7 @@ class ERPNextIntegration extends BaseIntegration {
                         .filter(h => h && h.holiday_date)
                         .map(h => ({
                             date: String(h.holiday_date).split(' ')[0],
-                            description: h.description || null,
+                            description: plain(h.description),
                             // ERPNext puts weekly offs in the same table as real
                             // holidays. They are every Sunday, not a holiday, and
                             // importing them would mark 52 Sundays a year as

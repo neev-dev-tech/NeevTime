@@ -132,3 +132,22 @@ test('every column the HRMS sync writes is added at boot, not assumed', () => {
         'these columns are written by the sync but never added by ensureSchema, so they exist ' +
         'only on databases that happened to run the right schema file: ' + missing.join(', '));
 });
+
+test('holiday descriptions arrive as text, not as editor markup', () => {
+    // ERPNext's holiday description is a rich-text field, so it comes back as
+    //   <div class="ql-editor read-mode"><p>Republic Day</p></div>
+    // Stored raw it renders literally on the Holidays screen and in every
+    // report that names the day. Production stored all 24 that way.
+    const m = erp.match(/const plain = \(html\) => \{[\s\S]*?\n {16}\};/);
+    assert.ok(m, 'holiday descriptions are stored without stripping the editor markup');
+
+    // eslint-disable-next-line no-new-func
+    const plain = new Function(`${m[0]} return plain;`)();
+
+    assert.equal(plain('<div class="ql-editor read-mode"><p>Republic Day</p></div>'), 'Republic Day');
+    assert.equal(plain('<p>Diwali</p><p>Day 2</p>'), 'Diwali Day 2',
+        'block tags must become a space, or two lines run their words together');
+    assert.equal(plain('Christmas &amp; Boxing Day'), 'Christmas & Boxing Day');
+    assert.equal(plain('<div></div>'), null, 'markup with no text is not a description');
+    assert.equal(plain(null), null);
+});
