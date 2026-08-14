@@ -40,17 +40,57 @@ const SYNC_TYPE = {
     LEAVES: 'leaves'
 };
 
+/**
+ * What an integration can actually do.
+ *
+ * The base class returns [] for every optional pull, which reads as "this HRMS
+ * has no shifts" rather than "this adapter cannot fetch shifts". They are not
+ * the same thing and the difference is invisible: a deployment on Odoo synced
+ * shifts, holidays and leave every 30 minutes, got nothing each time, and
+ * logged success. No shifts means everyone is measured against one fallback
+ * start time; no holidays and no leave means a phantom absence for every public
+ * holiday and every approved day off. That is the bug that produced 409
+ * absences in a month here, except nothing in the app would say so.
+ *
+ * Each adapter now states its own capabilities and the sync skips what is not
+ * declared, saying which and why.
+ */
+const CAPABILITY = {
+    EMPLOYEES: 'employees',
+    SHIFTS: 'shifts',
+    HOLIDAYS: 'holidays',
+    LEAVE: 'leave',
+    PUSH_ATTENDANCE: 'push_attendance',
+    PUSH_LEAVE: 'push_leave'
+};
+
 // Integration Type
 const INTEGRATION_TYPE = {
     ERPNEXT: 'erpnext',
     ODOO: 'odoo',
     HORILLA: 'horilla',
     WEBHOOK: 'webhook',
-    CUSTOM_API: 'custom_api',
-    SAP: 'sap_successfactors',
-    WORKDAY: 'workday',
-    BAMBOOHR: 'bamboohr',
-    ZOHO: 'zoho_people'
+    CUSTOM_API: 'custom_api'
+};
+
+/**
+ * Types this build no longer carries an adapter for.
+ *
+ * SAP SuccessFactors, Workday, BambooHR and Zoho People all gate their APIs
+ * behind a partner agreement, a reviewed OAuth application, or a paid tier —
+ * none of which a self-hosted attendance system can satisfy on a customer's
+ * behalf. The adapters existed and could not have worked. Naming them here
+ * means a saved integration of that type gets an explanation instead of
+ * "Unsupported integration type".
+ *
+ * Anything on this list can still be fed through the webhook adapter, which
+ * asks nothing of the far end beyond posting JSON.
+ */
+const RETIRED_TYPES = {
+    sap_successfactors: 'SAP SuccessFactors',
+    workday: 'Workday',
+    bamboohr: 'BambooHR',
+    zoho_people: 'Zoho People'
 };
 
 /**
@@ -58,6 +98,18 @@ const INTEGRATION_TYPE = {
  * All specific integrations extend this
  */
 class BaseIntegration {
+    /**
+     * Declared by each adapter. Empty here on purpose: an adapter that says
+     * nothing supports nothing, so a new or half-finished one is inert rather
+     * than quietly pretending.
+     */
+    static capabilities = [];
+
+    /** Does this integration actually implement `capability`? */
+    supports(capability) {
+        return (this.constructor.capabilities || []).includes(capability);
+    }
+
     constructor(config) {
         this.id = config.id;
         this.name = config.name;
@@ -295,27 +347,16 @@ const getIntegrationInstance = async (integrationId) => {
                     const WebhookIntegration = require('./integrations/webhook');
                     instance = new WebhookIntegration(config);
                     break;
-                case INTEGRATION_TYPE.SAP:
-                case 'sap_successfactors':
-                    const SAPIntegration = require('./integrations/sap-successfactors');
-                    instance = new SAPIntegration(config);
-                    break;
-                case INTEGRATION_TYPE.WORKDAY:
-                case 'workday':
-                    const WorkdayIntegration = require('./integrations/workday');
-                    instance = new WorkdayIntegration(config);
-                    break;
-                case INTEGRATION_TYPE.BAMBOOHR:
-                case 'bamboohr':
-                    const BambooHRIntegration = require('./integrations/bamboohr');
-                    instance = new BambooHRIntegration(config);
-                    break;
-                case INTEGRATION_TYPE.ZOHO:
-                case 'zoho_people':
-                    const ZohoPeopleIntegration = require('./integrations/zoho-people');
-                    instance = new ZohoPeopleIntegration(config);
-                    break;
                 default:
+                    if (RETIRED_TYPES[config.type]) {
+                        throw new Error(
+                            `${RETIRED_TYPES[config.type]} is no longer supported. Its API is ` +
+                            `available only under a partner agreement or a paid tier, which this ` +
+                            `application cannot satisfy on a customer's behalf — so the adapter was ` +
+                            `removed rather than left as something that could never connect. Point ` +
+                            `that system at the Webhook integration instead.`
+                        );
+                    }
                     throw new Error(`Unknown integration type: ${config.type}`);
             }
         } catch (err) {
@@ -382,24 +423,46 @@ const runScheduledSync = async (options = {}) => {
             try {
                 const instance = await getIntegrationInstance(integration.id);
 
-                // Push attendance if enabled
+                // Each toggle now needs the adapter to actually implement the
+                // thing, not just the operator to have switched it on. A toggle
+                // that is on for a capability the adapter lacks is a promise the
+                // integration cannot keep, and it used to be kept silently.
                 if (integration.sync_attendance) {
-                    await syncAttendanceToHRMS(instance);
+                    if (instance.supports(CAPABILITY.PUSH_ATTENDANCE)) {
+                        await syncAttendanceToHRMS(instance);
+                    } else {
+                        log('WARN', 'Attendance push is enabled but this integration cannot push', {
+                            integration: integration.name, type: integration.type
+                        });
+                    }
                 }
 
-                // Pull employees if enabled
                 if (integration.sync_employees) {
-                    await syncEmployeesFromHRMS(instance);
+                    if (instance.supports(CAPABILITY.EMPLOYEES)) {
+                        await syncEmployeesFromHRMS(instance);
+                    } else {
+                        log('WARN', 'Employee sync is enabled but this integration cannot pull employees', {
+                            integration: integration.name, type: integration.type
+                        });
+                    }
                 }
 
                 // Leave last: leave_applications has a foreign key to
                 // employees, so a person hired today must arrive before their
                 // leave can be stored.
                 if (integration.sync_leaves) {
-                    try {
-                        await syncLeavesFromHRMS(instance);
-                    } catch (err) {
-                        log('ERROR', 'Leave sync failed', { integration: integration.name, error: err.message });
+                    if (instance.supports(CAPABILITY.LEAVE)) {
+                        try {
+                            await syncLeavesFromHRMS(instance);
+                        } catch (err) {
+                            log('ERROR', 'Leave sync failed', { integration: integration.name, error: err.message });
+                        }
+                    } else {
+                        log('WARN', 'Leave sync is enabled but this integration cannot pull leave', {
+                            integration: integration.name,
+                            type: integration.type,
+                            consequence: 'approved leave will be counted as absence'
+                        });
                     }
                 }
 
@@ -415,6 +478,29 @@ const runScheduledSync = async (options = {}) => {
 /**
  * Sync attendance records to HRMS
  */
+/**
+ * Refuse to run a sync the adapter cannot perform, and say so where it will be
+ * read.
+ *
+ * The alternative is what this codebase did: call an inherited method that
+ * returns [], then log "HRMS returned no shift definitions". That sentence sends
+ * someone to look in an HRMS they have already configured correctly, for
+ * something this app was never able to read. The two facts need different
+ * words.
+ */
+const requireCapability = async (integration, capability, syncType) => {
+    if (integration.supports(capability)) return true;
+    const message =
+        `${integration.type} cannot sync ${capability} — this adapter does not implement it. ` +
+        `Nothing was fetched, and nothing in the HRMS needs changing.`;
+    await integration.logSync(syncType, SYNC_DIRECTION.PULL, 'skipped',
+        { processed: 0, success: 0, failed: 0 }, message);
+    log('INFO', 'Sync skipped: capability not implemented', {
+        integration: integration.name, type: integration.type, capability
+    });
+    return false;
+};
+
 const syncAttendanceToHRMS = async (integration) => {
     try {
         // Get unsynced attendance records (sync_status is VARCHAR: 'synced',
@@ -505,6 +591,9 @@ const syncAttendanceToHRMS = async (integration) => {
  * employee sync runs.
  */
 const syncShiftsFromHRMS = async (integration) => {
+    if (!await requireCapability(integration, CAPABILITY.SHIFTS, 'shifts')) {
+        return { processed: 0, success: 0, failed: 0, skipped: true };
+    }
     let shifts;
     try {
         shifts = await integration.pullShifts();
@@ -855,15 +944,37 @@ const syncEmployeesFromHRMS = async (integration) => {
         // it needs the shift row to exist. A failure here must not take the
         // employee pull down with it — employees without a shift are still
         // worth having, and the fallback start time keeps working.
-        try {
-            await syncShiftsFromHRMS(integration);
-        } catch (err) {
-            log('WARN', 'Shift pull failed; continuing with employees', { error: err.message });
+        // Only what this adapter actually implements. Running a pull the
+        // adapter does not have used to return [] from the base class and log a
+        // clean success — so an Odoo or Horilla deployment reported syncing
+        // shifts and holidays every 30 minutes while having neither, and the
+        // absence report quietly counted every public holiday against everyone.
+        if (integration.supports(CAPABILITY.SHIFTS)) {
+            try {
+                await syncShiftsFromHRMS(integration);
+            } catch (err) {
+                log('WARN', 'Shift pull failed; continuing with employees', { error: err.message });
+            }
+        } else {
+            log('INFO', 'Skipping shifts: not supported by this integration', {
+                integration: integration.name,
+                type: integration.type,
+                consequence: 'employees are measured against the fallback start time'
+            });
         }
-        try {
-            await syncHolidaysFromHRMS(integration);
-        } catch (err) {
-            log('WARN', 'Holiday pull failed; continuing with employees', { error: err.message });
+
+        if (integration.supports(CAPABILITY.HOLIDAYS)) {
+            try {
+                await syncHolidaysFromHRMS(integration);
+            } catch (err) {
+                log('WARN', 'Holiday pull failed; continuing with employees', { error: err.message });
+            }
+        } else {
+            log('INFO', 'Skipping holidays: not supported by this integration', {
+                integration: integration.name,
+                type: integration.type,
+                consequence: 'public holidays will be counted as absences'
+            });
         }
 
         const employees = await integration.pullEmployees();
@@ -1108,6 +1219,7 @@ const startScheduledSync = () => {
 };
 
 module.exports = {
+    CAPABILITY,
     SYNC_DIRECTION,
     SYNC_TYPE,
     INTEGRATION_TYPE,

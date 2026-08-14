@@ -15,7 +15,7 @@
 
 const axios = require('axios');
 const https = require('https');
-const { BaseIntegration } = require('../hrms-integration');
+const { BaseIntegration, CAPABILITY } = require('../hrms-integration');
 const { formatLocal, localDate, isCheckIn, resolveDeviceDirections } = require('./punch_format');
 
 // Create HTTPS agent that allows self-signed certificates
@@ -24,6 +24,15 @@ const httpsAgent = new https.Agent({
 });
 
 class HorillaIntegration extends BaseIntegration {
+    /**
+     * Employees and attendance push. Horilla does model shifts and leave; they are
+ * not pulled yet.
+     *
+     * Anything not listed here is skipped by the sync with a reason, rather
+     * than running, returning nothing and reporting success.
+     */
+    static capabilities = [CAPABILITY.EMPLOYEES, CAPABILITY.PUSH_ATTENDANCE];
+
     constructor(config) {
         super(config);
         this.client = axios.create({

@@ -21,7 +21,7 @@
 const axios = require('axios');
 const crypto = require('crypto');
 const https = require('https');
-const { BaseIntegration } = require('../hrms-integration');
+const { BaseIntegration, CAPABILITY } = require('../hrms-integration');
 
 // Create HTTPS agent that allows self-signed certificates
 const httpsAgent = new https.Agent({
@@ -29,6 +29,15 @@ const httpsAgent = new https.Agent({
 });
 
 class WebhookIntegration extends BaseIntegration {
+    /**
+     * Whatever the far end chooses to send. Shifts, holidays and leave have no
+ * agreed shape over a generic webhook, so they are not claimed.
+     *
+     * Anything not listed here is skipped by the sync with a reason, rather
+     * than running, returning nothing and reporting success.
+     */
+    static capabilities = [CAPABILITY.EMPLOYEES, CAPABILITY.PUSH_ATTENDANCE, CAPABILITY.PUSH_LEAVE];
+
     constructor(config) {
         super(config);
 

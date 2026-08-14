@@ -329,7 +329,10 @@ router.get('/integration-types', (req, res) => {
             description: 'Connect to Odoo ERP/HRMS (versions 14-17)',
             documentation: 'https://www.odoo.com/documentation/17.0/developer/reference/external_api.html',
             required_fields: ['base_url', 'database_name', 'username', 'password'],
-            features: ['pull_employees', 'push_attendance', 'pull_departments'],
+            // Matches OdooIntegration.capabilities. resource.calendar and
+            // hr.leave exist in Odoo but are not pulled yet.
+            features: ['pull_employees', 'push_attendance'],
+            unsupported: ['shifts', 'holidays', 'leave'],
             icon: '🟣',
             color: '#714B67'
         },
@@ -339,54 +342,14 @@ router.get('/integration-types', (req, res) => {
             description: 'Connect to Horilla Open Source HRMS',
             documentation: 'https://github.com/horlocom/horilla',
             required_fields: ['base_url', 'username', 'password'],
-            features: ['pull_employees', 'push_attendance', 'push_leaves'],
+            // Matches HorillaIntegration.capabilities. Horilla models shifts and
+            // leave; this adapter does not pull them yet, and claiming otherwise
+            // in the picker is how someone ends up with a deployment that counts
+            // every public holiday as an absence.
+            features: ['pull_employees', 'push_attendance'],
+            unsupported: ['shifts', 'holidays', 'leave'],
             icon: '🌿',
             color: '#4CAF50'
-        },
-        {
-            type: 'sap_successfactors',
-            name: 'SAP SuccessFactors',
-            description: 'Connect to SAP SuccessFactors Employee Central',
-            documentation: 'https://help.sap.com/docs/SAP_SUCCESSFACTORS_PLATFORM',
-            required_fields: ['base_url', 'api_key', 'api_secret'],
-            optional_fields: ['username', 'password'],
-            features: ['pull_employees', 'push_attendance', 'odata_api'],
-            config_fields: ['company_id', 'api_version'],
-            icon: '💼',
-            color: '#0FAAFF'
-        },
-        {
-            type: 'workday',
-            name: 'Workday',
-            description: 'Connect to Workday HCM for worker and time management',
-            documentation: 'https://community.workday.com/developer',
-            required_fields: ['base_url', 'api_key', 'api_secret'],
-            features: ['pull_employees', 'push_attendance', 'oauth2'],
-            config_fields: ['tenant'],
-            icon: '🔷',
-            color: '#005CB9'
-        },
-        {
-            type: 'bamboohr',
-            name: 'BambooHR',
-            description: 'Connect to BambooHR for employee directory and time tracking',
-            documentation: 'https://documentation.bamboohr.com/reference',
-            required_fields: ['base_url', 'api_key'],
-            features: ['pull_employees', 'push_attendance', 'time_tracking'],
-            config_fields: ['subdomain'],
-            icon: '🎋',
-            color: '#73C41D'
-        },
-        {
-            type: 'zoho_people',
-            name: 'Zoho People',
-            description: 'Connect to Zoho People HRMS',
-            documentation: 'https://www.zoho.com/people/api/',
-            required_fields: ['base_url', 'api_key', 'api_secret'],
-            features: ['pull_employees', 'push_attendance', 'oauth2'],
-            config_fields: ['refresh_token', 'accounts_url'],
-            icon: '🔶',
-            color: '#F9A825'
         },
         {
             type: 'webhook',

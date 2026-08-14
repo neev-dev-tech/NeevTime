@@ -14,7 +14,7 @@
 
 const axios = require('axios');
 const https = require('https');
-const { BaseIntegration } = require('../hrms-integration');
+const { BaseIntegration, CAPABILITY } = require('../hrms-integration');
 const { formatLocal, decodeDirection } = require('./punch_format');
 
 // Create HTTPS agent that allows self-signed certificates
@@ -23,6 +23,15 @@ const httpsAgent = new https.Agent({
 });
 
 class ERPNextIntegration extends BaseIntegration {
+    /**
+     * The only adapter that implements the whole contract.
+     *
+     * Anything not listed here is skipped by the sync with a reason, rather
+     * than running, returning nothing and reporting success.
+     */
+    static capabilities = [CAPABILITY.EMPLOYEES, CAPABILITY.SHIFTS, CAPABILITY.HOLIDAYS,
+        CAPABILITY.LEAVE, CAPABILITY.PUSH_ATTENDANCE];
+
     constructor(config) {
         super(config);
         this.client = axios.create({

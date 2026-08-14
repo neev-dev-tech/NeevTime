@@ -14,7 +14,7 @@
 
 const axios = require('axios');
 const https = require('https');
-const { BaseIntegration } = require('../hrms-integration');
+const { BaseIntegration, CAPABILITY } = require('../hrms-integration');
 const { formatLocal, localDate, isCheckIn, resolveDeviceDirections } = require('./punch_format');
 
 // Create HTTPS agent that allows self-signed certificates
@@ -23,6 +23,17 @@ const httpsAgent = new https.Agent({
 });
 
 class OdooIntegration extends BaseIntegration {
+    /**
+     * hr.employee and hr.attendance only. Odoo has resource.calendar for working
+ * schedules and hr.leave for time off; until those are pulled, a deployment on
+ * Odoo has no shifts, no holidays and no leave, and every public holiday shows
+ * as an absence.
+     *
+     * Anything not listed here is skipped by the sync with a reason, rather
+     * than running, returning nothing and reporting success.
+     */
+    static capabilities = [CAPABILITY.EMPLOYEES, CAPABILITY.PUSH_ATTENDANCE];
+
     constructor(config) {
         super(config);
         this.database = config.database_name || config.config?.database;
