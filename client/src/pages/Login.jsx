@@ -52,32 +52,32 @@ export default function Login({ setAuth }) {
                     {/* Features List */}
                     <div className="space-y-4 text-center max-w-md">
                         <h2 className="text-2xl font-bold text-charcoal dark:text-slate-100">Smart Attendance Management</h2>
-                        <p className="text-slate-grey">Streamline your workforce management with biometric integration and real-time tracking.</p>
+                        <p className="text-slate-grey dark:text-slate-400">Streamline your workforce management with biometric integration and real-time tracking.</p>
 
                         <div className="flex justify-center gap-8 pt-6">
                             <div className="flex flex-col items-center gap-2">
                                 <div className="w-12 h-12 bg-white dark:bg-slate-800 rounded-xl shadow-lg flex items-center justify-center">
                                     <Fingerprint className="w-6 h-6 text-saffron" />
                                 </div>
-                                <span className="text-xs font-medium text-slate-grey">Biometric</span>
+                                <span className="text-xs font-medium text-slate-grey dark:text-slate-400">Biometric</span>
                             </div>
                             <div className="flex flex-col items-center gap-2">
                                 <div className="w-12 h-12 bg-white dark:bg-slate-800 rounded-xl shadow-lg flex items-center justify-center">
                                     <Clock className="w-6 h-6 text-saffron" />
                                 </div>
-                                <span className="text-xs font-medium text-slate-grey">Real-time</span>
+                                <span className="text-xs font-medium text-slate-grey dark:text-slate-400">Real-time</span>
                             </div>
                             <div className="flex flex-col items-center gap-2">
                                 <div className="w-12 h-12 bg-white dark:bg-slate-800 rounded-xl shadow-lg flex items-center justify-center">
                                     <Shield className="w-6 h-6 text-saffron" />
                                 </div>
-                                <span className="text-xs font-medium text-slate-grey">Secure</span>
+                                <span className="text-xs font-medium text-slate-grey dark:text-slate-400">Secure</span>
                             </div>
                             <div className="flex flex-col items-center gap-2">
                                 <div className="w-12 h-12 bg-white dark:bg-slate-800 rounded-xl shadow-lg flex items-center justify-center">
                                     <Users className="w-6 h-6 text-saffron" />
                                 </div>
-                                <span className="text-xs font-medium text-slate-grey">Team</span>
+                                <span className="text-xs font-medium text-slate-grey dark:text-slate-400">Team</span>
                             </div>
                         </div>
                     </div>
@@ -114,7 +114,7 @@ export default function Login({ setAuth }) {
                                 }}
                             />
                         </div>
-                        <p className="text-slate-grey text-sm font-medium">Sign in to your account</p>
+                        <p className="text-slate-grey dark:text-slate-400 text-sm font-medium">Sign in to your account</p>
                     </div>
 
                     {/* Login Form */}
