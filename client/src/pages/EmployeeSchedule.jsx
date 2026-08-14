@@ -225,7 +225,7 @@ export default function EmployeeSchedule() {
                         placeholder="Search employee..."
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
-                        className="field pl-9 pr-3 bg-white/70"
+                        className="field pl-9 pr-3"
                     />
                 </div>
                 <div className="relative">
@@ -233,7 +233,7 @@ export default function EmployeeSchedule() {
                     <select
                         value={filterDepartment}
                         onChange={e => setFilterDepartment(e.target.value)}
-                        className="field pl-9 pr-3 bg-white/70"
+                        className="field pl-9 pr-3"
                     >
                         <option value="">All Departments</option>
                         {departments.map(d => (

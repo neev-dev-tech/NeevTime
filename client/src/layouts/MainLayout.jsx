@@ -180,11 +180,11 @@ export default function MainLayout({ children }) {
                     initial={{ opacity: 0, scale: 0.95, y: 10 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                    className="absolute right-0 mt-2 w-56 bg-white shadow-xl rounded-2xl overflow-hidden z-40 border border-orange-100"
+                    className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-800 shadow-xl rounded-2xl overflow-hidden z-40 border border-orange-100 dark:border-slate-700"
                   >
-                    <div className="px-4 py-3 border-b border-orange-50 bg-orange-50/50">
-                      <p className="text-sm font-bold text-slate-800">{auth?.username}</p>
-                      <p className="text-xs text-slate-500">{auth?.role}</p>
+                    <div className="px-4 py-3 border-b border-orange-50 dark:border-slate-700 bg-orange-50/50 dark:bg-slate-900/40">
+                      <p className="text-sm font-bold text-slate-800 dark:text-slate-100">{auth?.username}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">{auth?.role}</p>
                     </div>
                     <div className="py-2">
                       <button onClick={() => { setShowProfileMenu(false); setShowAbout(true); }} className="w-full px-4 py-2 text-left text-sm text-slate-600 dark:text-slate-300 hover:bg-orange-50 dark:hover:bg-slate-700 flex items-center gap-3">
@@ -194,8 +194,8 @@ export default function MainLayout({ children }) {
                         <HelpCircle size={16} /> <span>Help</span>
                       </button>
                     </div>
-                    <div className="border-t border-orange-50">
-                      <button onClick={logout} className="w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-3 font-semibold">
+                    <div className="border-t border-orange-50 dark:border-slate-700">
+                      <button onClick={logout} className="w-full px-4 py-2.5 text-left text-sm text-red-600 dark:text-rose-400 hover:bg-red-50 dark:hover:bg-rose-500/10 flex items-center gap-3 font-semibold">
                         <LogOut size={16} /> <span>Logout</span>
                       </button>
                     </div>

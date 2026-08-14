@@ -142,7 +142,7 @@ export default function ScheduleCalendar() {
                             <select
                                 value={selectedDepartment}
                                 onChange={(e) => setSelectedDepartment(e.target.value)}
-                                className="field pl-9 pr-3 bg-white/70"
+                                className="field pl-9 pr-3"
                             >
                                 <option value="">All Departments</option>
                                 {departments.map(d => (
