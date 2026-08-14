@@ -1,0 +1,170 @@
+# Checks that run before anything reaches the VM.
+#
+# Two regressions reached production in a single afternoon — a crash on the
+# Employees page and an emptied Resign list — and both were caught only after a
+# person opened the app. The build was green for both. This runs the checks that
+# would have caught them, on every push, before a merge rather than after a
+# deploy.
+#
+# Node 20 to match the Dockerfile. Testing on a version the image does not use
+# proves something about a runtime nobody runs.
+
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: [main]
+
+jobs:
+  client:
+    name: Client build and gates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+
+      - name: Install
+        working-directory: client
+        run: npm ci
+
+      # `npm run build` runs lint:break and check-modal-guards first. Both exist
+      # because a green vite build had already waved a defect through: esbuild
+      # does not resolve identifiers, so a missing import ships as a blank page.
+      - name: Build (runs lint:break and the modal guard check)
+        working-directory: client
+        run: npm run build
+
+      - name: Bundle size
+        working-directory: client
+        run: |
+          echo "### Bundle" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          du -h dist/assets/*.js | sort -rh | head -5 >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+  server:
+    name: Server tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+
+      - name: Install
+        working-directory: server
+        run: npm ci
+
+      - name: Test
+        working-directory: server
+        run: npm test
+
+  isolation:
+    name: Tenant isolation (real Postgres)
+    runs-on: ubuntu-latest
+    # Only meaningful once the tenancy migrations exist. On branches without
+    # them this job is skipped rather than failing for the wrong reason.
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: check
+        name: Are there tenancy migrations on this branch?
+        run: |
+          if [ -f server/migrations/001_multi_tenancy.sql ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "No tenancy migrations on this branch — skipping." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - uses: actions/setup-node@v4
+        if: steps.check.outputs.present == 'true'
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+
+      - name: Start Postgres
+        if: steps.check.outputs.present == 'true'
+        run: |
+          docker run -d --name pg -e POSTGRES_PASSWORD=ci -p 5432:5432 postgres:15-alpine
+          for i in $(seq 1 30); do
+            docker exec pg pg_isready -U postgres >/dev/null 2>&1 && break
+            sleep 1
+          done
+
+      - name: Build the schema the way production builds it
+        if: steps.check.outputs.present == 'true'
+        env:
+          PGPASSWORD: ci
+        run: |
+          createdb() { docker exec pg psql -U postgres -q -c "$1" >/dev/null; }
+          docker exec pg psql -U postgres -q -c "CREATE DATABASE neevtime_ci" >/dev/null
+          for f in database/00_init_all.sql database/schema.sql \
+                   database/schema_easytime.sql database/schema_expansion.sql; do
+            [ -f "$f" ] && docker exec -i pg psql -U postgres -q -d neevtime_ci < "$f" >/dev/null 2>&1 || true
+          done
+
+      - name: Install and boot once so ensureSchema runs
+        if: steps.check.outputs.present == 'true'
+        working-directory: server
+        env:
+          DB_HOST: localhost
+          DB_PORT: '5432'
+          DB_NAME: neevtime_ci
+          DB_USER: postgres
+          DB_PASSWORD: ci
+          PORT: '3999'
+        run: |
+          npm ci
+          timeout 25 node server.js > /tmp/boot.log 2>&1 || true
+          tail -3 /tmp/boot.log || true
+
+      - name: Apply migrations
+        if: steps.check.outputs.present == 'true'
+        working-directory: server
+        env:
+          DB_HOST: localhost
+          DB_PORT: '5432'
+          DB_NAME: neevtime_ci
+          DB_USER: postgres
+          DB_PASSWORD: ci
+        run: node migrations/runner.js up
+
+      # The application role must not be a superuser. A superuser bypasses
+      # row-level security, so the isolation tests would pass against a database
+      # with no isolation at all — the one false negative that would matter.
+      - name: Create the application role
+        if: steps.check.outputs.present == 'true'
+        run: |
+          docker exec pg psql -U postgres -q -d neevtime_ci -c "
+            CREATE ROLE neevtime_app LOGIN PASSWORD 'ci';
+            GRANT USAGE ON SCHEMA public TO neevtime_app;
+            GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO neevtime_app;
+            GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO neevtime_app;
+            GRANT EXECUTE ON FUNCTION app_current_tenant() TO neevtime_app;
+            INSERT INTO companies (id, name, code)
+              SELECT 2, 'CI Second Tenant', 'CI2'
+              WHERE NOT EXISTS (SELECT 1 FROM companies WHERE id = 2);
+          "
+
+      - name: Prove one customer cannot reach another's data
+        if: steps.check.outputs.present == 'true'
+        working-directory: server
+        env:
+          TENANCY_TEST_DB: neevtime_ci
+          TENANCY_TEST_HOST: localhost
+          TENANCY_TEST_PORT: '5432'
+          TENANCY_TEST_USER: neevtime_app
+          TENANCY_TEST_PASSWORD: ci
+        run: node --test tests/tenancy.test.js
