@@ -691,7 +691,12 @@ app.post(['/iclock/devicecmd', '/iclock/devicecmd.aspx'], (req, res) => res.send
 app.get('/api/stats', async (req, res) => {
     try {
                 const [totalEmp, devicesOnline, recentLogs, todayStats] = await Promise.all([
-            db.query('SELECT COUNT(*) FROM employees'),
+            // Staff, not rows. This counted every employee record — resigned
+            // people included, and the drivers, security and housekeeping who
+            // are enrolled for door access and are not on the HRMS list.
+            db.query(`SELECT COUNT(*) FROM employees
+                       WHERE LOWER(status) = 'active'
+                         AND attendance_required IS NOT FALSE`),
             db.query("SELECT COUNT(*) FROM devices WHERE status = 'online'"),
             db.query(`
                 SELECT al.*, e.name as emp_name, d.name as dept_name 

@@ -153,12 +153,12 @@ if d inspect "$DB_CONTAINER" >/dev/null 2>&1; then
     today=$(psql_q "SELECT count(*) FROM attendance_logs WHERE DATE(punch_time) = CURRENT_DATE")
     ok "punches recorded today: ${today:-?}"
 
-    emp=$(psql_q "SELECT count(*) FROM employees WHERE lower(status)='active'")
+    emp=$(psql_q "SELECT count(*) FROM employees WHERE lower(status)='active' AND attendance_required IS NOT FALSE")
     ok "active employees: ${emp:-?}"
 
     # Flagged rather than failed: it does not break the app, but it empties the
     # department filter and the workforce chart.
-    unassigned=$(psql_q "SELECT count(*) FROM employees WHERE lower(status)='active' AND department_id IS NULL")
+    unassigned=$(psql_q "SELECT count(*) FROM employees WHERE lower(status)='active' AND attendance_required IS NOT FALSE AND department_id IS NULL")
     [ "${unassigned:-0}" -gt 0 ] && note "$unassigned active employees have no department set"
 
     devices=$(psql_q "SELECT count(*) FILTER (WHERE status='online') || '/' || count(*) FROM devices")
