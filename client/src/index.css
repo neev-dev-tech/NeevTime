@@ -1,4 +1,12 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Public+Sans:wght@300;400;500;600;700&display=swap');
+/* Public Sans carries the reading — a civic-service face drawn for forms and
+   long tables, which is most of this app. Sora carries the scanning: page
+   titles and headline figures, where a little geometry gives the page an
+   entry point. IBM Plex Mono is for identifiers — employee codes and device
+   serials read as identifiers rather than prose.
+
+   Inter is gone. It is the default every generated interface reaches for, and
+   an app that looks machine-made is the thing being fixed here. */
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Public+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -46,7 +54,7 @@
 
 body {
   background-color: #FAFBFC;
-  font-family: 'Inter', 'Public Sans', sans-serif;
+  font-family: 'Public Sans', system-ui, sans-serif;
   color: #1E293B;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -3577,4 +3585,54 @@ summary:focus:not(:focus-visible),
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* ── Type roles ────────────────────────────────────────────────────────────
+   Sora is applied by role rather than by sprinkling a class through the
+   markup: headings, the page title, and the big figures on cards. Everything
+   else — table cells, labels, form text, body copy — stays Public Sans, which
+   is the face that has to survive being read for eight hours.
+
+   `font-variant-numeric: tabular-nums` on the figures is the part that
+   matters more than the typeface. Proportional digits make a column of times
+   ragged, because a 1 is narrower than a 0; tabular figures line the columns
+   up, which is the whole job of an attendance table. */
+h1, h2, h3, h4, h5, h6,
+.page-title,
+.card-value,
+.stat-value {
+  font-family: 'Sora', 'Public Sans', sans-serif;
+  letter-spacing: -0.02em;
+}
+
+.tabular-nums,
+td.num,
+.card-value,
+.stat-value {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Identifiers, not prose. */
+code, kbd, samp, .font-mono, .employee-code, .device-serial {
+  font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+}
+
+/* ── Radius scale ──────────────────────────────────────────────────────────
+   There were six radii in play — 6, 8, 12, 18, 9999 and 50% — with nothing
+   deciding which went where, so neighbouring elements rounded differently for
+   no reason. Three steps and a pill, mapped by what a thing *is*:
+
+     sm   controls inside a surface: inputs, chips, small buttons
+     md   the standard surface: cards, tiles, menus
+     lg   things that float over the page: modals, drawers, panels
+     full pills and avatars
+
+   The nesting rule is that an inner radius should be the outer radius minus
+   the gap between them, otherwise the corners look wrong even when the
+   numbers look right. sm inside md at 12px padding is close enough. */
+:root {
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
 }

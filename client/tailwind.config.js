@@ -57,7 +57,12 @@ export default {
                 },
             },
             fontFamily: {
-                sans: ['Inter', 'Public Sans', 'sans-serif'],
+                // Public Sans for everything you read, Sora for what you scan.
+                // `display` is the opt-in for headings and headline figures;
+                // `sans` stays the default so no existing markup changes meaning.
+                sans: ['Public Sans', 'system-ui', 'sans-serif'],
+                display: ['Sora', 'Public Sans', 'sans-serif'],
+                mono: ['IBM Plex Mono', 'ui-monospace', 'SFMono-Regular', 'monospace'],
             },
             boxShadow: {
                 'soft-orange': '0 4px 12px rgba(249, 115, 22, 0.3)',
