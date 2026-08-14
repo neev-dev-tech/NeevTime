@@ -1100,7 +1100,12 @@ export default function Employees() {
                 </div>
                     <h3 className="text-xl font-semibold mb-2 text-slate-800 dark:text-slate-100">Delete Employees?</h3>
                 <p className="text-slate-grey dark:text-slate-400 text-sm mb-8 leading-relaxed">
-                    Are you sure you want to delete <span className="font-bold text-charcoal dark:text-slate-100">{selectedIds.length}</span> selected employees? This action cannot be undone.
+                    Move <span className="font-bold text-charcoal dark:text-slate-100">{selectedIds.length}</span> selected
+                    employee(s) to Deleted? Their attendance history is kept and they can be restored
+                    from Employee Management &rsaquo; Deleted.
+                    <span className="block mt-2">
+                        Biometric access is revoked on every reader, so they will need to enrol again if restored.
+                    </span>
                 </p>
                 <div className="flex justify-center gap-4">
                     <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>

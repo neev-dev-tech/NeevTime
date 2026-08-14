@@ -20,6 +20,7 @@ import Login from './pages/Login';
 import GenericCrud from './components/GenericCrud';
 import Area from './pages/Area';
 import Resign from './pages/Resign';
+import DeletedEmployees from './pages/DeletedEmployees';
 import EmployeeDocs from './pages/EmployeeDocs';
 import ShiftMaster from './pages/ShiftMaster';
 import ImportWizard from './pages/ImportWizard';
@@ -161,6 +162,7 @@ export default function App() {
                         <Route path="/positions" element={<Positions />} />
                         <Route path="/areas" element={<Area />} />
                         <Route path="/resign" element={<Resign />} />
+                        <Route path="/employees/deleted" element={<DeletedEmployees />} />
                         <Route path="/employee-docs" element={<EmployeeDocs />} />
                         <Route path="/workflow/roles" element={<ApprovalRole />} />
                         <Route path="/workflow/flows" element={<ApprovalFlow />} />

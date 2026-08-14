@@ -1,5 +1,5 @@
 import {
-  RefreshCw, LayoutDashboard, Users, Clock, TabletSmartphone, Settings2, Grid, MapPin, Plane, UserCheck, GitBranch, GitCommit, Calendar, Database, Activity, ClipboardList, UserX, Briefcase, Building2, Timer, CalendarDays, CalendarCheck, Upload, Download, Shield, ShieldCheck, UserCircle, FolderOpen, FileCheck, TrendingUp, Server, FileText, PieChart, Globe, Network, MessageSquare, Workflow, BarChart3, Zap, Fingerprint, Camera, FileQuestion, AlertCircle, Building } from 'lucide-react';
+  RefreshCw, LayoutDashboard, Users, Clock, TabletSmartphone, Settings2, Grid, MapPin, Plane, UserCheck, GitBranch, GitCommit, Calendar, Database, Activity, ClipboardList, UserX, Briefcase, Building2, Timer, CalendarDays, CalendarCheck, Upload, Download, Shield, ShieldCheck, UserCircle, FolderOpen, FileCheck, TrendingUp, Server, FileText, PieChart, Globe, Network, MessageSquare, Workflow, BarChart3, Zap, Fingerprint, Camera, FileQuestion, AlertCircle, Building, Trash2 } from 'lucide-react';
 
 export const modules = [
   { name: 'Dashboard', icon: LayoutDashboard, path: '/', iconColor: '#F97316' },
@@ -28,6 +28,7 @@ export const personnelSidebar = [
     items: [
       { label: 'Employee', path: '/employees', icon: UserCircle, iconColor: '#EA580C' },
       { label: 'Resign', path: '/resign', icon: UserX, iconColor: '#DC2626' },
+      { label: 'Deleted', path: '/employees/deleted', icon: Trash2, iconColor: '#64748B' },
     ]
   },
   {

@@ -982,7 +982,6 @@ app.delete('/api/employees', async (req, res) => {
             return res.status(400).json({ error: 'No IDs provided' });
         }
 
-        // 1. Get Employee Codes (needed for logs and device commands)
         const emps = await db.query('SELECT employee_code FROM employees WHERE id = ANY($1)', [ids]);
         const employeeCodes = emps.rows.map(e => e.employee_code);
 
@@ -990,116 +989,125 @@ app.delete('/api/employees', async (req, res) => {
             return res.json({ success: true, count: 0, message: 'No employees found to delete' });
         }
 
-        // 2. Perform DB Deletion (Transaction)
+        // Soft delete.
+        //
+        // This used to run DELETE against attendance_logs,
+        // attendance_daily_summary, leave_applications, biometric_templates,
+        // leave_balances, employee_docs and finally employees — every punch a
+        // person had ever made, destroyed by one button on the Employees page,
+        // with no undo and nothing written down. Attendance records are what
+        // payroll is argued from; they are not the app's to throw away.
+        //
+        // The record moves to the Deleted view and keeps all of it.
         const client = await db.getClient();
         try {
             await client.query('BEGIN');
-
-            // Delete Attendance Logs first (No Cascade)
-            try {
-                await client.query('DELETE FROM attendance_logs WHERE employee_code = ANY($1)', [employeeCodes]);
-                console.log('[DELETE] Attendance logs deleted');
-            } catch (e) {
-                console.log('[DELETE] attendance_logs error:', e.message);
-            }
-
-            // Delete Attendance Summary (if exists)
-            try {
-                await client.query('DELETE FROM attendance_daily_summary WHERE employee_code = ANY($1)', [employeeCodes]);
-                console.log('[DELETE] Attendance summary deleted');
-            } catch (e) {
-                console.log('[DELETE] attendance_daily_summary error:', e.message);
-            }
-
-            // Delete Leave Applications (if exists)
-            try {
-                await client.query('DELETE FROM leave_applications WHERE employee_code = ANY($1)', [employeeCodes]);
-                console.log('[DELETE] Leave applications deleted');
-            } catch (e) {
-                console.log('[DELETE] leave_applications error:', e.message);
-            }
-
-            // Delete Biometric Templates
-            try {
-                await client.query('DELETE FROM biometric_templates WHERE employee_code = ANY($1)', [employeeCodes]);
-                console.log('[DELETE] Biometric templates deleted');
-            } catch (e) {
-                console.log('[DELETE] biometric_templates error:', e.message);
-            }
-
-            // Delete Leave Balances (if exists)
-            try {
-                await client.query('DELETE FROM leave_balances WHERE employee_code = ANY($1)', [employeeCodes]);
-                console.log('[DELETE] Leave balances deleted');
-            } catch (e) {
-                console.log('[DELETE] leave_balances error:', e.message);
-            }
-
-            // Delete Employee Docs (if exists)
-            try {
-                await client.query('DELETE FROM employee_docs WHERE employee_code = ANY($1)', [employeeCodes]);
-                console.log('[DELETE] Employee docs deleted');
-            } catch (e) {
-                console.log('[DELETE] employee_docs error:', e.message);
-            }
-
-            // Delete Employees
-            await client.query('DELETE FROM employees WHERE id = ANY($1)', [ids]);
-            console.log('[DELETE] Employees deleted:', ids);
-
-            // Queue Device Deletion Commands
-            try {
-                const devices = await client.query('SELECT serial_number FROM devices WHERE serial_number IS NOT NULL AND serial_number != \'\'');
-                for (const code of employeeCodes) {
-                    // The ADMS keyword is USERINFO. This said USER, which every
-                    // reader rejects with Return=-1004 — 12 attempts, 0 accepted,
-                    // against 9,385 successful DATA DELETE FACE commands. So no
-                    // employee deleted through this endpoint was ever removed from
-                    // the readers: the record vanished from the app while the
-                    // finger kept opening the door.
-                    //
-                    // Templates go first. Deleting the user record on a device
-                    // does not always take its enrolled biometrics with it.
-                    const cmds = [
-                        `DATA DELETE FINGERTMP PIN=${code}`,
-                        `DATA DELETE FACE PIN=${code}`,
-                        `DATA DELETE USERINFO PIN=${code}`
-                    ];
-                    for (const dev of devices.rows) {
-                        if (dev.serial_number) {
-                            for (const cmd of cmds) {
-                                await client.query(
-                                    `INSERT INTO device_commands (device_serial, command, status) VALUES ($1, $2, 'pending')`,
-                                    [dev.serial_number, cmd]
-                                );
-                            }
-                        }
-                    }
-                }
-                console.log('[DELETE] Device commands queued');
-            } catch (e) {
-                console.log('[DELETE] device_commands error:', e.message);
-            }
-
+            await client.query(
+                `UPDATE employees
+                    SET status = 'deleted', deleted_at = NOW(), attendance_required = FALSE
+                  WHERE id = ANY($1)`,
+                [ids]
+            );
+            // Access is still revoked. A removed employee should not be able to
+            // open a door while the record waits in Deleted.
+            await queueTemplateRemoval(client, employeeCodes);
             await client.query('COMMIT');
-        } catch (e) {
+        } catch (err) {
             await client.query('ROLLBACK');
-            throw e;
+            throw err;
         } finally {
             client.release();
         }
 
-        res.json({ success: true, count: ids.length, message: 'Deleted successfully' });
+        res.json({
+            success: true,
+            soft: true,
+            count: employeeCodes.length,
+            message: `${employeeCodes.length} employee(s) moved to Deleted. Attendance history is kept.`
+        });
     } catch (err) {
-        console.error(err);
+        console.error('Bulk delete failed:', err);
         res.status(500).json({ error: err.message });
     }
 });
 
+/** Put a deleted employee back. Biometrics need re-enrolling on the readers. */
+app.post('/api/employees/restore', async (req, res) => {
+    try {
+        const ids = req.body.ids;
+        if (!Array.isArray(ids) || ids.length === 0) {
+            return res.status(400).json({ error: 'No IDs provided' });
+        }
+        const result = await db.query(
+            `UPDATE employees
+                SET status = 'active', deleted_at = NULL
+              WHERE id = ANY($1) AND LOWER(status) = 'deleted'
+          RETURNING employee_code`,
+            [ids]
+        );
+        res.json({
+            success: true,
+            count: result.rows.length,
+            message: `${result.rows.length} employee(s) restored. Biometrics must be re-enrolled on the readers.`
+        });
+    } catch (err) {
+        console.error('Restore failed:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+/**
+ * Revoke a person's biometric access on every reader.
+ *
+ * Extracted so the single delete does the same thing the bulk delete does. The
+ * keyword is USERINFO — it once said USER, which every reader rejects with
+ * Return=-1004, so the record vanished from the app while the finger kept
+ * opening the door. Templates go first: deleting a user record on a device does
+ * not always take its enrolled biometrics with it.
+ */
+const queueTemplateRemoval = async (conn, employeeCodes) => {
+    if (!employeeCodes || employeeCodes.length === 0) return;
+    const devices = await conn.query(
+        "SELECT serial_number FROM devices WHERE serial_number IS NOT NULL AND serial_number != ''"
+    );
+    for (const code of employeeCodes) {
+        const cmds = [
+            `DATA DELETE FINGERTMP PIN=${code}`,
+            `DATA DELETE FACE PIN=${code}`,
+            `DATA DELETE USERINFO PIN=${code}`
+        ];
+        for (const dev of devices.rows) {
+            for (const cmd of cmds) {
+                await conn.query(
+                    `INSERT INTO device_commands (device_serial, command, status, sequence)
+                     VALUES ($1, $2, 'pending', 1)`,
+                    [dev.serial_number, cmd]
+                );
+            }
+        }
+    }
+};
+
 app.delete('/api/employees/:id', async (req, res) => {
     try {
-        await db.query('DELETE FROM employees WHERE id = $1', [req.params.id]);
-        res.json({ success: true });
+        // Soft. The row and every punch, summary, leave application and
+        // document belonging to it are kept; the employee moves to the Deleted
+        // view and can be restored.
+        const result = await db.query(
+            `UPDATE employees
+                SET status = 'deleted', deleted_at = NOW(), attendance_required = FALSE
+              WHERE id = $1
+          RETURNING employee_code`,
+            [req.params.id]
+        );
+        if (result.rows.length === 0) return res.status(404).json({ error: 'Employee not found' });
+
+        // Door access is still revoked — a removed employee should not open
+        // doors while the record waits in Deleted. Re-enrolment is required if
+        // they are restored.
+        await queueTemplateRemoval(db, result.rows.map(r => r.employee_code));
+
+        res.json({ success: true, soft: true });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: err.message });
@@ -1133,6 +1141,21 @@ app.post('/api/mobile-app-access', async (req, res) => {
 // Get Employees
 app.get('/api/employees', async (req, res) => {
     try {
+        // Which population. Default is current staff: this endpoint used to
+        // return everyone, so people who had resigned or been removed sat in
+        // the Employees list and in every employee dropdown in the app.
+        //   active   (default) — everyone except resigned and deleted
+        //   resigned          — those who have left
+        //   deleted           — removed, retained for restore
+        //   all               — no filter, for reports that need history
+        const VIEWS = {
+            active: `WHERE LOWER(e.status) NOT IN ('resigned', 'deleted', 'terminated')`,
+            resigned: `WHERE LOWER(e.status) IN ('resigned', 'terminated')`,
+            deleted: `WHERE LOWER(e.status) = 'deleted'`,
+            all: ''
+        };
+        const where = VIEWS[String(req.query.view || 'active')] ?? VIEWS.active;
+
         const result = await db.query(`
             SELECT 
                 e.*,
@@ -1142,6 +1165,7 @@ app.get('/api/employees', async (req, res) => {
             FROM employees e
             LEFT JOIN departments d ON e.department_id = d.id
             LEFT JOIN areas a ON e.area_id = a.id
+            ${where}
             ORDER BY e.name
         `);
         res.json(result.rows);
@@ -1849,6 +1873,11 @@ const ensureSchema = async () => {
         // whether the column exists. The HRMS pull now writes it when someone
         // is retired, so it has to be guaranteed rather than hoped for.
         `ALTER TABLE employees ADD COLUMN IF NOT EXISTS attendance_required BOOLEAN DEFAULT TRUE`,
+        // Deleting an employee used to destroy the row and every punch, summary,
+        // leave application and document belonging to them. This records when
+        // someone was removed instead, so the record and its history survive and
+        // can be restored.
+        `ALTER TABLE employees ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP`,
         // Populated from the HRMS Shift Type. Same reasoning: the report reads
         // them, so a database without them measures everyone against the
         // caller's fallback instead of their own shift.

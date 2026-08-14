@@ -71,8 +71,11 @@ test('"USER" is never used where "USERINFO" is meant', () => {
 test('deleting an employee clears their biometrics as well as their record', () => {
     // Removing the user row on a device does not reliably take enrolled
     // templates with it, and a stranded template can still be matched.
+    // The commands moved into queueTemplateRemoval when delete became soft, so
+    // that one button and bulk delete revoke access the same way. Same
+    // assertions, new home.
     const src = fs.readFileSync(path.join(__dirname, '../server.js'), 'utf8');
-    const block = src.slice(src.indexOf('Queue Device Deletion Commands'));
+    const block = src.slice(src.indexOf('const queueTemplateRemoval'));
     assert.ok(block.includes('DATA DELETE USERINFO PIN='), 'user record is not removed from devices');
     assert.ok(block.includes('DATA DELETE FINGERTMP PIN='), 'fingerprints are left on devices');
     assert.ok(block.includes('DATA DELETE FACE PIN='), 'face templates are left on devices');
