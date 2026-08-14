@@ -3,13 +3,14 @@ import { useLocation } from 'react-router-dom';
 import api from '../api';
 import io from 'socket.io-client';
 import {
-    TabletSmartphone, RefreshCw, Power, Plus, Edit2, Trash2, X, Save,
+    TabletSmartphone, RefreshCw, Power, Plus, Edit2, Trash2, Save,
     Wifi, WifiOff, Users, Fingerprint, Clock, Activity, Settings, Check,
     Upload, Download, ChevronDown, AlertTriangle, Briefcase, Camera, FileText,
     FileQuestion, Database, AlertCircle, FileSpreadsheet, Table2, Inbox, ShieldAlert
 } from 'lucide-react';
 import { TableSkeleton } from '../components/SkeletonLoader';
 import { useToast, Button, PageHeader } from '../components';
+import Modal from '../components/Modal';
 import { exportToExcel, exportToCSV } from '../utils/excelExport';
 
 // ==========================================
@@ -934,43 +935,46 @@ export default function Devices() {
         <>
             {renderContent()}
 
-            {showModal && (
-                <div className="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4">
-                    <div className="p-6 rounded-2xl w-full max-w-lg border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700" style={{ borderRadius: '16px' }}>
-                        <h3 className="font-semibold mb-4 text-slate-800 dark:text-slate-100">{editingDevice ? 'Edit' : 'Add'} Device</h3>
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <input className="input-base" placeholder="Name" value={form.device_name} onChange={e => setForm({ ...form, device_name: e.target.value })} />
-                            <input className="input-base" placeholder="Serial" value={form.serial_number} onChange={e => setForm({ ...form, serial_number: e.target.value })} disabled={!!editingDevice} />
-                            <input className="input-base" placeholder="IP" value={form.ip_address} onChange={e => setForm({ ...form, ip_address: e.target.value })} />
-                            <select className="input-base" value={form.area_id} onChange={e => setForm({ ...form, area_id: e.target.value })}>
-                                <option value="">Select Area</option>
-                                {areas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-                            </select>
-                            <select className="input-base" value={form.device_direction} onChange={e => setForm({ ...form, device_direction: e.target.value })}>
-                                <option value="in">IN</option>
-                                <option value="out">OUT</option>
-                                <option value="both">Both</option>
-                            </select>
-                            <div className="flex justify-end gap-2 mt-4">
-                                <Button variant="secondary" type="button" onClick={closeModal}>Cancel</Button>
-                                <Button variant="primary" type="submit">Save</Button>
-                            </div>
-                        </form>
+            <Modal
+                open={showModal}
+                onClose={closeModal}
+                title={`${editingDevice ? 'Edit' : 'Add'} Device`}
+                size="lg"
+            >
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <input className="input-base" placeholder="Name" value={form.device_name} onChange={e => setForm({ ...form, device_name: e.target.value })} />
+                    <input className="input-base" placeholder="Serial" value={form.serial_number} onChange={e => setForm({ ...form, serial_number: e.target.value })} disabled={!!editingDevice} />
+                    <input className="input-base" placeholder="IP" value={form.ip_address} onChange={e => setForm({ ...form, ip_address: e.target.value })} />
+                    <select className="input-base" value={form.area_id} onChange={e => setForm({ ...form, area_id: e.target.value })}>
+                        <option value="">Select Area</option>
+                        {areas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                    </select>
+                    <select className="input-base" value={form.device_direction} onChange={e => setForm({ ...form, device_direction: e.target.value })}>
+                        <option value="in">IN</option>
+                        <option value="out">OUT</option>
+                        <option value="both">Both</option>
+                    </select>
+                    <div className="flex justify-end gap-2 mt-4">
+                        <Button variant="secondary" type="button" onClick={closeModal}>Cancel</Button>
+                        <Button variant="primary" type="submit">Save</Button>
+                    </div>
+                </form>
+            </Modal>
+            <Modal
+                open={confirmation.show}
+                onClose={() => setConfirmation({ show: false, action: null })}
+                size="sm"
+                hideClose
+            >
+                <div className="text-center">
+                    <h3 className="font-semibold text-slate-800 dark:text-slate-100">{confirmation.title}</h3>
+                    <p className="my-2 text-sm text-slate-500 dark:text-slate-400">{confirmation.message}</p>
+                    <div className="flex justify-center gap-2 mt-4">
+                        <Button variant="secondary" onClick={() => setConfirmation({ show: false, action: null })}>Cancel</Button>
+                        <Button variant={confirmation.action === 'delete' ? 'dangerSolid' : 'primary'} onClick={processDataTransfer}>Confirm</Button>
                     </div>
                 </div>
-            )}
-            {confirmation.show && (
-                <div className="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4">
-                    <div className="p-6 rounded-2xl text-center border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700" style={{ borderRadius: '16px' }}>
-                        <h3 className="font-semibold text-slate-800 dark:text-slate-100">{confirmation.title}</h3>
-                        <p className="my-2 text-sm text-slate-500 dark:text-slate-400">{confirmation.message}</p>
-                        <div className="flex justify-center gap-2 mt-4">
-                            <Button variant="secondary" onClick={() => setConfirmation({ show: false, action: null })}>Cancel</Button>
-                            <Button variant={confirmation.action === 'delete' ? 'dangerSolid' : 'primary'} onClick={processDataTransfer}>Confirm</Button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            </Modal>
 
             {/* Toast UI */}
             {toast && (

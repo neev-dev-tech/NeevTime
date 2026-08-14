@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../api';
-import { User, Mail, Phone, Building, Briefcase, Calendar, Clock, ArrowLeft, Edit2, Trash2, X, AlertCircle, FileText, RefreshCw } from 'lucide-react';
+import { User, Mail, Phone, Building, Briefcase, Calendar, Clock, ArrowLeft, Edit2, Trash2, AlertCircle, FileText, RefreshCw } from 'lucide-react';
 import { useToast, Button } from '../components';
+import Modal from '../components/Modal';
 
 export default function EmployeeProfile() {
     const { id } = useParams();
@@ -443,82 +444,82 @@ export default function EmployeeProfile() {
             </div>
 
             {/* Delete Confirmation Modal */}
-            {deleteModalOpen && (
-                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 w-full max-w-sm text-center shadow-xl border border-white/50 dark:border-slate-700">
-                        <div className="mx-auto w-12 h-12 bg-rose-100 dark:bg-rose-900/30 rounded-full flex items-center justify-center mb-4">
-                            <Trash2 className="text-rose-600 dark:text-rose-400" size={24} />
-                        </div>
-                        <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-2">Delete Employee?</h3>
-                        <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">Are you sure you want to delete <span className="font-semibold text-slate-800 dark:text-slate-100">{employee.name}</span>? This action cannot be undone.</p>
-                        <div className="flex justify-center gap-3">
-                            <Button variant="secondary" onClick={() => setDeleteModalOpen(false)}>Cancel</Button>
-                            <Button variant="dangerSolid" onClick={confirmDelete}>Delete</Button>
-                        </div>
-                    </div>
+            <Modal
+                open={deleteModalOpen}
+                onClose={() => setDeleteModalOpen(false)}
+                size="sm"
+                hideClose
+            >
+                <div className="text-center">
+                <div className="mx-auto w-12 h-12 bg-rose-100 dark:bg-rose-900/30 rounded-full flex items-center justify-center mb-4">
+                    <Trash2 className="text-rose-600 dark:text-rose-400" size={24} />
                 </div>
-            )}
+                <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-2">Delete Employee?</h3>
+                <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">Are you sure you want to delete <span className="font-semibold text-slate-800 dark:text-slate-100">{employee.name}</span>? This action cannot be undone.</p>
+                <div className="flex justify-center gap-3">
+                    <Button variant="secondary" onClick={() => setDeleteModalOpen(false)}>Cancel</Button>
+                    <Button variant="dangerSolid" onClick={confirmDelete}>Delete</Button>
+                </div>
+                </div>
+            </Modal>
 
             {/* Edit Modal */}
-            {showEditModal && (
-                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto border border-white/50 dark:border-slate-700">
-                        <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50/70 dark:bg-slate-900/50 sticky top-0 z-10">
-                            <h3 className="font-bold text-lg text-slate-800 dark:text-slate-100">Edit Employee</h3>
-                            <Button variant="ghost" size="sm" icon={X} aria-label="Close" onClick={() => setShowEditModal(false)} />
-                        </div>
-                        <form onSubmit={handleEditSubmit} className="p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {/* Similar Form Fields to Add Modal */}
-                            <div className="col-span-1 md:col-span-3 font-semibold text-slate-600 dark:text-slate-400 border-b dark:border-slate-700 pb-1 mb-2">Personal Details</div>
+            <Modal
+                open={showEditModal}
+                onClose={() => setShowEditModal(false)}
+                title="Edit Employee"
+                size="xl"
+            >
+                <form onSubmit={handleEditSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* Similar Form Fields to Add Modal */}
+                    <div className="col-span-1 md:col-span-3 font-semibold text-slate-600 dark:text-slate-400 border-b dark:border-slate-700 pb-1 mb-2">Personal Details</div>
 
-                            <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Employee ID</label><input disabled type="text" className="field-sm font-mono tabular-nums" value={editForm.employee_code} /></div>
-                            <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Name</label><input type="text" className="field-sm" value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} /></div>
-                            <div>
-                                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Gender</label>
-                                <select className="field-sm" value={editForm.gender} onChange={e => setEditForm({ ...editForm, gender: e.target.value })}>
-                                    <option value="Male">Male</option>
-                                    <option value="Female">Female</option>
-                                    <option value="Other">Other</option>
-                                </select>
-                            </div>
-                            <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">DOB</label><input type="date" className="field-sm" value={editForm.dob ? editForm.dob.split('T')[0] : ''} onChange={e => setEditForm({ ...editForm, dob: e.target.value })} /></div>
-                            <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Mobile</label><input type="text" className="field-sm" value={editForm.mobile} onChange={e => setEditForm({ ...editForm, mobile: e.target.value })} /></div>
-                            <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Email</label><input type="email" className="field-sm" value={editForm.email} onChange={e => setEditForm({ ...editForm, email: e.target.value })} /></div>
-                            <div className="col-span-1 md:col-span-3"><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Address</label><textarea rows={2} className="field-sm" value={editForm.address} onChange={e => setEditForm({ ...editForm, address: e.target.value })} /></div>
-
-                            <div className="col-span-1 md:col-span-3 font-semibold text-slate-600 dark:text-slate-400 border-b dark:border-slate-700 pb-1 mb-2 mt-2">Work Details</div>
-                            <div>
-                                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Department</label>
-                                <select className="field-sm" value={editForm.department_id} onChange={e => setEditForm({ ...editForm, department_id: e.target.value })}>
-                                    <option value="">Select</option>
-                                    {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-                                </select>
-                            </div>
-                            <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Designation</label><input type="text" className="field-sm" value={editForm.designation} onChange={e => setEditForm({ ...editForm, designation: e.target.value })} /></div>
-                            <div>
-                                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Area</label>
-                                <select className="field-sm" value={editForm.area_id} onChange={e => setEditForm({ ...editForm, area_id: e.target.value })}>
-                                    <option value="">Select</option>
-                                    {areas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-                                </select>
-                            </div>
-                            <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Joining Date</label><input type="date" className="field-sm" value={editForm.joining_date ? editForm.joining_date.split('T')[0] : ''} onChange={e => setEditForm({ ...editForm, joining_date: e.target.value })} /></div>
-                            <div>
-                                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Status</label>
-                                <select className="field-sm" value={editForm.status} onChange={e => setEditForm({ ...editForm, status: e.target.value })}>
-                                    <option value="active">Active</option>
-                                    <option value="inactive">Inactive</option>
-                                </select>
-                            </div>
-
-                            <div className="col-span-1 md:col-span-3 flex justify-end gap-3 pt-4 border-t dark:border-slate-700 mt-4">
-                                <Button variant="secondary" type="button" onClick={() => setShowEditModal(false)}>Cancel</Button>
-                                <Button variant="primary" type="submit">Save Changes</Button>
-                            </div>
-                        </form>
+                    <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Employee ID</label><input disabled type="text" className="field-sm font-mono tabular-nums" value={editForm.employee_code} /></div>
+                    <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Name</label><input type="text" className="field-sm" value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} /></div>
+                    <div>
+                        <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Gender</label>
+                        <select className="field-sm" value={editForm.gender} onChange={e => setEditForm({ ...editForm, gender: e.target.value })}>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
                     </div>
-                </div>
-            )}
+                    <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">DOB</label><input type="date" className="field-sm" value={editForm.dob ? editForm.dob.split('T')[0] : ''} onChange={e => setEditForm({ ...editForm, dob: e.target.value })} /></div>
+                    <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Mobile</label><input type="text" className="field-sm" value={editForm.mobile} onChange={e => setEditForm({ ...editForm, mobile: e.target.value })} /></div>
+                    <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Email</label><input type="email" className="field-sm" value={editForm.email} onChange={e => setEditForm({ ...editForm, email: e.target.value })} /></div>
+                    <div className="col-span-1 md:col-span-3"><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Address</label><textarea rows={2} className="field-sm" value={editForm.address} onChange={e => setEditForm({ ...editForm, address: e.target.value })} /></div>
+
+                    <div className="col-span-1 md:col-span-3 font-semibold text-slate-600 dark:text-slate-400 border-b dark:border-slate-700 pb-1 mb-2 mt-2">Work Details</div>
+                    <div>
+                        <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Department</label>
+                        <select className="field-sm" value={editForm.department_id} onChange={e => setEditForm({ ...editForm, department_id: e.target.value })}>
+                            <option value="">Select</option>
+                            {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                        </select>
+                    </div>
+                    <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Designation</label><input type="text" className="field-sm" value={editForm.designation} onChange={e => setEditForm({ ...editForm, designation: e.target.value })} /></div>
+                    <div>
+                        <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Area</label>
+                        <select className="field-sm" value={editForm.area_id} onChange={e => setEditForm({ ...editForm, area_id: e.target.value })}>
+                            <option value="">Select</option>
+                            {areas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                        </select>
+                    </div>
+                    <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Joining Date</label><input type="date" className="field-sm" value={editForm.joining_date ? editForm.joining_date.split('T')[0] : ''} onChange={e => setEditForm({ ...editForm, joining_date: e.target.value })} /></div>
+                    <div>
+                        <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Status</label>
+                        <select className="field-sm" value={editForm.status} onChange={e => setEditForm({ ...editForm, status: e.target.value })}>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+
+                    <div className="col-span-1 md:col-span-3 flex justify-end gap-3 pt-4 border-t dark:border-slate-700 mt-4">
+                        <Button variant="secondary" type="button" onClick={() => setShowEditModal(false)}>Cancel</Button>
+                        <Button variant="primary" type="submit">Save Changes</Button>
+                    </div>
+                </form>
+            </Modal>
         </div>
     );
 }

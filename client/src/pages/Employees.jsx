@@ -3,12 +3,13 @@ import api from '../api';
 import {
     Plus, Trash2, Upload, Download,
     ChevronDown, Search, RefreshCw,
-    Smartphone, ArrowRightLeft, X, Settings,
+    Smartphone, ArrowRightLeft, Settings,
     Fingerprint, ScanFace, Users, AlertCircle, SearchX
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ResignationModal from '../components/ResignationModal';
 import { Button, PageHeader } from '../components';
+import Modal from '../components/Modal';
 
 /* ---- shared cell vocabulary (matches DeviceData / Devices) ---- */
 const BADGE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide';
@@ -760,268 +761,257 @@ export default function Employees() {
             </div>
 
             {/* Add Employee Modal */}
-            {
-                showAddModal && (
-                    <div className="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4">
-                        <div className="rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700" style={{ borderRadius: '16px' }}>
-                            <div className="px-8 py-5 border-b flex justify-between items-center bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
-                                <h3 className="font-semibold text-xl text-slate-800 dark:text-slate-100">Add Employee</h3>
-                            <Button variant="ghost" size="sm" icon={X} iconSize={20} aria-label="Close" onClick={() => setShowAddModal(false)} />
-                        </div>
-                            <form onSubmit={handleAddSubmit} className="p-8 overflow-y-auto max-h-[calc(90vh-80px)] custom-scrollbar" autoComplete="off">
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                {/* Personal Details */}
-                                <div className="col-span-1 md:col-span-3 flex items-center gap-2 pb-2 mb-2 border-b border-slate-100 dark:border-slate-700">
-                                    <div className="w-1 h-4 bg-saffron rounded-full"></div>
-                                    <span className="text-sm font-bold text-charcoal dark:text-slate-100 uppercase tracking-wider">Personal Details</span>
-                                </div>
+            <Modal
+                open={showAddModal}
+                onClose={() => setShowAddModal(false)}
+                title="Add Employee"
+                size="xl"
+            >
+                <form onSubmit={handleAddSubmit} autoComplete="off">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* Personal Details */}
+                    <div className="col-span-1 md:col-span-3 flex items-center gap-2 pb-2 mb-2 border-b border-slate-100 dark:border-slate-700">
+                        <div className="w-1 h-4 bg-saffron rounded-full"></div>
+                        <span className="text-sm font-bold text-charcoal dark:text-slate-100 uppercase tracking-wider">Personal Details</span>
+                    </div>
 
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Employee ID *</label>
-                                    <input required type="text" className="input-base"
-                                        value={newEmp.employee_code} onChange={e => setNewEmp({ ...newEmp, employee_code: e.target.value })}
-                                            placeholder="e.g. EMP001" autoComplete="off" />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Full Name *</label>
-                                    <input required type="text" className="input-base"
-                                        value={newEmp.name} onChange={e => setNewEmp({ ...newEmp, name: e.target.value })}
-                                        placeholder="John Doe" />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Gender</label>
-                                    <select className="input-base"
-                                        value={newEmp.gender} onChange={e => setNewEmp({ ...newEmp, gender: e.target.value })}>
-                                        <option value="Male">Male</option>
-                                        <option value="Female">Female</option>
-                                        <option value="Other">Other</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Date of Birth</label>
-                                    <input type="date" className="input-base"
-                                        value={newEmp.dob} onChange={e => setNewEmp({ ...newEmp, dob: e.target.value })} />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Mobile</label>
-                                    <input type="text" className="input-base"
-                                        value={newEmp.mobile} onChange={e => setNewEmp({ ...newEmp, mobile: e.target.value })}
-                                        placeholder="+91..." />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Email</label>
-                                    <input type="email" className="input-base"
-                                        value={newEmp.email} onChange={e => setNewEmp({ ...newEmp, email: e.target.value })}
-                                        placeholder="john@example.com" />
-                                </div>
-                                <div className="col-span-1 md:col-span-3">
-                                    <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Address</label>
-                                    <textarea rows={2} className="input-base resize-none"
-                                        value={newEmp.address} onChange={e => setNewEmp({ ...newEmp, address: e.target.value })}
-                                        placeholder="Enter full address" />
-                                </div>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Employee ID *</label>
+                        <input required type="text" className="input-base"
+                            value={newEmp.employee_code} onChange={e => setNewEmp({ ...newEmp, employee_code: e.target.value })}
+                                placeholder="e.g. EMP001" autoComplete="off" />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Full Name *</label>
+                        <input required type="text" className="input-base"
+                            value={newEmp.name} onChange={e => setNewEmp({ ...newEmp, name: e.target.value })}
+                            placeholder="John Doe" />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Gender</label>
+                        <select className="input-base"
+                            value={newEmp.gender} onChange={e => setNewEmp({ ...newEmp, gender: e.target.value })}>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Date of Birth</label>
+                        <input type="date" className="input-base"
+                            value={newEmp.dob} onChange={e => setNewEmp({ ...newEmp, dob: e.target.value })} />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Mobile</label>
+                        <input type="text" className="input-base"
+                            value={newEmp.mobile} onChange={e => setNewEmp({ ...newEmp, mobile: e.target.value })}
+                            placeholder="+91..." />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Email</label>
+                        <input type="email" className="input-base"
+                            value={newEmp.email} onChange={e => setNewEmp({ ...newEmp, email: e.target.value })}
+                            placeholder="john@example.com" />
+                    </div>
+                    <div className="col-span-1 md:col-span-3">
+                        <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Address</label>
+                        <textarea rows={2} className="input-base resize-none"
+                            value={newEmp.address} onChange={e => setNewEmp({ ...newEmp, address: e.target.value })}
+                            placeholder="Enter full address" />
+                    </div>
 
-                                {/* Work Details */}
-                                <div className="col-span-1 md:col-span-3 flex items-center gap-2 pb-2 mb-2 mt-4 border-b border-slate-100 dark:border-slate-700">
-                                    <div className="w-1 h-4 bg-saffron rounded-full"></div>
-                                    <span className="text-sm font-bold text-charcoal dark:text-slate-100 uppercase tracking-wider">Work Details</span>
-                                </div>
+                    {/* Work Details */}
+                    <div className="col-span-1 md:col-span-3 flex items-center gap-2 pb-2 mb-2 mt-4 border-b border-slate-100 dark:border-slate-700">
+                        <div className="w-1 h-4 bg-saffron rounded-full"></div>
+                        <span className="text-sm font-bold text-charcoal dark:text-slate-100 uppercase tracking-wider">Work Details</span>
+                    </div>
 
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Department</label>
-                                    <select className="input-base"
-                                        value={newEmp.department_id} onChange={e => setNewEmp({ ...newEmp, department_id: e.target.value })}>
-                                        <option value="">Select Department</option>
-                                        {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Position / Designation</label>
-                                        <select className="input-base"
-                                            value={newEmp.designation} onChange={e => setNewEmp({ ...newEmp, designation: e.target.value })}>
-                                            <option value="">Select Position</option>
-                                            {positions.map(p => <option key={p.id} value={p.name}>{p.name}</option>)}
-                                        </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Area</label>
-                                    <select className="input-base"
-                                        value={newEmp.area_id} onChange={e => setNewEmp({ ...newEmp, area_id: e.target.value })}>
-                                        <option value="">Select Area</option>
-                                        {areas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Joining Date</label>
-                                    <input type="date" className="input-base"
-                                        value={newEmp.joining_date} onChange={e => setNewEmp({ ...newEmp, joining_date: e.target.value })} />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Status</label>
-                                    <select className="input-base"
-                                        value={newEmp.status} onChange={e => setNewEmp({ ...newEmp, status: e.target.value })}>
-                                        <option value="active">Active</option>
-                                        <option value="inactive">Inactive</option>
-                                        <option value="resigned">Resigned</option>
-                                        <option value="terminated">Terminated</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Employment Type</label>
-                                    <select className="input-base"
-                                        value={newEmp.employment_type} onChange={e => setNewEmp({ ...newEmp, employment_type: e.target.value })}>
-                                        <option value="Permanent">Permanent</option>
-                                        <option value="Contract">Contract</option>
-                                        <option value="Intern">Intern</option>
-                                    </select>
-                                </div>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Department</label>
+                        <select className="input-base"
+                            value={newEmp.department_id} onChange={e => setNewEmp({ ...newEmp, department_id: e.target.value })}>
+                            <option value="">Select Department</option>
+                            {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Position / Designation</label>
+                            <select className="input-base"
+                                value={newEmp.designation} onChange={e => setNewEmp({ ...newEmp, designation: e.target.value })}>
+                                <option value="">Select Position</option>
+                                {positions.map(p => <option key={p.id} value={p.name}>{p.name}</option>)}
+                            </select>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Area</label>
+                        <select className="input-base"
+                            value={newEmp.area_id} onChange={e => setNewEmp({ ...newEmp, area_id: e.target.value })}>
+                            <option value="">Select Area</option>
+                            {areas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Joining Date</label>
+                        <input type="date" className="input-base"
+                            value={newEmp.joining_date} onChange={e => setNewEmp({ ...newEmp, joining_date: e.target.value })} />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Status</label>
+                        <select className="input-base"
+                            value={newEmp.status} onChange={e => setNewEmp({ ...newEmp, status: e.target.value })}>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="resigned">Resigned</option>
+                            <option value="terminated">Terminated</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Employment Type</label>
+                        <select className="input-base"
+                            value={newEmp.employment_type} onChange={e => setNewEmp({ ...newEmp, employment_type: e.target.value })}>
+                            <option value="Permanent">Permanent</option>
+                            <option value="Contract">Contract</option>
+                            <option value="Intern">Intern</option>
+                        </select>
+                    </div>
 
-                                {/* System Access */}
-                                <div className="col-span-1 md:col-span-3 flex items-center gap-2 pb-2 mb-2 mt-4 border-b border-slate-100 dark:border-slate-700">
-                                    <div className="w-1 h-4 bg-saffron rounded-full"></div>
-                                    <span className="text-sm font-bold text-charcoal dark:text-slate-100 uppercase tracking-wider">System & Device</span>
-                                </div>
+                    {/* System Access */}
+                    <div className="col-span-1 md:col-span-3 flex items-center gap-2 pb-2 mb-2 mt-4 border-b border-slate-100 dark:border-slate-700">
+                        <div className="w-1 h-4 bg-saffron rounded-full"></div>
+                        <span className="text-sm font-bold text-charcoal dark:text-slate-100 uppercase tracking-wider">System & Device</span>
+                    </div>
 
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Card Number</label>
-                                    <input type="text" className="input-base"
-                                        value={newEmp.card_number} onChange={e => setNewEmp({ ...newEmp, card_number: e.target.value })} />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Password (Device)</label>
-                                    <input type="password" className="input-base"
-                                            value={newEmp.password} onChange={e => setNewEmp({ ...newEmp, password: e.target.value })}
-                                            autoComplete="new-password" />
-                                </div>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Card Number</label>
+                        <input type="text" className="input-base"
+                            value={newEmp.card_number} onChange={e => setNewEmp({ ...newEmp, card_number: e.target.value })} />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Password (Device)</label>
+                        <input type="password" className="input-base"
+                                value={newEmp.password} onChange={e => setNewEmp({ ...newEmp, password: e.target.value })}
+                                autoComplete="new-password" />
+                    </div>
 
-                                <div className="col-span-1 md:col-span-3 flex justify-end gap-4 pt-6 border-t border-slate-100 dark:border-slate-700 mt-4">
-                                    <Button variant="secondary" onClick={() => setShowAddModal(false)}>Cancel</Button>
-                                    <Button type="submit" variant="primary">Add Employee</Button>
-                                </div>
-                            </div>
-                        </form>
+                    <div className="col-span-1 md:col-span-3 flex justify-end gap-4 pt-6 border-t border-slate-100 dark:border-slate-700 mt-4">
+                        <Button variant="secondary" onClick={() => setShowAddModal(false)}>Cancel</Button>
+                        <Button type="submit" variant="primary">Add Employee</Button>
                     </div>
                 </div>
-                )
-            }
+                </form>
+            </Modal>
 
             {/* Import Modal */}
-            {
-                showImportModal && (
-                    <div className="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4">
-                        <div className="rounded-2xl shadow-xl w-full max-w-lg p-0 overflow-hidden border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700" style={{ borderRadius: '16px' }}>
-                            <div className="flex justify-between items-center p-5 border-b bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
-                                <h3 className="font-semibold text-xl text-slate-800 dark:text-slate-100">Import Employees</h3>
-                            <Button variant="ghost" size="sm" icon={X} iconSize={20} aria-label="Close" onClick={() => setShowImportModal(false)} />
+            <Modal
+                open={showImportModal}
+                onClose={() => setShowImportModal(false)}
+                title="Import Employees"
+                size="lg"
+            >
+                <div className="p-8 text-center">
+                    <div className="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl p-8 hover:bg-orange-50/50 dark:hover:bg-slate-700/50 hover:border-saffron/50 transition-ui cursor-pointer group">
+                        <div className="w-16 h-16 bg-orange-50 dark:bg-orange-900/30 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                            <Upload className="text-orange-500 dark:text-orange-400" size={28} />
                         </div>
-
-                        <div className="p-8 text-center">
-                            <div className="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl p-8 hover:bg-orange-50/50 dark:hover:bg-slate-700/50 hover:border-saffron/50 transition-ui cursor-pointer group">
-                                <div className="w-16 h-16 bg-orange-50 dark:bg-orange-900/30 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                                    <Upload className="text-orange-500 dark:text-orange-400" size={28} />
-                                </div>
-                                <h4 className="text-lg font-bold text-charcoal dark:text-slate-100 mb-2">Upload CSV File</h4>
-                                <p className="text-sm text-slate-grey dark:text-slate-400 mb-6">Format: ID, Name, DeptID</p>
-                                <div className="relative inline-block">
-                                    <Button variant="secondary" className="relative pointer-events-none">Select File</Button>
-                                    <input
-                                        type="file"
-                                        accept=".csv"
-                                        onChange={handleFileUpload}
-                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                    />
-                                </div>
-                            </div>
+                        <h4 className="text-lg font-bold text-charcoal dark:text-slate-100 mb-2">Upload CSV File</h4>
+                        <p className="text-sm text-slate-grey dark:text-slate-400 mb-6">Format: ID, Name, DeptID</p>
+                        <div className="relative inline-block">
+                            <Button variant="secondary" className="relative pointer-events-none">Select File</Button>
+                            <input
+                                type="file"
+                                accept=".csv"
+                                onChange={handleFileUpload}
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            />
                         </div>
                     </div>
                 </div>
-                )
-            }
+            </Modal>
 
             {/* Transfer Modal */}
-            {
-                showTransferModal && (
-                    <div className="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4">
-                        <div className="rounded-2xl shadow-xl w-full max-w-md p-6 border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700" style={{ borderRadius: '16px' }}>
-                        <div className="mb-6">
-                            <div className="w-12 h-12 bg-orange-50 dark:bg-orange-900/30 rounded-full flex items-center justify-center mb-4">
-                                <ArrowRightLeft className="text-saffron" size={24} />
-                            </div>
-                                <h3 className="font-semibold text-xl mb-1 text-slate-800 dark:text-slate-100">{transferType} Transfer</h3>
-                            <p className="text-slate-grey dark:text-slate-400 text-sm">Move <span className="font-bold text-charcoal dark:text-slate-100">{selectedIds.length}</span> employees to a new {transferType.toLowerCase()}.</p>
-                        </div>
-
-                        <div className="mb-8">
-                            <label className="block text-sm font-bold text-charcoal dark:text-slate-100 mb-2">
-                                Select New {transferType}
-                            </label>
-
-                            {transferType === 'Department' && (
-                                <select
-                                    className="input-base"
-                                    value={targetValue}
-                                    onChange={(e) => setTargetValue(e.target.value)}
-                                >
-                                    <option value="">Select Department</option>
-                                    {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-                                </select>
-                            )}
-
-                            {transferType === 'Area' && (
-                                <select
-                                    className="input-base"
-                                    value={targetValue}
-                                    onChange={(e) => setTargetValue(e.target.value)}
-                                >
-                                    <option value="">Select Area</option>
-                                    {areas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-                                </select>
-                            )}
-
-                            {transferType === 'Position' && (
-                                <input
-                                    type="text"
-                                    className="input-base"
-                                    placeholder="Enter new position/designation"
-                                    value={targetValue}
-                                    onChange={(e) => setTargetValue(e.target.value)}
-                                />
-                            )}
-                        </div>
-
-                        <div className="flex justify-end gap-3">
-                            <Button variant="secondary" onClick={() => setShowTransferModal(false)}>Cancel</Button>
-                            <Button variant="primary" onClick={submitTransfer}>Confirm Transfer</Button>
-                        </div>
+            <Modal
+                open={showTransferModal}
+                onClose={() => setShowTransferModal(false)}
+                size="md"
+                hideClose
+            >
+                <div className="mb-6">
+                    <div className="w-12 h-12 bg-orange-50 dark:bg-orange-900/30 rounded-full flex items-center justify-center mb-4">
+                        <ArrowRightLeft className="text-saffron" size={24} />
                     </div>
+                        <h3 className="font-semibold text-xl mb-1 text-slate-800 dark:text-slate-100">{transferType} Transfer</h3>
+                    <p className="text-slate-grey dark:text-slate-400 text-sm">Move <span className="font-bold text-charcoal dark:text-slate-100">{selectedIds.length}</span> employees to a new {transferType.toLowerCase()}.</p>
                 </div>
-                )
-            }
+
+                <div className="mb-8">
+                    <label className="block text-sm font-bold text-charcoal dark:text-slate-100 mb-2">
+                        Select New {transferType}
+                    </label>
+
+                    {transferType === 'Department' && (
+                        <select
+                            className="input-base"
+                            value={targetValue}
+                            onChange={(e) => setTargetValue(e.target.value)}
+                        >
+                            <option value="">Select Department</option>
+                            {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                        </select>
+                    )}
+
+                    {transferType === 'Area' && (
+                        <select
+                            className="input-base"
+                            value={targetValue}
+                            onChange={(e) => setTargetValue(e.target.value)}
+                        >
+                            <option value="">Select Area</option>
+                            {areas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                        </select>
+                    )}
+
+                    {transferType === 'Position' && (
+                        <input
+                            type="text"
+                            className="input-base"
+                            placeholder="Enter new position/designation"
+                            value={targetValue}
+                            onChange={(e) => setTargetValue(e.target.value)}
+                        />
+                    )}
+                </div>
+
+                <div className="flex justify-end gap-3">
+                    <Button variant="secondary" onClick={() => setShowTransferModal(false)}>Cancel</Button>
+                    <Button variant="primary" onClick={submitTransfer}>Confirm Transfer</Button>
+                </div>
+            </Modal>
 
             {/* Delete Confirmation Modal */}
-            {
-                showDeleteModal && (
-                    <div className="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4">
-                        <div className="rounded-2xl shadow-xl w-full max-w-sm p-6 text-center border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700" style={{ borderRadius: '16px' }}>
-                        <div className="mx-auto w-16 h-16 bg-red-50 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-6 shadow-sm">
-                            <Trash2 className="text-red-500 dark:text-red-400" size={32} />
-                        </div>
-                            <h3 className="text-xl font-semibold mb-2 text-slate-800 dark:text-slate-100">Delete Employees?</h3>
-                        <p className="text-slate-grey dark:text-slate-400 text-sm mb-8 leading-relaxed">
-                            Are you sure you want to delete <span className="font-bold text-charcoal dark:text-slate-100">{selectedIds.length}</span> selected employees? This action cannot be undone.
-                        </p>
-                        <div className="flex justify-center gap-4">
-                            <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
-                                Cancel
-                            </Button>
-                            <Button variant="dangerSolid" onClick={confirmDelete}>
-                                Delete
-                            </Button>
-                        </div>
-                    </div>
+            <Modal
+                open={showDeleteModal}
+                onClose={() => setShowDeleteModal(false)}
+                size="sm"
+                hideClose
+            >
+                <div className="text-center">
+                <div className="mx-auto w-16 h-16 bg-red-50 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-6 shadow-sm">
+                    <Trash2 className="text-red-500 dark:text-red-400" size={32} />
                 </div>
-                )
-            }
+                    <h3 className="text-xl font-semibold mb-2 text-slate-800 dark:text-slate-100">Delete Employees?</h3>
+                <p className="text-slate-grey dark:text-slate-400 text-sm mb-8 leading-relaxed">
+                    Are you sure you want to delete <span className="font-bold text-charcoal dark:text-slate-100">{selectedIds.length}</span> selected employees? This action cannot be undone.
+                </p>
+                <div className="flex justify-center gap-4">
+                    <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
+                        Cancel
+                    </Button>
+                    <Button variant="dangerSolid" onClick={confirmDelete}>
+                        Delete
+                    </Button>
+                </div>
+                </div>
+            </Modal>
 
             {/* Resignation Modal */}
             <ResignationModal
@@ -1032,36 +1022,35 @@ export default function Employees() {
             />
 
             {/* Confirmation Modal */}
-            {
-                showConfirmModal && (
-                    <div className="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4">
-                        <div className="rounded-2xl shadow-xl w-full max-w-md p-6 border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700" style={{ borderRadius: '16px' }}>
-                        <div className="mb-6">
-                            <div className="w-12 h-12 bg-orange-50 dark:bg-orange-900/30 rounded-full flex items-center justify-center mb-4">
-                                <Settings className="text-saffron" size={24} />
-                            </div>
-                                <h3 className="font-semibold text-xl mb-1 text-slate-800 dark:text-slate-100">Confirm Action</h3>
-                            <p className="text-slate-grey dark:text-slate-400 text-sm">{confirmMessage}</p>
-                        </div>
-                        <div className="flex justify-end gap-3">
-                            <Button
-                                variant="secondary"
-                                onClick={() => {
-                                    setShowConfirmModal(false);
-                                    setConfirmAction(null);
-                                    setConfirmMessage('');
-                                }}
-                            >
-                                Cancel
-                            </Button>
-                            <Button variant="primary" onClick={handleConfirmAction}>
-                                Confirm
-                            </Button>
-                        </div>
+            <Modal
+                open={showConfirmModal}
+                onClose={() => { setShowConfirmModal(false); setConfirmAction(null); setConfirmMessage(''); }}
+                size="md"
+                hideClose
+            >
+                <div className="mb-6">
+                    <div className="w-12 h-12 bg-orange-50 dark:bg-orange-900/30 rounded-full flex items-center justify-center mb-4">
+                        <Settings className="text-saffron" size={24} />
                     </div>
+                        <h3 className="font-semibold text-xl mb-1 text-slate-800 dark:text-slate-100">Confirm Action</h3>
+                    <p className="text-slate-grey dark:text-slate-400 text-sm">{confirmMessage}</p>
                 </div>
-                )
-            }
+                <div className="flex justify-end gap-3">
+                    <Button
+                        variant="secondary"
+                        onClick={() => {
+                            setShowConfirmModal(false);
+                            setConfirmAction(null);
+                            setConfirmMessage('');
+                        }}
+                    >
+                        Cancel
+                    </Button>
+                    <Button variant="primary" onClick={handleConfirmAction}>
+                        Confirm
+                    </Button>
+                </div>
+            </Modal>
 
             {/* Toast UI */}
             {
