@@ -4,7 +4,6 @@ import { ChevronDown, ChevronRight, LogOut, Info, HelpCircle } from 'lucide-reac
 import { motion, AnimatePresence } from 'framer-motion';
 import PropTypes from 'prop-types';
 import { modules, personnelSidebar, deviceSidebar, attendanceSidebar, systemSidebar } from '../config/navigation';
-import { ThemeButton } from '../components';
 import useBranding from '../hooks/useBranding';
 import useDismissable from '../hooks/useDismissable';
 import GlobalSearch from '../components/GlobalSearch';
@@ -156,7 +155,10 @@ export default function MainLayout({ children }) {
           </div>
 
           <div className="flex items-center gap-3">
-            <ThemeButton className="hidden sm:flex" />
+            {/* The palette button lived here and opened a slide-over that
+                duplicated Settings > Appearance. Two places to change the same
+                thing, and the one in the header was the one nobody could find a
+                use for. Removed; Settings is where the working controls are. */}
             <NotificationCenter />
 
             <div className="relative">
