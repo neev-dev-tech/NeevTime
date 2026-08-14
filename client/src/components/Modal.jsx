@@ -36,6 +36,8 @@ export default function Modal({
     title,
     description,
     size = 'md',
+    align = 'center',
+    padded = true,
     closeOnBackdrop = true,
     hideClose = false,
     footer,
@@ -115,7 +117,12 @@ export default function Modal({
 
     return createPortal(
         <div
-            className="fixed inset-0 z-[1000] flex items-center justify-center p-4"
+            className={`fixed inset-0 z-[1000] flex justify-center p-4 ${
+                // A command palette sits near the top of the viewport, not in
+                // the middle of it — centring one puts it under the user's
+                // hands rather than under their eyes.
+                align === 'top' ? 'items-start pt-[20vh]' : 'items-center'
+            }`}
             role="dialog"
             aria-modal="true"
             aria-labelledby={title ? titleId : undefined}
@@ -166,8 +173,11 @@ export default function Modal({
                 )}
 
                 {/* The body scrolls, not the dialog, so the header and footer
-                    stay put on a long form. */}
-                <div className="flex-1 overflow-y-auto px-5 py-4">
+                    stay put on a long form. padded={false} is for content that
+                    runs edge to edge — result rows whose hover state has to
+                    reach the panel border to read as a list rather than a
+                    stack of buttons. */}
+                <div className={`flex-1 overflow-y-auto ${padded ? 'px-5 py-4' : ''}`}>
                     {children}
                 </div>
 
@@ -188,6 +198,8 @@ Modal.propTypes = {
     title: PropTypes.node,
     description: PropTypes.node,
     size: PropTypes.oneOf(['sm', 'md', 'lg', 'xl']),
+    align: PropTypes.oneOf(['center', 'top']),
+    padded: PropTypes.bool,
     closeOnBackdrop: PropTypes.bool,
     hideClose: PropTypes.bool,
     footer: PropTypes.node,

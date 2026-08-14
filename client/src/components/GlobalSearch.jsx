@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, X, Clock, Users, TabletSmartphone, FileBarChart, Settings2, ArrowRight, Command } from 'lucide-react';
+import Modal from './Modal';
 import { useNavigate } from 'react-router-dom';
 import keyboardShortcuts from '../utils/keyboardShortcuts';
 import api from '../api';
@@ -201,138 +202,123 @@ export default function GlobalSearch() {
         setQuery('');
     };
 
-    if (!isOpen) return null;
-
     return (
-        <>
-            {/* Backdrop */}
-            <div
-                className="fixed inset-0 bg-black bg-opacity-50 z-[9998] transition-opacity"
-                onClick={handleClose}
-            />
-
-            {/* Search Modal */}
-            <div 
-                className="fixed inset-0 z-[9999] flex items-start justify-center pt-[20vh] px-4 pointer-events-none"
-                role="dialog"
-                aria-modal="true"
-                aria-label="Global search"
-            >
-                <div
-                    className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-2xl w-full overflow-hidden pointer-events-auto transform transition-ui"
-                    onClick={(e) => e.stopPropagation()}
-                >
-                    {/* Search Input */}
-                    <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-200 dark:border-slate-700">
-                        <Search className="text-slate-400" size={20} aria-hidden="true" />
-                        <input
-                            ref={inputRef}
-                            type="text"
-                            placeholder="Search employees, devices, reports..."
-                            value={query}
-                            onChange={(e) => setQuery(e.target.value)}
-                            className="flex-1 outline-none text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 bg-transparent"
-                            aria-label="Search input"
-                            aria-describedby="search-help"
-                        />
-                        <div className="flex items-center gap-2">
-                            <kbd className="px-2 py-1 text-xs font-semibold text-slate-500 bg-slate-100 dark:bg-slate-700 dark:text-slate-400 border border-slate-300 dark:border-slate-600 rounded" aria-label="Keyboard shortcut">
-                                {navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'}+K
-                            </kbd>
-                            <button
-                                onClick={handleClose}
-                                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
-                                aria-label="Close search"
-                            >
-                                <X size={18} aria-hidden="true" />
-                            </button>
-                        </div>
-                    </div>
-                    <div id="search-help" className="sr-only">
-                        Use arrow keys to navigate, Enter to select, Escape to close
-                    </div>
-
-                    {/* Results */}
-                    <div 
-                        className="max-h-96 overflow-y-auto"
-                        role="listbox"
-                        aria-label="Search results"
+        <Modal
+            open={isOpen}
+            onClose={handleClose}
+            size="lg"
+            align="top"
+            padded={false}
+            hideClose
+        >
+            {/* Search Input */}
+            <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-200 dark:border-slate-700">
+                <Search className="text-slate-400" size={20} aria-hidden="true" />
+                <input
+                    ref={inputRef}
+                    type="text"
+                    placeholder="Search employees, devices, reports..."
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    className="flex-1 outline-none text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 bg-transparent"
+                    aria-label="Search input"
+                    aria-describedby="search-help"
+                />
+                <div className="flex items-center gap-2">
+                    <kbd className="px-2 py-1 text-xs font-semibold text-slate-500 bg-slate-100 dark:bg-slate-700 dark:text-slate-400 border border-slate-300 dark:border-slate-600 rounded" aria-label="Keyboard shortcut">
+                        {navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'}+K
+                    </kbd>
+                    <button
+                        onClick={handleClose}
+                        className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                        aria-label="Close search"
                     >
-                        {query.trim() ? (
-                            results.length > 0 ? (
-                                <div className="py-2">
-                                    {results.map((result, index) => {
-                                        const category = searchCategories[result.type] || searchCategories.settings;
-                                        const Icon = result.icon || category.icon;
-                                        const isSelected = index === selectedIndex;
-
-                                        return (
-                                            <button
-                                                key={result.id}
-                                                onClick={() => handleSelectResult(result)}
-                                                className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors ${
-                                                    isSelected ? 'bg-slate-50 dark:bg-slate-900/50' : ''
-                                                }`}
-                                                onMouseEnter={() => setSelectedIndex(index)}
-                                            >
-                                                <div className={`p-2 rounded-lg ${category.bgColor}`}>
-                                                    <Icon className={category.color} size={18} />
-                                                </div>
-                                                <div className="flex-1 text-left">
-                                                    <div className="font-medium text-slate-900 dark:text-slate-100">{result.title}</div>
-                                                    <div className="text-sm text-slate-500 dark:text-slate-400">{result.subtitle}</div>
-                                                </div>
-                                                <ArrowRight className="text-slate-400" size={16} />
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            ) : (
-                                <div className="py-12 text-center text-slate-500 dark:text-slate-400">
-                                    <p className="text-sm">No results found for "{query}"</p>
-                                </div>
-                            )
-                        ) : (
-                            <div className="py-4">
-                                {recentSearches.length > 0 && (
-                                    <>
-                                        <div className="px-4 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                            Recent Searches
-                                        </div>
-                                        {recentSearches.map((result, index) => {
-                                            const category = searchCategories[result.type] || searchCategories.settings;
-                                            const Icon = result.icon || category.icon;
-
-                                            return (
-                                                <button
-                                                    key={result.id}
-                                                    onClick={() => handleSelectResult(result)}
-                                                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
-                                                >
-                                                    <div className={`p-2 rounded-lg ${category.bgColor}`}>
-                                                        <Icon className={category.color} size={18} />
-                                                    </div>
-                                                    <div className="flex-1 text-left">
-                                                        <div className="font-medium text-slate-900 dark:text-slate-100">{result.title}</div>
-                                                        <div className="text-sm text-slate-500 dark:text-slate-400">{result.subtitle}</div>
-                                                    </div>
-                                                    <Clock className="text-slate-400" size={14} />
-                                                </button>
-                                            );
-                                        })}
-                                    </>
-                                )}
-                                <div className="px-4 py-8 text-center text-slate-400">
-                                    <Search size={32} className="mx-auto mb-2 opacity-50" />
-                                    <p className="text-sm">Start typing to search...</p>
-                                    <p className="text-xs mt-1">Use ↑↓ to navigate, Enter to select, Esc to close</p>
-                                </div>
-                            </div>
-                        )}
-                    </div>
+                        <X size={18} aria-hidden="true" />
+                    </button>
                 </div>
             </div>
-        </>
+            <div id="search-help" className="sr-only">
+                Use arrow keys to navigate, Enter to select, Escape to close
+            </div>
+
+            {/* Results */}
+            <div 
+                className="max-h-96 overflow-y-auto"
+                role="listbox"
+                aria-label="Search results"
+            >
+                {query.trim() ? (
+                    results.length > 0 ? (
+                        <div className="py-2">
+                            {results.map((result, index) => {
+                                const category = searchCategories[result.type] || searchCategories.settings;
+                                const Icon = result.icon || category.icon;
+                                const isSelected = index === selectedIndex;
+
+                                return (
+                                    <button
+                                        key={result.id}
+                                        onClick={() => handleSelectResult(result)}
+                                        className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors ${
+                                            isSelected ? 'bg-slate-50 dark:bg-slate-900/50' : ''
+                                        }`}
+                                        onMouseEnter={() => setSelectedIndex(index)}
+                                    >
+                                        <div className={`p-2 rounded-lg ${category.bgColor}`}>
+                                            <Icon className={category.color} size={18} />
+                                        </div>
+                                        <div className="flex-1 text-left">
+                                            <div className="font-medium text-slate-900 dark:text-slate-100">{result.title}</div>
+                                            <div className="text-sm text-slate-500 dark:text-slate-400">{result.subtitle}</div>
+                                        </div>
+                                        <ArrowRight className="text-slate-400" size={16} />
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    ) : (
+                        <div className="py-12 text-center text-slate-500 dark:text-slate-400">
+                            <p className="text-sm">No results found for "{query}"</p>
+                        </div>
+                    )
+                ) : (
+                    <div className="py-4">
+                        {recentSearches.length > 0 && (
+                            <>
+                                <div className="px-4 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                    Recent Searches
+                                </div>
+                                {recentSearches.map((result, index) => {
+                                    const category = searchCategories[result.type] || searchCategories.settings;
+                                    const Icon = result.icon || category.icon;
+
+                                    return (
+                                        <button
+                                            key={result.id}
+                                            onClick={() => handleSelectResult(result)}
+                                            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+                                        >
+                                            <div className={`p-2 rounded-lg ${category.bgColor}`}>
+                                                <Icon className={category.color} size={18} />
+                                            </div>
+                                            <div className="flex-1 text-left">
+                                                <div className="font-medium text-slate-900 dark:text-slate-100">{result.title}</div>
+                                                <div className="text-sm text-slate-500 dark:text-slate-400">{result.subtitle}</div>
+                                            </div>
+                                            <Clock className="text-slate-400" size={14} />
+                                        </button>
+                                    );
+                                })}
+                            </>
+                        )}
+                        <div className="px-4 py-8 text-center text-slate-400">
+                            <Search size={32} className="mx-auto mb-2 opacity-50" />
+                            <p className="text-sm">Start typing to search...</p>
+                            <p className="text-xs mt-1">Use ↑↓ to navigate, Enter to select, Esc to close</p>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </Modal>
     );
 }
-
