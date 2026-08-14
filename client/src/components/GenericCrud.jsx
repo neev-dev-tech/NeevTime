@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api';
+import Modal from './Modal';
 import { Plus, Trash2, Edit } from 'lucide-react';
 import { useToast } from './Toast';
 import Button from './ui/Button';
@@ -97,10 +98,12 @@ export default function GenericCrud({ title, endpoint, columns, icon: Icon }) {
             </div>
 
             {/* Edit/Add Modal */}
-            {showModal && (
-                <div className="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-sm border border-slate-200 dark:border-slate-700" style={{ borderRadius: '16px' }}>
-                        <h3 className="text-lg font-bold mb-4 text-charcoal dark:text-slate-100">{editingId ? 'Edit' : 'Add'} {title}</h3>
+            <Modal
+                open={showModal}
+                onClose={() => setShowModal(false)}
+                title={`${editingId ? 'Edit' : 'Add'} ${title}`}
+                size="sm"
+            >
                         <form onSubmit={handleSubmit} className="space-y-4">
                             {columns.map(col => (
                                 <div key={col.key}>
@@ -114,31 +117,38 @@ export default function GenericCrud({ title, endpoint, columns, icon: Icon }) {
                                     />
                                 </div>
                             ))}
+                            {/* Inside the form, so Enter still submits. Modal's
+                                footer slot renders outside it. */}
                             <div className="flex justify-end gap-3 pt-2">
                                 <Button type="button" variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
                                 <Button type="submit" variant="primary">Save</Button>
                             </div>
                         </form>
-                    </div>
-                </div>
-            )}
+            </Modal>
 
             {/* Delete Confirmation Modal */}
-            {deleteId && (
-                <div className="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-sm text-center border border-slate-200 dark:border-slate-700" style={{ borderRadius: '16px' }}>
-                        <div className="mx-auto w-12 h-12 bg-red-50 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-4">
-                            <Trash2 className="text-red-500" size={24} />
-                        </div>
-                        <h3 className="text-lg font-bold mb-2 text-charcoal dark:text-slate-100">Delete {title}?</h3>
-                        <p className="text-slate-grey dark:text-slate-400 text-sm mb-6">Are you sure you want to delete this {title.toLowerCase()}? This action cannot be undone.</p>
-                        <div className="flex justify-center gap-3">
-                            <Button variant="secondary" onClick={() => setDeleteId(null)}>Cancel</Button>
-                            <Button variant="dangerSolid" onClick={handleDelete}>Delete</Button>
-                        </div>
+            <Modal
+                open={Boolean(deleteId)}
+                onClose={() => setDeleteId(null)}
+                title={`Delete ${title}?`}
+                size="sm"
+                footer={<>
+                    <Button variant="secondary" onClick={() => setDeleteId(null)}>Cancel</Button>
+                    <Button variant="dangerSolid" onClick={handleDelete}>Delete</Button>
+                </>}
+            >
+                {/* No guard needed here, unlike the delete dialogs on Departments
+                    and Positions: this body reads nothing off deleteId, so
+                    building it while closed is harmless. */}
+                <div className="text-center">
+                    <div className="mx-auto w-12 h-12 bg-red-50 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-4">
+                        <Trash2 className="text-red-500" size={24} />
                     </div>
+                    <p className="text-slate-grey dark:text-slate-400 text-sm">
+                        Are you sure you want to delete this {title.toLowerCase()}? This action cannot be undone.
+                    </p>
                 </div>
-            )}
+            </Modal>
         </div>
     );
 }

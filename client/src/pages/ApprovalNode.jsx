@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api';
+import Modal from '../components/Modal';
 import {
     CircleDot, Plus, Trash2, Edit, ChevronLeft, ChevronRight,
     RefreshCw, Search, X, AlertCircle
@@ -278,13 +279,13 @@ export default function ApprovalNode() {
 
             {/* Add/Edit Modal */}
             {(showModal === 'add' || showModal === 'edit') && (
-                <div className="fixed inset-0 bg-charcoal/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-md border border-white/50 dark:border-slate-700 overflow-hidden">
-                        <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50">
-                            <h3 className="font-bold text-lg text-charcoal dark:text-slate-100">{editItem ? 'Edit Node' : 'Add Node'}</h3>
-                            <Button variant="ghost" icon={X} iconSize={20} onClick={() => { setShowModal(null); setEditItem(null); resetForm(); }} aria-label="Close" />
-                        </div>
-                        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                <Modal
+                    open
+                    onClose={() => { setShowModal(null); setEditItem(null); resetForm(); }}
+                    title={editItem ? 'Edit Node' : 'Add Node'}
+                    size="md"
+                >
+                    <form onSubmit={handleSubmit} className="space-y-4">
                             <div className="flex flex-col gap-1.5">
                                 <label className="text-slate-grey dark:text-slate-400 text-sm font-medium">Node Code<span className="text-red-500">*</span></label>
                                 <input type="text" value={formData.node_code} onChange={e => setFormData({ ...formData, node_code: e.target.value })}
@@ -327,8 +328,7 @@ export default function ApprovalNode() {
                                 </Button>
                             </div>
                         </form>
-                    </div>
-                </div>
+                </Modal>
             )}
             </div>
         </div>
