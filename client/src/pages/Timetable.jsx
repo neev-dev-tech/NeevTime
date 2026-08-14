@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
-import { Clock, Plus, Edit2, Trash2, X, Save, CalendarDays, Coffee, Moon, Sun, Check, AlertCircle, RefreshCw } from 'lucide-react';
+import { Clock, Plus, Edit2, Trash2, Save, CalendarDays, Coffee, Moon, Sun, Check, AlertCircle, RefreshCw } from 'lucide-react';
 import { useToast, Button, PageHeader, ExportMenu } from '../components';
+import Modal from '../components/Modal';
 
 export default function Timetable() {
     const toast = useToast();
@@ -324,257 +325,248 @@ export default function Timetable() {
             )}
 
             {/* Add/Edit Timetable Modal */}
-            {showModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg w-full max-w-2xl max-h-[90vh] overflow-auto">
-                        <div className="flex items-center justify-between p-4 border-b dark:border-slate-700">
-                            <h2 className="text-lg font-semibold">
-                                {editingId ? 'Edit Timetable' : 'Add Timetable'}
-                            </h2>
-                            <Button variant="ghost" size="sm" icon={X} aria-label="Close" onClick={closeModal} />
+            <Modal
+                open={showModal}
+                onClose={closeModal}
+                title={editingId ? 'Edit Timetable' : 'Add Timetable'}
+                size="lg"
+            >
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Name *</label>
+                            <input
+                                type="text"
+                                value={form.name}
+                                onChange={e => setForm({ ...form, name: e.target.value })}
+                                className="field"
+                                required
+                            />
                         </div>
-                        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Name *</label>
-                                    <input
-                                        type="text"
-                                        value={form.name}
-                                        onChange={e => setForm({ ...form, name: e.target.value })}
-                                        className="field"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Code *</label>
-                                    <input
-                                        type="text"
-                                        value={form.code}
-                                        onChange={e => setForm({ ...form, code: e.target.value.toUpperCase() })}
-                                        className="field"
-                                        maxLength={10}
-                                        required
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Check In Time *</label>
-                                    <input
-                                        type="time"
-                                        value={form.check_in}
-                                        onChange={e => setForm({ ...form, check_in: e.target.value })}
-                                        className="field"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Check Out Time *</label>
-                                    <input
-                                        type="time"
-                                        value={form.check_out}
-                                        onChange={e => setForm({ ...form, check_out: e.target.value })}
-                                        className="field"
-                                        required
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Late After</label>
-                                    <input
-                                        type="time"
-                                        value={form.late_in}
-                                        onChange={e => setForm({ ...form, late_in: e.target.value })}
-                                        className="field"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Early Leave Before</label>
-                                    <input
-                                        type="time"
-                                        value={form.early_out}
-                                        onChange={e => setForm({ ...form, early_out: e.target.value })}
-                                        className="field"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-3 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Grace Period (min)</label>
-                                    <input
-                                        type="number"
-                                        value={form.grace_period_minutes}
-                                        onChange={e => setForm({ ...form, grace_period_minutes: parseInt(e.target.value) })}
-                                        className="field"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Full Day Hours</label>
-                                    <input
-                                        type="number"
-                                        step="0.5"
-                                        value={form.min_hours_for_full_day}
-                                        onChange={e => setForm({ ...form, min_hours_for_full_day: parseFloat(e.target.value) })}
-                                        className="field"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Half Day Hours</label>
-                                    <input
-                                        type="number"
-                                        step="0.5"
-                                        value={form.min_hours_for_half_day}
-                                        onChange={e => setForm({ ...form, min_hours_for_half_day: parseFloat(e.target.value) })}
-                                        className="field"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-3 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Color</label>
-                                    <input
-                                        type="color"
-                                        value={form.color}
-                                        onChange={e => setForm({ ...form, color: e.target.value })}
-                                        className="w-full h-10 rounded-lg cursor-pointer"
-                                    />
-                                </div>
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        checked={form.is_overnight}
-                                        onChange={e => setForm({ ...form, is_overnight: e.target.checked })}
-                                        className="w-4 h-4 text-green-600 rounded"
-                                    />
-                                    <span className="text-sm">Overnight Shift</span>
-                                </label>
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        checked={form.is_flexible}
-                                        onChange={e => setForm({ ...form, is_flexible: e.target.checked })}
-                                        className="w-4 h-4 text-green-600 rounded"
-                                    />
-                                    <span className="text-sm">Flexible Hours</span>
-                                </label>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Description</label>
-                                <textarea
-                                    value={form.description}
-                                    onChange={e => setForm({ ...form, description: e.target.value })}
-                                    className="field"
-                                    rows={2}
-                                />
-                            </div>
-
-                            <div className="flex justify-end gap-3 pt-4 border-t dark:border-slate-700">
-                                <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-                                <Button type="submit" icon={Save}>
-                                    {editingId ? 'Update' : 'Create'}
-                                </Button>
-                            </div>
-                        </form>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Code *</label>
+                            <input
+                                type="text"
+                                value={form.code}
+                                onChange={e => setForm({ ...form, code: e.target.value.toUpperCase() })}
+                                className="field"
+                                maxLength={10}
+                                required
+                            />
+                        </div>
                     </div>
-                </div>
-            )}
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Check In Time *</label>
+                            <input
+                                type="time"
+                                value={form.check_in}
+                                onChange={e => setForm({ ...form, check_in: e.target.value })}
+                                className="field"
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Check Out Time *</label>
+                            <input
+                                type="time"
+                                value={form.check_out}
+                                onChange={e => setForm({ ...form, check_out: e.target.value })}
+                                className="field"
+                                required
+                            />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Late After</label>
+                            <input
+                                type="time"
+                                value={form.late_in}
+                                onChange={e => setForm({ ...form, late_in: e.target.value })}
+                                className="field"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Early Leave Before</label>
+                            <input
+                                type="time"
+                                value={form.early_out}
+                                onChange={e => setForm({ ...form, early_out: e.target.value })}
+                                className="field"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Grace Period (min)</label>
+                            <input
+                                type="number"
+                                value={form.grace_period_minutes}
+                                onChange={e => setForm({ ...form, grace_period_minutes: parseInt(e.target.value) })}
+                                className="field"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Full Day Hours</label>
+                            <input
+                                type="number"
+                                step="0.5"
+                                value={form.min_hours_for_full_day}
+                                onChange={e => setForm({ ...form, min_hours_for_full_day: parseFloat(e.target.value) })}
+                                className="field"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Half Day Hours</label>
+                            <input
+                                type="number"
+                                step="0.5"
+                                value={form.min_hours_for_half_day}
+                                onChange={e => setForm({ ...form, min_hours_for_half_day: parseFloat(e.target.value) })}
+                                className="field"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Color</label>
+                            <input
+                                type="color"
+                                value={form.color}
+                                onChange={e => setForm({ ...form, color: e.target.value })}
+                                className="w-full h-10 rounded-lg cursor-pointer"
+                            />
+                        </div>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={form.is_overnight}
+                                onChange={e => setForm({ ...form, is_overnight: e.target.checked })}
+                                className="w-4 h-4 text-green-600 rounded"
+                            />
+                            <span className="text-sm">Overnight Shift</span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={form.is_flexible}
+                                onChange={e => setForm({ ...form, is_flexible: e.target.checked })}
+                                className="w-4 h-4 text-green-600 rounded"
+                            />
+                            <span className="text-sm">Flexible Hours</span>
+                        </label>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium mb-1">Description</label>
+                        <textarea
+                            value={form.description}
+                            onChange={e => setForm({ ...form, description: e.target.value })}
+                            className="field"
+                            rows={2}
+                        />
+                    </div>
+
+                    <div className="flex justify-end gap-3 pt-4 border-t dark:border-slate-700">
+                        <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+                        <Button type="submit" icon={Save}>
+                            {editingId ? 'Update' : 'Create'}
+                        </Button>
+                    </div>
+                </form>
+            </Modal>
 
             {/* Break Times Modal */}
             {showBreakModal && selectedTimetable && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg w-full max-w-lg">
-                        <div className="flex items-center justify-between p-4 border-b dark:border-slate-700">
-                            <h2 className="text-lg font-semibold flex items-center gap-2">
-                                <Coffee className="text-amber-600 dark:text-amber-400" />
-                                Break Times - {selectedTimetable.name}
-                            </h2>
-                            <Button variant="ghost" size="sm" icon={X} aria-label="Close" onClick={() => setShowBreakModal(false)} />
-                        </div>
-
-                        <div className="p-4">
-                            {/* Existing Breaks */}
-                            <div className="space-y-2 mb-4">
-                                {breaks.length === 0 ? (
-                                    <div className="text-center py-8">
-                                        <Coffee size={32} className="mx-auto mb-2 text-slate-300 dark:text-slate-600" />
-                                        <h4 className="font-bold text-slate-800 dark:text-slate-100 mb-0.5">No breaks defined</h4>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400">Add a break below and it will be deducted from worked hours.</p>
-                                    </div>
-                                ) : breaks.map(b => (
-                                    <div key={b.id} className="flex items-center justify-between gap-3 p-3 bg-white/70 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl">
-                                        <div className="min-w-0">
-                                            <div className="font-semibold text-slate-800 dark:text-slate-100 truncate">{b.name || '—'}</div>
-                                            <div className="text-sm tabular-nums text-slate-600 dark:text-slate-300">
-                                                {formatTime(b.start_time)} – {formatTime(b.end_time)}
-                                                {b.is_paid && (
-                                                    <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">Paid</span>
-                                                )}
-                                            </div>
-                                        </div>
-                                        <Button
-                                            variant="danger"
-                                            size="sm"
-                                            icon={Trash2}
-                                            aria-label="Delete break"
-                                            onClick={() => deleteBreak(b.id)}
-                                        />
-                                    </div>
-                                ))}
+                <Modal
+                    open
+                    onClose={() => setShowBreakModal(false)}
+                    title={<span className="flex items-center gap-2">
+                        <Coffee className="text-amber-600 dark:text-amber-400" />
+                        Break Times - {selectedTimetable.name}
+                    </span>}
+                    size="lg"
+                >
+                    {/* Existing Breaks */}
+                    <div className="space-y-2 mb-4">
+                        {breaks.length === 0 ? (
+                            <div className="text-center py-8">
+                                <Coffee size={32} className="mx-auto mb-2 text-slate-300 dark:text-slate-600" />
+                                <h4 className="font-bold text-slate-800 dark:text-slate-100 mb-0.5">No breaks defined</h4>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">Add a break below and it will be deducted from worked hours.</p>
                             </div>
-
-                            {/* Add Break Form */}
-                            <form onSubmit={handleBreakSubmit} className="border-t dark:border-slate-700 pt-4">
-                                <h3 className="font-medium mb-3">Add New Break</h3>
-                                <div className="grid grid-cols-2 gap-3 mb-3">
-                                    <div className="col-span-2">
-                                        <input
-                                            type="text"
-                                            placeholder="Break Name (e.g., Lunch Break)"
-                                            value={breakForm.name}
-                                            onChange={e => setBreakForm({ ...breakForm, name: e.target.value })}
-                                            className="field"
-                                            required
-                                        />
+                        ) : breaks.map(b => (
+                            <div key={b.id} className="flex items-center justify-between gap-3 p-3 bg-white/70 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl">
+                                <div className="min-w-0">
+                                    <div className="font-semibold text-slate-800 dark:text-slate-100 truncate">{b.name || '—'}</div>
+                                    <div className="text-sm tabular-nums text-slate-600 dark:text-slate-300">
+                                        {formatTime(b.start_time)} – {formatTime(b.end_time)}
+                                        {b.is_paid && (
+                                            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">Paid</span>
+                                        )}
                                     </div>
-                                    <input
-                                        type="time"
-                                        value={breakForm.start_time}
-                                        onChange={e => setBreakForm({ ...breakForm, start_time: e.target.value })}
-                                        className="field"
-                                        required
-                                    />
-                                    <input
-                                        type="time"
-                                        value={breakForm.end_time}
-                                        onChange={e => setBreakForm({ ...breakForm, end_time: e.target.value })}
-                                        className="field"
-                                        required
-                                    />
                                 </div>
-                                <div className="flex items-center justify-between">
-                                    <label className="flex items-center gap-2 cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            checked={breakForm.is_paid}
-                                            onChange={e => setBreakForm({ ...breakForm, is_paid: e.target.checked })}
-                                            className="w-4 h-4 text-green-600 rounded"
-                                        />
-                                        <span className="text-sm">Paid Break</span>
-                                    </label>
-                                    <Button type="submit" icon={Plus}>
-                                        Add Break
-                                    </Button>
-                                </div>
-                            </form>
-                        </div>
+                                <Button
+                                    variant="danger"
+                                    size="sm"
+                                    icon={Trash2}
+                                    aria-label="Delete break"
+                                    onClick={() => deleteBreak(b.id)}
+                                />
+                            </div>
+                        ))}
                     </div>
-                </div>
+
+                    {/* Add Break Form */}
+                    <form onSubmit={handleBreakSubmit} className="border-t dark:border-slate-700 pt-4">
+                        <h3 className="font-medium mb-3">Add New Break</h3>
+                        <div className="grid grid-cols-2 gap-3 mb-3">
+                            <div className="col-span-2">
+                                <input
+                                    type="text"
+                                    placeholder="Break Name (e.g., Lunch Break)"
+                                    value={breakForm.name}
+                                    onChange={e => setBreakForm({ ...breakForm, name: e.target.value })}
+                                    className="field"
+                                    required
+                                />
+                            </div>
+                            <input
+                                type="time"
+                                value={breakForm.start_time}
+                                onChange={e => setBreakForm({ ...breakForm, start_time: e.target.value })}
+                                className="field"
+                                required
+                            />
+                            <input
+                                type="time"
+                                value={breakForm.end_time}
+                                onChange={e => setBreakForm({ ...breakForm, end_time: e.target.value })}
+                                className="field"
+                                required
+                            />
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={breakForm.is_paid}
+                                    onChange={e => setBreakForm({ ...breakForm, is_paid: e.target.checked })}
+                                    className="w-4 h-4 text-green-600 rounded"
+                                />
+                                <span className="text-sm">Paid Break</span>
+                            </label>
+                            <Button type="submit" icon={Plus}>
+                                Add Break
+                            </Button>
+                        </div>
+                    </form>
+                </Modal>
             )}
         </div>
     );

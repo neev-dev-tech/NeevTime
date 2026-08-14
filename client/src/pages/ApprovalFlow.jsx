@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react';
 import api from '../api';
 import {
     GitBranch, Plus, Trash2, Edit, ChevronLeft, ChevronRight,
-    RefreshCw, Search, Check, X, AlertCircle
+    RefreshCw, Search, Check, AlertCircle
 } from 'lucide-react';
 import { useToast, Button, PageHeader } from '../components';
+import Modal from '../components/Modal';
 
 export default function ApprovalFlow() {
     const toast = useToast();
@@ -299,107 +300,104 @@ export default function ApprovalFlow() {
 
 
             {/* Add/Edit Flow Modal */}
-            {(showModal === 'add' || showModal === 'edit') && (
-                <div className="fixed inset-0 bg-charcoal/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-3xl max-h-[85vh] overflow-hidden flex flex-col border border-white/50 dark:border-slate-700">
-                        <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50">
-                            <h3 className="font-bold text-lg text-charcoal dark:text-slate-100">{editItem ? 'Edit Flow' : 'Add Flow'}</h3>
-                            <Button variant="ghost" icon={X} iconSize={20} onClick={() => { setShowModal(null); setEditItem(null); resetForm(); }} aria-label="Close" />
+            <Modal
+                open={showModal === 'add' || showModal === 'edit'}
+                onClose={() => { setShowModal(null); setEditItem(null); resetForm(); }}
+                title={editItem ? 'Edit Flow' : 'Add Flow'}
+                size="xl"
+                footer={<>
+                    <Button variant="secondary" onClick={() => { setShowModal(null); setEditItem(null); resetForm(); }}>Cancel</Button>
+                    <Button variant="primary" type="submit" onClick={handleSubmit}>Confirm</Button>
+                </>}
+            >
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="grid grid-cols-2 gap-6">
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-slate-grey dark:text-slate-400 text-sm font-medium">Start Date<span className="text-red-500">*</span></label>
+                            <input type="date" value={formData.start_date} onChange={e => setFormData({ ...formData, start_date: e.target.value })}
+                                className="input-base" required />
                         </div>
-                        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-8 space-y-6 custom-scrollbar">
-                            <div className="grid grid-cols-2 gap-6">
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-slate-grey dark:text-slate-400 text-sm font-medium">Start Date<span className="text-red-500">*</span></label>
-                                    <input type="date" value={formData.start_date} onChange={e => setFormData({ ...formData, start_date: e.target.value })}
-                                        className="input-base" required />
-                                </div>
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-slate-grey dark:text-slate-400 text-sm font-medium">End Date<span className="text-red-500">*</span></label>
-                                    <input type="date" value={formData.end_date} onChange={e => setFormData({ ...formData, end_date: e.target.value })}
-                                        className="input-base" required />
-                                </div>
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-slate-grey dark:text-slate-400 text-sm font-medium">Flow Code<span className="text-red-500">*</span></label>
-                                    <input type="text" value={formData.flow_code} onChange={e => setFormData({ ...formData, flow_code: e.target.value })}
-                                        className="input-base" placeholder="e.g. FLOW001" required />
-                                </div>
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-slate-grey dark:text-slate-400 text-sm font-medium">Name<span className="text-red-500">*</span></label>
-                                    <input type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                        className="input-base" placeholder="Flow name" required />
-                                </div>
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-slate-grey dark:text-slate-400 text-sm font-medium">Request Type<span className="text-red-500">*</span></label>
-                                    <select value={formData.request_type} onChange={e => setFormData({ ...formData, request_type: e.target.value })}
-                                        className="input-base" required>
-                                        <option value="">Select Type</option>
-                                        {requestTypes.map(t => <option key={t} value={t}>{t}</option>)}
-                                    </select>
-                                </div>
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-slate-grey dark:text-slate-400 text-sm font-medium">Department</label>
-                                    <select value={formData.department_id} onChange={e => setFormData({ ...formData, department_id: e.target.value, position_id: '', requester: '' })}
-                                        className="input-base">
-                                        <option value="">Select Department</option>
-                                        {departments.map(d => <option key={d.id} value={d.id}>{d.name || d.department_name}</option>)}
-                                    </select>
-                                </div>
-                            </div>
-
-                            {/* Nodes Section */}
-                            <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-700">
-                                <div className="flex justify-between items-center mb-4">
-                                    <h4 className="font-bold text-charcoal dark:text-slate-100">Approval Nodes</h4>
-                                    <Button variant="success" size="sm" icon={Plus} onClick={addNode}>
-                                        Add Node
-                                    </Button>
-                                </div>
-
-                                <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
-                                    <table className="w-full text-sm">
-                                        <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">
-                                            <tr className="text-left">
-                                                <th className="p-3 pl-4 font-bold">#</th>
-                                                <th className="p-3 font-bold">Node Name</th>
-                                                <th className="p-3 text-right pr-4 font-bold">Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                            {flowNodes.length === 0 ? (
-                                                <tr><td colSpan={3} className="p-6 text-center text-slate-500 dark:text-slate-400 text-xs">No nodes added yet — add one to build the approval chain.</td></tr>
-                                            ) : (
-                                                flowNodes.map((node, i) => (
-                                                    <tr key={i} className="hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors">
-                                                        <td className="p-3 pl-4 text-slate-400 dark:text-slate-500 tabular-nums">{i + 1}</td>
-                                                        <td className="p-3">
-                                                            <select value={node.node_id} onChange={e => updateNode(i, 'node_id', e.target.value)}
-                                                                className="input-base py-1.5 text-sm">
-                                                                <option value="">Select Node</option>
-                                                                {nodes.map(n => <option key={n.id} value={n.id}>{n.node_name || n.name}</option>)}
-                                                            </select>
-                                                        </td>
-                                                        <td className="p-3 text-right pr-4">
-                                                            <Button type="button" variant="danger" size="sm" icon={Trash2} iconSize={16} onClick={() => removeNode(i)} aria-label="Remove node" />
-                                                        </td>
-                                                    </tr>
-                                                ))
-                                            )}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-
-                            <div className="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg text-blue-800 dark:text-blue-300 text-xs">
-                                <strong>Note:</strong> Select only one among Requester, Department and Position for the flow scope.
-                            </div>
-                        </form>
-                        <div className="flex justify-end gap-3 p-5 border-t border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50">
-                            <Button variant="secondary" onClick={() => { setShowModal(null); setEditItem(null); resetForm(); }}>Cancel</Button>
-                            <Button variant="primary" type="submit" onClick={handleSubmit}>Confirm</Button>
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-slate-grey dark:text-slate-400 text-sm font-medium">End Date<span className="text-red-500">*</span></label>
+                            <input type="date" value={formData.end_date} onChange={e => setFormData({ ...formData, end_date: e.target.value })}
+                                className="input-base" required />
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-slate-grey dark:text-slate-400 text-sm font-medium">Flow Code<span className="text-red-500">*</span></label>
+                            <input type="text" value={formData.flow_code} onChange={e => setFormData({ ...formData, flow_code: e.target.value })}
+                                className="input-base" placeholder="e.g. FLOW001" required />
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-slate-grey dark:text-slate-400 text-sm font-medium">Name<span className="text-red-500">*</span></label>
+                            <input type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })}
+                                className="input-base" placeholder="Flow name" required />
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-slate-grey dark:text-slate-400 text-sm font-medium">Request Type<span className="text-red-500">*</span></label>
+                            <select value={formData.request_type} onChange={e => setFormData({ ...formData, request_type: e.target.value })}
+                                className="input-base" required>
+                                <option value="">Select Type</option>
+                                {requestTypes.map(t => <option key={t} value={t}>{t}</option>)}
+                            </select>
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-slate-grey dark:text-slate-400 text-sm font-medium">Department</label>
+                            <select value={formData.department_id} onChange={e => setFormData({ ...formData, department_id: e.target.value, position_id: '', requester: '' })}
+                                className="input-base">
+                                <option value="">Select Department</option>
+                                {departments.map(d => <option key={d.id} value={d.id}>{d.name || d.department_name}</option>)}
+                            </select>
                         </div>
                     </div>
-                </div>
-            )}
+
+                    {/* Nodes Section */}
+                    <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-700">
+                        <div className="flex justify-between items-center mb-4">
+                            <h4 className="font-bold text-charcoal dark:text-slate-100">Approval Nodes</h4>
+                            <Button variant="success" size="sm" icon={Plus} onClick={addNode}>
+                                Add Node
+                            </Button>
+                        </div>
+
+                        <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
+                            <table className="w-full text-sm">
+                                <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">
+                                    <tr className="text-left">
+                                        <th className="p-3 pl-4 font-bold">#</th>
+                                        <th className="p-3 font-bold">Node Name</th>
+                                        <th className="p-3 text-right pr-4 font-bold">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                                    {flowNodes.length === 0 ? (
+                                        <tr><td colSpan={3} className="p-6 text-center text-slate-500 dark:text-slate-400 text-xs">No nodes added yet — add one to build the approval chain.</td></tr>
+                                    ) : (
+                                        flowNodes.map((node, i) => (
+                                            <tr key={i} className="hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                                <td className="p-3 pl-4 text-slate-400 dark:text-slate-500 tabular-nums">{i + 1}</td>
+                                                <td className="p-3">
+                                                    <select value={node.node_id} onChange={e => updateNode(i, 'node_id', e.target.value)}
+                                                        className="input-base py-1.5 text-sm">
+                                                        <option value="">Select Node</option>
+                                                        {nodes.map(n => <option key={n.id} value={n.id}>{n.node_name || n.name}</option>)}
+                                                    </select>
+                                                </td>
+                                                <td className="p-3 text-right pr-4">
+                                                    <Button type="button" variant="danger" size="sm" icon={Trash2} iconSize={16} onClick={() => removeNode(i)} aria-label="Remove node" />
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div className="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg text-blue-800 dark:text-blue-300 text-xs">
+                        <strong>Note:</strong> Select only one among Requester, Department and Position for the flow scope.
+                    </div>
+                </form>
+            </Modal>
             </div>
         </div>
     );

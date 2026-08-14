@@ -2,10 +2,11 @@ import React, { useEffect, useState } from 'react';
 import api from '../api';
 import {
     UserMinus, Plus, Trash2, Upload, ChevronDown, ChevronLeft, ChevronRight,
-    RefreshCw, Search, RotateCcw, BellOff, Download, X, AlertCircle
+    RefreshCw, Search, RotateCcw, BellOff, Download, AlertCircle
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast, Button, PageHeader } from '../components';
+import Modal from '../components/Modal';
 
 export default function Resign() {
     const [resignations, setResignations] = useState([]);
@@ -396,123 +397,125 @@ export default function Resign() {
             </div>
 
             {/* Resignation Modal */}
-            {showModal && (
-                <div className="fixed inset-0 bg-charcoal/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-lg border border-white/50 dark:border-slate-700 overflow-hidden">
-                        <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50">
-                            <h3 className="font-bold text-lg text-charcoal dark:text-slate-100">Add Resignation</h3>
-                            <Button variant="ghost" size="sm" icon={X} iconSize={20} aria-label="Close" onClick={() => setShowModal(false)} />
-                        </div>
-                        <form onSubmit={handleResignSubmit} className="p-6 space-y-4">
-                            <div className="flex items-center gap-3">
-                                <label className="w-40 text-right text-slate-grey dark:text-slate-400 text-sm font-medium">Employee<span className="text-red-500 dark:text-red-400">*</span>:</label>
-                                <select
-                                    value={formData.selectedEmployee}
-                                    onChange={e => setFormData({ ...formData, selectedEmployee: e.target.value })}
-                                    className="flex-1 input-base py-2 text-sm"
-                                    required
-                                >
-                                    <option value="">Select Employee</option>
-                                    {employees.map(emp => (
-                                        <option key={emp.id} value={emp.id}>{emp.employee_code} - {emp.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <label className="w-40 text-right text-slate-grey dark:text-slate-400 text-sm font-medium">Resignation Date<span className="text-red-500 dark:text-red-400">*</span>:</label>
-                                <input
-                                    type="date"
-                                    value={formData.resignationDate}
-                                    onChange={e => setFormData({ ...formData, resignationDate: e.target.value })}
-                                    className="flex-1 input-base py-2 text-sm"
-                                    required
-                                />
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <label className="w-40 text-right text-slate-grey dark:text-slate-400 text-sm font-medium">Resignation Type<span className="text-red-500 dark:text-red-400">*</span>:</label>
-                                <select
-                                    value={formData.resignationType}
-                                    onChange={e => setFormData({ ...formData, resignationType: e.target.value })}
-                                    className="flex-1 input-base py-2 text-sm"
-                                    required
-                                >
-                                    {resignTypes.map(type => (
-                                        <option key={type} value={type}>{type}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <label className="w-40 text-right text-slate-grey dark:text-slate-400 text-sm font-medium">Report End Date<span className="text-red-500 dark:text-red-400">*</span>:</label>
-                                <input
-                                    type="date"
-                                    value={formData.reportEndDate}
-                                    onChange={e => setFormData({ ...formData, reportEndDate: e.target.value })}
-                                    className="flex-1 input-base py-2 text-sm"
-                                    required
-                                />
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <label className="w-40 text-right text-slate-grey dark:text-slate-400 text-sm font-medium">Attendance<span className="text-red-500 dark:text-red-400">*</span>:</label>
-                                <select
-                                    value={formData.attendanceOption}
-                                    onChange={e => setFormData({ ...formData, attendanceOption: e.target.value })}
-                                    className="flex-1 input-base py-2 text-sm"
-                                    required
-                                >
-                                    {attendanceOptions.map(opt => (
-                                        <option key={opt} value={opt}>{opt}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div className="flex items-start gap-3">
-                                <label className="w-40 text-right text-slate-grey dark:text-slate-400 text-sm font-medium pt-2">Resign Reason:</label>
-                                <textarea
-                                    value={formData.reason}
-                                    onChange={e => setFormData({ ...formData, reason: e.target.value })}
-                                    className="flex-1 input-base py-2 text-sm resize-none"
-                                    rows={3}
-                                    placeholder="Optional reason for resignation..."
-                                />
-                            </div>
-                            <div className="flex justify-end gap-3 pt-4 border-t border-slate-50 dark:border-slate-700">
-                                <Button variant="secondary" onClick={() => setShowModal(false)}>
-                                    Cancel
-                                </Button>
-                                <Button type="submit" variant="success">
-                                    Confirm
-                                </Button>
-                            </div>
-                        </form>
+            <Modal
+                open={showModal}
+                onClose={() => setShowModal(false)}
+                title="Add Resignation"
+                size="lg"
+            >
+                <form onSubmit={handleResignSubmit} className="space-y-4">
+                    <div className="flex items-center gap-3">
+                        <label className="w-40 text-right text-slate-grey dark:text-slate-400 text-sm font-medium">Employee<span className="text-red-500 dark:text-red-400">*</span>:</label>
+                        <select
+                            value={formData.selectedEmployee}
+                            onChange={e => setFormData({ ...formData, selectedEmployee: e.target.value })}
+                            className="flex-1 input-base py-2 text-sm"
+                            required
+                        >
+                            <option value="">Select Employee</option>
+                            {employees.map(emp => (
+                                <option key={emp.id} value={emp.id}>{emp.employee_code} - {emp.name}</option>
+                            ))}
+                        </select>
                     </div>
-                </div>
-            )}
+                    <div className="flex items-center gap-3">
+                        <label className="w-40 text-right text-slate-grey dark:text-slate-400 text-sm font-medium">Resignation Date<span className="text-red-500 dark:text-red-400">*</span>:</label>
+                        <input
+                            type="date"
+                            value={formData.resignationDate}
+                            onChange={e => setFormData({ ...formData, resignationDate: e.target.value })}
+                            className="flex-1 input-base py-2 text-sm"
+                            required
+                        />
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <label className="w-40 text-right text-slate-grey dark:text-slate-400 text-sm font-medium">Resignation Type<span className="text-red-500 dark:text-red-400">*</span>:</label>
+                        <select
+                            value={formData.resignationType}
+                            onChange={e => setFormData({ ...formData, resignationType: e.target.value })}
+                            className="flex-1 input-base py-2 text-sm"
+                            required
+                        >
+                            {resignTypes.map(type => (
+                                <option key={type} value={type}>{type}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <label className="w-40 text-right text-slate-grey dark:text-slate-400 text-sm font-medium">Report End Date<span className="text-red-500 dark:text-red-400">*</span>:</label>
+                        <input
+                            type="date"
+                            value={formData.reportEndDate}
+                            onChange={e => setFormData({ ...formData, reportEndDate: e.target.value })}
+                            className="flex-1 input-base py-2 text-sm"
+                            required
+                        />
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <label className="w-40 text-right text-slate-grey dark:text-slate-400 text-sm font-medium">Attendance<span className="text-red-500 dark:text-red-400">*</span>:</label>
+                        <select
+                            value={formData.attendanceOption}
+                            onChange={e => setFormData({ ...formData, attendanceOption: e.target.value })}
+                            className="flex-1 input-base py-2 text-sm"
+                            required
+                        >
+                            {attendanceOptions.map(opt => (
+                                <option key={opt} value={opt}>{opt}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="flex items-start gap-3">
+                        <label className="w-40 text-right text-slate-grey dark:text-slate-400 text-sm font-medium pt-2">Resign Reason:</label>
+                        <textarea
+                            value={formData.reason}
+                            onChange={e => setFormData({ ...formData, reason: e.target.value })}
+                            className="flex-1 input-base py-2 text-sm resize-none"
+                            rows={3}
+                            placeholder="Optional reason for resignation..."
+                        />
+                    </div>
+                    <div className="flex justify-end gap-3 pt-4 border-t border-slate-50 dark:border-slate-700">
+                        <Button variant="secondary" onClick={() => setShowModal(false)}>
+                            Cancel
+                        </Button>
+                        <Button type="submit" variant="success">
+                            Confirm
+                        </Button>
+                    </div>
+                </form>
+            </Modal>
 
             {/* General Confirmation Modal */}
-            {confirmModal.show && (
-                <div className="fixed inset-0 bg-charcoal/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-sm border border-white/50 dark:border-slate-700 text-center p-6">
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 
-                            ${confirmModal.type === 'danger' ? 'bg-red-100 text-red-500 dark:bg-red-900/30 dark:text-red-400' :
-                                confirmModal.type === 'warning' ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400' : 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400'}`}>
-                            {confirmModal.type === 'danger' ? <Trash2 size={24} /> :
-                                confirmModal.type === 'warning' ? <BellOff size={24} /> : <RotateCcw size={24} />}
-                        </div>
-                        <h3 className="text-lg font-bold text-charcoal dark:text-slate-100 mb-2">{confirmModal.title}</h3>
-                        <p className="text-slate-grey dark:text-slate-400 mb-6">{confirmModal.message}</p>
-                        <div className="flex justify-center gap-3">
-                            <Button variant="secondary" onClick={closeConfirmModal}>
-                                Cancel
-                            </Button>
-                            <Button
-                                variant={confirmModal.type === 'danger' ? 'dangerSolid' : 'primary'}
-                                onClick={confirmModal.action}
-                            >
-                                Confirm
-                            </Button>
-                        </div>
-                    </div>
+            <Modal
+                open={confirmModal.show}
+                onClose={closeConfirmModal}
+                size="sm"
+                hideClose
+            >
+                {/* Centred confirmation: a left-aligned title bar would sit
+                    above the icon and fight it, so it keeps its own layout. */}
+                <div className="text-center">
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 
+                    ${confirmModal.type === 'danger' ? 'bg-red-100 text-red-500 dark:bg-red-900/30 dark:text-red-400' :
+                        confirmModal.type === 'warning' ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400' : 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400'}`}>
+                    {confirmModal.type === 'danger' ? <Trash2 size={24} /> :
+                        confirmModal.type === 'warning' ? <BellOff size={24} /> : <RotateCcw size={24} />}
                 </div>
-            )}
+                <h3 className="text-lg font-bold text-charcoal dark:text-slate-100 mb-2">{confirmModal.title}</h3>
+                <p className="text-slate-grey dark:text-slate-400 mb-6">{confirmModal.message}</p>
+                <div className="flex justify-center gap-3">
+                    <Button variant="secondary" onClick={closeConfirmModal}>
+                        Cancel
+                    </Button>
+                    <Button
+                        variant={confirmModal.type === 'danger' ? 'dangerSolid' : 'primary'}
+                        onClick={confirmModal.action}
+                    >
+                        Confirm
+                    </Button>
+                </div>
+                </div>
+            </Modal>
             </div>
         </div>
     );

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
-import { UserCheck, Plus, Edit2, Trash2, X, Save, Users, Search, Filter, AlertCircle, RefreshCw } from 'lucide-react';
+import { UserCheck, Plus, Edit2, Trash2, Save, Users, Search, Filter, AlertCircle, RefreshCw } from 'lucide-react';
 import { useToast, Button, PageHeader, ExportMenu } from '../components';
+import Modal from '../components/Modal';
 
 export default function EmployeeSchedule() {
     const toast = useToast();
@@ -338,212 +339,204 @@ export default function EmployeeSchedule() {
             </div>
 
             {/* Individual Schedule Modal */}
-            {showModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg w-full max-w-lg max-h-[90vh] overflow-auto">
-                        <div className="flex items-center justify-between p-4 border-b dark:border-slate-700">
-                            <h2 className="text-lg font-semibold">
-                                {editingId ? 'Edit Employee Schedule' : 'Assign Employee Schedule'}
-                            </h2>
-                            <Button variant="ghost" icon={X} iconSize={20} onClick={closeModal} aria-label="Close" />
-                        </div>
-                        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Employee *</label>
-                                <select
-                                    value={form.employee_id}
-                                    onChange={e => setForm({ ...form, employee_id: e.target.value })}
-                                    className="field"
-                                    required
-                                >
-                                    <option value="">Select Employee</option>
-                                    {employees.map(e => (
-                                        <option key={e.id} value={e.id}>{e.name} ({e.employee_code})</option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Shift</label>
-                                    <select
-                                        value={form.shift_id}
-                                        onChange={e => setForm({ ...form, shift_id: e.target.value })}
-                                        className="field"
-                                    >
-                                        <option value="">Select Shift</option>
-                                        {shifts.map(s => (
-                                            <option key={s.id} value={s.id}>{s.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Timetable</label>
-                                    <select
-                                        value={form.timetable_id}
-                                        onChange={e => setForm({ ...form, timetable_id: e.target.value })}
-                                        className="field"
-                                    >
-                                        <option value="">Select Timetable</option>
-                                        {timetables.map(t => (
-                                            <option key={t.id} value={t.id}>{t.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Effective From *</label>
-                                    <input
-                                        type="date"
-                                        value={form.effective_from}
-                                        onChange={e => setForm({ ...form, effective_from: e.target.value })}
-                                        className="field"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Effective To</label>
-                                    <input
-                                        type="date"
-                                        value={form.effective_to}
-                                        onChange={e => setForm({ ...form, effective_to: e.target.value })}
-                                        className="field"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="flex items-center gap-4">
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        checked={form.is_temporary}
-                                        onChange={e => setForm({ ...form, is_temporary: e.target.checked })}
-                                        className="w-4 h-4 text-green-600 rounded"
-                                    />
-                                    <span className="text-sm">Temporary Schedule</span>
-                                </label>
-                            </div>
-
-                            {form.is_temporary && (
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Reason</label>
-                                    <input
-                                        type="text"
-                                        value={form.reason}
-                                        onChange={e => setForm({ ...form, reason: e.target.value })}
-                                        className="field"
-                                        placeholder="Reason for temporary schedule"
-                                    />
-                                </div>
-                            )}
-
-                            <div className="flex justify-end gap-3 pt-4 border-t dark:border-slate-700">
-                                <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-                                <Button type="submit" icon={Save}>
-                                    {editingId ? 'Update' : 'Assign'}
-                                </Button>
-                            </div>
-                        </form>
+            <Modal
+                open={showModal}
+                onClose={closeModal}
+                title={editingId ? 'Edit Employee Schedule' : 'Assign Employee Schedule'}
+                size="lg"
+            >
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium mb-1">Employee *</label>
+                        <select
+                            value={form.employee_id}
+                            onChange={e => setForm({ ...form, employee_id: e.target.value })}
+                            className="field"
+                            required
+                        >
+                            <option value="">Select Employee</option>
+                            {employees.map(e => (
+                                <option key={e.id} value={e.id}>{e.name} ({e.employee_code})</option>
+                            ))}
+                        </select>
                     </div>
-                </div>
-            )}
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Shift</label>
+                            <select
+                                value={form.shift_id}
+                                onChange={e => setForm({ ...form, shift_id: e.target.value })}
+                                className="field"
+                            >
+                                <option value="">Select Shift</option>
+                                {shifts.map(s => (
+                                    <option key={s.id} value={s.id}>{s.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Timetable</label>
+                            <select
+                                value={form.timetable_id}
+                                onChange={e => setForm({ ...form, timetable_id: e.target.value })}
+                                className="field"
+                            >
+                                <option value="">Select Timetable</option>
+                                {timetables.map(t => (
+                                    <option key={t.id} value={t.id}>{t.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Effective From *</label>
+                            <input
+                                type="date"
+                                value={form.effective_from}
+                                onChange={e => setForm({ ...form, effective_from: e.target.value })}
+                                className="field"
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Effective To</label>
+                            <input
+                                type="date"
+                                value={form.effective_to}
+                                onChange={e => setForm({ ...form, effective_to: e.target.value })}
+                                className="field"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={form.is_temporary}
+                                onChange={e => setForm({ ...form, is_temporary: e.target.checked })}
+                                className="w-4 h-4 text-green-600 rounded"
+                            />
+                            <span className="text-sm">Temporary Schedule</span>
+                        </label>
+                    </div>
+
+                    {form.is_temporary && (
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Reason</label>
+                            <input
+                                type="text"
+                                value={form.reason}
+                                onChange={e => setForm({ ...form, reason: e.target.value })}
+                                className="field"
+                                placeholder="Reason for temporary schedule"
+                            />
+                        </div>
+                    )}
+
+                    <div className="flex justify-end gap-3 pt-4 border-t dark:border-slate-700">
+                        <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+                        <Button type="submit" icon={Save}>
+                            {editingId ? 'Update' : 'Assign'}
+                        </Button>
+                    </div>
+                </form>
+            </Modal>
 
             {/* Bulk Assign Modal */}
-            {showBulkModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
-                        <div className="flex items-center justify-between p-4 border-b dark:border-slate-700">
-                            <h2 className="text-lg font-semibold">Bulk Assign Schedule</h2>
-                            <Button variant="ghost" icon={X} iconSize={20} onClick={() => { setShowBulkModal(false); setSelectedEmployees([]); }} aria-label="Close" />
+            <Modal
+                open={showBulkModal}
+                onClose={() => { setShowBulkModal(false); setSelectedEmployees([]); }}
+                title="Bulk Assign Schedule"
+                size="xl"
+            >
+                <div className="flex flex-1 overflow-hidden -mx-5 -my-4">
+                    {/* Employee Selection */}
+                    <div className="w-1/2 border-r dark:border-slate-700 p-4 overflow-auto">
+                        <div className="flex justify-between items-center mb-3">
+                            <h3 className="font-medium">Select Employees ({selectedEmployees.length})</h3>
+                            <Button variant="ghost" size="sm" onClick={selectAllFiltered}>
+                                Select All
+                            </Button>
                         </div>
-                        <div className="flex flex-1 overflow-hidden">
-                            {/* Employee Selection */}
-                            <div className="w-1/2 border-r dark:border-slate-700 p-4 overflow-auto">
-                                <div className="flex justify-between items-center mb-3">
-                                    <h3 className="font-medium">Select Employees ({selectedEmployees.length})</h3>
-                                    <Button variant="ghost" size="sm" onClick={selectAllFiltered}>
-                                        Select All
-                                    </Button>
-                                </div>
-                                <div className="space-y-1">
-                                    {filteredEmployees.map(emp => (
-                                        <label key={emp.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-orange-50/50 dark:hover:bg-slate-700/40 cursor-pointer transition-colors">
-                                            <input
-                                                type="checkbox"
-                                                checked={selectedEmployees.includes(emp.id)}
-                                                onChange={() => toggleEmployeeSelection(emp.id)}
-                                                className="w-4 h-4 text-green-600 rounded"
-                                            />
-                                            <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">{emp.name || '—'}</span>
-                                            <span className="font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold">{emp.employee_code || '—'}</span>
-                                        </label>
-                                    ))}
-                                </div>
-                            </div>
-                            {/* Schedule Form */}
-                            <form onSubmit={handleBulkSubmit} className="w-1/2 p-4 space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Shift</label>
-                                    <select
-                                        value={form.shift_id}
-                                        onChange={e => setForm({ ...form, shift_id: e.target.value })}
-                                        className="field"
-                                    >
-                                        <option value="">Select Shift</option>
-                                        {shifts.map(s => (
-                                            <option key={s.id} value={s.id}>{s.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Timetable</label>
-                                    <select
-                                        value={form.timetable_id}
-                                        onChange={e => setForm({ ...form, timetable_id: e.target.value })}
-                                        className="field"
-                                    >
-                                        <option value="">Select Timetable</option>
-                                        {timetables.map(t => (
-                                            <option key={t.id} value={t.id}>{t.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Effective From *</label>
+                        <div className="space-y-1">
+                            {filteredEmployees.map(emp => (
+                                <label key={emp.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-orange-50/50 dark:hover:bg-slate-700/40 cursor-pointer transition-colors">
                                     <input
-                                        type="date"
-                                        value={form.effective_from}
-                                        onChange={e => setForm({ ...form, effective_from: e.target.value })}
-                                        className="field"
-                                        required
+                                        type="checkbox"
+                                        checked={selectedEmployees.includes(emp.id)}
+                                        onChange={() => toggleEmployeeSelection(emp.id)}
+                                        className="w-4 h-4 text-green-600 rounded"
                                     />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Effective To</label>
-                                    <input
-                                        type="date"
-                                        value={form.effective_to}
-                                        onChange={e => setForm({ ...form, effective_to: e.target.value })}
-                                        className="field"
-                                    />
-                                </div>
-                                <div className="pt-4 border-t dark:border-slate-700">
-                                    <Button
-                                        type="submit"
-                                        icon={Users}
-                                        disabled={selectedEmployees.length === 0}
-                                        className="w-full"
-                                    >
-                                        Assign to {selectedEmployees.length} Employees
-                                    </Button>
-                                </div>
-                            </form>
+                                    <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">{emp.name || '—'}</span>
+                                    <span className="font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold">{emp.employee_code || '—'}</span>
+                                </label>
+                            ))}
                         </div>
                     </div>
+                    {/* Schedule Form */}
+                    <form onSubmit={handleBulkSubmit} className="w-1/2 p-4 space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Shift</label>
+                            <select
+                                value={form.shift_id}
+                                onChange={e => setForm({ ...form, shift_id: e.target.value })}
+                                className="field"
+                            >
+                                <option value="">Select Shift</option>
+                                {shifts.map(s => (
+                                    <option key={s.id} value={s.id}>{s.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Timetable</label>
+                            <select
+                                value={form.timetable_id}
+                                onChange={e => setForm({ ...form, timetable_id: e.target.value })}
+                                className="field"
+                            >
+                                <option value="">Select Timetable</option>
+                                {timetables.map(t => (
+                                    <option key={t.id} value={t.id}>{t.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Effective From *</label>
+                            <input
+                                type="date"
+                                value={form.effective_from}
+                                onChange={e => setForm({ ...form, effective_from: e.target.value })}
+                                className="field"
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Effective To</label>
+                            <input
+                                type="date"
+                                value={form.effective_to}
+                                onChange={e => setForm({ ...form, effective_to: e.target.value })}
+                                className="field"
+                            />
+                        </div>
+                        <div className="pt-4 border-t dark:border-slate-700">
+                            <Button
+                                type="submit"
+                                icon={Users}
+                                disabled={selectedEmployees.length === 0}
+                                className="w-full"
+                            >
+                                Assign to {selectedEmployees.length} Employees
+                            </Button>
+                        </div>
+                    </form>
                 </div>
-            )}
+            </Modal>
         </div>
     );
 }
