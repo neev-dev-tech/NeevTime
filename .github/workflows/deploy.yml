@@ -1,0 +1,79 @@
+# Deploy to the attendance VM.
+#
+# NOT ACTIVE YET. This needs a self-hosted runner installed on the VM, and until
+# one exists the workflow simply has nowhere to run. Setup is at the bottom.
+#
+# Why a self-hosted runner rather than deploying from GitHub's runners: the VM is
+# at 192.168.1.237, a private address. A cloud runner cannot reach it, and the
+# alternatives are worse — exposing SSH to the internet, or holding a tunnel open
+# for a job that runs for two minutes a day. A runner on the VM dials out to
+# GitHub instead, so nothing has to be opened inbound.
+#
+# Manual only. `workflow_dispatch` means this never fires on a push: deploying an
+# attendance system is a decision about timing as much as about code, and the
+# readers are busiest at the start and end of a shift.
+
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Commit, branch or tag to deploy'
+        required: true
+        default: 'main'
+      confirm:
+        description: 'Type the word deploy to confirm'
+        required: true
+        default: ''
+
+jobs:
+  deploy:
+    name: Deploy to the VM
+    runs-on: [self-hosted, neevtime-vm]
+    steps:
+      - name: Check the confirmation
+        if: inputs.confirm != 'deploy'
+        run: |
+          echo "Confirmation was '${{ inputs.confirm }}', expected 'deploy'." >&2
+          exit 1
+
+      # ship.sh takes the snapshot, tags the image by commit, records the
+      # previously live version and treats verify-deploy.sh as a gate. It is the
+      # same script a person runs by hand, so there is one deploy path rather
+      # than two that can drift apart.
+      - name: Ship
+        working-directory: ${{ vars.NEEVTIME_PATH || '/home/innopay/NeevTime/NeevTime' }}
+        run: |
+          git fetch --quiet origin
+          ./ship.sh "${{ inputs.ref }}"
+
+      - name: On failure, say how to get back
+        if: failure()
+        run: |
+          echo "::error::Deploy failed. Roll back on the VM with: ./rollback.sh"
+
+# ---------------------------------------------------------------------------
+# Installing the runner, once:
+#
+#   On the VM, as the innopay user:
+#
+#     mkdir -p ~/actions-runner && cd ~/actions-runner
+#     curl -o r.tar.gz -L https://github.com/actions/runner/releases/latest/download/\
+#     actions-runner-linux-x64.tar.gz
+#     tar xzf r.tar.gz
+#     ./config.sh --url https://github.com/neev-dev-tech/NeevTime \
+#                 --token <from Settings > Actions > Runners > New runner> \
+#                 --labels neevtime-vm
+#     sudo ./svc.sh install && sudo ./svc.sh start
+#
+# Two things worth deciding before doing this:
+#
+#   The runner executes whatever a workflow on the default branch says. Anyone
+#   who can push to main can therefore run commands on the VM. On a private
+#   repository with two people that is a reasonable trade; it stops being one
+#   the moment the repository is opened up or the team grows.
+#
+#   It runs as a user with docker access, which on this VM is root-equivalent.
+#   Give it its own account rather than one a person also logs in with.
+# ---------------------------------------------------------------------------
