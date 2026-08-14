@@ -4,9 +4,10 @@ import {
     Plus, Trash2, Folder,
     ChevronRight, ChevronDown,
     Upload, RefreshCw, LayoutList,
-    ArrowRightLeft, X, Download, Search, Map, AlertCircle
+    ArrowRightLeft, Download, Search, Map, AlertCircle
 } from 'lucide-react';
 import { useToast, Button, PageHeader } from '../components';
+import Modal from '../components/Modal';
 
 const AreaTreeItem = ({ area, areas, onSelect, selectedId, level = 0 }) => {
     const [expanded, setExpanded] = useState(true);
@@ -411,148 +412,142 @@ export default function Area() {
 
             {/* Modals - Simplified Styling for Consistency */}
             {/* Add Modal */}
-            {showModal && (
-                <div className="fixed inset-0 bg-charcoal/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-sm border border-slate-200 dark:border-slate-700">
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-lg font-bold text-charcoal dark:text-slate-100">Add Area</h3>
-                            <Button variant="ghost" size="sm" icon={X} aria-label="Close" onClick={() => setShowModal(false)} />
+            <Modal
+                open={showModal}
+                onClose={() => setShowModal(false)}
+                title="Add Area"
+                size="sm"
+            >
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1">Parent Area</label>
+                        <div className="input-base bg-slate-50 dark:bg-slate-900/50 flex items-center">
+                            {selectedArea ? selectedArea.name : 'Root (None)'}
                         </div>
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1">Parent Area</label>
-                                <div className="input-base bg-slate-50 dark:bg-slate-900/50 flex items-center">
-                                    {selectedArea ? selectedArea.name : 'Root (None)'}
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1">Area Name <span className="text-red-500 dark:text-red-400">*</span></label>
-                                <input
-                                    className="input-base"
-                                    value={formData.name || ''}
-                                    onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1">Area Code</label>
-                                <input
-                                    className="input-base"
-                                    value={formData.code || ''}
-                                    onChange={e => setFormData({ ...formData, code: e.target.value })}
-                                />
-                            </div>
-                            <div className="flex justify-end gap-3 pt-4">
-                                <Button variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
-                                <Button type="submit" variant="primary">Save</Button>
-                            </div>
-                        </form>
                     </div>
-                </div>
-            )}
+                    <div>
+                        <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1">Area Name <span className="text-red-500 dark:text-red-400">*</span></label>
+                        <input
+                            className="input-base"
+                            value={formData.name || ''}
+                            onChange={e => setFormData({ ...formData, name: e.target.value })}
+                            required
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1">Area Code</label>
+                        <input
+                            className="input-base"
+                            value={formData.code || ''}
+                            onChange={e => setFormData({ ...formData, code: e.target.value })}
+                        />
+                    </div>
+                    <div className="flex justify-end gap-3 pt-4">
+                        <Button variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
+                        <Button type="submit" variant="primary">Save</Button>
+                    </div>
+                </form>
+            </Modal>
 
             {/* Import Modal */}
-            {showImportModal && (
-                <div className="fixed inset-0 bg-charcoal/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-md border border-slate-200 dark:border-slate-700">
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-lg font-bold text-charcoal dark:text-slate-100">Import Areas</h3>
-                            <Button variant="ghost" size="sm" icon={X} aria-label="Close" onClick={() => setShowImportModal(false)} />
-                        </div>
-                        <form onSubmit={handleImport} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-2">Select CSV File</label>
-                                <input
-                                    type="file"
-                                    accept=".csv"
-                                    ref={fileInputRef}
-                                    onChange={(e) => setImportFile(e.target.files[0])}
-                                    className="input-base p-2"
-                                />
-                            </div>
-                            <div className="bg-orange-50/50 dark:bg-orange-900/20 p-4 rounded-xl border border-orange-100 dark:border-orange-800 text-sm text-slate-grey dark:text-slate-400">
-                                <p className="font-bold text-orange-600 dark:text-orange-400 mb-1">CSV Format:</p>
-                                <code className="block bg-white dark:bg-slate-800 p-2 rounded border border-orange-100 dark:border-orange-800 mb-2">Area Name, Area Code</code>
-                                <Button variant="secondary" icon={Download} type="button" onClick={downloadTemplate}>
-                                    Download Template
-                                </Button>
-                            </div>
-                            <div className="flex justify-end gap-3 pt-4">
-                                <Button variant="secondary" onClick={() => setShowImportModal(false)}>Cancel</Button>
-                                <Button type="submit" variant="primary">Import</Button>
-                            </div>
-                        </form>
+            <Modal
+                open={showImportModal}
+                onClose={() => setShowImportModal(false)}
+                title="Import Areas"
+            >
+                <form onSubmit={handleImport} className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-2">Select CSV File</label>
+                        <input
+                            type="file"
+                            accept=".csv"
+                            ref={fileInputRef}
+                            onChange={(e) => setImportFile(e.target.files[0])}
+                            className="input-base p-2"
+                        />
                     </div>
-                </div>
-            )}
+                    <div className="bg-orange-50/50 dark:bg-orange-900/20 p-4 rounded-xl border border-orange-100 dark:border-orange-800 text-sm text-slate-grey dark:text-slate-400">
+                        <p className="font-bold text-orange-600 dark:text-orange-400 mb-1">CSV Format:</p>
+                        <code className="block bg-white dark:bg-slate-800 p-2 rounded border border-orange-100 dark:border-orange-800 mb-2">Area Name, Area Code</code>
+                        <Button variant="secondary" icon={Download} type="button" onClick={downloadTemplate}>
+                            Download Template
+                        </Button>
+                    </div>
+                    <div className="flex justify-end gap-3 pt-4">
+                        <Button variant="secondary" onClick={() => setShowImportModal(false)}>Cancel</Button>
+                        <Button type="submit" variant="primary">Import</Button>
+                    </div>
+                </form>
+            </Modal>
 
             {/* Personnel Transfer Modal */}
-            {showTransferModal && (
-                <div className="fixed inset-0 bg-charcoal/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-md border border-slate-200 dark:border-slate-700">
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-lg font-bold text-charcoal dark:text-slate-100">Personnel Transfer</h3>
-                            <Button variant="ghost" size="sm" icon={X} aria-label="Close" onClick={() => setShowTransferModal(false)} />
-                        </div>
-                        <form onSubmit={handleTransfer} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1">From Area</label>
-                                <select
-                                    value={transferData.fromArea}
-                                    onChange={(e) => setTransferData({ ...transferData, fromArea: e.target.value })}
-                                    className="input-base"
-                                    required
-                                >
-                                    <option value="">Select source area</option>
-                                    {areas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1">To Area</label>
-                                <select
-                                    value={transferData.toArea}
-                                    onChange={(e) => setTransferData({ ...transferData, toArea: e.target.value })}
-                                    className="input-base"
-                                    required
-                                >
-                                    <option value="">Select destination area</option>
-                                    {areas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-                                </select>
-                            </div>
-                            <div className="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-100 dark:border-yellow-800 p-4 rounded-xl text-sm text-yellow-800 dark:text-yellow-300">
-                                <strong>Note:</strong> This will transfer personnel from the source area to the destination area.
-                            </div>
-                            <div className="flex justify-end gap-3 pt-4">
-                                <Button variant="secondary" onClick={() => setShowTransferModal(false)}>Cancel</Button>
-                                <Button type="submit" variant="primary">Transfer</Button>
-                            </div>
-                        </form>
+            <Modal
+                open={showTransferModal}
+                onClose={() => setShowTransferModal(false)}
+                title="Personnel Transfer"
+            >
+                <form onSubmit={handleTransfer} className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1">From Area</label>
+                        <select
+                            value={transferData.fromArea}
+                            onChange={(e) => setTransferData({ ...transferData, fromArea: e.target.value })}
+                            className="input-base"
+                            required
+                        >
+                            <option value="">Select source area</option>
+                            {areas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                        </select>
                     </div>
-                </div>
-            )}
+                    <div>
+                        <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1">To Area</label>
+                        <select
+                            value={transferData.toArea}
+                            onChange={(e) => setTransferData({ ...transferData, toArea: e.target.value })}
+                            className="input-base"
+                            required
+                        >
+                            <option value="">Select destination area</option>
+                            {areas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                        </select>
+                    </div>
+                    <div className="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-100 dark:border-yellow-800 p-4 rounded-xl text-sm text-yellow-800 dark:text-yellow-300">
+                        <strong>Note:</strong> This will transfer personnel from the source area to the destination area.
+                    </div>
+                    <div className="flex justify-end gap-3 pt-4">
+                        <Button variant="secondary" onClick={() => setShowTransferModal(false)}>Cancel</Button>
+                        <Button type="submit" variant="primary">Transfer</Button>
+                    </div>
+                </form>
+            </Modal>
 
             {/* Delete Confirmation Modal */}
-            {showDeleteModal && (
-                <div className="fixed inset-0 bg-charcoal/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-sm border border-slate-200 dark:border-slate-700 text-center">
-                        <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500 dark:text-red-400">
-                            <Trash2 size={24} />
-                        </div>
-                        <h3 className="text-lg font-bold text-charcoal dark:text-slate-100 mb-2">Delete Area?</h3>
-                        <p className="text-slate-grey dark:text-slate-400 mb-6">
-                            Are you sure you want to delete <span className="font-bold text-charcoal dark:text-slate-100">{areaToDelete?.name || 'these items'}</span>? This action cannot be undone.
-                        </p>
-                        <div className="flex justify-center gap-3">
-                            <Button variant="secondary" onClick={() => { setShowDeleteModal(false); setAreaToDelete(null); }}>
-                                Cancel
-                            </Button>
-                            <Button variant="dangerSolid" onClick={confirmDelete}>
-                                Yes, Delete
-                            </Button>
-                        </div>
-                    </div>
+            <Modal
+                open={showDeleteModal}
+                onClose={() => { setShowDeleteModal(false); setAreaToDelete(null); }}
+                size="sm"
+                hideClose
+            >
+                {/* No header: this one is a centred confirmation, and a
+                    left-aligned title bar would fight the icon above it. */}
+                <div className="text-center">
+                <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500 dark:text-red-400">
+                    <Trash2 size={24} />
                 </div>
-            )}
+                <h3 className="text-lg font-bold text-charcoal dark:text-slate-100 mb-2">Delete Area?</h3>
+                <p className="text-slate-grey dark:text-slate-400 mb-6">
+                    Are you sure you want to delete <span className="font-bold text-charcoal dark:text-slate-100">{areaToDelete?.name || 'these items'}</span>? This action cannot be undone.
+                </p>
+                <div className="flex justify-center gap-3">
+                    <Button variant="secondary" onClick={() => { setShowDeleteModal(false); setAreaToDelete(null); }}>
+                        Cancel
+                    </Button>
+                    <Button variant="dangerSolid" onClick={confirmDelete}>
+                        Yes, Delete
+                    </Button>
+                </div>
+                </div>
+            </Modal>
         </div>
     );
 }

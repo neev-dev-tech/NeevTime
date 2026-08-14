@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
-import { MapPin, Plus, Edit2, Trash2, X, Save, Calendar, Globe, AlertCircle, RefreshCw } from 'lucide-react';
+import { MapPin, Plus, Edit2, Trash2, Save, Calendar, Globe, AlertCircle, RefreshCw } from 'lucide-react';
 import { useToast, Button, PageHeader, ExportMenu } from '../components';
+import Modal from '../components/Modal';
 
 export default function HolidayLocation({ initialTab = 'locations' }) {
     const toast = useToast();
@@ -402,121 +403,109 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
             )}
 
             {/* Location Modal */}
-            {showModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg w-full max-w-md">
-                        <div className="flex items-center justify-between p-4 border-b dark:border-slate-700">
-                            <h2 className="text-lg font-semibold">
-                                {editingId ? 'Edit Location' : 'Add Location'}
-                            </h2>
-                            <Button variant="ghost" size="sm" icon={X} aria-label="Close" onClick={closeModal} />
-                        </div>
-                        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Name *</label>
-                                <input
-                                    type="text"
-                                    value={form.name}
-                                    onChange={e => setForm({ ...form, name: e.target.value })}
-                                    className="field"
-                                    placeholder="e.g., Head Office, Branch A"
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Description</label>
-                                <textarea
-                                    value={form.description}
-                                    onChange={e => setForm({ ...form, description: e.target.value })}
-                                    className="field"
-                                    rows={3}
-                                    placeholder="Location details..."
-                                />
-                            </div>
-                            <div className="flex justify-end gap-3 pt-4 border-t dark:border-slate-700">
-                                <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-                                <Button type="submit" icon={Save}>
-                                    {editingId ? 'Update' : 'Create'}
-                                </Button>
-                            </div>
-                        </form>
+            <Modal
+                open={showModal}
+                onClose={closeModal}
+                title={editingId ? 'Edit Location' : 'Add Location'}
+            >
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium mb-1">Name *</label>
+                        <input
+                            type="text"
+                            value={form.name}
+                            onChange={e => setForm({ ...form, name: e.target.value })}
+                            className="field"
+                            placeholder="e.g., Head Office, Branch A"
+                            required
+                        />
                     </div>
-                </div>
-            )}
+                    <div>
+                        <label className="block text-sm font-medium mb-1">Description</label>
+                        <textarea
+                            value={form.description}
+                            onChange={e => setForm({ ...form, description: e.target.value })}
+                            className="field"
+                            rows={3}
+                            placeholder="Location details..."
+                        />
+                    </div>
+                    <div className="flex justify-end gap-3 pt-4 border-t dark:border-slate-700">
+                        <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+                        <Button type="submit" icon={Save}>
+                            {editingId ? 'Update' : 'Create'}
+                        </Button>
+                    </div>
+                </form>
+            </Modal>
 
             {/* Holiday Modal */}
-            {showHolidayModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg w-full max-w-md">
-                        <div className="flex items-center justify-between p-4 border-b dark:border-slate-700">
-                            <h2 className="text-lg font-semibold">
-                                {editingHolidayId ? 'Edit Holiday' : 'Add Holiday'}
-                            </h2>
-                            <Button variant="ghost" size="sm" icon={X} aria-label="Close" onClick={closeHolidayModal} />
-                        </div>
-                        <form onSubmit={handleHolidaySubmit} className="p-6 space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Holiday Name *</label>
-                                <input
-                                    type="text"
-                                    value={holidayForm.name}
-                                    onChange={e => setHolidayForm({ ...holidayForm, name: e.target.value })}
-                                    className="field"
-                                    required
-                                />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Date *</label>
-                                    <input
-                                        type="date"
-                                        value={holidayForm.date}
-                                        onChange={e => setHolidayForm({ ...holidayForm, date: e.target.value })}
-                                        className="field"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Type</label>
-                                    <select
-                                        value={holidayForm.holiday_type}
-                                        onChange={e => setHolidayForm({ ...holidayForm, holiday_type: e.target.value })}
-                                        className="field"
-                                    >
-                                        <option value="national">National</option>
-                                        <option value="regional">Regional</option>
-                                        <option value="company">Company</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Description</label>
-                                <input
-                                    type="text"
-                                    value={holidayForm.description}
-                                    onChange={e => setHolidayForm({ ...holidayForm, description: e.target.value })}
-                                    className="field"
-                                />
-                            </div>
-                            <label className="flex items-center gap-2 cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    checked={holidayForm.is_optional}
-                                    onChange={e => setHolidayForm({ ...holidayForm, is_optional: e.target.checked })}
-                                    className="w-4 h-4 text-green-600 rounded"
-                                />
-                                <span className="text-sm">Optional Holiday (Restricted)</span>
-                            </label>
-                            <div className="flex justify-end gap-3 pt-4 border-t dark:border-slate-700">
-                                <Button variant="secondary" onClick={closeHolidayModal}>Cancel</Button>
-                                <Button type="submit" icon={Save}>
-                                    {editingHolidayId ? 'Update' : 'Create'}
-                                </Button>
-                            </div>
-                        </form>
+            <Modal
+                open={showHolidayModal}
+                onClose={closeHolidayModal}
+                title={editingHolidayId ? 'Edit Holiday' : 'Add Holiday'}
+            >
+                <form onSubmit={handleHolidaySubmit} className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium mb-1">Holiday Name *</label>
+                        <input
+                            type="text"
+                            value={holidayForm.name}
+                            onChange={e => setHolidayForm({ ...holidayForm, name: e.target.value })}
+                            className="field"
+                            required
+                        />
                     </div>
-                </div>
-            )}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Date *</label>
+                            <input
+                                type="date"
+                                value={holidayForm.date}
+                                onChange={e => setHolidayForm({ ...holidayForm, date: e.target.value })}
+                                className="field"
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Type</label>
+                            <select
+                                value={holidayForm.holiday_type}
+                                onChange={e => setHolidayForm({ ...holidayForm, holiday_type: e.target.value })}
+                                className="field"
+                            >
+                                <option value="national">National</option>
+                                <option value="regional">Regional</option>
+                                <option value="company">Company</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium mb-1">Description</label>
+                        <input
+                            type="text"
+                            value={holidayForm.description}
+                            onChange={e => setHolidayForm({ ...holidayForm, description: e.target.value })}
+                            className="field"
+                        />
+                    </div>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            checked={holidayForm.is_optional}
+                            onChange={e => setHolidayForm({ ...holidayForm, is_optional: e.target.checked })}
+                            className="w-4 h-4 text-green-600 rounded"
+                        />
+                        <span className="text-sm">Optional Holiday (Restricted)</span>
+                    </label>
+                    <div className="flex justify-end gap-3 pt-4 border-t dark:border-slate-700">
+                        <Button variant="secondary" onClick={closeHolidayModal}>Cancel</Button>
+                        <Button type="submit" icon={Save}>
+                            {editingHolidayId ? 'Update' : 'Create'}
+                        </Button>
+                    </div>
+                </form>
+            </Modal>
         </div>
     );
 }

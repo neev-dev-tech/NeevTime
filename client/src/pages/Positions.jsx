@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import api from '../api';
 import Modal from '../components/Modal';
-import { Briefcase, Plus, Trash2, Edit2, Search, RefreshCw, X, Save, Download, Upload, AlertCircle, CheckCircle } from 'lucide-react';
+import { Briefcase, Plus, Trash2, Edit2, Search, RefreshCw, Save, Download, Upload, AlertCircle, CheckCircle } from 'lucide-react';
 import { useToast, Button, PageHeader, ExportMenu } from '../components';
 
 export default function Positions() {
@@ -348,57 +348,44 @@ export default function Positions() {
             </div>
 
             {/* Add/Edit Modal */}
-            {showModal && (
-                <div className="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-md border border-white/50 dark:border-slate-700">
-                        <div className="flex items-center justify-between p-4 border-b dark:border-slate-700">
-                            <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
-                                {editItem ? 'Edit Position' : 'Add Position'}
-                            </h2>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                icon={X}
-                                iconSize={20}
-                                aria-label="Close"
-                                onClick={closeModal}
-                            />
-                        </div>
-                        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Position Name *</label>
-                                <input
-                                    type="text"
-                                    value={formData.name}
-                                    onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                    className="field"
-                                    placeholder="e.g., Software Engineer"
-                                    required
-                                    autoFocus
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Description</label>
-                                <textarea
-                                    value={formData.description}
-                                    onChange={e => setFormData({ ...formData, description: e.target.value })}
-                                    className="field resize-none"
-                                    rows={3}
-                                    placeholder="Optional description"
-                                />
-                            </div>
-                            <div className="flex justify-end gap-3 pt-4 border-t dark:border-slate-700">
-                                <Button variant="secondary" onClick={closeModal}>
-                                    Cancel
-                                </Button>
-                                <Button type="submit" variant="primary" icon={Save}>
-                                    {editItem ? 'Update' : 'Create'}
-                                </Button>
-                            </div>
-                        </form>
+            <Modal
+                open={showModal}
+                onClose={closeModal}
+                title={editItem ? 'Edit Position' : 'Add Position'}
+            >
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium mb-1">Position Name *</label>
+                        <input
+                            type="text"
+                            value={formData.name}
+                            onChange={e => setFormData({ ...formData, name: e.target.value })}
+                            className="field"
+                            placeholder="e.g., Software Engineer"
+                            required
+                            autoFocus
+                        />
                     </div>
-                </div>
-            )}
+                    <div>
+                        <label className="block text-sm font-medium mb-1">Description</label>
+                        <textarea
+                            value={formData.description}
+                            onChange={e => setFormData({ ...formData, description: e.target.value })}
+                            className="field resize-none"
+                            rows={3}
+                            placeholder="Optional description"
+                        />
+                    </div>
+                    <div className="flex justify-end gap-3 pt-4 border-t dark:border-slate-700">
+                        <Button variant="secondary" onClick={closeModal}>
+                            Cancel
+                        </Button>
+                        <Button type="submit" variant="primary" icon={Save}>
+                            {editItem ? 'Update' : 'Create'}
+                        </Button>
+                    </div>
+                </form>
+            </Modal>
 
             {/* Delete Confirmation Modal */}
             {deleteConfirm && (
@@ -426,99 +413,86 @@ export default function Positions() {
             )}
 
             {/* Import Modal */}
-            {showImportModal && (
-                <div className="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4" onClick={closeImportModal}>
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-md border border-white/50 dark:border-slate-700" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-between p-4 border-b dark:border-slate-700">
-                            <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
-                                Import Positions
-                            </h2>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                icon={X}
-                                iconSize={20}
-                                aria-label="Close"
-                                onClick={closeImportModal}
-                            />
-                        </div>
-                        <div className="p-6 space-y-4">
-                            <p className="text-sm text-slate-600 dark:text-slate-400">
-                                Upload a CSV file with position names and descriptions. Format: name,description
-                            </p>
+            <Modal
+                open={showImportModal}
+                onClose={closeImportModal}
+                title="Import Positions"
+            >
+                <div className="space-y-4">
+                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                        Upload a CSV file with position names and descriptions. Format: name,description
+                    </p>
 
-                            {/* Download Template */}
-                            <Button
-                                variant="secondary"
-                                size="sm"
-                                icon={Download}
-                                onClick={downloadTemplate}
-                            >
-                                Download CSV Template
-                            </Button>
+                    {/* Download Template */}
+                    <Button
+                        variant="secondary"
+                        size="sm"
+                        icon={Download}
+                        onClick={downloadTemplate}
+                    >
+                        Download CSV Template
+                    </Button>
 
-                            {/* File Input */}
-                            <div className="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg p-6 text-center hover:border-purple-400 transition-colors">
-                                <input
-                                    ref={fileInputRef}
-                                    type="file"
-                                    accept=".csv,.txt"
-                                    onChange={handleImport}
-                                    className="hidden"
-                                    id="import-positions-file"
-                                />
-                                <label
-                                    htmlFor="import-positions-file"
-                                    className="cursor-pointer flex flex-col items-center gap-2"
-                                >
-                                    <Upload size={32} className="text-slate-400" />
-                                    <span className="text-sm text-slate-600 dark:text-slate-400">
-                                        {importing ? 'Importing...' : 'Click to select CSV file'}
-                                    </span>
-                                </label>
-                            </div>
+                    {/* File Input */}
+                    <div className="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg p-6 text-center hover:border-purple-400 transition-colors">
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept=".csv,.txt"
+                            onChange={handleImport}
+                            className="hidden"
+                            id="import-positions-file"
+                        />
+                        <label
+                            htmlFor="import-positions-file"
+                            className="cursor-pointer flex flex-col items-center gap-2"
+                        >
+                            <Upload size={32} className="text-slate-400" />
+                            <span className="text-sm text-slate-600 dark:text-slate-400">
+                                {importing ? 'Importing...' : 'Click to select CSV file'}
+                            </span>
+                        </label>
+                    </div>
 
-                            {/* Import Result */}
-                            {importResult && (
-                                <div className={`p-4 rounded-lg ${importResult.failed > 0 ? 'bg-amber-50 border border-amber-200 dark:bg-amber-900/30 dark:border-amber-800' : 'bg-green-50 border border-green-200 dark:bg-green-900/30 dark:border-green-800'}`}>
-                                    <div className="flex items-start gap-3">
-                                        {importResult.failed > 0 ? (
-                                            <AlertCircle size={20} className="text-amber-600 dark:text-amber-400 mt-0.5" />
-                                        ) : (
-                                            <CheckCircle size={20} className="text-green-600 dark:text-green-400 mt-0.5" />
-                                        )}
-                                        <div>
-                                            <p className="font-medium text-slate-800 dark:text-slate-100">
-                                                Import Complete
-                                            </p>
-                                            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                                                {importResult.success} imported successfully
-                                                {importResult.failed > 0 && `, ${importResult.failed} failed`}
-                                            </p>
-                                            {importResult.errors.length > 0 && (
-                                                <ul className="text-xs text-red-600 dark:text-red-400 mt-2 list-disc list-inside">
-                                                    {importResult.errors.slice(0, 5).map((err, i) => (
-                                                        <li key={i}>{err}</li>
-                                                    ))}
-                                                    {importResult.errors.length > 5 && (
-                                                        <li>...and {importResult.errors.length - 5} more errors</li>
-                                                    )}
-                                                </ul>
+                    {/* Import Result */}
+                    {importResult && (
+                        <div className={`p-4 rounded-lg ${importResult.failed > 0 ? 'bg-amber-50 border border-amber-200 dark:bg-amber-900/30 dark:border-amber-800' : 'bg-green-50 border border-green-200 dark:bg-green-900/30 dark:border-green-800'}`}>
+                            <div className="flex items-start gap-3">
+                                {importResult.failed > 0 ? (
+                                    <AlertCircle size={20} className="text-amber-600 dark:text-amber-400 mt-0.5" />
+                                ) : (
+                                    <CheckCircle size={20} className="text-green-600 dark:text-green-400 mt-0.5" />
+                                )}
+                                <div>
+                                    <p className="font-medium text-slate-800 dark:text-slate-100">
+                                        Import Complete
+                                    </p>
+                                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                                        {importResult.success} imported successfully
+                                        {importResult.failed > 0 && `, ${importResult.failed} failed`}
+                                    </p>
+                                    {importResult.errors.length > 0 && (
+                                        <ul className="text-xs text-red-600 dark:text-red-400 mt-2 list-disc list-inside">
+                                            {importResult.errors.slice(0, 5).map((err, i) => (
+                                                <li key={i}>{err}</li>
+                                            ))}
+                                            {importResult.errors.length > 5 && (
+                                                <li>...and {importResult.errors.length - 5} more errors</li>
                                             )}
-                                        </div>
-                                    </div>
+                                        </ul>
+                                    )}
                                 </div>
-                            )}
-
-                            <div className="flex justify-end pt-4 border-t dark:border-slate-700">
-                                <Button variant="secondary" onClick={closeImportModal}>
-                                    Close
-                                </Button>
                             </div>
                         </div>
+                    )}
+
+                    <div className="flex justify-end pt-4 border-t dark:border-slate-700">
+                        <Button variant="secondary" onClick={closeImportModal}>
+                            Close
+                        </Button>
                     </div>
                 </div>
-            )}
+            </Modal>
         </div>
     );
 }
