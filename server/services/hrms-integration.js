@@ -127,6 +127,16 @@ class BaseIntegration {
         return [];
     }
 
+    /** Pull leave types. Optional. */
+    async pullLeaveTypes() {
+        return [];
+    }
+
+    /** Pull leave applications over a date window. Optional. */
+    async pullLeaveApplications() {
+        return [];
+    }
+
     /**
      * Push attendance to HRMS
      */
@@ -375,6 +385,17 @@ const runScheduledSync = async (options = {}) => {
                 // Pull employees if enabled
                 if (integration.sync_employees) {
                     await syncEmployeesFromHRMS(instance);
+                }
+
+                // Leave last: leave_applications has a foreign key to
+                // employees, so a person hired today must arrive before their
+                // leave can be stored.
+                if (integration.sync_leaves) {
+                    try {
+                        await syncLeavesFromHRMS(instance);
+                    } catch (err) {
+                        log('ERROR', 'Leave sync failed', { integration: integration.name, error: err.message });
+                    }
                 }
 
             } catch (err) {
@@ -660,6 +681,128 @@ const syncHolidaysFromHRMS = async (integration) => {
     return stats;
 };
 
+
+/**
+ * Pull leave types and leave applications.
+ *
+ * This is what `sync_leaves` was supposed to do. The column exists, the switch
+ * is in the Integrations screen, and until now no code read it — you could turn
+ * it on and nothing would happen, with no error and no log entry.
+ *
+ * It matters because the absent report already excludes approved leave, and
+ * nothing has ever populated the table it checks. Somebody on approved leave
+ * has been counted absent for the whole life of the system.
+ *
+ * The window is bounded to the range the absent report actually looks at, plus
+ * future leave. An unbounded pull would fetch a company's entire leave history
+ * every five minutes.
+ */
+const syncLeavesFromHRMS = async (integration) => {
+    const stats = { processed: 0, success: 0, failed: 0 };
+    let firstError = null;
+
+    // Leave types first: an application references one by name, and resolving
+    // it needs the row to exist.
+    try {
+        const types = await integration.pullLeaveTypes();
+        for (const t of types) {
+            if (!t.code) continue;
+            try {
+                await db.query(`
+                    INSERT INTO leave_types (code, name, is_paid, is_active)
+                    VALUES ($1, $2, $3, TRUE)
+                    ON CONFLICT (code) DO UPDATE SET
+                        name    = COALESCE(EXCLUDED.name, leave_types.name),
+                        is_paid = COALESCE(EXCLUDED.is_paid, leave_types.is_paid)
+                `, [t.code, t.name || t.code, t.is_paid !== false]);
+            } catch (err) {
+                log('WARN', 'Leave type upsert failed', { code: t.code, error: err.message });
+            }
+        }
+    } catch (err) {
+        await integration.logSync('leaves', SYNC_DIRECTION.PULL, 'failed', stats, err.message);
+        throw err;
+    }
+
+    const typeCache = new Map();
+    const resolveLeaveType = async (code) => {
+        if (!code) return null;
+        const key = String(code).trim().toLowerCase();
+        if (!key) return null;
+        if (typeCache.has(key)) return typeCache.get(key);
+        const found = await db.query('SELECT id FROM leave_types WHERE lower(code) = $1 LIMIT 1', [key]);
+        const id = found.rows.length ? found.rows[0].id : null;
+        typeCache.set(key, id);
+        return id;
+    };
+
+    const today = new Date();
+    const from = new Date(today.getFullYear(), today.getMonth() - 6, 1);
+    const to = new Date(today.getFullYear() + 1, today.getMonth(), 1);
+    const iso = (d) => d.toISOString().split('T')[0];
+
+    let apps;
+    try {
+        apps = await integration.pullLeaveApplications(iso(from), iso(to));
+    } catch (err) {
+        await integration.logSync('leaves', SYNC_DIRECTION.PULL, 'failed', stats, err.message);
+        throw err;
+    }
+
+    if (!apps.length) {
+        await integration.logSync('leaves', SYNC_DIRECTION.PULL, 'success', stats,
+            'HRMS returned no leave applications in the window');
+        log('INFO', 'No leave applications returned', { integration: integration.name });
+        return stats;
+    }
+
+    for (const a of apps) {
+        stats.processed++;
+        try {
+            // leave_applications has a foreign key to employees. An application
+            // for somebody this system has never seen — a leaver, or a record
+            // the employee pull filtered out — would fail the insert, so it is
+            // skipped rather than counted as an error.
+            const known = await db.query(
+                'SELECT 1 FROM employees WHERE employee_code = $1 LIMIT 1', [a.employee_code]
+            );
+            if (!known.rows.length) continue;
+
+            const typeId = await resolveLeaveType(a.leave_type_code);
+
+            await db.query(`
+                INSERT INTO leave_applications
+                    (external_id, employee_code, leave_type_id, from_date, to_date,
+                     total_days, status, reason, is_half_day)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+                ON CONFLICT (external_id) DO UPDATE SET
+                    leave_type_id = COALESCE(EXCLUDED.leave_type_id, leave_applications.leave_type_id),
+                    from_date     = EXCLUDED.from_date,
+                    to_date       = EXCLUDED.to_date,
+                    total_days    = EXCLUDED.total_days,
+                    status        = EXCLUDED.status,
+                    is_half_day   = EXCLUDED.is_half_day
+            `, [
+                a.external_id, a.employee_code, typeId, a.from_date, a.to_date,
+                a.total_days, a.status,
+                // reason is NOT NULL on this table, and ERPNext's description
+                // is optional.
+                a.reason || 'Imported from HRMS', a.is_half_day
+            ]);
+            stats.success++;
+        } catch (err) {
+            stats.failed++;
+            firstError = firstError || `${a.external_id}: ${err.message}`;
+            log('WARN', 'Leave application upsert failed', { id: a.external_id, error: err.message });
+        }
+    }
+
+    const outcome = stats.failed > 0 ? (stats.success > 0 ? 'partial' : 'failed') : 'success';
+    await integration.logSync('leaves', SYNC_DIRECTION.PULL, outcome, stats, firstError);
+    log('INFO', 'Leave pulled', stats);
+    return stats;
+};
+
 const syncEmployeesFromHRMS = async (integration) => {
     try {
         log('INFO', 'Pulling employees from HRMS', { integration: integration.name });
@@ -880,5 +1023,6 @@ module.exports = {
     runScheduledSync,
     syncAttendanceToHRMS,
     syncEmployeesFromHRMS,
+    syncLeavesFromHRMS,
     startScheduledSync
 };

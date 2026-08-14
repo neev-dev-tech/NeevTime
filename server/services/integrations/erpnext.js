@@ -254,6 +254,95 @@ class ERPNextIntegration extends BaseIntegration {
     }
 
     /**
+     * Fetch a doctype as a list, falling back to per-document reads.
+     *
+     * Frappe rejects the whole query when any requested field is unknown to
+     * that doctype — the Shift Type pull failed outright on one optional
+     * field. Fetching every document individually avoids that but costs a
+     * request each, which is fine for a handful of shifts and wrong for
+     * hundreds of leave applications.
+     *
+     * So: ask for the fields, and if Frappe objects to any of them, fall back
+     * to names plus per-document reads. Fast where the fields exist, correct
+     * where they do not.
+     */
+    async _listOrFetch(doctype, fields, params = {}) {
+        try {
+            const res = await this.client.get(`/api/resource/${encodeURIComponent(doctype)}`, {
+                params: { fields: JSON.stringify(fields), limit_page_length: 0, ...params }
+            });
+            return res.data.data || [];
+        } catch (err) {
+            const body = err.response?.data ? JSON.stringify(err.response.data) : '';
+            if (!/Field not permitted in query/i.test(body)) {
+                throw new Error(`ERPNext list ${doctype} failed: ${body || err.message}`);
+            }
+            console.warn(`ERPNext: ${doctype} rejected a requested field; falling back to per-document reads`);
+        }
+
+        const list = await this.client.get(`/api/resource/${encodeURIComponent(doctype)}`, {
+            params: { limit_page_length: 0, ...params }
+        });
+        const docs = [];
+        for (const row of (list.data.data || [])) {
+            if (!row.name) continue;
+            try {
+                const doc = await this.client.get(
+                    `/api/resource/${encodeURIComponent(doctype)}/${encodeURIComponent(row.name)}`
+                );
+                docs.push(doc.data.data || {});
+            } catch (e) {
+                console.error(`ERPNext: could not read ${doctype} "${row.name}":`, e.message);
+            }
+        }
+        return docs;
+    }
+
+    /**
+     * Pull leave types.
+     */
+    async pullLeaveTypes() {
+        const rows = await this._listOrFetch('Leave Type', ['name', 'is_lwp']);
+        return rows.filter(t => t.name).map(t => ({
+            code: t.name,
+            name: t.name,
+            // ERPNext marks unpaid leave with is_lwp ("leave without pay"), so
+            // paid is its inverse rather than a field of its own.
+            is_paid: !t.is_lwp
+        }));
+    }
+
+    /**
+     * Pull leave applications over a date window.
+     *
+     * Bounded because the whole history is not wanted — the absent report looks
+     * back six months, and an unbounded pull on a company with years of leave
+     * would fetch thousands of rows every five minutes.
+     */
+    async pullLeaveApplications(fromDate, toDate) {
+        const rows = await this._listOrFetch(
+            'Leave Application',
+            ['name', 'employee', 'leave_type', 'from_date', 'to_date',
+             'total_leave_days', 'status', 'description', 'half_day'],
+            { filters: JSON.stringify([['to_date', '>=', fromDate], ['from_date', '<=', toDate]]) }
+        );
+
+        return rows.filter(r => r.name && r.employee && r.from_date && r.to_date).map(r => ({
+            external_id: r.name,
+            employee_code: r.employee,
+            leave_type_code: r.leave_type,
+            from_date: String(r.from_date).split(' ')[0],
+            to_date: String(r.to_date).split(' ')[0],
+            total_days: Number(r.total_leave_days) || 1,
+            // Lowercased because the absent report matches on 'approved', and
+            // ERPNext capitalises its workflow states.
+            status: String(r.status || 'Open').toLowerCase(),
+            reason: r.description || null,
+            is_half_day: Boolean(r.half_day)
+        }));
+    }
+
+    /**
      * Push attendance to ERPNext (Employee Checkin)
      * 
      * Handles devices that don't distinguish IN/OUT (punch_state=255 or 0):

@@ -1863,6 +1863,62 @@ const ensureSchema = async () => {
         `ALTER TABLE holidays ADD COLUMN IF NOT EXISTS description TEXT`,
         `ALTER TABLE holidays ADD COLUMN IF NOT EXISTS is_optional BOOLEAN DEFAULT false`,
         `ALTER TABLE holiday_locations ADD COLUMN IF NOT EXISTS description TEXT`,
+        // Leave. Every column the leave sync writes, added here rather than
+        // assumed — the holidays table taught that lesson at the cost of a
+        // deploy.
+        // Widen anything the HRMS writes into that was sized for hand-entered
+        // values. Frappe document names run to 140 characters, and these were
+        // built for short local codes: leave_types.code was varchar(10), which
+        // "Casual Leave" does not fit in, and shifts.code was varchar(20)
+        // against a real shift named "Flexible Shift 1st Aug 2025".
+        //
+        // ADD COLUMN IF NOT EXISTS does not widen a column that already exists,
+        // so this has to be its own statement. Guarded on the current length
+        // because ALTER TYPE rewrites the table, and doing that on every boot
+        // for no reason is how a restart turns into an outage on a big table.
+        `DO $$
+         DECLARE r RECORD;
+         BEGIN
+           FOR r IN
+             SELECT table_name, column_name
+             FROM information_schema.columns
+             WHERE table_schema = 'public'
+               AND data_type = 'character varying'
+               AND character_maximum_length < 140
+               AND (table_name, column_name) IN (
+                     ('leave_types','code'), ('leave_types','name'),
+                     ('shifts','code'), ('shifts','name'),
+                     ('holidays','name'), ('holiday_locations','code'),
+                     ('holiday_locations','name'), ('leave_applications','external_id'),
+                     ('leave_applications','status')
+                   )
+           LOOP
+             -- Each column in its own block. A column a view depends on cannot
+             -- be widened without dropping the view first, and in a single
+             -- block that one failure aborts every other widening with it —
+             -- which is exactly what happened: one view on
+             -- holiday_locations.name left leave_types.code at varchar(10),
+             -- still too narrow for "Casual Leave".
+             BEGIN
+               EXECUTE format('ALTER TABLE %I ALTER COLUMN %I TYPE VARCHAR(140)', r.table_name, r.column_name);
+             EXCEPTION WHEN OTHERS THEN
+               RAISE NOTICE 'Could not widen %.%: %', r.table_name, r.column_name, SQLERRM;
+             END;
+           END LOOP;
+         END $$`,
+        `ALTER TABLE leave_types ADD COLUMN IF NOT EXISTS code VARCHAR(140)`,
+        `ALTER TABLE leave_types ADD COLUMN IF NOT EXISTS is_paid BOOLEAN DEFAULT true`,
+        `ALTER TABLE leave_types ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true`,
+        `DROP INDEX IF EXISTS leave_types_code_key`,
+        `CREATE UNIQUE INDEX IF NOT EXISTS leave_types_code_key ON leave_types (code)`,
+        // The HRMS's own identifier for the application, and the only stable
+        // way to upsert one. Matching on employee and dates instead would
+        // duplicate the moment someone edits a leave's dates in ERPNext, and
+        // leave the old row behind still exempting them from absence.
+        `ALTER TABLE leave_applications ADD COLUMN IF NOT EXISTS external_id VARCHAR(140)`,
+        `ALTER TABLE leave_applications ADD COLUMN IF NOT EXISTS is_half_day BOOLEAN DEFAULT false`,
+        `DROP INDEX IF EXISTS leave_applications_external_id_key`,
+        `CREATE UNIQUE INDEX IF NOT EXISTS leave_applications_external_id_key ON leave_applications (external_id)`,
         `ALTER TABLE holiday_locations ADD COLUMN IF NOT EXISTS code VARCHAR(140)`,
         `DROP INDEX IF EXISTS holiday_locations_code_key`,
         `CREATE UNIQUE INDEX IF NOT EXISTS holiday_locations_code_key ON holiday_locations (code)`,
