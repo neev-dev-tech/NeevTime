@@ -77,11 +77,35 @@ head_ "2. HTTP"
 code=$(curl -s -o /dev/null -w '%{http_code}' "$APP_URL/" 2>/dev/null)
 [ "$code" = "200" ] && ok "GET / returns 200" || bad "GET / returns ${code:-no response}"
 
-health=$(curl -s "$APP_URL/api/health" 2>/dev/null)
+# Wait for it rather than asking once.
+#
+# This script is meant to be chained onto the deploy, so it runs the same
+# second the container is recreated. nginx binds immediately; node takes a few
+# seconds more to boot and start listening on 3001. Probing once in that window
+# gets a 502 from nginx and reports a broken deploy that is actually mid-start
+# — which is exactly what happened the first time this ran: the nginx error and
+# the container start timestamp were the same second, while punches were
+# arriving normally.
+#
+# Poll for up to 60s. A deploy that is genuinely broken still fails, just 60s
+# later; a deploy that is merely starting passes, which is the correct answer.
+health=""
+for i in $(seq 1 30); do
+    health=$(curl -s --max-time 3 "$APP_URL/api/health" 2>/dev/null)
+    echo "$health" | grep -q '"status":"healthy"' && break
+    [ "$i" = 1 ] && printf '  ....  waiting for the app to finish starting'
+    printf '.'
+    sleep 2
+done
+[ -n "${i:-}" ] && [ "$i" != "1" ] && echo
+
 if echo "$health" | grep -q '"status":"healthy"'; then
-    ok "/api/health healthy, database connected"
+    up=$(echo "$health" | grep -o '"uptime":[0-9.]*' | cut -d: -f2 | cut -d. -f1)
+    ok "/api/health healthy, database connected (node up ${up:-?}s)"
+elif echo "$health" | grep -q '502 Bad Gateway'; then
+    bad "/api/health still 502 after 60s — nginx is up but node is not listening on 3001. Check: docker logs $APP_CONTAINER --tail 50"
 else
-    bad "/api/health: ${health:-no response}"
+    bad "/api/health: ${health:-no response after 60s}"
 fi
 
 # ── 3. Is the browser going to get the new build? ─────────────────────────
@@ -148,12 +172,21 @@ fi
 
 # ── 5. Errors since the deploy ────────────────────────────────────────────
 head_ "5. Recent errors"
-errs=$(d logs --since 5m "$APP_CONTAINER" 2>&1 | grep -ciE '\[ERROR\]|UnhandledPromise|ECONNREFUSED' || true)
+# nginx logs one "connect() failed (111: Connection refused) ... upstream"
+# for every request that lands in the gap between nginx binding and node
+# listening. On a fresh deploy that is expected and says nothing about health —
+# the polling check above is what actually decides whether node came up. Left
+# in the count it reports a warning on every single successful deploy, which
+# trains you to ignore the section.
+NOISE='connect() failed .*upstream'
+errline() { d logs --since 5m "$APP_CONTAINER" 2>&1 | grep -iE '\[ERROR\]|UnhandledPromise|ECONNREFUSED' | grep -vE "$NOISE"; }
+
+errs=$(errline | grep -c . || true)
 if [ "${errs:-0}" -eq 0 ]; then
     ok "no errors in the last 5 minutes"
 else
     note "$errs error lines in the last 5 minutes:"
-    d logs --since 5m "$APP_CONTAINER" 2>&1 | grep -iE '\[ERROR\]|UnhandledPromise|ECONNREFUSED' | tail -5 | sed 's/^/        /'
+    errline | tail -5 | sed 's/^/        /'
 fi
 
 # ── Summary ───────────────────────────────────────────────────────────────
