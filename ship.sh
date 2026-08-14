@@ -113,9 +113,17 @@ DB_NAME="${DB_NAME:-attendance_db}"
 STAMP="$(date +%Y%m%d-%H%M%S)"
 DUMP="$BACKUP_DIR/pre-deploy-$STAMP-$(git rev-parse --short "$PREVIOUS").dump"
 
-if ! docker compose -f "$COMPOSE_FILE" exec -T db \
+# Bounded. An unresponsive docker daemon makes `compose exec` wait indefinitely,
+# and a deploy script that hangs is worse than one that fails: nobody knows
+# whether to wait or intervene.
+if ! timeout 300 docker compose -f "$COMPOSE_FILE" exec -T db \
         pg_dump -U "$DB_USER" -F c "$DB_NAME" > "$DUMP" 2>/dev/null; then
+    STATUS=$?
     rm -f "$DUMP"
+    if [ "$STATUS" -eq 124 ]; then
+        die "pg_dump did not finish within 5 minutes. Check that the db container
+        is running and that docker is responding."
+    fi
     die "pg_dump failed. Not deploying without a snapshot."
 fi
 
