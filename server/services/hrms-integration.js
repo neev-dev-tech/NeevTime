@@ -673,6 +673,22 @@ const syncEmployeesFromHRMS = async (integration) => {
 // Start scheduled sync (every 5 minutes check)
 const startScheduledSync = () => {
     setInterval(runScheduledSync, 5 * 60 * 1000);
+
+    // setInterval alone means the first sync after any restart is five minutes
+    // away, so every deploy silently pauses integration for that long — and
+    // when a deploy is what changed the sync, five minutes of "nothing has
+    // happened" looks exactly like the change not working.
+    //
+    // The 30s delay is for ensureSchema: it adds the columns a sync writes to,
+    // and starting before it finishes would fail the first run for a reason
+    // that has nothing to do with the HRMS. runScheduledSync still checks each
+    // integration's own interval, so this cannot sync more often than
+    // configured — it only stops the clock starting from zero on every boot.
+    setTimeout(() => {
+        runScheduledSync().catch(err =>
+            log('ERROR', 'Startup sync failed', { error: err.message }));
+    }, 30 * 1000);
+
     log('INFO', 'Scheduled sync started');
 };
 
