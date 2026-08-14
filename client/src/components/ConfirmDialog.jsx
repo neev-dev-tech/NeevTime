@@ -1,6 +1,7 @@
 import React from 'react';
-import { AlertTriangle, X } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import Button from './ui/Button';
+import Modal from './Modal';
 
 let resolveCallback = null;
 let rejectCallback = null;
@@ -59,8 +60,6 @@ export default function ConfirmDialog() {
         }
     };
 
-    if (!isOpen) return null;
-
     const colorSchemes = {
         warning: {
             icon: 'text-yellow-600 dark:text-yellow-300',
@@ -90,62 +89,32 @@ export default function ConfirmDialog() {
     const confirmColor = options.confirmButtonColor || confirmColorByType[options.type] || confirmColorByType.warning;
 
     return (
-        <>
-            {/* Backdrop */}
-            <div
-                className="fixed inset-0 bg-black bg-opacity-50 z-[9998] transition-opacity"
-                onClick={handleCancel}
-            />
-            
-            {/* Dialog */}
-            <div 
-                className="fixed inset-0 z-[9999] flex items-center justify-center p-4 pointer-events-none"
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="confirm-dialog-title"
-                aria-describedby="confirm-dialog-description"
-            >
-                <div
-                    className={`bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-md w-full p-6 pointer-events-auto transform transition-ui ${
-                        isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
-                    }`}
-                    onClick={(e) => e.stopPropagation()}
-                >
-                    <div className="flex items-start gap-4">
-                        <div className={`${scheme.bg} ${scheme.border} border-2 rounded-full p-2 flex-shrink-0`}>
-                            <AlertTriangle className={scheme.icon} size={24} />
-                        </div>
-                        <div className="flex-1">
-                            <h3 id="confirm-dialog-title" className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
-                                {options.title}
-                            </h3>
-                            <p id="confirm-dialog-description" className="text-sm text-slate-600 dark:text-slate-400 mb-6">
-                                {options.message}
-                            </p>
-                            <div className="flex gap-3 justify-end">
-                                <Button variant="secondary" onClick={handleCancel}>
-                                    {options.cancelText}
-                                </Button>
-                                <button
-                                    onClick={handleConfirm}
-                                    className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors ${confirmColor}`}
-                                >
-                                    {options.confirmText}
-                                </button>
-                            </div>
-                        </div>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            icon={X}
-                            onClick={handleCancel}
-                            className="flex-shrink-0"
-                            aria-label="Close dialog"
-                        />
-                    </div>
+        <Modal
+            open={isOpen}
+            onClose={handleCancel}
+            title={options.title}
+            footer={
+                <>
+                    <Button variant="secondary" onClick={handleCancel}>
+                        {options.cancelText}
+                    </Button>
+                    <button
+                        onClick={handleConfirm}
+                        className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors ${confirmColor}`}
+                    >
+                        {options.confirmText}
+                    </button>
+                </>
+            }
+        >
+            <div className="flex items-start gap-4">
+                <div className={`${scheme.bg} ${scheme.border} border-2 rounded-full p-2 flex-shrink-0`}>
+                    <AlertTriangle className={scheme.icon} size={24} />
                 </div>
+                <p className="text-sm text-slate-600 dark:text-slate-400 pt-2">
+                    {options.message}
+                </p>
             </div>
-        </>
+        </Modal>
     );
 }
-

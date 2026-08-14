@@ -2,6 +2,7 @@ import React from 'react';
 import { Info } from 'lucide-react';
 import { APP_VERSION, BUILD_DATE } from '../constants/version';
 import Button from './ui/Button';
+import Modal from './Modal';
 
 /**
  * Version Display Component
@@ -34,48 +35,33 @@ export default function VersionDisplay({ className = '' }) {
  * Shows detailed version information
  */
 export function VersionInfoModal({ isOpen, onClose }) {
-    if (!isOpen) return null;
-
     return (
-        <>
-            <div
-                className="fixed inset-0 bg-black bg-opacity-50 z-[9998]"
-                onClick={onClose}
-            />
-            <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 pointer-events-none">
-                <div
-                    className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-md w-full p-6 pointer-events-auto"
-                    onClick={(e) => e.stopPropagation()}
-                >
-                    <h2 className="text-xl font-bold mb-4 text-slate-900 dark:text-slate-100">
-                        Version Information
-                    </h2>
-                    <div className="space-y-3 text-sm">
-                        <div>
-                            <span className="font-semibold text-slate-700 dark:text-slate-300">Version:</span>
-                            <span className="ml-2 text-slate-600 dark:text-slate-400">{APP_VERSION}</span>
-                        </div>
-                        {BUILD_DATE && (
-                            <div>
-                                <span className="font-semibold text-slate-700 dark:text-slate-300">Build Date:</span>
-                                <span className="ml-2 text-slate-600 dark:text-slate-400">
-                                    {new Date(BUILD_DATE).toLocaleString()}
-                                </span>
-                            </div>
-                        )}
-                        <div>
-                            <span className="font-semibold text-slate-700 dark:text-slate-300">Environment:</span>
-                            <span className="ml-2 text-slate-600 dark:text-slate-400">
-                                {import.meta.env.MODE || 'production'}
-                            </span>
-                        </div>
+        <Modal
+            open={isOpen}
+            onClose={onClose}
+            title="Version Information"
+            footer={<Button variant="primary" onClick={onClose}>Close</Button>}
+        >
+            <div className="space-y-3 text-sm">
+                <div>
+                    <span className="font-semibold text-slate-700 dark:text-slate-300">Version:</span>
+                    <span className="ml-2 text-slate-600 dark:text-slate-400">{APP_VERSION}</span>
+                </div>
+                {BUILD_DATE && (
+                    <div>
+                        <span className="font-semibold text-slate-700 dark:text-slate-300">Build Date:</span>
+                        <span className="ml-2 text-slate-600 dark:text-slate-400">
+                            {new Date(BUILD_DATE).toLocaleString()}
+                        </span>
                     </div>
-                    <Button variant="primary" onClick={onClose} className="mt-6 w-full">
-                        Close
-                    </Button>
+                )}
+                <div>
+                    <span className="font-semibold text-slate-700 dark:text-slate-300">Environment:</span>
+                    <span className="ml-2 text-slate-600 dark:text-slate-400">
+                        {import.meta.env.MODE || 'production'}
+                    </span>
                 </div>
             </div>
-        </>
+        </Modal>
     );
 }
-
