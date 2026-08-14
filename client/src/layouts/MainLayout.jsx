@@ -299,7 +299,7 @@ export default function MainLayout({ children }) {
           </div>
         )}
 
-        <main className="flex-1 overflow-auto">
+        <main className="flex-1 min-w-0 overflow-auto">
           {/* Plain div, and deliberately not animated.
               This was `<AnimatePresence mode="wait">` with an exit of opacity
               0, which is what made every navigation blink: the old page faded

@@ -54,7 +54,14 @@ export default function DonutCard({ title, subtitle, data, colors, emptyMessage,
             ) : (
                 <>
                     <div className="relative h-48 mt-2">
-                        <ResponsiveContainer width="100%" height="100%">
+                        {/* Explicit height rather than "100%", and minWidth 0.
+                            height="100%" makes recharts measure the parent, and
+                            when it measures before layout has settled it reports
+                            width(-1) and height(-1) and warns. 192px is h-48, so
+                            nothing moves. minWidth={0} is recharts' own advice
+                            for a chart inside a flex or grid cell, which this
+                            is — the card is a flex column in a 3-up grid. */}
+                        <ResponsiveContainer width="100%" height={192} minWidth={0}>
                             <PieChart>
                                 <Pie
                                     data={slices}
