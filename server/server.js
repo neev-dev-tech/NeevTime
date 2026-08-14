@@ -1822,6 +1822,11 @@ const ensureSchema = async () => {
         // and read by the absent report; present here but created by none of
         // the schema files, same as default_shift_id.
         `ALTER TABLE employees ADD COLUMN IF NOT EXISTS holiday_location_id INTEGER`,
+        // Only schema_easytime.sql creates this, and the schema files are
+        // history rather than a contract — the absent report already guards on
+        // whether the column exists. The HRMS pull now writes it when someone
+        // is retired, so it has to be guaranteed rather than hoped for.
+        `ALTER TABLE employees ADD COLUMN IF NOT EXISTS attendance_required BOOLEAN DEFAULT TRUE`,
         // Populated from the HRMS Shift Type. Same reasoning: the report reads
         // them, so a database without them measures everyone against the
         // caller's fallback instead of their own shift.

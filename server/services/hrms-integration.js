@@ -968,9 +968,59 @@ const syncEmployeesFromHRMS = async (integration) => {
             return id;
         };
 
+        // The HRMS can retire someone, but it must never un-retire someone.
+        //
+        // A resignation entered here writes status='resigned' directly. ERPNext
+        // often still lists that person as Active for a while, so mapping its
+        // status straight across would flip them back to active on the next
+        // sync and undo the decision. Deactivation flows in; reactivation does
+        // not, and is done here through the rehire endpoint.
+        const retirementFor = (hrmsStatus) => {
+            switch (String(hrmsStatus || '').trim().toLowerCase()) {
+                case 'left': return 'resigned';
+                case 'inactive':
+                case 'suspended': return 'inactive';
+                default: return null;   // Active, or unrecognised: leave alone
+            }
+        };
+
         for (const emp of employees) {
             stats.processed++;
             try {
+                const retireTo = retirementFor(emp.hrms_status);
+
+                // Someone who left before this system existed should not be
+                // created here just to be marked resigned. Only update people
+                // who are already known.
+                if (retireTo) {
+                    const existing = await db.query(
+                        'SELECT id, status, name FROM employees WHERE employee_code = $1',
+                        [emp.employee_code]
+                    );
+                    if (!existing.rows.length) { stats.skipped = (stats.skipped || 0) + 1; continue; }
+
+                    if (existing.rows[0].status !== retireTo) {
+                        // attendance_required goes false with them. Leaving it
+                        // true is what made a departed employee keep generating
+                        // an absence for every working day after they left.
+                        await db.query(
+                            `UPDATE employees
+                                SET status = $2, attendance_required = FALSE
+                              WHERE employee_code = $1`,
+                            [emp.employee_code, retireTo]
+                        );
+                        log('INFO', 'Employee retired from HRMS status', {
+                            employee_code: emp.employee_code,
+                            name: existing.rows[0].name,
+                            from: existing.rows[0].status,
+                            to: retireTo
+                        });
+                        stats.retired = (stats.retired || 0) + 1;
+                    }
+                    stats.success++;
+                    continue;
+                }
+
                 const departmentId = await resolveDepartment(emp.department_name);
                 const shiftId = await resolveShift(emp.shift_code);
                 const holidayLocationId = await resolveHolidayList(emp.holiday_list_code);

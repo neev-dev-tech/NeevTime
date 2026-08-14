@@ -46,7 +46,7 @@ export default function Departments() {
             setFilteredDepartments(departments);
         } else {
             setFilteredDepartments(departments.filter(d =>
-                d.name.toLowerCase().includes(searchQuery.toLowerCase())
+                String(d.name ?? '').toLowerCase().includes(searchQuery.toLowerCase())
             ));
         }
     }, [searchQuery, departments]);

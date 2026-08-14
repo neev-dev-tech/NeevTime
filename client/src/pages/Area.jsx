@@ -229,8 +229,8 @@ export default function Area() {
     const tableData = (selectedArea
         ? areas.filter(a => a.parent_area_id === selectedArea.id)
         : areas).filter(a =>
-            a.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            (a.code && a.code.toLowerCase().includes(searchQuery.toLowerCase()))
+            String(a.name ?? '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+            String(a.code ?? '').toLowerCase().includes(searchQuery.toLowerCase())
         );
 
     return (

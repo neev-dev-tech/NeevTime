@@ -43,9 +43,9 @@ export default function EmployeeDocs() {
         } else {
             const lower = searchQuery.toLowerCase();
             setFilteredDocuments(documents.filter(doc =>
-                doc.doc_name.toLowerCase().includes(lower) ||
-                doc.employee_code.toLowerCase().includes(lower) ||
-                (doc.employee_name && doc.employee_name.toLowerCase().includes(lower))
+                String(doc.doc_name ?? '').toLowerCase().includes(lower) ||
+                String(doc.employee_code ?? '').toLowerCase().includes(lower) ||
+                String(doc.employee_name ?? '').toLowerCase().includes(lower)
             ));
         }
     }, [searchQuery, documents]);

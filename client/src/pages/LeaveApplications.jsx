@@ -49,7 +49,7 @@ export default function LeaveApplications() {
     useEffect(() => {
         let res = applications;
         if (searchQuery) {
-            res = res.filter(a => a.employee_name.toLowerCase().includes(searchQuery.toLowerCase()));
+            res = res.filter(a => String(a.employee_name ?? '').toLowerCase().includes(searchQuery.toLowerCase()));
         }
         if (statusFilter !== 'All') {
             res = res.filter(a => a.status === statusFilter);

@@ -126,10 +126,12 @@ export default function Employees() {
             setFilteredEmployees(employees);
         } else {
             const lower = searchQuery.toLowerCase();
+            // Every one of these is nullable. Two employees came across from
+            // ERPNext with no name at all, and e.name.toLowerCase() took the
+            // whole page down to the error boundary the moment anyone typed.
+            const has = (v) => String(v ?? '').toLowerCase().includes(lower);
             setFilteredEmployees(employees.filter(e =>
-                e.name.toLowerCase().includes(lower) ||
-                e.employee_code.toLowerCase().includes(lower) ||
-                (e.department_name && e.department_name.toLowerCase().includes(lower))
+                has(e.name) || has(e.employee_code) || has(e.department_name)
             ));
         }
     }, [searchQuery, employees]);

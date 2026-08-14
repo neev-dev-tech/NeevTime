@@ -109,8 +109,8 @@ const Geofences = () => {
     };
 
     const filteredGeofences = geofences.filter(g =>
-        g.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (g.address && g.address.toLowerCase().includes(searchTerm.toLowerCase()))
+        String(g.name ?? '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        String(g.address ?? '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (

@@ -84,9 +84,19 @@ router.post('/employees/resign', async (req, res) => {
         );
 
         // 3. Update employees status
+        //
+        // attendance_required follows the choice made in the dialog. It was
+        // recorded on the resignation row and then never applied, so a resigned
+        // employee kept being expected at work and generated an absence for
+        // every working day after they left.
         const updateResult = await client.query(
-            `UPDATE employees SET status = 'resigned', department_id = NULL WHERE id = $1 RETURNING *`,
-            [employee_id]
+            `UPDATE employees
+                SET status = 'resigned',
+                    department_id = NULL,
+                    attendance_required = $2
+              WHERE id = $1
+          RETURNING *`,
+            [employee_id, Boolean(attendance_enabled)]
         );
 
         await client.query('COMMIT');

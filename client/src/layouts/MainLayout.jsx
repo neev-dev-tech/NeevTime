@@ -76,7 +76,7 @@ export default function MainLayout({ children }) {
   }, [location.pathname, location.search, currentSidebar]);
 
   return (
-    <div className="app-shell flex flex-col min-h-screen font-sans">
+    <div className="app-shell flex flex-col h-screen font-sans">
       <AnimatedBackground />
       {/* A read-only account should be told so once, rather than discovering it
           as a failed save on every button it presses. */}
@@ -207,7 +207,17 @@ export default function MainLayout({ children }) {
         </div>
       </motion.header>
 
-      <div className="flex flex-1 overflow-hidden">
+      {/* h-screen on the shell, min-h-0 here. min-height:100vh is a minimum,
+          not a definite height, so flex-1 on this row had nothing to resolve
+          against and the row grew to fit its content instead. The root then
+          grew past the viewport and the WINDOW scrolled — which carried the
+          sidebar up with it. overflow-hidden cannot cap a row whose parent
+          height is indefinite. With a definite height the row is capped and
+          <main> does the scrolling on its own, which is what the sidebar
+          staying put depends on. min-h-0 is the companion fix: a flex item's
+          automatic minimum size is its content, so without it a long page
+          pushes the row open again from the inside. */}
+      <div className="flex flex-1 min-h-0 overflow-hidden">
         {activeModule !== 'Dashboard' && currentSidebar.length > 0 && (
           <aside className="w-64 border-r border-orange-200 dark:border-slate-700 flex-shrink-0 overflow-y-auto pb-10 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl">
             {currentSidebar.map((group, i) => (

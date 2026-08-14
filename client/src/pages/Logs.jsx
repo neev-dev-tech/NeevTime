@@ -93,7 +93,7 @@ export default function Logs() {
         const device = deviceMap[serial];
 
         if (device && device.device_direction) {
-            const dir = device.device_direction.toLowerCase();
+            const dir = String(device.device_direction ?? '').toLowerCase();
             if (dir === 'out') return 'OUT';
             if (dir === 'in') return 'IN';
             // If 'both' or 'none', stick to default

@@ -74,7 +74,11 @@ class ERPNextIntegration extends BaseIntegration {
                         // Which holiday list applies to this person.
                         'holiday_list'
                     ]),
-                    filters: JSON.stringify([['status', '=', 'Active']]),
+                    // No status filter. Filtering to Active meant anyone marked
+                    // Left in the HRMS simply vanished from the payload, so the
+                    // upsert never saw them and their row here stayed active
+                    // forever — people who had resigned months ago still
+                    // counted as staff and still accrued absences.
                     limit_page_length: 0  // Get all
                 }
             });
@@ -88,7 +92,9 @@ class ERPNextIntegration extends BaseIntegration {
                 designation: emp.designation,
                 joining_date: emp.date_of_joining,
                 shift_code: emp.default_shift,
-                holiday_list_code: emp.holiday_list
+                holiday_list_code: emp.holiday_list,
+                // Active | Inactive | Suspended | Left, per the Employee doctype.
+                hrms_status: emp.status
             }));
 
             return employees;
