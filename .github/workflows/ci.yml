@@ -72,8 +72,24 @@ jobs:
   isolation:
     name: Tenant isolation (real Postgres)
     runs-on: ubuntu-latest
-    # Only meaningful once the tenancy migrations exist. On branches without
-    # them this job is skipped rather than failing for the wrong reason.
+    # A real database, because the thing being tested is a database behaviour.
+    # Reading a policy proves nothing about whether it holds.
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_PASSWORD: ci
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: ci
     steps:
       - uses: actions/checkout@v4
 
@@ -84,7 +100,7 @@ jobs:
             echo "present=true" >> "$GITHUB_OUTPUT"
           else
             echo "present=false" >> "$GITHUB_OUTPUT"
-            echo "No tenancy migrations on this branch — skipping." >> "$GITHUB_STEP_SUMMARY"
+            echo "No tenancy migrations on this branch - skipping." >> "$GITHUB_STEP_SUMMARY"
           fi
 
       - uses: actions/setup-node@v4
@@ -94,28 +110,17 @@ jobs:
           cache: npm
           cache-dependency-path: server/package-lock.json
 
-      - name: Start Postgres
-        if: steps.check.outputs.present == 'true'
-        run: |
-          docker run -d --name pg -e POSTGRES_PASSWORD=ci -p 5432:5432 postgres:15-alpine
-          for i in $(seq 1 30); do
-            docker exec pg pg_isready -U postgres >/dev/null 2>&1 && break
-            sleep 1
-          done
-
       - name: Build the schema the way production builds it
         if: steps.check.outputs.present == 'true'
-        env:
-          PGPASSWORD: ci
         run: |
-          createdb() { docker exec pg psql -U postgres -q -c "$1" >/dev/null; }
-          docker exec pg psql -U postgres -q -c "CREATE DATABASE neevtime_ci" >/dev/null
+          psql -q -c "CREATE DATABASE neevtime_ci"
           for f in database/00_init_all.sql database/schema.sql \
                    database/schema_easytime.sql database/schema_expansion.sql; do
-            [ -f "$f" ] && docker exec -i pg psql -U postgres -q -d neevtime_ci < "$f" >/dev/null 2>&1 || true
+            [ -f "$f" ] && psql -q -d neevtime_ci -f "$f" >/dev/null 2>&1 || true
           done
+          echo "tables from schema files: $(psql -tAc "SELECT count(*) FROM pg_tables WHERE schemaname='public'" neevtime_ci)"
 
-      - name: Install and boot once so ensureSchema runs
+      - name: Boot once so ensureSchema runs
         if: steps.check.outputs.present == 'true'
         working-directory: server
         env:
@@ -127,8 +132,8 @@ jobs:
           PORT: '3999'
         run: |
           npm ci
-          timeout 25 node server.js > /tmp/boot.log 2>&1 || true
-          tail -3 /tmp/boot.log || true
+          timeout 30 node server.js > /tmp/boot.log 2>&1 || true
+          echo "tables after ensureSchema: $(psql -tAc "SELECT count(*) FROM pg_tables WHERE schemaname='public'" neevtime_ci)"
 
       - name: Apply migrations
         if: steps.check.outputs.present == 'true'
@@ -141,22 +146,18 @@ jobs:
           DB_PASSWORD: ci
         run: node migrations/runner.js up
 
-      # The application role must not be a superuser. A superuser bypasses
-      # row-level security, so the isolation tests would pass against a database
-      # with no isolation at all — the one false negative that would matter.
+      # Deliberately not a superuser. A superuser bypasses row-level security, so
+      # the tests below would pass against a database with no isolation at all —
+      # the one false negative that would matter.
       - name: Create the application role
         if: steps.check.outputs.present == 'true'
         run: |
-          docker exec pg psql -U postgres -q -d neevtime_ci -c "
-            CREATE ROLE neevtime_app LOGIN PASSWORD 'ci';
-            GRANT USAGE ON SCHEMA public TO neevtime_app;
-            GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO neevtime_app;
-            GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO neevtime_app;
-            GRANT EXECUTE ON FUNCTION app_current_tenant() TO neevtime_app;
-            INSERT INTO companies (id, name, code)
-              SELECT 2, 'CI Second Tenant', 'CI2'
-              WHERE NOT EXISTS (SELECT 1 FROM companies WHERE id = 2);
-          "
+          psql -q -d neevtime_ci -c "CREATE ROLE neevtime_app LOGIN PASSWORD 'ci'"
+          psql -q -d neevtime_ci -c "GRANT USAGE ON SCHEMA public TO neevtime_app"
+          psql -q -d neevtime_ci -c "GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO neevtime_app"
+          psql -q -d neevtime_ci -c "GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO neevtime_app"
+          psql -q -d neevtime_ci -c "GRANT EXECUTE ON FUNCTION app_current_tenant() TO neevtime_app"
+          psql -q -d neevtime_ci -c "INSERT INTO companies (id, name, code) SELECT 2, 'CI Second Tenant', 'CI2' WHERE NOT EXISTS (SELECT 1 FROM companies WHERE id = 2)"
 
       - name: Prove one customer cannot reach another's data
         if: steps.check.outputs.present == 'true'
