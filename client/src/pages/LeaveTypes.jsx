@@ -4,6 +4,7 @@ import api from '../api';
 import { Button, PageHeader, useToast } from '../components';
 import { TableToolbar, SortableTh, TablePager } from '../components/TableControls';
 import useTableControls from '../hooks/useTableControls';
+import Modal from '../components/Modal';
 
 const DEFAULT_FORM = { code: '', name: '', annual_quota: 12, carry_forward: false, color: '#3b82f6' };
 const BADGE_BASE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide';
@@ -162,14 +163,13 @@ export default function LeaveTypes() {
                 )}
             </div>
 
-            {showModal && (
-                <div className="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-sm border border-white/50 dark:border-slate-700">
-                        <div className="flex items-center justify-between p-4 border-b dark:border-slate-700">
-                            <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Add Leave Type</h3>
-                            <Button variant="ghost" size="sm" icon={X} iconSize={20} aria-label="Close" onClick={() => setShowModal(false)} />
-                        </div>
-                        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <Modal
+                open={showModal}
+                onClose={() => setShowModal(false)}
+                title="Add Leave Type"
+                size="sm"
+            >
+                        <form onSubmit={handleSubmit} className="space-y-4">
                             <div className="flex gap-3">
                                 <div className="w-24">
                                     <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">Code</label>
@@ -194,14 +194,15 @@ export default function LeaveTypes() {
                                 <input type="checkbox" checked={form.carry_forward} onChange={e => setForm(f => ({ ...f, carry_forward: e.target.checked }))} />
                                 Unused days carry forward to next year
                             </label>
+                            {/* Kept inside the form so Enter still submits and
+                                the buttons stay wired to it, rather than moved
+                                into Modal's footer slot which sits outside. */}
                             <div className="flex justify-end gap-3 pt-4 border-t dark:border-slate-700">
                                 <Button type="button" variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
                                 <Button type="submit" variant="primary">Save</Button>
                             </div>
                         </form>
-                    </div>
-                </div>
-            )}
+            </Modal>
         </div>
     );
 }
