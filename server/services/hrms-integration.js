@@ -120,6 +120,14 @@ class BaseIntegration {
     }
 
     /**
+     * Pull holiday lists and their dates. Optional, like pullShifts — an HRMS
+     * without the concept returns an empty array.
+     */
+    async pullHolidayLists() {
+        return [];
+    }
+
+    /**
      * Push attendance to HRMS
      */
     async pushAttendance(records) {
@@ -559,6 +567,87 @@ const syncShiftsFromHRMS = async (integration) => {
     return stats;
 };
 
+
+/**
+ * Pull holiday lists and the dates in them.
+ *
+ * The absent report treats any working day with no punch as an absence, so an
+ * empty holidays table makes every public holiday read as the entire company
+ * being absent. That is a large part of the inflated absence figures.
+ *
+ * Holidays are stored per list rather than merged into one flat set. ERPNext
+ * keeps a Holiday List per location, and flattening them would exempt everyone
+ * from absence on a day only one office was closed.
+ *
+ * Runs inside the employee sync for the same reason shifts do: an employee's
+ * holiday list arrives as a name, and resolving it needs the row to exist.
+ */
+const syncHolidaysFromHRMS = async (integration) => {
+    let lists;
+    try {
+        lists = await integration.pullHolidayLists();
+    } catch (err) {
+        await integration.logSync('holidays', SYNC_DIRECTION.PULL, 'failed',
+            { processed: 0, success: 0, failed: 0 }, err.message);
+        throw err;
+    }
+
+    if (!lists.length) {
+        await integration.logSync('holidays', SYNC_DIRECTION.PULL, 'success',
+            { processed: 0, success: 0, failed: 0 }, 'HRMS returned no holiday lists');
+        log('INFO', 'HRMS returned no holiday lists', { integration: integration.name });
+        return { processed: 0, success: 0, failed: 0 };
+    }
+
+    const stats = { processed: 0, success: 0, failed: 0 };
+    let firstError = null;
+
+    for (const list of lists) {
+        if (!list.code) continue;
+        let locationId;
+        try {
+            const loc = await db.query(`
+                INSERT INTO holiday_locations (code, name)
+                VALUES ($1, $2)
+                ON CONFLICT (code) DO UPDATE SET name = COALESCE(EXCLUDED.name, holiday_locations.name)
+                RETURNING id
+            `, [list.code, list.name || list.code]);
+            locationId = loc.rows[0].id;
+        } catch (err) {
+            firstError = firstError || `${list.code}: ${err.message}`;
+            log('WARN', 'Holiday list upsert failed', { code: list.code, error: err.message });
+            continue;
+        }
+
+        for (const h of list.holidays) {
+            // Weekly offs are every Sunday, already covered by the weekend rule
+            // in the absent report. Importing them would add 52 rows a year per
+            // list and change nothing.
+            if (h.weekly_off) continue;
+            stats.processed++;
+            try {
+                await db.query(`
+                    INSERT INTO holidays (holiday_location_id, date, name, type, description)
+                    VALUES ($1, $2, $3, 'public', $4)
+                    ON CONFLICT (COALESCE(holiday_location_id, 0), date) DO UPDATE SET
+                        name        = COALESCE(EXCLUDED.name, holidays.name),
+                        description = COALESCE(EXCLUDED.description, holidays.description)
+                `, [locationId, h.date, h.description || 'Holiday', h.description]);
+                stats.success++;
+            } catch (err) {
+                stats.failed++;
+                firstError = firstError || `${list.code} ${h.date}: ${err.message}`;
+                log('WARN', 'Holiday upsert failed', { code: list.code, date: h.date, error: err.message });
+            }
+        }
+    }
+
+    const outcome = stats.failed > 0 ? (stats.success > 0 ? 'partial' : 'failed') : 'success';
+    await integration.logSync('holidays', SYNC_DIRECTION.PULL, outcome, stats, firstError);
+    log('INFO', 'Holidays pulled', stats);
+    return stats;
+};
+
 const syncEmployeesFromHRMS = async (integration) => {
     try {
         log('INFO', 'Pulling employees from HRMS', { integration: integration.name });
@@ -571,6 +660,11 @@ const syncEmployeesFromHRMS = async (integration) => {
             await syncShiftsFromHRMS(integration);
         } catch (err) {
             log('WARN', 'Shift pull failed; continuing with employees', { error: err.message });
+        }
+        try {
+            await syncHolidaysFromHRMS(integration);
+        } catch (err) {
+            log('WARN', 'Holiday pull failed; continuing with employees', { error: err.message });
         }
 
         const employees = await integration.pullEmployees();
@@ -657,11 +751,30 @@ const syncEmployeesFromHRMS = async (integration) => {
             return id;
         };
 
+        // Same shape as resolveShift: a name from the HRMS matched against a
+        // row the holiday pull has just written. Unknown lists resolve to null
+        // rather than being created — an empty holiday list would exempt
+        // nobody, but it would look like a configured one.
+        const holidayCache = new Map();
+        const resolveHolidayList = async (code) => {
+            if (!code || typeof code !== 'string') return null;
+            const key = code.trim().toLowerCase();
+            if (!key) return null;
+            if (holidayCache.has(key)) return holidayCache.get(key);
+            const found = await db.query(
+                'SELECT id FROM holiday_locations WHERE lower(code) = $1 LIMIT 1', [key]
+            );
+            const id = found.rows.length ? found.rows[0].id : null;
+            holidayCache.set(key, id);
+            return id;
+        };
+
         for (const emp of employees) {
             stats.processed++;
             try {
                 const departmentId = await resolveDepartment(emp.department_name);
                 const shiftId = await resolveShift(emp.shift_code);
+                const holidayLocationId = await resolveHolidayList(emp.holiday_list_code);
 
                 // department_id is in the update clause, not just the insert.
                 // Everyone these deployments care about already exists, so an
@@ -670,18 +783,19 @@ const syncEmployeesFromHRMS = async (integration) => {
                 // rather than wiping it.
                 await db.query(`
                     INSERT INTO employees (employee_code, name, email, mobile, department_id,
-                                           default_shift_id, designation, status)
-                    VALUES ($1, $2, $3, $4, $5, $6, $7, 'active')
+                                           default_shift_id, holiday_location_id, designation, status)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'active')
                     ON CONFLICT (employee_code) DO UPDATE SET
                         name = COALESCE(EXCLUDED.name, employees.name),
                         email = COALESCE(EXCLUDED.email, employees.email),
                         mobile = COALESCE(EXCLUDED.mobile, employees.mobile),
                         department_id = COALESCE(EXCLUDED.department_id, employees.department_id),
                         default_shift_id = COALESCE(EXCLUDED.default_shift_id, employees.default_shift_id),
+                        holiday_location_id = COALESCE(EXCLUDED.holiday_location_id, employees.holiday_location_id),
                         designation = COALESCE(EXCLUDED.designation, employees.designation)
                 `, [
                     emp.employee_code, emp.name, emp.email, emp.mobile,
-                    departmentId, shiftId, emp.designation
+                    departmentId, shiftId, holidayLocationId, emp.designation
                 ]);
                 stats.success++;
             } catch (err) {

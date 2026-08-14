@@ -336,8 +336,24 @@ const generateAbsentReport = async (startDate, endDate, departmentId = null) => 
                 COALESCE(e.joining_date, e.date_of_joining, e.join_date) IS NULL
                 OR ds.work_date >= COALESCE(e.joining_date, e.date_of_joining, e.join_date)
             )
+            -- Honour whose holiday it is.
+            --
+            -- ERPNext keeps a Holiday List per location, so treating every
+            -- holiday as company-wide would exempt staff from absence on a day
+            -- their own site was open. A holiday with no location still applies
+            -- to everyone — that is how holidays entered by hand behave, and
+            -- how every existing row behaves — and an employee with no list
+            -- assigned is matched against any holiday, which is the lenient
+            -- reading and preserves the previous behaviour for anyone the HRMS
+            -- has not placed.
             AND NOT EXISTS (
-                SELECT 1 FROM holidays h WHERE h.date = ds.work_date
+                SELECT 1 FROM holidays h
+                WHERE h.date = ds.work_date
+                  AND (
+                      h.holiday_location_id IS NULL
+                      OR e.holiday_location_id IS NULL
+                      OR h.holiday_location_id = e.holiday_location_id
+                  )
             )
             -- A day on which nobody in the company punched at all is a day the
             -- system was not collecting: before this deployment existed, while

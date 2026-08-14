@@ -1818,6 +1818,10 @@ const ensureSchema = async () => {
         // late/early report. Present on this deployment but created by none of
         // the schema files, so a fresh install would fail the employee upsert.
         `ALTER TABLE employees ADD COLUMN IF NOT EXISTS default_shift_id INTEGER`,
+        // Which holiday list applies to this person. Written by the HRMS pull
+        // and read by the absent report; present here but created by none of
+        // the schema files, same as default_shift_id.
+        `ALTER TABLE employees ADD COLUMN IF NOT EXISTS holiday_location_id INTEGER`,
         // Populated from the HRMS Shift Type. Same reasoning: the report reads
         // them, so a database without them measures everyone against the
         // caller's fallback instead of their own shift.
@@ -1842,6 +1846,19 @@ const ensureSchema = async () => {
         // index already holds the name, partial included.
         `DROP INDEX IF EXISTS shifts_code_key`,
         `CREATE UNIQUE INDEX IF NOT EXISTS shifts_code_key ON shifts (code)`,
+        // Holidays belong to a list. ERPNext keeps one per location, and
+        // without the link every office's holidays apply to everybody —
+        // exempting staff from absence on a day their site was open.
+        `ALTER TABLE holidays ADD COLUMN IF NOT EXISTS holiday_location_id INTEGER`,
+        `ALTER TABLE holiday_locations ADD COLUMN IF NOT EXISTS code VARCHAR(140)`,
+        `DROP INDEX IF EXISTS holiday_locations_code_key`,
+        `CREATE UNIQUE INDEX IF NOT EXISTS holiday_locations_code_key ON holiday_locations (code)`,
+        // COALESCE, not a plain pair: a holiday with no location has a NULL
+        // there, and NULLs never conflict in a unique index, so the same
+        // company-wide date would insert again on every sync. Folding NULL to 0
+        // gives it a value to collide on.
+        `DROP INDEX IF EXISTS holidays_location_date_key`,
+        `CREATE UNIQUE INDEX IF NOT EXISTS holidays_location_date_key ON holidays (COALESCE(holiday_location_id, 0), date)`,
         `ALTER TABLE devices ADD COLUMN IF NOT EXISTS retired_at TIMESTAMP`,
         // Which family this reader belongs to. Installs that predate this column
         // already label their push-protocol devices 'ZKTeco' — eSSL readers speak

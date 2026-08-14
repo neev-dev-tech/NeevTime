@@ -70,7 +70,9 @@ class ERPNextIntegration extends BaseIntegration {
                         // measured against one hardcoded 09:00 start, which
                         // makes anyone on a later shift late every day they
                         // work.
-                        'default_shift'
+                        'default_shift',
+                        // Which holiday list applies to this person.
+                        'holiday_list'
                     ]),
                     filters: JSON.stringify([['status', '=', 'Active']]),
                     limit_page_length: 0  // Get all
@@ -85,7 +87,8 @@ class ERPNextIntegration extends BaseIntegration {
                 department_name: emp.department,
                 designation: emp.designation,
                 joining_date: emp.date_of_joining,
-                shift_code: emp.default_shift
+                shift_code: emp.default_shift,
+                holiday_list_code: emp.holiday_list
             }));
 
             return employees;
@@ -168,6 +171,60 @@ class ERPNextIntegration extends BaseIntegration {
         }
 
         return shifts;
+    }
+
+    /**
+     * Pull Holiday Lists and the dates inside them.
+     *
+     * The dates are a child table on the document. Frappe's list endpoint
+     * never returns child tables no matter what fields are asked for, so each
+     * list has to be fetched as a document — the same shape the Shift Type pull
+     * ended up needing, for a different reason.
+     *
+     * Returns `[{ code, name, holidays: [{ date, description, weekly_off }] }]`.
+     */
+    async pullHolidayLists() {
+        let names;
+        try {
+            const list = await this.client.get('/api/resource/Holiday List', {
+                params: { limit_page_length: 0 }
+            });
+            names = (list.data.data || []).map(r => r.name).filter(Boolean);
+        } catch (err) {
+            const detail = err.response?.data ? JSON.stringify(err.response.data) : err.message;
+            throw new Error(`ERPNext pull holiday lists failed: ${detail}`);
+        }
+
+        const lists = [];
+        for (const name of names) {
+            try {
+                const doc = (await this.client.get(
+                    `/api/resource/Holiday List/${encodeURIComponent(name)}`
+                )).data.data || {};
+
+                const rows = Array.isArray(doc.holidays) ? doc.holidays : [];
+                lists.push({
+                    code: doc.name || name,
+                    name: doc.holiday_list_name || doc.name || name,
+                    holidays: rows
+                        .filter(h => h && h.holiday_date)
+                        .map(h => ({
+                            date: String(h.holiday_date).split(' ')[0],
+                            description: h.description || null,
+                            // ERPNext puts weekly offs in the same table as real
+                            // holidays. They are every Sunday, not a holiday, and
+                            // importing them would mark 52 Sundays a year as
+                            // company holidays on top of the weekend rule that
+                            // already covers them.
+                            weekly_off: Boolean(h.weekly_off)
+                        }))
+                });
+            } catch (err) {
+                console.error(`ERPNext: could not read Holiday List "${name}":`, err.message);
+            }
+        }
+
+        return lists;
     }
 
     /**
