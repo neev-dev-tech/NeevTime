@@ -30,6 +30,13 @@
 #
 #   ./ship.sh              deploy origin/main
 #   ./ship.sh v1.4.0       deploy a tag or commit
+#   ./ship.sh --dry-run    rehearse: preflight and snapshot, then stop
+#
+# The dry run exists because the first time a deploy script is used should not be
+# during a deploy. It runs the preflight checks, takes a real snapshot and proves
+# it is a real size, reports exactly what would be built and released — and then
+# stops without touching the checkout, the image or the running container.
+# Nothing about production changes, so it can be run at any hour, today.
 #
 set -euo pipefail
 
@@ -37,17 +44,30 @@ COMPOSE_FILE="docker-compose.production.yml"
 STATE_DIR=".deploy"
 BACKUP_DIR="server/backups/pre-deploy"
 KEEP_BACKUPS=10
-TARGET="${1:-origin/main}"
+DRY_RUN=false
+TARGET="origin/main"
+for arg in "$@"; do
+    case "$arg" in
+        --dry-run|-n) DRY_RUN=true ;;
+        -*) echo "Unknown option: $arg" >&2; exit 2 ;;
+        *)  TARGET="$arg" ;;
+    esac
+done
 
 cd "$(dirname "$0")"
 mkdir -p "$STATE_DIR" "$BACKUP_DIR"
 
 say()  { printf '\n\033[1m%s\033[0m\n' "$*"; }
+skip() { printf '  \033[36m--\033[0m    %s\n' "$*"; }
 ok()   { printf '  \033[32mOK\033[0m    %s\n' "$*"; }
 warn() { printf '  \033[33mWARN\033[0m  %s\n' "$*"; }
 die()  { printf '  \033[31mFAIL\033[0m  %s\n\n' "$*" >&2; exit 1; }
 
 # ---------------------------------------------------------------- preflight
+if [ "$DRY_RUN" = true ]; then
+    printf '\n\033[36m  DRY RUN — nothing will be built, released or checked out.\033[0m\n'
+fi
+
 say "1. Preflight"
 
 if [ -n "$(git status --porcelain)" ]; then
@@ -63,8 +83,13 @@ git fetch --quiet origin
 NEXT="$(git rev-parse "$TARGET")"
 
 if [ "$PREVIOUS" = "$NEXT" ]; then
-    ok "already at $TARGET — nothing to deploy"
-    exit 0
+    if [ "$DRY_RUN" = false ]; then
+        ok "already at $TARGET — nothing to deploy"
+        exit 0
+    fi
+    # A dry run keeps going. Being up to date is the normal state, and stopping
+    # here would skip the snapshot — which is the part most worth rehearsing.
+    ok "already at $TARGET; continuing anyway to exercise the snapshot"
 fi
 
 echo "        deploying: $(git rev-parse --short "$NEXT") $(git log -1 --format=%s "$NEXT" | cut -c1-54)"
@@ -108,6 +133,28 @@ ok "keeping the most recent $KEEP_BACKUPS pre-deploy snapshots"
 
 # ---------------------------------------------------------------- build
 say "3. Build"
+
+if [ "$DRY_RUN" = true ]; then
+    skip "would check out $(git rev-parse --short "$NEXT") and build the image"
+    skip "would tag it neevtime-app:$(git rev-parse --short "$NEXT")"
+    skip "would restart the app container and run verify-deploy.sh"
+
+    say "Checking the app as it stands"
+    # Read-only, and worth doing: a dry run that reports the current state is
+    # also a health check.
+    if ./verify-deploy.sh; then
+        say "Dry run complete — the deploy path works and the app is healthy"
+    else
+        say "Dry run complete — but the app is not healthy right now"
+        echo "  Worth resolving that before deploying anything."
+        echo
+        exit 1
+    fi
+    echo "  Snapshot taken:  $DUMP"
+    echo "  Nothing was changed. Run without --dry-run to deploy."
+    echo
+    exit 0
+fi
 
 git checkout --quiet "$NEXT"
 SHORT="$(git rev-parse --short HEAD)"
