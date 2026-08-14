@@ -142,7 +142,6 @@ export default function AddEmployeeModal({
             }
         >
             <form onSubmit={handleSubmit(onFormSubmit)} noValidate>
-            >
                 {/* Personal Details Section */}
                 <div className="mb-8">
                     <div className="flex items-center gap-2 pb-3 mb-6 border-b border-slate-100 dark:border-slate-700">
