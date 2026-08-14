@@ -1909,6 +1909,17 @@ const ensureSchema = async () => {
         `ALTER TABLE leave_types ADD COLUMN IF NOT EXISTS code VARCHAR(140)`,
         `ALTER TABLE leave_types ADD COLUMN IF NOT EXISTS is_paid BOOLEAN DEFAULT true`,
         `ALTER TABLE leave_types ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true`,
+        // The type-level entitlement, pulled from ERPNext's max_leaves_allowed.
+        // Without it every quota is zero and "Initialize Year" seeds a grid of
+        // noughts.
+        `ALTER TABLE leave_types ADD COLUMN IF NOT EXISTS annual_quota NUMERIC DEFAULT 0`,
+        // Per-employee entitlement, from ERPNext Leave Allocation.
+        `ALTER TABLE leave_balances ADD COLUMN IF NOT EXISTS carry_forward_balance NUMERIC DEFAULT 0`,
+        `ALTER TABLE leave_balances ADD COLUMN IF NOT EXISTS accrued NUMERIC DEFAULT 0`,
+        // The upsert key. Allocations are re-read on every sync, and without it
+        // each run would insert another row per employee per leave type.
+        `CREATE UNIQUE INDEX IF NOT EXISTS leave_balances_emp_type_year_key
+             ON leave_balances (employee_code, leave_type_id, year)`,
         `DROP INDEX IF EXISTS leave_types_code_key`,
         `CREATE UNIQUE INDEX IF NOT EXISTS leave_types_code_key ON leave_types (code)`,
         // The HRMS's own identifier for the application, and the only stable

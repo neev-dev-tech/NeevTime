@@ -137,6 +137,11 @@ class BaseIntegration {
         return [];
     }
 
+    /** Pull per-employee leave allocations over a date window. Optional. */
+    async pullLeaveAllocations() {
+        return [];
+    }
+
     /**
      * Push attendance to HRMS
      */
@@ -709,12 +714,13 @@ const syncLeavesFromHRMS = async (integration) => {
             if (!t.code) continue;
             try {
                 await db.query(`
-                    INSERT INTO leave_types (code, name, is_paid, is_active)
-                    VALUES ($1, $2, $3, TRUE)
+                    INSERT INTO leave_types (code, name, is_paid, is_active, annual_quota)
+                    VALUES ($1, $2, $3, TRUE, $4)
                     ON CONFLICT (code) DO UPDATE SET
-                        name    = COALESCE(EXCLUDED.name, leave_types.name),
-                        is_paid = COALESCE(EXCLUDED.is_paid, leave_types.is_paid)
-                `, [t.code, t.name || t.code, t.is_paid !== false]);
+                        name         = COALESCE(EXCLUDED.name, leave_types.name),
+                        is_paid      = COALESCE(EXCLUDED.is_paid, leave_types.is_paid),
+                        annual_quota = COALESCE(EXCLUDED.annual_quota, leave_types.annual_quota)
+                `, [t.code, t.name || t.code, t.is_paid !== false, t.annual_quota ?? 0]);
             } catch (err) {
                 log('WARN', 'Leave type upsert failed', { code: t.code, error: err.message });
             }
@@ -795,6 +801,44 @@ const syncLeavesFromHRMS = async (integration) => {
             firstError = firstError || `${a.external_id}: ${err.message}`;
             log('WARN', 'Leave application upsert failed', { id: a.external_id, error: err.message });
         }
+    }
+
+    // Per-employee entitlements.
+    //
+    // The type-level quota is only a default; what an individual is actually
+    // entitled to lives in Leave Allocation, which is what ERPNext itself uses
+    // to compute a balance. Seeding from the quota alone gives everyone the
+    // same entitlement regardless of joining date, grade or carry-forward —
+    // and where no quota is configured either, a grid of zeroes.
+    try {
+        const allocs = await integration.pullLeaveAllocations(iso(from), iso(to));
+        for (const a of allocs) {
+            const typeId = await resolveLeaveType(a.leave_type_code);
+            if (!typeId) continue;
+            const known = await db.query(
+                'SELECT 1 FROM employees WHERE employee_code = $1 LIMIT 1', [a.employee_code]
+            );
+            if (!known.rows.length) continue;
+            try {
+                await db.query(`
+                    INSERT INTO leave_balances
+                        (employee_code, leave_type_id, year, opening_balance, carry_forward_balance, balance)
+                    VALUES ($1, $2, $3, $4, $5, $4)
+                    ON CONFLICT (employee_code, leave_type_id, year) DO UPDATE SET
+                        opening_balance       = EXCLUDED.opening_balance,
+                        carry_forward_balance = EXCLUDED.carry_forward_balance,
+                        updated_at            = NOW()
+                `, [a.employee_code, typeId, a.year, a.total_allocated, a.carry_forwarded]);
+            } catch (err) {
+                log('WARN', 'Leave allocation upsert failed',
+                    { employee: a.employee_code, error: err.message });
+            }
+        }
+        if (allocs.length) log('INFO', 'Leave allocations pulled', { count: allocs.length });
+    } catch (err) {
+        // Allocations are an enhancement to a sync that has already stored the
+        // applications. Losing them should not fail the whole run.
+        log('WARN', 'Leave allocation pull failed', { error: err.message });
     }
 
     const outcome = stats.failed > 0 ? (stats.success > 0 ? 'partial' : 'failed') : 'success';

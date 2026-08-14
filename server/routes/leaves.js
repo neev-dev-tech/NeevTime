@@ -32,11 +32,39 @@ router.delete('/leave-types/:id', async (req, res) => {
 router.get('/leave-balances', async (req, res) => {
     try {
         const { employee_code, year } = req.query;
+        // `used` is derived from approved applications, not read from the
+        // column.
+        //
+        // The stored value is only ever incremented when leave is applied for
+        // through this app, so the 511 applications imported from the HRMS
+        // never touched it and every balance read 0 used against real leave
+        // that had been taken. Counting the applications is the only figure
+        // that is true regardless of where the leave was entered.
+        //
+        // Days are counted per working day rather than trusting total_days,
+        // because a leave spanning a weekend reports more days than it costs,
+        // and half days count as half.
         let query = `
-            SELECT lb.*, lt.name as leave_type_name, lt.code as leave_code, lt.color, e.name as employee_name
+            SELECT lb.id, lb.employee_code, lb.leave_type_id, lb.year,
+                   lb.opening_balance, lb.accrued, lb.carry_forward_balance, lb.updated_at,
+                   COALESCE(u.days, 0) AS used,
+                   COALESCE(lb.opening_balance, 0) + COALESCE(lb.accrued, 0)
+                     + COALESCE(lb.carry_forward_balance, 0) - COALESCE(u.days, 0) AS balance,
+                   lt.name as leave_type_name, lt.code as leave_code, lt.color,
+                   e.name as employee_name
             FROM leave_balances lb
             JOIN leave_types lt ON lb.leave_type_id = lt.id
             JOIN employees e ON lb.employee_code = e.employee_code
+            LEFT JOIN LATERAL (
+                SELECT SUM(CASE WHEN la.is_half_day THEN 0.5 ELSE 1 END) AS days
+                FROM leave_applications la
+                CROSS JOIN LATERAL generate_series(la.from_date, la.to_date, INTERVAL '1 day') d
+                WHERE la.employee_code = lb.employee_code
+                  AND la.leave_type_id = lb.leave_type_id
+                  AND LOWER(la.status) = 'approved'
+                  AND EXTRACT(YEAR FROM d) = lb.year
+                  AND EXTRACT(DOW FROM d) NOT IN (0, 6)
+            ) u ON TRUE
         `;
         const params = [];
         const conditions = [];

@@ -302,13 +302,42 @@ class ERPNextIntegration extends BaseIntegration {
      * Pull leave types.
      */
     async pullLeaveTypes() {
-        const rows = await this._listOrFetch('Leave Type', ['name', 'is_lwp']);
+        const rows = await this._listOrFetch('Leave Type', ['name', 'is_lwp', 'max_leaves_allowed']);
         return rows.filter(t => t.name).map(t => ({
             code: t.name,
             name: t.name,
             // ERPNext marks unpaid leave with is_lwp ("leave without pay"), so
             // paid is its inverse rather than a field of its own.
-            is_paid: !t.is_lwp
+            is_paid: !t.is_lwp,
+            // The type-level entitlement. Without it every quota is zero, so
+            // "Initialize Year" seeds every balance at zero and the Leave
+            // Balances screen is a grid of noughts.
+            annual_quota: Number(t.max_leaves_allowed) || 0
+        }));
+    }
+
+    /**
+     * Pull per-employee leave allocations.
+     *
+     * The type-level quota is only a default. What an individual is actually
+     * entitled to lives in Leave Allocation, which is what ERPNext itself uses
+     * to compute a balance — so a quota alone would show everyone the same
+     * entitlement regardless of joining date, grade or carry-forward.
+     */
+    async pullLeaveAllocations(fromDate, toDate) {
+        const rows = await this._listOrFetch(
+            'Leave Allocation',
+            ['name', 'employee', 'leave_type', 'from_date', 'to_date',
+             'total_leaves_allocated', 'carry_forwarded_leaves_count'],
+            { filters: JSON.stringify([['to_date', '>=', fromDate], ['from_date', '<=', toDate]]) }
+        );
+
+        return rows.filter(r => r.employee && r.leave_type && r.from_date).map(r => ({
+            employee_code: r.employee,
+            leave_type_code: r.leave_type,
+            year: new Date(String(r.from_date).split(' ')[0]).getFullYear(),
+            total_allocated: Number(r.total_leaves_allocated) || 0,
+            carry_forwarded: Number(r.carry_forwarded_leaves_count) || 0
         }));
     }
 
