@@ -172,7 +172,11 @@ export default function DeviceCommands() {
                     <div className="card-base p-4">
                         <h3 className="font-semibold mb-3">Select Device</h3>
                         {loading ? (
-                            <div className="text-center py-4 text-slate-500 dark:text-slate-400">Loading devices...</div>
+                            <div className="space-y-2" aria-busy="true" aria-label="Loading devices">
+                                {Array.from({ length: 4 }).map((_, i) => (
+                                    <div key={i} className="h-12 rounded-lg bg-slate-100 dark:bg-slate-700/50 animate-pulse" />
+                                ))}
+                            </div>
                         ) : devices.length === 0 ? (
                             <div className="text-center py-4 text-slate-500 dark:text-slate-400">
                                 <WifiOff className="mx-auto mb-2 text-slate-300" size={32} />
@@ -322,8 +326,12 @@ export default function DeviceCommands() {
                             </Button>
                         </div>
                         {deviceCommands.length === 0 ? (
-                            <div className="text-center py-6 text-slate-500 dark:text-slate-400">
-                                No commands sent yet. Select a device and click a command to begin.
+                            <div className="py-10 text-center">
+                                <Send size={32} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                                <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No commands sent yet</h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">
+                                    Select a device above, then send it a command to see the history here.
+                                </p>
                             </div>
                         ) : (
                             <div className="space-y-2 max-h-80 overflow-y-auto">

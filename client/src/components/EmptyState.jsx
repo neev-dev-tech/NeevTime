@@ -12,11 +12,7 @@
  */
 
 import React from 'react';
-import {
-    Plus, Search, RefreshCw, FileText, Users, Calendar,
-    Building2, Fingerprint, Clock, AlertCircle, CheckCircle,
-    FolderOpen, Database, Wifi, WifiOff, Upload, Download
-} from 'lucide-react';
+import { Plus, RefreshCw, FileText, Building2, Clock } from 'lucide-react';
 
 /**
  * Base Empty State Component
@@ -52,13 +48,14 @@ export function EmptyState({
             ) : icon ? (
                 <div className={`
                     ${isCompact ? 'w-14 h-14 mb-4' : 'w-20 h-20 mb-6'}
-                    rounded-full bg-gradient-to-br from-orange-50 to-orange-100
-                    flex items-center justify-center
+                    rounded-full flex items-center justify-center
+                    bg-gradient-to-br from-orange-50 to-orange-100
+                    dark:from-orange-500/10 dark:to-orange-500/20
                     animate-pulse-subtle
                 `}>
                     {React.cloneElement(icon, {
                         size: isCompact ? 28 : 40,
-                        className: 'text-orange-400'
+                        className: 'text-orange-500 dark:text-orange-400'
                     })}
                 </div>
             ) : null}
@@ -120,101 +117,111 @@ export function EmptyState({
  * SVG Illustrations
  */
 
-// No Data Illustration
+// The illustrations carry their colour as Tailwind fill/stroke utilities
+// rather than literal hex, so they follow the theme. As literals they were a
+// white card with a cream ground, which on a slate-800 page reads as a hole
+// punched in the layout.
+
 const NoDataIllustration = ({ size = 120 }) => (
-    <svg width={size} height={size} viewBox="0 0 200 200" fill="none">
-        <circle cx="100" cy="100" r="80" fill="#FFF7ED" />
-        <rect x="60" y="50" width="80" height="100" rx="8" fill="white" stroke="#F97316" strokeWidth="2" />
-        <rect x="70" y="65" width="60" height="4" rx="2" fill="#FED7AA" />
-        <rect x="70" y="77" width="45" height="4" rx="2" fill="#FDBA74" />
-        <rect x="70" y="89" width="55" height="4" rx="2" fill="#FED7AA" />
-        <rect x="70" y="101" width="35" height="4" rx="2" fill="#FDBA74" />
-        <rect x="70" y="113" width="50" height="4" rx="2" fill="#FED7AA" />
-        <circle cx="145" cy="140" r="30" fill="#FFEDD5" stroke="#F97316" strokeWidth="2" />
-        <path d="M135 140L145 150L155 130" stroke="#F97316" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+    <svg width={size} height={size} viewBox="0 0 200 200" fill="none" aria-hidden="true">
+        <circle cx="100" cy="100" r="80" className="fill-orange-50 dark:fill-orange-500/10" />
+        <rect x="60" y="50" width="80" height="100" rx="8"
+              className="fill-white dark:fill-slate-800 stroke-orange-500 dark:stroke-orange-400" strokeWidth="2" />
+        <rect x="70" y="65" width="60" height="4" rx="2" className="fill-orange-200 dark:fill-orange-500/40" />
+        <rect x="70" y="77" width="45" height="4" rx="2" className="fill-orange-300 dark:fill-orange-500/60" />
+        <rect x="70" y="89" width="55" height="4" rx="2" className="fill-orange-200 dark:fill-orange-500/40" />
+        <rect x="70" y="101" width="35" height="4" rx="2" className="fill-orange-300 dark:fill-orange-500/60" />
+        <rect x="70" y="113" width="50" height="4" rx="2" className="fill-orange-200 dark:fill-orange-500/40" />
+        <circle cx="145" cy="140" r="30"
+                className="fill-orange-100 dark:fill-slate-700 stroke-orange-500 dark:stroke-orange-400" strokeWidth="2" />
+        <path d="M135 140L145 150L155 130" className="stroke-orange-500 dark:stroke-orange-400"
+              strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
 );
 
-// No Search Results Illustration
 const NoSearchIllustration = ({ size = 120 }) => (
-    <svg width={size} height={size} viewBox="0 0 200 200" fill="none">
-        <circle cx="100" cy="100" r="80" fill="#FFF7ED" />
-        <circle cx="90" cy="85" r="35" fill="white" stroke="#F97316" strokeWidth="3" />
-        <line x1="115" y1="110" x2="145" y2="140" stroke="#F97316" strokeWidth="4" strokeLinecap="round" />
-        <path d="M80 80L100 90M80 90L100 80" stroke="#FDBA74" strokeWidth="3" strokeLinecap="round" />
-        <circle cx="90" cy="85" r="20" fill="none" stroke="#FFEDD5" strokeWidth="8" />
+    <svg width={size} height={size} viewBox="0 0 200 200" fill="none" aria-hidden="true">
+        <circle cx="100" cy="100" r="80" className="fill-orange-50 dark:fill-orange-500/10" />
+        <circle cx="90" cy="85" r="35" className="fill-white dark:fill-slate-800 stroke-orange-500 dark:stroke-orange-400" strokeWidth="3" />
+        <line x1="115" y1="110" x2="145" y2="140" className="stroke-orange-500 dark:stroke-orange-400" strokeWidth="4" strokeLinecap="round" />
+        <path d="M80 80L100 90M80 90L100 80" className="stroke-orange-300 dark:stroke-orange-500/60" strokeWidth="3" strokeLinecap="round" />
     </svg>
 );
 
-// No Employees Illustration
 const NoEmployeesIllustration = ({ size = 120 }) => (
-    <svg width={size} height={size} viewBox="0 0 200 200" fill="none">
-        <circle cx="100" cy="100" r="80" fill="#FFF7ED" />
-        <circle cx="100" cy="75" r="25" fill="#FFEDD5" stroke="#F97316" strokeWidth="2" />
-        <circle cx="100" cy="70" r="15" fill="#FED7AA" />
-        <path d="M60 140C60 115 140 115 140 140" fill="#FFEDD5" stroke="#F97316" strokeWidth="2" />
-        <circle cx="155" cy="55" r="15" fill="white" stroke="#F97316" strokeWidth="2" />
-        <path d="M150 55H160M155 50V60" stroke="#F97316" strokeWidth="2" strokeLinecap="round" />
+    <svg width={size} height={size} viewBox="0 0 200 200" fill="none" aria-hidden="true">
+        <circle cx="100" cy="100" r="80" className="fill-orange-50 dark:fill-orange-500/10" />
+        <circle cx="100" cy="75" r="25" className="fill-orange-100 dark:fill-slate-700 stroke-orange-500 dark:stroke-orange-400" strokeWidth="2" />
+        <circle cx="100" cy="70" r="15" className="fill-orange-200 dark:fill-orange-500/40" />
+        <path d="M60 140C60 115 140 115 140 140"
+              className="fill-orange-100 dark:fill-slate-700 stroke-orange-500 dark:stroke-orange-400" strokeWidth="2" />
+        <circle cx="155" cy="55" r="15" className="fill-white dark:fill-slate-800 stroke-orange-500 dark:stroke-orange-400" strokeWidth="2" />
+        <path d="M150 55H160M155 50V60" className="stroke-orange-500 dark:stroke-orange-400" strokeWidth="2" strokeLinecap="round" />
     </svg>
 );
 
-// No Devices Illustration
 const NoDevicesIllustration = ({ size = 120 }) => (
-    <svg width={size} height={size} viewBox="0 0 200 200" fill="none">
-        <circle cx="100" cy="100" r="80" fill="#FFF7ED" />
-        <rect x="60" y="55" width="80" height="70" rx="8" fill="white" stroke="#F97316" strokeWidth="2" />
-        <rect x="70" y="65" width="60" height="40" rx="4" fill="#FFEDD5" />
-        <rect x="85" y="130" width="30" height="8" rx="2" fill="#F97316" />
-        <circle cx="100" cy="85" r="12" fill="none" stroke="#FDBA74" strokeWidth="2" strokeDasharray="4 2" />
-        <path d="M95 85L100 90L108 78" stroke="#F97316" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <svg width={size} height={size} viewBox="0 0 200 200" fill="none" aria-hidden="true">
+        <circle cx="100" cy="100" r="80" className="fill-orange-50 dark:fill-orange-500/10" />
+        <rect x="60" y="55" width="80" height="70" rx="8"
+              className="fill-white dark:fill-slate-800 stroke-orange-500 dark:stroke-orange-400" strokeWidth="2" />
+        <rect x="70" y="65" width="60" height="40" rx="4" className="fill-orange-100 dark:fill-slate-700" />
+        <rect x="85" y="130" width="30" height="8" rx="2" className="fill-orange-500 dark:fill-orange-400" />
+        <circle cx="100" cy="85" r="12" fill="none" className="stroke-orange-300 dark:stroke-orange-500/60" strokeWidth="2" strokeDasharray="4 2" />
+        <path d="M95 85L100 90L108 78" className="stroke-orange-500 dark:stroke-orange-400" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
 );
 
-// No Attendance Illustration
-const NoAttendanceIllustration = ({ size = 120 }) => (
-    <svg width={size} height={size} viewBox="0 0 200 200" fill="none">
-        <circle cx="100" cy="100" r="80" fill="#FFF7ED" />
-        <rect x="55" y="50" width="90" height="100" rx="8" fill="white" stroke="#F97316" strokeWidth="2" />
-        <rect x="55" y="50" width="90" height="25" rx="8" fill="#FFEDD5" />
-        <text x="100" y="68" textAnchor="middle" fill="#F97316" fontSize="12" fontWeight="600">DEC</text>
-        <g>
+// The month label is derived, not hardcoded to DEC, and the day squares follow
+// a fixed pattern. They were Math.random(), which reshuffled all 35 of them on
+// every render of the page behind them.
+const NoAttendanceIllustration = ({ size = 120 }) => {
+    const month = new Date().toLocaleString('en-US', { month: 'short' }).toUpperCase();
+    return (
+        <svg width={size} height={size} viewBox="0 0 200 200" fill="none" aria-hidden="true">
+            <circle cx="100" cy="100" r="80" className="fill-orange-50 dark:fill-orange-500/10" />
+            <rect x="55" y="50" width="90" height="100" rx="8"
+                  className="fill-white dark:fill-slate-800 stroke-orange-500 dark:stroke-orange-400" strokeWidth="2" />
+            <rect x="55" y="50" width="90" height="25" rx="8" className="fill-orange-100 dark:fill-slate-700" />
+            <text x="100" y="68" textAnchor="middle" className="fill-orange-500 dark:fill-orange-400"
+                  fontSize="12" fontWeight="600">{month}</text>
             {[0, 1, 2, 3, 4, 5, 6].map((i) =>
                 [0, 1, 2, 3, 4].map((j) => (
                     <rect key={`${i}-${j}`} x={65 + i * 11} y={85 + j * 12} width="8" height="8" rx="2"
-                        fill={Math.random() > 0.3 ? '#FED7AA' : '#FFEDD5'} />
+                          className={(i * 5 + j) % 3 === 0
+                              ? 'fill-orange-100 dark:fill-slate-700'
+                              : 'fill-orange-200 dark:fill-orange-500/40'} />
                 ))
             )}
-        </g>
-    </svg>
-);
+        </svg>
+    );
+};
 
-// Error Illustration
 const ErrorIllustration = ({ size = 120 }) => (
-    <svg width={size} height={size} viewBox="0 0 200 200" fill="none">
-        <circle cx="100" cy="100" r="80" fill="#FEF2F2" />
-        <circle cx="100" cy="100" r="45" fill="white" stroke="#EF4444" strokeWidth="3" />
-        <path d="M100 75V105" stroke="#EF4444" strokeWidth="4" strokeLinecap="round" />
-        <circle cx="100" cy="120" r="4" fill="#EF4444" />
+    <svg width={size} height={size} viewBox="0 0 200 200" fill="none" aria-hidden="true">
+        <circle cx="100" cy="100" r="80" className="fill-rose-50 dark:fill-rose-500/10" />
+        <circle cx="100" cy="100" r="45" className="fill-white dark:fill-slate-800 stroke-rose-500 dark:stroke-rose-400" strokeWidth="3" />
+        <path d="M100 75V105" className="stroke-rose-500 dark:stroke-rose-400" strokeWidth="4" strokeLinecap="round" />
+        <circle cx="100" cy="120" r="4" className="fill-rose-500 dark:fill-rose-400" />
     </svg>
 );
 
-// Success Illustration
 const SuccessIllustration = ({ size = 120 }) => (
-    <svg width={size} height={size} viewBox="0 0 200 200" fill="none">
-        <circle cx="100" cy="100" r="80" fill="#F0FDF4" />
-        <circle cx="100" cy="100" r="45" fill="white" stroke="#22C55E" strokeWidth="3" />
-        <path d="M80 100L95 115L125 85" stroke="#22C55E" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+    <svg width={size} height={size} viewBox="0 0 200 200" fill="none" aria-hidden="true">
+        <circle cx="100" cy="100" r="80" className="fill-emerald-50 dark:fill-emerald-500/10" />
+        <circle cx="100" cy="100" r="45" className="fill-white dark:fill-slate-800 stroke-emerald-500 dark:stroke-emerald-400" strokeWidth="3" />
+        <path d="M80 100L95 115L125 85" className="stroke-emerald-500 dark:stroke-emerald-400"
+              strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
 );
 
-// Offline Illustration
 const OfflineIllustration = ({ size = 120 }) => (
-    <svg width={size} height={size} viewBox="0 0 200 200" fill="none">
-        <circle cx="100" cy="100" r="80" fill="#FEF3C7" />
-        <path d="M60 110C60 85 80 65 100 65C120 65 140 85 140 110" stroke="#F59E0B" strokeWidth="4" strokeLinecap="round" fill="none" />
-        <path d="M75 115C75 100 87 85 100 85C113 85 125 100 125 115" stroke="#F59E0B" strokeWidth="4" strokeLinecap="round" fill="none" />
-        <circle cx="100" cy="125" r="8" fill="#F59E0B" />
-        <line x1="60" y1="60" x2="140" y2="140" stroke="#EF4444" strokeWidth="4" strokeLinecap="round" />
+    <svg width={size} height={size} viewBox="0 0 200 200" fill="none" aria-hidden="true">
+        <circle cx="100" cy="100" r="80" className="fill-amber-50 dark:fill-amber-500/10" />
+        <path d="M60 110C60 85 80 65 100 65C120 65 140 85 140 110" className="stroke-amber-500 dark:stroke-amber-400" strokeWidth="4" strokeLinecap="round" fill="none" />
+        <path d="M75 115C75 100 87 85 100 85C113 85 125 100 125 115" className="stroke-amber-500 dark:stroke-amber-400" strokeWidth="4" strokeLinecap="round" fill="none" />
+        <circle cx="100" cy="125" r="8" className="fill-amber-500 dark:fill-amber-400" />
+        <line x1="60" y1="60" x2="140" y2="140" className="stroke-rose-500 dark:stroke-rose-400" strokeWidth="4" strokeLinecap="round" />
     </svg>
 );
 
@@ -256,7 +263,7 @@ export function EmptySearchResults({ searchTerm, onClear, ...props }) {
 }
 
 // No Employees
-export function EmptyEmployees({ onAdd, ...props }) {
+export function EmptyEmployees({ onAdd, onImport, ...props }) {
     return (
         <EmptyState
             illustration={<NoEmployeesIllustration />}
@@ -265,7 +272,8 @@ export function EmptyEmployees({ onAdd, ...props }) {
             actionLabel="Add Employee"
             actionIcon={<Plus />}
             onAction={onAdd}
-            secondaryLabel="Import from File"
+            secondaryLabel={onImport ? 'Import from File' : undefined}
+            onSecondary={onImport}
             {...props}
         />
     );
@@ -393,9 +401,9 @@ export function EmptyShifts({ onAdd, ...props }) {
 // Loading placeholder (optional skeleton version)
 export function EmptyLoading({ message = 'Loading...', ...props }) {
     return (
-        <div className="flex flex-col items-center justify-center py-16">
+        <div className="flex flex-col items-center justify-center py-16" {...props}>
             <div className="w-16 h-16 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center mb-4 animate-pulse">
-                <div className="w-8 h-8 border-3 border-orange-400 border-t-transparent rounded-full animate-spin" />
+                <div className="w-8 h-8 border-[3px] border-orange-400 dark:border-orange-300 border-t-transparent rounded-full animate-spin" />
             </div>
             <p className="text-slate-500 dark:text-slate-400">{message}</p>
         </div>

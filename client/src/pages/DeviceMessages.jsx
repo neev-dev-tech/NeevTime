@@ -80,7 +80,15 @@ export default function DeviceMessages() {
                     </thead>
                     <tbody className="divide-y dark:divide-slate-700">
                         {messages.length === 0 ? (
-                            <tr><td colSpan={4} className="px-6 py-10 text-center text-slate-400">No messages sent yet</td></tr>
+                            <tr>
+                                    <td colSpan={4} className="px-6 py-12 text-center">
+                                        <MessageSquare size={32} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No messages sent yet</h3>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                                            Messages you push to a device appear here with their delivery status.
+                                        </p>
+                                    </td>
+                                </tr>
                         ) : messages.map((m, i) => (
                             <tr key={m.id || i} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
                                 <td className="px-6 py-3 font-mono text-xs">{m.device_name || m.device_serial}</td>
