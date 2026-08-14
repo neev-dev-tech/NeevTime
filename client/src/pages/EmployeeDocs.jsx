@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { FileText, Upload, Download, Trash2, X, Search, RefreshCw, User, Calendar, AlertCircle } from 'lucide-react';
 import api from '../api';
 import { Button, PageHeader } from '../components';
+import Modal from '../components/Modal';
 
 export default function EmployeeDocs() {
     const [documents, setDocuments] = useState([]);
@@ -86,6 +87,14 @@ export default function EmployeeDocs() {
                 setDocName(file.name);
             }
         }
+    };
+
+    const closeUpload = () => {
+        setShowUploadModal(false);
+        setSelectedEmployee('');
+        setDocName('');
+        setSelectedFile(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
     const handleUpload = async (e) => {
@@ -314,113 +323,81 @@ export default function EmployeeDocs() {
             </div>
             </div>
 
-            {/* Upload Modal */}
-            {showUploadModal && (
-                <div className="fixed inset-0 bg-charcoal/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-md p-6 border border-white/50 dark:border-slate-700">
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="font-bold text-xl text-charcoal dark:text-slate-100">Upload Document</h3>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                icon={X}
-                                iconSize={20}
-                                aria-label="Close"
-                                onClick={() => {
-                                    setShowUploadModal(false);
-                                    setSelectedEmployee('');
-                                    setDocName('');
-                                    setSelectedFile(null);
-                                    if (fileInputRef.current) {
-                                        fileInputRef.current.value = '';
-                                    }
-                                }}
-                            />
-                        </div>
-
-                        <form onSubmit={handleUpload} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Employee *</label>
-                                <select
-                                    required
-                                    value={selectedEmployee}
-                                    onChange={e => setSelectedEmployee(e.target.value)}
-                                    className="input-base w-full"
-                                >
-                                    <option value="">Select Employee</option>
-                                    {employees.map(emp => (
-                                        <option key={emp.id} value={emp.employee_code}>
-                                            {emp.employee_code} - {emp.name}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Document Name *</label>
-                                <input
-                                    type="text"
-                                    required
-                                    value={docName}
-                                    onChange={e => setDocName(e.target.value)}
-                                    placeholder="e.g., Employment Contract, ID Card, etc."
-                                    className="input-base w-full"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">File *</label>
-                                <div className="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-lg p-4 hover:border-orange-300 transition-colors">
-                                    <input
-                                        ref={fileInputRef}
-                                        type="file"
-                                        required
-                                        onChange={handleFileSelect}
-                                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                                        className="hidden"
-                                        id="file-upload"
-                                    />
-                                    <label
-                                        htmlFor="file-upload"
-                                        className="cursor-pointer flex flex-col items-center justify-center"
-                                    >
-                                        <Upload size={32} className="text-orange-500 dark:text-orange-400 mb-2" />
-                                        <span className="text-sm text-slate-grey dark:text-slate-400">
-                                            {selectedFile ? selectedFile.name : 'Click to select file'}
-                                        </span>
-                                        <span className="text-xs text-slate-400 mt-1">PDF, DOC, DOCX, JPG, PNG (Max 10MB)</span>
-                                    </label>
-                                </div>
-                                {selectedFile && (
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
-                                        Selected: {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
-                                    </p>
-                                )}
-                            </div>
-
-                            <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-700">
-                                <Button
-                                    variant="secondary"
-                                    onClick={() => {
-                                        setShowUploadModal(false);
-                                        setSelectedEmployee('');
-                                        setDocName('');
-                                        setSelectedFile(null);
-                                        if (fileInputRef.current) {
-                                            fileInputRef.current.value = '';
-                                        }
-                                    }}
-                                >
-                                    Cancel
-                                </Button>
-                                <Button type="submit" variant="primary" disabled={uploading}>
-                                    {uploading ? 'Uploading...' : 'Upload'}
-                                </Button>
-                            </div>
-                        </form>
+            <Modal
+                open={showUploadModal}
+                onClose={closeUpload}
+                title="Upload Document"
+            >
+                <form onSubmit={handleUpload} className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Employee *</label>
+                        <select
+                            required
+                            value={selectedEmployee}
+                            onChange={e => setSelectedEmployee(e.target.value)}
+                            className="input-base w-full"
+                        >
+                            <option value="">Select Employee</option>
+                            {employees.map(emp => (
+                                <option key={emp.id} value={emp.employee_code}>
+                                    {emp.employee_code} - {emp.name}
+                                </option>
+                            ))}
+                        </select>
                     </div>
-                </div>
-            )}
+
+                    <div>
+                        <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">Document Name *</label>
+                        <input
+                            type="text"
+                            required
+                            value={docName}
+                            onChange={e => setDocName(e.target.value)}
+                            placeholder="e.g., Employment Contract, ID Card, etc."
+                            className="input-base w-full"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">File *</label>
+                        <div className="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-lg p-4 hover:border-orange-300 transition-colors">
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                required
+                                onChange={handleFileSelect}
+                                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                className="hidden"
+                                id="file-upload"
+                            />
+                            <label
+                                htmlFor="file-upload"
+                                className="cursor-pointer flex flex-col items-center justify-center"
+                            >
+                                <Upload size={32} className="text-orange-500 dark:text-orange-400 mb-2" />
+                                <span className="text-sm text-slate-grey dark:text-slate-400">
+                                    {selectedFile ? selectedFile.name : 'Click to select file'}
+                                </span>
+                                <span className="text-xs text-slate-400 mt-1">PDF, DOC, DOCX, JPG, PNG (Max 10MB)</span>
+                            </label>
+                        </div>
+                        {selectedFile && (
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                                Selected: {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
+                            </p>
+                        )}
+                    </div>
+
+                    <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-700">
+                        <Button variant="secondary" onClick={closeUpload}>
+                            Cancel
+                        </Button>
+                        <Button type="submit" variant="primary" disabled={uploading}>
+                            {uploading ? 'Uploading...' : 'Upload'}
+                        </Button>
+                    </div>
+                </form>
+            </Modal>
 
             {/* Toast Notification */}
             {toast && (

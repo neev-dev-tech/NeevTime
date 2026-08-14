@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
-import { Scale, Plus, Edit2, Trash2, X, Save, Globe, Building2, Clock, AlertTriangle, CheckCircle, Calendar, AlertCircle, RefreshCw } from 'lucide-react';
+import { Scale, Plus, Edit2, Trash2, Save, Globe, Building2, Clock, AlertTriangle, CheckCircle, Calendar, AlertCircle, RefreshCw } from 'lucide-react';
 import { useToast, Button, PageHeader } from '../components';
+import Modal from '../components/Modal';
 
 export default function AttendanceRules() {
     const toast = useToast();
@@ -332,221 +333,215 @@ export default function AttendanceRules() {
                 )
             )}
 
-            {/* Modal */}
-            {showModal && (
-                <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
-                        <div className="flex items-center justify-between px-6 py-4 border-b dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
-                            <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">
-                                {editingId ? 'Edit Attendance Rule' : 'Add Attendance Rule'}
-                            </h2>
-                            <Button variant="ghost" icon={X} iconSize={20} onClick={closeModal} aria-label="Close" />
+            <Modal
+                open={showModal}
+                onClose={closeModal}
+                title={editingId ? 'Edit Attendance Rule' : 'Add Attendance Rule'}
+                size="lg"
+                footer={
+                    <>
+                        <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+                        <Button icon={Save} onClick={handleSubmit}>
+                            {editingId ? 'Update Rule' : 'Create Rule'}
+                        </Button>
+                    </>
+                }
+            >
+                <form id="ruleForm" onSubmit={handleSubmit} className="space-y-6">
+                    {/* Rule Type */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Rule Type <span className="text-red-500">*</span></label>
+                            <select
+                                value={form.rule_type}
+                                onChange={e => setForm({ ...form, rule_type: e.target.value })}
+                                className="input-premium dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                            >
+                                <option value="global">Global Rule</option>
+                                <option value="department">Department Specific</option>
+                            </select>
                         </div>
-                        <div className="overflow-y-auto p-6 scrollbar-thin">
-                            <form id="ruleForm" onSubmit={handleSubmit} className="space-y-6">
-                                {/* Rule Type */}
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-1.5">
-                                        <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Rule Type <span className="text-red-500">*</span></label>
-                                        <select
-                                            value={form.rule_type}
-                                            onChange={e => setForm({ ...form, rule_type: e.target.value })}
-                                            className="input-premium dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
-                                        >
-                                            <option value="global">Global Rule</option>
-                                            <option value="department">Department Specific</option>
-                                        </select>
-                                    </div>
-                                    {form.rule_type === 'department' && (
-                                        <div className="space-y-1.5">
-                                            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Department <span className="text-red-500">*</span></label>
-                                            <select
-                                                value={form.department_id}
-                                                onChange={e => setForm({ ...form, department_id: e.target.value })}
-                                                className="input-premium dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
-                                                required
-                                            >
-                                                <option value="">Select Department</option>
-                                                {departments.map(d => (
-                                                    <option key={d.id} value={d.id}>{d.name}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                    )}
-                                </div>
+                        {form.rule_type === 'department' && (
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Department <span className="text-red-500">*</span></label>
+                                <select
+                                    value={form.department_id}
+                                    onChange={e => setForm({ ...form, department_id: e.target.value })}
+                                    className="input-premium dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                    required
+                                >
+                                    <option value="">Select Department</option>
+                                    {departments.map(d => (
+                                        <option key={d.id} value={d.id}>{d.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
+                    </div>
 
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Rule Name <span className="text-red-500">*</span></label>
-                                    <input
-                                        type="text"
-                                        value={form.name}
-                                        onChange={e => setForm({ ...form, name: e.target.value })}
-                                        className="input-premium dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
-                                        placeholder="e.g., Default Policy, Sales Team Rules"
-                                        required
-                                    />
-                                </div>
+                    <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Rule Name <span className="text-red-500">*</span></label>
+                        <input
+                            type="text"
+                            value={form.name}
+                            onChange={e => setForm({ ...form, name: e.target.value })}
+                            className="input-premium dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                            placeholder="e.g., Default Policy, Sales Team Rules"
+                            required
+                        />
+                    </div>
 
-                                {/* Time Thresholds */}
-                                <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-100 dark:border-slate-700">
-                                    <h3 className="font-bold text-slate-700 dark:text-slate-300 mb-4 flex items-center gap-2">
-                                        <Clock size={16} className="text-blue-500" /> Time Thresholds
-                                    </h3>
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                        <div className="space-y-1">
-                                            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Late After (min)</label>
-                                            <input
-                                                type="number"
-                                                value={form.late_threshold_minutes || ''}
-                                                onChange={e => setForm({ ...form, late_threshold_minutes: e.target.value ? parseInt(e.target.value) || 0 : 0 })}
-                                                className="input-premium bg-white dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
-                                            />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Early Leave (min)</label>
-                                            <input
-                                                type="number"
-                                                value={form.early_leave_threshold_minutes || ''}
-                                                onChange={e => setForm({ ...form, early_leave_threshold_minutes: e.target.value ? parseInt(e.target.value) || 0 : 0 })}
-                                                className="input-premium bg-white dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
-                                            />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Half Day (min)</label>
-                                            <input
-                                                type="number"
-                                                value={form.half_day_threshold_minutes || ''}
-                                                onChange={e => setForm({ ...form, half_day_threshold_minutes: e.target.value ? parseInt(e.target.value) || 0 : 0 })}
-                                                className="input-premium bg-white dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
-                                            />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Absent (min)</label>
-                                            <input
-                                                type="number"
-                                                value={form.absent_threshold_minutes || ''}
-                                                onChange={e => setForm({ ...form, absent_threshold_minutes: e.target.value ? parseInt(e.target.value) || 0 : 0 })}
-                                                className="input-premium bg-white dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Grace Period */}
-                                <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-100 dark:border-slate-700">
-                                    <h3 className="font-bold text-slate-700 dark:text-slate-300 mb-4 flex items-center gap-2">
-                                        <CheckCircle size={16} className="text-emerald-500" /> Grace Period
-                                    </h3>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="space-y-1">
-                                            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Grace Minutes</label>
-                                            <input
-                                                type="number"
-                                                value={form.grace_period_minutes || ''}
-                                                onChange={e => setForm({ ...form, grace_period_minutes: e.target.value ? parseInt(e.target.value) || 0 : 0 })}
-                                                className="input-premium bg-white dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
-                                            />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Allowed Count/Month</label>
-                                            <input
-                                                type="number"
-                                                value={form.grace_late_allowed_per_month || ''}
-                                                onChange={e => setForm({ ...form, grace_late_allowed_per_month: e.target.value ? parseInt(e.target.value) || 0 : 0 })}
-                                                className="input-premium bg-white dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Overtime */}
-                                <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-100 dark:border-slate-700">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <h3 className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                                            <Calendar size={16} className="text-amber-500" /> Overtime Settings
-                                        </h3>
-                                        <label className="toggle-switch cursor-pointer">
-                                            <input
-                                                type="checkbox"
-                                                checked={form.overtime_enabled}
-                                                onChange={e => setForm({ ...form, overtime_enabled: e.target.checked })}
-                                                className="sr-only"
-                                            />
-                                            <div className={`w-11 h-6 rounded-full transition-colors flex items-center px-0.5 ${form.overtime_enabled ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'}`}>
-                                                <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${form.overtime_enabled ? 'translate-x-5' : 'translate-x-0'}`}></div>
-                                            </div>
-                                        </label>
-                                    </div>
-                                    {form.overtime_enabled && (
-                                        <div className="grid grid-cols-2 gap-4 animate-in slide-in-from-top-2">
-                                            <div className="space-y-1">
-                                                <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Min OT Minutes</label>
-                                                <input
-                                                    type="number"
-                                                    value={form.overtime_threshold_minutes || ''}
-                                                    onChange={e => setForm({ ...form, overtime_threshold_minutes: e.target.value ? parseInt(e.target.value) || 0 : 0 })}
-                                                    className="input-premium bg-white dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
-                                                />
-                                            </div>
-                                            <div className="space-y-1">
-                                                <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">OT Multiplier</label>
-                                                <input
-                                                    type="number"
-                                                    step="0.1"
-                                                    value={form.overtime_multiplier || ''}
-                                                    onChange={e => setForm({ ...form, overtime_multiplier: e.target.value ? parseFloat(e.target.value) || 0 : 0 })}
-                                                    className="input-premium bg-white dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
-                                                />
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Week Off Days */}
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Week Off Days</label>
-                                    <div className="flex flex-wrap gap-2">
-                                        {weekDays.map(day => (
-                                            <button
-                                                key={day}
-                                                type="button"
-                                                onClick={() => toggleWeekOff(day)}
-                                                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide transition-colors border ${form.week_off_days.includes(day)
-                                                    ? 'bg-orange-600 text-white border-transparent shadow-sm'
-                                                    : 'bg-white/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-orange-300 hover:text-orange-600 dark:hover:text-orange-400'
-                                                    }`}
-                                            >
-                                                {day.substring(0, 3)}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700">
-                                    <label className="flex items-center gap-3 cursor-pointer w-full">
-                                        <div className="relative flex items-center">
-                                            <input
-                                                type="checkbox"
-                                                checked={form.alternate_saturday}
-                                                onChange={e => setForm({ ...form, alternate_saturday: e.target.checked })}
-                                                className="sr-only peer"
-                                            />
-                                            <div className="w-11 h-6 bg-slate-200 dark:bg-slate-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-100 dark:peer-focus:ring-orange-900/40 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-ui peer-checked:bg-orange-600"></div>
-                                        </div>
-                                        <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Alternate Saturday Off</span>
-                                    </label>
-                                </div>
-                            </form>
-                        </div>
-                        <div className="p-4 border-t dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 flex justify-end gap-3">
-                            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-                            <Button icon={Save} onClick={handleSubmit}>
-                                {editingId ? 'Update Rule' : 'Create Rule'}
-                            </Button>
+                    {/* Time Thresholds */}
+                    <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-100 dark:border-slate-700">
+                        <h3 className="font-bold text-slate-700 dark:text-slate-300 mb-4 flex items-center gap-2">
+                            <Clock size={16} className="text-blue-500" /> Time Thresholds
+                        </h3>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div className="space-y-1">
+                                <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Late After (min)</label>
+                                <input
+                                    type="number"
+                                    value={form.late_threshold_minutes || ''}
+                                    onChange={e => setForm({ ...form, late_threshold_minutes: e.target.value ? parseInt(e.target.value) || 0 : 0 })}
+                                    className="input-premium bg-white dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Early Leave (min)</label>
+                                <input
+                                    type="number"
+                                    value={form.early_leave_threshold_minutes || ''}
+                                    onChange={e => setForm({ ...form, early_leave_threshold_minutes: e.target.value ? parseInt(e.target.value) || 0 : 0 })}
+                                    className="input-premium bg-white dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Half Day (min)</label>
+                                <input
+                                    type="number"
+                                    value={form.half_day_threshold_minutes || ''}
+                                    onChange={e => setForm({ ...form, half_day_threshold_minutes: e.target.value ? parseInt(e.target.value) || 0 : 0 })}
+                                    className="input-premium bg-white dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Absent (min)</label>
+                                <input
+                                    type="number"
+                                    value={form.absent_threshold_minutes || ''}
+                                    onChange={e => setForm({ ...form, absent_threshold_minutes: e.target.value ? parseInt(e.target.value) || 0 : 0 })}
+                                    className="input-premium bg-white dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                />
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+
+                    {/* Grace Period */}
+                    <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-100 dark:border-slate-700">
+                        <h3 className="font-bold text-slate-700 dark:text-slate-300 mb-4 flex items-center gap-2">
+                            <CheckCircle size={16} className="text-emerald-500" /> Grace Period
+                        </h3>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1">
+                                <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Grace Minutes</label>
+                                <input
+                                    type="number"
+                                    value={form.grace_period_minutes || ''}
+                                    onChange={e => setForm({ ...form, grace_period_minutes: e.target.value ? parseInt(e.target.value) || 0 : 0 })}
+                                    className="input-premium bg-white dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Allowed Count/Month</label>
+                                <input
+                                    type="number"
+                                    value={form.grace_late_allowed_per_month || ''}
+                                    onChange={e => setForm({ ...form, grace_late_allowed_per_month: e.target.value ? parseInt(e.target.value) || 0 : 0 })}
+                                    className="input-premium bg-white dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Overtime */}
+                    <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-100 dark:border-slate-700">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                                <Calendar size={16} className="text-amber-500" /> Overtime Settings
+                            </h3>
+                            <label className="toggle-switch cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={form.overtime_enabled}
+                                    onChange={e => setForm({ ...form, overtime_enabled: e.target.checked })}
+                                    className="sr-only"
+                                />
+                                <div className={`w-11 h-6 rounded-full transition-colors flex items-center px-0.5 ${form.overtime_enabled ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'}`}>
+                                    <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${form.overtime_enabled ? 'translate-x-5' : 'translate-x-0'}`}></div>
+                                </div>
+                            </label>
+                        </div>
+                        {form.overtime_enabled && (
+                            <div className="grid grid-cols-2 gap-4 animate-in slide-in-from-top-2">
+                                <div className="space-y-1">
+                                    <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Min OT Minutes</label>
+                                    <input
+                                        type="number"
+                                        value={form.overtime_threshold_minutes || ''}
+                                        onChange={e => setForm({ ...form, overtime_threshold_minutes: e.target.value ? parseInt(e.target.value) || 0 : 0 })}
+                                        className="input-premium bg-white dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">OT Multiplier</label>
+                                    <input
+                                        type="number"
+                                        step="0.1"
+                                        value={form.overtime_multiplier || ''}
+                                        onChange={e => setForm({ ...form, overtime_multiplier: e.target.value ? parseFloat(e.target.value) || 0 : 0 })}
+                                        className="input-premium bg-white dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                    />
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Week Off Days */}
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Week Off Days</label>
+                        <div className="flex flex-wrap gap-2">
+                            {weekDays.map(day => (
+                                <button
+                                    key={day}
+                                    type="button"
+                                    onClick={() => toggleWeekOff(day)}
+                                    className={`px-3.5 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide transition-colors border ${form.week_off_days.includes(day)
+                                        ? 'bg-orange-600 text-white border-transparent shadow-sm'
+                                        : 'bg-white/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-orange-300 hover:text-orange-600 dark:hover:text-orange-400'
+                                        }`}
+                                >
+                                    {day.substring(0, 3)}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700">
+                        <label className="flex items-center gap-3 cursor-pointer w-full">
+                            <div className="relative flex items-center">
+                                <input
+                                    type="checkbox"
+                                    checked={form.alternate_saturday}
+                                    onChange={e => setForm({ ...form, alternate_saturday: e.target.checked })}
+                                    className="sr-only peer"
+                                />
+                                <div className="w-11 h-6 bg-slate-200 dark:bg-slate-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-100 dark:peer-focus:ring-orange-900/40 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-ui peer-checked:bg-orange-600"></div>
+                            </div>
+                            <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Alternate Saturday Off</span>
+                        </label>
+                    </div>
+                </form>
+            </Modal>
         </div>
     );
 }

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { MapPin, Plus, Search, Trash2, Edit2, AlertCircle, CheckCircle, Navigation, RefreshCw } from 'lucide-react';
 import api from '../api';
 import { Button, PageHeader, ExportMenu } from '../components';
+import Modal from '../components/Modal';
 
 const Geofences = () => {
     const [geofences, setGeofences] = useState([]);
@@ -221,91 +222,87 @@ const Geofences = () => {
                 )}
             </div>
 
-            {/* Modal */}
-            {showModal && (
-                <div className="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-md border border-white/50 dark:border-slate-700 animate-fade-in" onClick={e => e.stopPropagation()}>
-                        <div className="p-6">
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4">{editingGeofence ? 'Edit Location' : 'Add Location'}</h3>
+            <Modal
+                open={showModal}
+                onClose={closeModal}
+                title={editingGeofence ? 'Edit Location' : 'Add Location'}
+            >
 
-                            {error && (
-                                <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-300 rounded-lg text-sm flex items-center gap-2">
-                                    <AlertCircle size={16} /> {error}
-                                </div>
-                            )}
+                {error && (
+                    <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-300 rounded-lg text-sm flex items-center gap-2">
+                        <AlertCircle size={16} /> {error}
+                    </div>
+                )}
 
-                            <form onSubmit={handleSubmit} className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Location Name</label>
-                                    <input
-                                        required
-                                        className="input-base dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
-                                        placeholder="e.g. Head Office"
-                                        value={form.name}
-                                        onChange={e => setForm({ ...form, name: e.target.value })}
-                                    />
-                                </div>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Location Name</label>
+                        <input
+                            required
+                            className="input-base dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                            placeholder="e.g. Head Office"
+                            value={form.name}
+                            onChange={e => setForm({ ...form, name: e.target.value })}
+                        />
+                    </div>
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Latitude</label>
-                                        <input
-                                            required
-                                            type="number" step="any"
-                                            className="input-base dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
-                                            placeholder="12.9716"
-                                            value={form.latitude}
-                                            onChange={e => setForm({ ...form, latitude: e.target.value })}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Longitude</label>
-                                        <input
-                                            required
-                                            type="number" step="any"
-                                            className="input-base dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
-                                            placeholder="77.5946"
-                                            value={form.longitude}
-                                            onChange={e => setForm({ ...form, longitude: e.target.value })}
-                                        />
-                                    </div>
-                                </div>
-
-                                <Button variant="secondary" icon={Navigation} onClick={getCurrentLocation}>
-                                    Get Current Location
-                                </Button>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Radius (Meters)</label>
-                                        <input
-                                            type="number"
-                                            className="input-base dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
-                                            value={form.radius_meters}
-                                            onChange={e => setForm({ ...form, radius_meters: e.target.value })}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Address (Optional)</label>
-                                    <textarea
-                                        className="input-base h-20 resize-none dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
-                                        placeholder="Full address..."
-                                        value={form.address}
-                                        onChange={e => setForm({ ...form, address: e.target.value })}
-                                    />
-                                </div>
-
-                                <div className="flex justify-end gap-3 mt-6 pt-4 border-t dark:border-slate-700">
-                                    <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-                                    <Button type="submit">{editingGeofence ? 'Update' : 'Create'}</Button>
-                                </div>
-                            </form>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Latitude</label>
+                            <input
+                                required
+                                type="number" step="any"
+                                className="input-base dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                placeholder="12.9716"
+                                value={form.latitude}
+                                onChange={e => setForm({ ...form, latitude: e.target.value })}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Longitude</label>
+                            <input
+                                required
+                                type="number" step="any"
+                                className="input-base dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                placeholder="77.5946"
+                                value={form.longitude}
+                                onChange={e => setForm({ ...form, longitude: e.target.value })}
+                            />
                         </div>
                     </div>
-                </div>
-            )}
+
+                    <Button variant="secondary" icon={Navigation} onClick={getCurrentLocation}>
+                        Get Current Location
+                    </Button>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Radius (Meters)</label>
+                            <input
+                                type="number"
+                                className="input-base dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                value={form.radius_meters}
+                                onChange={e => setForm({ ...form, radius_meters: e.target.value })}
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Address (Optional)</label>
+                        <textarea
+                            className="input-base h-20 resize-none dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                            placeholder="Full address..."
+                            value={form.address}
+                            onChange={e => setForm({ ...form, address: e.target.value })}
+                        />
+                    </div>
+
+                    <div className="flex justify-end gap-3 mt-6 pt-4 border-t dark:border-slate-700">
+                        <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+                        <Button type="submit">{editingGeofence ? 'Update' : 'Create'}</Button>
+                    </div>
+                </form>
+            </Modal>
 
             {toast && (
                 <div className={`fixed bottom-4 right-4 flex items-center gap-2 px-4 py-3 rounded-lg shadow-xl text-white z-50 animate-in slide-in-from-bottom-5 ${toast.type === 'success' ? 'bg-green-500' : 'bg-red-500'}`}>

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
-import { Building2, Plus, Edit2, Trash2, X, Save, Calendar, Clock, AlertCircle, RefreshCw } from 'lucide-react';
+import { Building2, Plus, Edit2, Trash2, Save, Calendar, Clock, AlertCircle, RefreshCw } from 'lucide-react';
 import { useToast, Button, PageHeader } from '../components';
+import Modal from '../components/Modal';
 
 export default function DepartmentSchedule() {
     const toast = useToast();
@@ -226,112 +227,106 @@ export default function DepartmentSchedule() {
                 )}
             </div>
 
-            {/* Modal */}
-            {showModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg w-full max-w-lg">
-                        <div className="flex items-center justify-between p-4 border-b dark:border-slate-700">
-                            <h2 className="text-lg font-semibold">
-                                {editingId ? 'Edit Department Schedule' : 'Assign Department Schedule'}
-                            </h2>
-                            <Button variant="ghost" icon={X} iconSize={20} onClick={closeModal} aria-label="Close" />
-                        </div>
-                        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Department *</label>
-                                <select
-                                    value={form.department_id}
-                                    onChange={e => setForm({ ...form, department_id: e.target.value })}
-                                    className="field"
-                                    required
-                                >
-                                    <option value="">Select Department</option>
-                                    {departments.map(d => (
-                                        <option key={d.id} value={d.id}>{d.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Shift</label>
-                                    <select
-                                        value={form.shift_id}
-                                        onChange={e => setForm({ ...form, shift_id: e.target.value })}
-                                        className="field"
-                                    >
-                                        <option value="">Select Shift</option>
-                                        {shifts.map(s => (
-                                            <option key={s.id} value={s.id}>{s.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Timetable</label>
-                                    <select
-                                        value={form.timetable_id}
-                                        onChange={e => setForm({ ...form, timetable_id: e.target.value })}
-                                        className="field"
-                                    >
-                                        <option value="">Select Timetable</option>
-                                        {timetables.map(t => (
-                                            <option key={t.id} value={t.id}>{t.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Effective From *</label>
-                                    <input
-                                        type="date"
-                                        value={form.effective_from}
-                                        onChange={e => setForm({ ...form, effective_from: e.target.value })}
-                                        className="field"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Effective To</label>
-                                    <input
-                                        type="date"
-                                        value={form.effective_to}
-                                        onChange={e => setForm({ ...form, effective_to: e.target.value })}
-                                        className="field"
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium mb-2">Week Off Days</label>
-                                <div className="flex flex-wrap gap-2">
-                                    {weekDays.map(day => (
-                                        <button
-                                            key={day}
-                                            type="button"
-                                            onClick={() => toggleWeekOff(day)}
-                                            className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide transition-colors border ${form.week_off_days.includes(day)
-                                                ? 'bg-orange-600 text-white border-transparent shadow-sm'
-                                                : 'bg-white/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-orange-300 hover:text-orange-600 dark:hover:text-orange-400'
-                                                }`}
-                                        >
-                                            {day.substring(0, 3)}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div className="flex justify-end gap-3 pt-4 border-t dark:border-slate-700">
-                                <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-                                <Button type="submit" icon={Save}>
-                                    {editingId ? 'Update' : 'Assign'}
-                                </Button>
-                            </div>
-                        </form>
+            <Modal
+                open={showModal}
+                onClose={closeModal}
+                title={editingId ? 'Edit Department Schedule' : 'Assign Department Schedule'}
+                size="lg"
+            >
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium mb-1">Department *</label>
+                        <select
+                            value={form.department_id}
+                            onChange={e => setForm({ ...form, department_id: e.target.value })}
+                            className="field"
+                            required
+                        >
+                            <option value="">Select Department</option>
+                            {departments.map(d => (
+                                <option key={d.id} value={d.id}>{d.name}</option>
+                            ))}
+                        </select>
                     </div>
-                </div>
-            )}
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Shift</label>
+                            <select
+                                value={form.shift_id}
+                                onChange={e => setForm({ ...form, shift_id: e.target.value })}
+                                className="field"
+                            >
+                                <option value="">Select Shift</option>
+                                {shifts.map(s => (
+                                    <option key={s.id} value={s.id}>{s.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Timetable</label>
+                            <select
+                                value={form.timetable_id}
+                                onChange={e => setForm({ ...form, timetable_id: e.target.value })}
+                                className="field"
+                            >
+                                <option value="">Select Timetable</option>
+                                {timetables.map(t => (
+                                    <option key={t.id} value={t.id}>{t.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Effective From *</label>
+                            <input
+                                type="date"
+                                value={form.effective_from}
+                                onChange={e => setForm({ ...form, effective_from: e.target.value })}
+                                className="field"
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Effective To</label>
+                            <input
+                                type="date"
+                                value={form.effective_to}
+                                onChange={e => setForm({ ...form, effective_to: e.target.value })}
+                                className="field"
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium mb-2">Week Off Days</label>
+                        <div className="flex flex-wrap gap-2">
+                            {weekDays.map(day => (
+                                <button
+                                    key={day}
+                                    type="button"
+                                    onClick={() => toggleWeekOff(day)}
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide transition-colors border ${form.week_off_days.includes(day)
+                                        ? 'bg-orange-600 text-white border-transparent shadow-sm'
+                                        : 'bg-white/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-orange-300 hover:text-orange-600 dark:hover:text-orange-400'
+                                        }`}
+                                >
+                                    {day.substring(0, 3)}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end gap-3 pt-4 border-t dark:border-slate-700">
+                        <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+                        <Button type="submit" icon={Save}>
+                            {editingId ? 'Update' : 'Assign'}
+                        </Button>
+                    </div>
+                </form>
+            </Modal>
         </div>
     );
 }

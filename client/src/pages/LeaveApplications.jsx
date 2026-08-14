@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import api from '../api';
 import { Calendar, Plus, Check, X, Search, RefreshCw, ChevronDown, AlertCircle } from 'lucide-react';
 import { useToast, Button, PageHeader, ExportMenu } from '../components';
+import Modal from '../components/Modal';
 
 const BADGE_BASE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide';
 
@@ -247,55 +248,51 @@ export default function LeaveApplications() {
                 )}
             </div>
 
-            {/* Apply Modal */}
-            {showApply && (
-                <div className="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4">
-                    <form onSubmit={handleApply} className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-lg border border-white/50 dark:border-slate-700">
-                        <div className="flex items-center justify-between p-4 border-b dark:border-slate-700">
-                            <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Apply Leave</h2>
-                            <Button variant="ghost" size="sm" icon={X} iconSize={20} aria-label="Close" onClick={() => setShowApply(false)} />
+            <Modal
+                open={showApply}
+                onClose={() => setShowApply(false)}
+                title="Apply Leave"
+                size="lg"
+            >
+                <form onSubmit={handleApply} className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">Employee</label>
+                        <select required className="field" value={form.employee_code} onChange={e => setForm({ ...form, employee_code: e.target.value })}>
+                            <option value="">Select Employee</option>
+                            {employees.map(e => <option key={e.employee_code} value={e.employee_code}>{e.name} ({e.employee_code})</option>)}
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">Leave Type</label>
+                        <select required className="field" value={form.leave_type_id} onChange={e => setForm({ ...form, leave_type_id: e.target.value })}>
+                            <option value="">Select Type</option>
+                            {leaveTypes.map(lt => <option key={lt.id} value={lt.id}>{lt.name}</option>)}
+                        </select>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">From Date</label>
+                            <input type="date" required className="field" value={form.from_date} onChange={e => setForm({ ...form, from_date: e.target.value })} />
                         </div>
-                        <div className="p-6 space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">Employee</label>
-                                <select required className="field" value={form.employee_code} onChange={e => setForm({ ...form, employee_code: e.target.value })}>
-                                    <option value="">Select Employee</option>
-                                    {employees.map(e => <option key={e.employee_code} value={e.employee_code}>{e.name} ({e.employee_code})</option>)}
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">Leave Type</label>
-                                <select required className="field" value={form.leave_type_id} onChange={e => setForm({ ...form, leave_type_id: e.target.value })}>
-                                    <option value="">Select Type</option>
-                                    {leaveTypes.map(lt => <option key={lt.id} value={lt.id}>{lt.name}</option>)}
-                                </select>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">From Date</label>
-                                    <input type="date" required className="field" value={form.from_date} onChange={e => setForm({ ...form, from_date: e.target.value })} />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">To Date</label>
-                                    <input type="date" required className="field" value={form.to_date} onChange={e => setForm({ ...form, to_date: e.target.value })} />
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <input type="checkbox" id="halfDay" checked={form.is_half_day} onChange={e => setForm({ ...form, is_half_day: e.target.checked })} />
-                                <label htmlFor="halfDay" className="text-sm text-slate-700 dark:text-slate-300">Half Day</label>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">Reason</label>
-                                <textarea required className="field" rows={2} value={form.reason} onChange={e => setForm({ ...form, reason: e.target.value })} />
-                            </div>
-                            <div className="flex justify-end gap-3 pt-4 border-t dark:border-slate-700">
-                                <Button variant="secondary" onClick={() => setShowApply(false)}>Cancel</Button>
-                                <Button variant="primary" type="submit">Submit</Button>
-                            </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">To Date</label>
+                            <input type="date" required className="field" value={form.to_date} onChange={e => setForm({ ...form, to_date: e.target.value })} />
                         </div>
-                    </form>
-                </div>
-            )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <input type="checkbox" id="halfDay" checked={form.is_half_day} onChange={e => setForm({ ...form, is_half_day: e.target.checked })} />
+                        <label htmlFor="halfDay" className="text-sm text-slate-700 dark:text-slate-300">Half Day</label>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">Reason</label>
+                        <textarea required className="field" rows={2} value={form.reason} onChange={e => setForm({ ...form, reason: e.target.value })} />
+                    </div>
+                    <div className="flex justify-end gap-3 pt-4 border-t dark:border-slate-700">
+                        <Button variant="secondary" onClick={() => setShowApply(false)}>Cancel</Button>
+                        <Button variant="primary" type="submit">Submit</Button>
+                    </div>
+                </form>
+            </Modal>
         </div>
     );
 }

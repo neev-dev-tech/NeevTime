@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api';
-import { Plus, Edit2, Trash2, Clock, Sun, Moon, X, AlertCircle, RefreshCw } from 'lucide-react';
+import { Plus, Edit2, Trash2, Clock, Sun, Moon, AlertCircle, RefreshCw } from 'lucide-react';
 import { useToast, Button, PageHeader, ExportMenu } from '../components';
+import Modal from '../components/Modal';
 
 export default function ShiftMaster() {
     const toast = useToast();
@@ -192,67 +193,63 @@ export default function ShiftMaster() {
                 </div>
             )}
 
-            {/* Add/Edit Modal */}
-            {showModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-lg overflow-hidden">
-                        <div className="px-6 py-4 border-b dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
-                            <h3 className="font-bold text-lg text-slate-800 dark:text-slate-100">{editingShift ? 'Edit Shift' : 'Add New Shift'}</h3>
-                            <Button variant="ghost" size="sm" icon={X} iconSize={20} aria-label="Close" onClick={() => setShowModal(false)} />
-                        </div>
-                        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Shift Name *</label>
-                                <input required type="text" className="field" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="e.g., General Shift" />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Start Time</label>
-                                    <input type="time" className="field" value={form.start_time} onChange={e => setForm({ ...form, start_time: e.target.value })} />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">End Time</label>
-                                    <input type="time" className="field" value={form.end_time} onChange={e => setForm({ ...form, end_time: e.target.value })} />
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Shift Type</label>
-                                    <select className="field" value={form.shift_type} onChange={e => setForm({ ...form, shift_type: e.target.value })}>
-                                        <option value="Fixed">Fixed</option>
-                                        <option value="Rotational">Rotational</option>
-                                        <option value="Night">Night</option>
-                                        <option value="Split">Split</option>
-                                        <option value="General">General</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Grace In (min)</label>
-                                    <input type="number" className="field" value={form.grace_in_minutes} onChange={e => setForm({ ...form, grace_in_minutes: parseInt(e.target.value) || 0 })} />
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Late Threshold (min)</label>
-                                    <input type="number" className="field" value={form.late_threshold_minutes} onChange={e => setForm({ ...form, late_threshold_minutes: parseInt(e.target.value) || 15 })} />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Break Duration (min)</label>
-                                    <input type="number" className="field" value={form.break_duration_minutes} onChange={e => setForm({ ...form, break_duration_minutes: parseInt(e.target.value) || 0 })} />
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <input type="checkbox" id="nightShift" checked={form.is_night_shift} onChange={e => setForm({ ...form, is_night_shift: e.target.checked })} className="w-4 h-4" />
-                                <label htmlFor="nightShift" className="text-sm text-slate-700 dark:text-slate-300">Night Shift (crosses midnight)</label>
-                            </div>
-                            <div className="flex justify-end gap-3 pt-4 border-t dark:border-slate-700">
-                                <Button variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
-                                <Button type="submit">{editingShift ? 'Update' : 'Create'} Shift</Button>
-                            </div>
-                        </form>
+            <Modal
+                open={showModal}
+                onClose={() => setShowModal(false)}
+                title={editingShift ? 'Edit Shift' : 'Add New Shift'}
+                size="lg"
+            >
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Shift Name *</label>
+                        <input required type="text" className="field" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="e.g., General Shift" />
                     </div>
-                </div>
-            )}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Start Time</label>
+                            <input type="time" className="field" value={form.start_time} onChange={e => setForm({ ...form, start_time: e.target.value })} />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">End Time</label>
+                            <input type="time" className="field" value={form.end_time} onChange={e => setForm({ ...form, end_time: e.target.value })} />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Shift Type</label>
+                            <select className="field" value={form.shift_type} onChange={e => setForm({ ...form, shift_type: e.target.value })}>
+                                <option value="Fixed">Fixed</option>
+                                <option value="Rotational">Rotational</option>
+                                <option value="Night">Night</option>
+                                <option value="Split">Split</option>
+                                <option value="General">General</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Grace In (min)</label>
+                            <input type="number" className="field" value={form.grace_in_minutes} onChange={e => setForm({ ...form, grace_in_minutes: parseInt(e.target.value) || 0 })} />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Late Threshold (min)</label>
+                            <input type="number" className="field" value={form.late_threshold_minutes} onChange={e => setForm({ ...form, late_threshold_minutes: parseInt(e.target.value) || 15 })} />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Break Duration (min)</label>
+                            <input type="number" className="field" value={form.break_duration_minutes} onChange={e => setForm({ ...form, break_duration_minutes: parseInt(e.target.value) || 0 })} />
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <input type="checkbox" id="nightShift" checked={form.is_night_shift} onChange={e => setForm({ ...form, is_night_shift: e.target.checked })} className="w-4 h-4" />
+                        <label htmlFor="nightShift" className="text-sm text-slate-700 dark:text-slate-300">Night Shift (crosses midnight)</label>
+                    </div>
+                    <div className="flex justify-end gap-3 pt-4 border-t dark:border-slate-700">
+                        <Button variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
+                        <Button type="submit">{editingShift ? 'Update' : 'Create'} Shift</Button>
+                    </div>
+                </form>
+            </Modal>
         </div>
     );
 }

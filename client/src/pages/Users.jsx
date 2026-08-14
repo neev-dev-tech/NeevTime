@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Edit2, X, Check, RefreshCw, Users, Shield, AlertCircle } from 'lucide-react';
+import { Plus, Trash2, Edit2, Check, RefreshCw, Users, Shield, AlertCircle } from 'lucide-react';
 import api from '../api';
 import { Button, PageHeader, ExportMenu } from '../components';
+import Modal from '../components/Modal';
 
 // Tiers enforced by server/utils/rbac.js. 'user' is retired — legacy accounts
 // still holding it are treated as hr — so it is not offered for new accounts.
@@ -268,95 +269,88 @@ export default function UsersPage() {
                 )}
             </div>
 
-            {/* Modal */}
-            {showModal && (
-                <div className="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-md shadow-xl border border-white/50 dark:border-slate-700">
-                        <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
-                            <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
-                                {editUser ? 'Edit User' : 'Add New User'}
-                            </h2>
-                            <Button variant="ghost" size="sm" icon={X} iconSize={20} aria-label="Close" onClick={() => setShowModal(false)} />
+            <Modal
+                open={showModal}
+                onClose={() => setShowModal(false)}
+                title={editUser ? 'Edit User' : 'Add New User'}
+            >
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    {error && (
+                        <div className="p-3 bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-900/30 dark:text-rose-300 dark:border-rose-800 rounded-lg text-sm">
+                            {error}
                         </div>
-                        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                            {error && (
-                                <div className="p-3 bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-900/30 dark:text-rose-300 dark:border-rose-800 rounded-lg text-sm">
-                                    {error}
-                                </div>
-                            )}
+                    )}
 
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Username *</label>
-                                <input
-                                    type="text"
-                                    value={formData.username}
-                                    onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                                    className="field"
-                                    required
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                    Password {editUser ? '(leave blank to keep current)' : '*'}
-                                </label>
-                                <input
-                                    type="password"
-                                    value={formData.password}
-                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                    className="field"
-                                    {...(!editUser && { required: true })}
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Email</label>
-                                <input
-                                    type="email"
-                                    value={formData.email}
-                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                    className="field"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Role</label>
-                                <select
-                                    value={formData.role}
-                                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                                    className="field"
-                                >
-                                    {ROLES.map(role => (
-                                        <option key={role} value={role}>{role}</option>
-                                    ))}
-                                </select>
-                                <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
-                                    {ROLE_HELP[formData.role]}
-                                </p>
-                            </div>
-
-                            <div className="flex gap-2 pt-4 border-t border-slate-100 dark:border-slate-700">
-                                <Button
-                                    variant="secondary"
-                                    type="button"
-                                    onClick={() => setShowModal(false)}
-                                    className="flex-1"
-                                >
-                                    Cancel
-                                </Button>
-                                <Button
-                                    variant="primary"
-                                    type="submit"
-                                    icon={Check}
-                                    className="flex-1"
-                                >
-                                    {editUser ? 'Update' : 'Create'}
-                                </Button>
-                            </div>
-                        </form>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Username *</label>
+                        <input
+                            type="text"
+                            value={formData.username}
+                            onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                            className="field"
+                            required
+                        />
                     </div>
-                </div>
-            )}
+
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            Password {editUser ? '(leave blank to keep current)' : '*'}
+                        </label>
+                        <input
+                            type="password"
+                            value={formData.password}
+                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                            className="field"
+                            {...(!editUser && { required: true })}
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Email</label>
+                        <input
+                            type="email"
+                            value={formData.email}
+                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                            className="field"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Role</label>
+                        <select
+                            value={formData.role}
+                            onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                            className="field"
+                        >
+                            {ROLES.map(role => (
+                                <option key={role} value={role}>{role}</option>
+                            ))}
+                        </select>
+                        <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
+                            {ROLE_HELP[formData.role]}
+                        </p>
+                    </div>
+
+                    <div className="flex gap-2 pt-4 border-t border-slate-100 dark:border-slate-700">
+                        <Button
+                            variant="secondary"
+                            type="button"
+                            onClick={() => setShowModal(false)}
+                            className="flex-1"
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="primary"
+                            type="submit"
+                            icon={Check}
+                            className="flex-1"
+                        >
+                            {editUser ? 'Update' : 'Create'}
+                        </Button>
+                    </div>
+                </form>
+            </Modal>
 
             {/* Toast */}
             {toast && (
