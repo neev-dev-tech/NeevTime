@@ -508,10 +508,23 @@ const syncShiftsFromHRMS = async (integration) => {
             continue;
         }
         try {
-            // A shift ending before it starts runs through midnight. Without
-            // this the night shift reads as a negative-length day and everyone
-            // on it looks absent.
-            const isNight = String(shift.end_time) < String(shift.start_time);
+            // A shift ending before it starts runs through midnight.
+            //
+            // Compared as minutes, not as strings. ERPNext returns times
+            // without a leading zero — "9:00:00" — so a string comparison read
+            // "20:00:00" < "9:00:00" as true, character by character, and
+            // flagged a 09:00-to-20:00 day shift as a night shift. It only
+            // looked right on General (10:00-19:00), where both strings happen
+            // to start with the same digit.
+            const toMinutes = (t) => {
+                const [h, m] = String(t ?? '').split(':').map(Number);
+                return Number.isFinite(h) && Number.isFinite(m) ? h * 60 + m : null;
+            };
+            const startMin = toMinutes(shift.start_time);
+            const endMin = toMinutes(shift.end_time);
+            // Unparseable times are not night shifts. Guessing from a value we
+            // could not read is how the wrong flag got there in the first place.
+            const isNight = startMin !== null && endMin !== null && endMin < startMin;
 
             await db.query(`
                 INSERT INTO shifts (code, name, start_time, end_time,

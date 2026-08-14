@@ -87,11 +87,31 @@ test('shifts are upserted on their code, not inserted blindly', () => {
         'without ON CONFLICT (code) every sync either duplicates shifts or fails on the unique index');
 });
 
-test('a shift crossing midnight is flagged as a night shift', () => {
-    // end < start means the shift runs through midnight. Untreated it reads as
-    // a negative-length day, and everyone on it looks absent.
-    assert.ok(/is_night_shift/.test(core),
-        'a shift ending before it starts is not detected, so night shifts compute as negative-length days');
+test('night shifts are detected by time, not by string comparison', () => {
+    // Production flagged "Flexi Shift 2026", 09:00 to 20:00, as a night shift.
+    // ERPNext returns times without a leading zero, so comparing the raw
+    // strings read "20:00:00" < "9:00:00" as true, character by character. It
+    // looked correct on General (10:00-19:00) only because both strings start
+    // with the same digit.
+    assert.ok(/is_night_shift/.test(core), 'night shifts are not detected at all');
+
+    const m = core.match(/const toMinutes = \(t\) => \{[\s\S]{0,260}?\};/);
+    assert.ok(m, 'times are not converted before comparison — a raw string compare is wrong ' +
+        'for any ERPNext time without a leading zero');
+
+    // Run the real conversion against the values production actually returned.
+    // eslint-disable-next-line no-new-func
+    const toMinutes = new Function(`${m[0]} return toMinutes;`)();
+    const isNight = (start, end) => {
+        const s = toMinutes(start), e = toMinutes(end);
+        return s !== null && e !== null && e < s;
+    };
+
+    assert.equal(isNight('9:00:00', '20:00:00'), false, 'Flexi Shift 09:00-20:00 is not a night shift');
+    assert.equal(isNight('09:00:00', '20:00:00'), false, 'padded form must agree with unpadded');
+    assert.equal(isNight('10:00:00', '19:00:00'), false, 'General 10:00-19:00 is not a night shift');
+    assert.equal(isNight('22:00:00', '6:00:00'), true, 'a shift ending before it starts crosses midnight');
+    assert.equal(isNight(null, '18:00:00'), false, 'an unreadable time must not be guessed as a night shift');
 });
 
 test('default_shift_id is written on conflict, not only on insert', () => {
