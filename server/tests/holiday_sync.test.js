@@ -97,3 +97,38 @@ test('an unknown holiday list resolves to null rather than being created', () =>
     assert.ok(!/INSERT INTO holiday_locations/.test(fn),
         'an unrecognised list must not be created empty — it would exempt nobody while looking configured');
 });
+
+test('every column the HRMS sync writes is added at boot, not assumed', () => {
+    // The holiday sync failed on production with
+    //   column "type" of relation "holidays" does not exist
+    // while passing here, because `type` is created by 00_init_all.sql and that
+    // deployment's holidays table came from somewhere else.
+    //
+    // The existing schema test cannot catch this. It proves that *some* schema
+    // file creates a column — not that the database in front of you ran that
+    // file. Schema files are history; ensureSchema is the only thing that runs
+    // everywhere. So anything the sync writes has to be added there.
+    const added = new Set(
+        [...boot.matchAll(/ALTER TABLE (\w+) ADD COLUMN IF NOT EXISTS (\w+)/g)]
+            .map(m => `${m[1]}.${m[2]}`)
+    );
+
+    // The primary key and the one column each table is keyed on are part of the
+    // CREATE TABLE everywhere; everything else is an addition somebody made.
+    const guaranteed = new Set(['holidays.date', 'holidays.name', 'shifts.name',
+                                'shifts.start_time', 'shifts.end_time',
+                                'holiday_locations.name', 'employees.employee_code']);
+
+    const missing = [];
+    for (const m of core.matchAll(/INSERT INTO (holidays|shifts|holiday_locations)\s*\(([^)]+)\)/g)) {
+        const table = m[1];
+        for (const col of m[2].split(',').map(c => c.trim()).filter(Boolean)) {
+            const key = `${table}.${col}`;
+            if (!added.has(key) && !guaranteed.has(key)) missing.push(key);
+        }
+    }
+
+    assert.deepEqual(missing, [],
+        'these columns are written by the sync but never added by ensureSchema, so they exist ' +
+        'only on databases that happened to run the right schema file: ' + missing.join(', '));
+});

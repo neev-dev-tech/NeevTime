@@ -1850,6 +1850,19 @@ const ensureSchema = async () => {
         // without the link every office's holidays apply to everybody —
         // exempting staff from absence on a day their site was open.
         `ALTER TABLE holidays ADD COLUMN IF NOT EXISTS holiday_location_id INTEGER`,
+        // Every column the holiday sync writes, added here rather than assumed.
+        //
+        // The sync failed on production with `column "type" of relation
+        // "holidays" does not exist`, while passing here, because these are
+        // created by 00_init_all.sql and that deployment's holidays table came
+        // from somewhere else. The schema test cannot catch this: it proves
+        // some schema file creates a column, not that this database ran that
+        // file. Anything the code writes is added at boot, and the schema files
+        // are treated as history rather than as a guarantee.
+        `ALTER TABLE holidays ADD COLUMN IF NOT EXISTS type VARCHAR(20) DEFAULT 'public'`,
+        `ALTER TABLE holidays ADD COLUMN IF NOT EXISTS description TEXT`,
+        `ALTER TABLE holidays ADD COLUMN IF NOT EXISTS is_optional BOOLEAN DEFAULT false`,
+        `ALTER TABLE holiday_locations ADD COLUMN IF NOT EXISTS description TEXT`,
         `ALTER TABLE holiday_locations ADD COLUMN IF NOT EXISTS code VARCHAR(140)`,
         `DROP INDEX IF EXISTS holiday_locations_code_key`,
         `CREATE UNIQUE INDEX IF NOT EXISTS holiday_locations_code_key ON holiday_locations (code)`,
