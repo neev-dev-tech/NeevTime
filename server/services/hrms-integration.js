@@ -466,8 +466,28 @@ const syncAttendanceToHRMS = async (integration) => {
  * employee sync runs.
  */
 const syncShiftsFromHRMS = async (integration) => {
-    const shifts = await integration.pullShifts();
-    if (!shifts.length) return { processed: 0, success: 0, failed: 0 };
+    let shifts;
+    try {
+        shifts = await integration.pullShifts();
+    } catch (err) {
+        // Logged to the database, not just the container. A failed pull that
+        // only writes a console warning is invisible in the place anyone
+        // actually looks — the sync log — and reads as "shifts were never
+        // attempted" rather than "shifts failed".
+        await integration.logSync('shifts', SYNC_DIRECTION.PULL, 'failed',
+            { processed: 0, success: 0, failed: 0 }, err.message);
+        throw err;
+    }
+
+    if (!shifts.length) {
+        // Also logged. Returning early without a row made "the HRMS has no
+        // shifts configured" indistinguishable from "the shift sync never ran",
+        // which is the exact question the log exists to answer.
+        await integration.logSync('shifts', SYNC_DIRECTION.PULL, 'success',
+            { processed: 0, success: 0, failed: 0 }, 'HRMS returned no shift definitions');
+        log('INFO', 'HRMS returned no shifts', { integration: integration.name });
+        return { processed: 0, success: 0, failed: 0 };
+    }
 
     const stats = { processed: 0, success: 0, failed: 0 };
 

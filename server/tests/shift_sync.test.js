@@ -101,3 +101,23 @@ test('shifts are pulled before employees, and a shift failure does not stop them
         'a failed shift pull must not abort the employee pull — employees without a shift are still ' +
         'worth having, and the fallback start time keeps working');
 });
+
+test('the shift pull is logged whatever it does — including nothing', () => {
+    // The first version returned early on an empty result, before writing a
+    // log row, and reported a failure only as a console warning. Both cases
+    // then looked identical in integration_sync_logs to a sync that never ran,
+    // which is the one question that log exists to answer. It cost a full
+    // deploy cycle to work out which had happened.
+    const i = core.indexOf('const syncShiftsFromHRMS');
+    assert.ok(i !== -1, 'no shift sync');
+    const fn = core.slice(i, core.indexOf('const syncEmployeesFromHRMS'));
+
+    const logged = fn.match(/logSync\('shifts'/g) || [];
+    assert.ok(logged.length >= 3,
+        `the shift sync writes ${logged.length} log rows; it needs one for success, ` +
+        'one for an empty result and one for a failure, or those outcomes are ' +
+        'indistinguishable from never having run');
+
+    assert.ok(/'failed'/.test(fn),
+        'a failed shift pull is not recorded in the sync log, only in the container log');
+});
