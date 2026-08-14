@@ -514,6 +514,34 @@ export default function EmployeeProfile() {
                         </select>
                     </div>
 
+                    {/* Same setting as Employees > More, on the record itself.
+                        editForm is seeded from the full employee row, so this
+                        reflects the stored value rather than a default. */}
+                    <div className="col-span-1 md:col-span-3">
+                        <label className="flex items-start gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/40">
+                            <input
+                                type="checkbox"
+                                className="mt-0.5 w-4 h-4"
+                                checked={editForm.attendance_required === false}
+                                onChange={e => setEditForm({
+                                    ...editForm,
+                                    attendance_required: !e.target.checked,
+                                    exclude_from_hrms: e.target.checked
+                                })}
+                            />
+                            <span>
+                                <span className="block text-sm font-medium text-slate-800 dark:text-slate-100">
+                                    Door access only — no attendance
+                                </span>
+                                <span className="block text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                    For drivers, security, housekeeping and staff of the co-located company.
+                                    Biometric entry is unaffected; they are not counted, never marked absent,
+                                    and their punches are not sent to the HRMS.
+                                </span>
+                            </span>
+                        </label>
+                    </div>
+
                     <div className="col-span-1 md:col-span-3 flex justify-end gap-3 pt-4 border-t dark:border-slate-700 mt-4">
                         <Button variant="secondary" type="button" onClick={() => setShowEditModal(false)}>Cancel</Button>
                         <Button variant="primary" type="submit">Save Changes</Button>

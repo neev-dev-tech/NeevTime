@@ -80,7 +80,13 @@ export default function Employees() {
         email: '',
         address: '',
         status: 'active',
-        employment_type: 'Permanent'
+        employment_type: 'Permanent',
+        // Defaults must live here as well as in the reset. Without them
+        // newEmp.attendance_required is undefined, and the control reads
+        // !undefined — every new employee would open pre-ticked as door
+        // access only.
+        attendance_required: true,
+        exclude_from_hrms: false
     });
 
     const [transferData, setTransferData] = useState({
@@ -191,7 +197,7 @@ export default function Employees() {
             setNewEmp({
                 employee_code: '', name: '', department_id: '', designation: '', area_id: '',
                 card_number: '', password: '', privilege: 0, gender: 'Male', dob: '',
-                joining_date: '', mobile: '', email: '', address: '', status: 'active', employment_type: 'Permanent'
+                joining_date: '', mobile: '', email: '', address: '', status: 'active', employment_type: 'Permanent', attendance_required: true, exclude_from_hrms: false
             });
             fetchEmployees();
         } catch (err) { showToast('Failed to add employee: ' + (err.response?.data?.error || err.message), 'error'); }
@@ -933,6 +939,34 @@ export default function Employees() {
                             <option value="Contract">Contract</option>
                             <option value="Intern">Intern</option>
                         </select>
+                    </div>
+
+                    {/* Drivers, security, housekeeping and the co-located
+                        company's staff need the readers to get in and are not
+                        on the HRMS list. Set here rather than discovered later
+                        in a headcount that does not match. */}
+                    <div className="col-span-1 md:col-span-3">
+                        <label className="flex items-start gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/40">
+                            <input
+                                type="checkbox"
+                                className="mt-0.5 w-4 h-4"
+                                checked={!newEmp.attendance_required}
+                                onChange={e => setNewEmp({
+                                    ...newEmp,
+                                    attendance_required: !e.target.checked,
+                                    exclude_from_hrms: e.target.checked
+                                })}
+                            />
+                            <span>
+                                <span className="block text-sm font-medium text-slate-800 dark:text-slate-100">
+                                    Door access only — no attendance
+                                </span>
+                                <span className="block text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                    Biometric entry works as normal. They are not counted in the headcount,
+                                    never marked absent, and their punches are not sent to the HRMS.
+                                </span>
+                            </span>
+                        </label>
                     </div>
 
                     {/* System Access */}

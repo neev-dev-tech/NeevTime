@@ -772,7 +772,12 @@ app.post('/api/employees', async (req, res) => {
     try {
         const {
             employee_code, name, department_id, designation, card_number, password, area_id,
-            gender, dob, joining_date, mobile, email, address, status, employment_type
+            gender, dob, joining_date, mobile, email, address, status, employment_type,
+            // Drivers, security, housekeeping and the co-located company's staff
+            // hold biometric access without being on the HRMS list. Settable
+            // when the record is made, so nobody has to notice afterwards that
+            // a new starter is being counted and marked absent.
+            attendance_required, exclude_from_hrms
         } = req.body;
 
         // Convert empty strings to null for integer and date fields
@@ -781,12 +786,14 @@ app.post('/api/employees', async (req, res) => {
 
         const result = await db.query(`
       INSERT INTO employees 
-      (employee_code, name, department_id, designation, card_number, password, area_id, gender, dob, joining_date, mobile, email, address, status, employment_type)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+      (employee_code, name, department_id, designation, card_number, password, area_id, gender, dob, joining_date, mobile, email, address, status, employment_type, attendance_required, exclude_from_hrms)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
       RETURNING *
     `, [
             employee_code, name, safeInt(department_id), designation, card_number, password, safeInt(area_id),
-            gender, safeDate(dob), safeDate(joining_date), mobile, email, address, status || 'active', employment_type
+            gender, safeDate(dob), safeDate(joining_date), mobile, email, address, status || 'active', employment_type,
+            attendance_required === undefined ? true : Boolean(attendance_required),
+            Boolean(exclude_from_hrms)
         ]);
 
         res.status(201).json(result.rows[0]);
@@ -831,7 +838,8 @@ app.put('/api/employees/:id', async (req, res) => {
         const { id } = req.params;
         const {
             employee_code, name, department_id, designation, card_number, password, area_id,
-            gender, dob, joining_date, mobile, email, address, status, employment_type
+            gender, dob, joining_date, mobile, email, address, status, employment_type,
+            attendance_required, exclude_from_hrms
         } = req.body;
 
         // Convert empty strings to null for integer and date fields
@@ -842,12 +850,21 @@ app.put('/api/employees/:id', async (req, res) => {
             UPDATE employees SET
             employee_code = $1, name = $2, department_id = $3, designation = $4, card_number = $5, 
             password = $6, area_id = $7, gender = $8, dob = $9, joining_date = $10, 
-            mobile = $11, email = $12, address = $13, status = $14, employment_type = $15
-            WHERE id = $16
+            mobile = $11, email = $12, address = $13, status = $14, employment_type = $15,
+            -- COALESCE, not assignment. This route overwrites every field it
+            -- names, and not every caller sends these two — without it, saving
+            -- an unrelated edit would quietly switch a door-access employee
+            -- back into the headcount.
+            attendance_required = COALESCE($16, attendance_required),
+            exclude_from_hrms = COALESCE($17, exclude_from_hrms)
+            WHERE id = $18
             RETURNING *
         `, [
             employee_code, name, safeInt(department_id), designation, card_number, password, safeInt(area_id),
-            gender, safeDate(dob), safeDate(joining_date), mobile, email, address, status, employment_type, id
+            gender, safeDate(dob), safeDate(joining_date), mobile, email, address, status, employment_type,
+            attendance_required === undefined ? null : Boolean(attendance_required),
+            exclude_from_hrms === undefined ? null : Boolean(exclude_from_hrms),
+            id
         ]);
 
         if (result.rows.length === 0) return res.status(404).json({ error: 'Employee not found' });
