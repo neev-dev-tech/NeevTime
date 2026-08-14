@@ -20,12 +20,12 @@ body {
 
 /* Dark mode support */
 .dark body {
-  background-color: #0F172A;
+  background-color: #212228;
   color: #F1F5F9;
 }
 
 .dark #root {
-  background-color: #0F172A;
+  background-color: #212228;
 }
 
 /* Main app container background */
@@ -1058,8 +1058,8 @@ body {
 
 /* Dark mode utilities */
 .dark .card-base {
-  background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
-  border-color: #334155;
+  background: linear-gradient(135deg, #34353C 0%, #2B2C33 100%);
+  border-color: #43444C;
 }
 
 .dark .table-header {
@@ -2431,8 +2431,8 @@ body {
 .dark .card-tier-1,
 .dark .card-tier-2,
 .dark .card-premium {
-  background: #1E293B;
-  border-color: rgba(255, 255, 255, 0.06);
+  background: #303138;
+  border-color: rgba(255, 255, 255, 0.09);
 }
 
 .dark .input-base,
@@ -2606,7 +2606,7 @@ body {
 }
 
 .dark .app-bg__veil {
-  background: linear-gradient(180deg, rgba(16, 16, 18, 0.34) 0%, rgba(16, 16, 18, 0.46) 55%, rgba(16, 16, 18, 0.58) 100%);
+  background: linear-gradient(180deg, rgba(33, 34, 40, 0.24) 0%, rgba(33, 34, 40, 0.32) 55%, rgba(33, 34, 40, 0.42) 100%);
 }
 
 /* App chrome sits above the background layer */
@@ -2658,8 +2658,8 @@ body {
 .dark .card-tier-1,
 .dark .card-tier-2,
 .dark .card-premium {
-  background: rgba(28, 28, 31, 0.58);
-  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(48, 49, 56, 0.85);
+  border-color: rgba(255, 255, 255, 0.09);
   box-shadow:
     0 1px 2px rgba(0, 0, 0, 0.30),
     0 16px 40px -16px rgba(0, 0, 0, 0.60);
@@ -2841,31 +2841,35 @@ body {
    so no per-page class edits are needed.
    ========================================================================== */
 
+/* A grey ground, not near-black. #101012 was dark enough that the cards had
+   almost no separation from the page behind them and the whole UI read as one
+   flat black rectangle; lifting the ground lets the surfaces above it show as
+   surfaces. */
 .dark body,
 .dark .app-shell {
-  background-color: #101012;
+  background-color: #212228;
 }
 
 .dark .app-bg__veil {
-  background: linear-gradient(180deg, rgba(16, 16, 18, 0.34) 0%, rgba(16, 16, 18, 0.46) 55%, rgba(16, 16, 18, 0.58) 100%);
+  background: linear-gradient(180deg, rgba(33, 34, 40, 0.24) 0%, rgba(33, 34, 40, 0.32) 55%, rgba(33, 34, 40, 0.42) 100%);
 }
 
 /* Surfaces */
-.dark .dark\:bg-slate-900 { background-color: rgba(19, 19, 21, 0.62) !important; }
-.dark .dark\:bg-slate-900\/50 { background-color: rgba(19, 19, 21, 0.6) !important; }
-.dark .dark\:bg-slate-900\/80 { background-color: rgba(19, 19, 21, 0.85) !important; }
-.dark .dark\:bg-slate-800 { background-color: rgba(28, 28, 31, 0.62) !important; backdrop-filter: blur(24px) saturate(170%); }
-.dark .dark\:bg-slate-800\/80 { background-color: rgba(28, 28, 31, 0.85) !important; }
-.dark .dark\:bg-slate-700 { background-color: #2A2A2E !important; }
-.dark .dark\:bg-slate-700\/50 { background-color: rgba(42, 42, 46, 0.6) !important; }
-.dark .dark\:hover\:bg-slate-700:hover { background-color: #2A2A2E !important; }
-.dark .dark\:hover\:bg-slate-700\/50:hover { background-color: rgba(42, 42, 46, 0.6) !important; }
-.dark .dark\:hover\:bg-slate-600:hover { background-color: #35353A !important; }
-.dark .dark\:bg-slate-600 { background-color: #35353A !important; }
+.dark .dark\:bg-slate-900 { background-color: rgba(44, 45, 52, 0.78) !important; }
+.dark .dark\:bg-slate-900\/50 { background-color: rgba(44, 45, 52, 0.68) !important; }
+.dark .dark\:bg-slate-900\/80 { background-color: rgba(40, 41, 48, 0.90) !important; }
+.dark .dark\:bg-slate-800 { background-color: rgba(48, 49, 56, 0.85) !important; backdrop-filter: blur(24px) saturate(170%); }
+.dark .dark\:bg-slate-800\/80 { background-color: rgba(48, 49, 56, 0.92) !important; }
+.dark .dark\:bg-slate-700 { background-color: #3E3F47 !important; }
+.dark .dark\:bg-slate-700\/50 { background-color: rgba(62, 63, 71, 0.6) !important; }
+.dark .dark\:hover\:bg-slate-700:hover { background-color: #3E3F47 !important; }
+.dark .dark\:hover\:bg-slate-700\/50:hover { background-color: rgba(62, 63, 71, 0.6) !important; }
+.dark .dark\:hover\:bg-slate-600:hover { background-color: #4B4C55 !important; }
+.dark .dark\:bg-slate-600 { background-color: #4B4C55 !important; }
 
 /* Borders */
-.dark .dark\:border-slate-700 { border-color: #2E2E33 !important; }
-.dark .dark\:border-slate-600 { border-color: #3A3A40 !important; }
+.dark .dark\:border-slate-700 { border-color: #3B3C44 !important; }
+.dark .dark\:border-slate-600 { border-color: #4A4B54 !important; }
 .dark .dark\:divide-slate-700 > :not([hidden]) ~ :not([hidden]) { border-color: #2E2E33 !important; }
 
 /* Component classes */
@@ -2874,11 +2878,14 @@ body {
 .dark .card-tier-2,
 .dark .card-premium,
 .dark .report-container {
-  background: rgba(28, 28, 31, 0.58);
-  border-color: rgba(255, 255, 255, 0.08);
+  /* A step *above* the page ground, not below it. This sat at
+     rgba(28,28,31,.58) while the ground was lifted to #191A1D, so the cards
+     came out darker than the page and the layering read backwards. */
+  background: rgba(48, 49, 56, 0.85);
+  border-color: rgba(255, 255, 255, 0.09);
 }
 
-.dark .app-shell .bg-white { background-color: rgba(28, 28, 31, 0.58); }
+.dark .app-shell .bg-white { background-color: rgba(48, 49, 56, 0.80); }
 
 .dark .table-premium th,
 .dark .table-header {
@@ -2888,7 +2895,7 @@ body {
 }
 
 .dark .table-premium td { color: #D4D4D8; border-bottom-color: rgba(46, 46, 51, 0.8); }
-.dark .table-row { background: transparent; border-color: #2E2E33; }
+.dark .table-row { background: transparent; border-color: #43444C; }
 .dark .table-row:nth-child(even),
 .dark .table-premium tbody tr:nth-child(even) { background: rgba(255, 255, 255, 0.022); }
 .dark .table-row:hover,
@@ -3448,3 +3455,13 @@ tr:focus-within .dv-quiet { opacity: 1; transform: none; }
     transition: none;
   }
 }
+
+/* Card surfaces in dark mode.
+   The components use Tailwind's slate-800 at several opacities; overriding the
+   bare `dark:bg-slate-800` missed every one of them, so the cards stayed at
+   Tailwind's near-navy while the page behind them had already been lifted to
+   grey. Each variant is mapped to the same grey, at its own alpha. */
+.dark .dark\:bg-slate-800\/60 { background-color: rgba(48, 49, 56, 0.80) !important; }
+.dark .dark\:bg-slate-800\/70 { background-color: rgba(48, 49, 56, 0.86) !important; }
+.dark .dark\:bg-slate-800\/50 { background-color: rgba(48, 49, 56, 0.70) !important; }
+.dark .dark\:bg-slate-800\/40 { background-color: rgba(48, 49, 56, 0.60) !important; }

@@ -118,14 +118,18 @@ export default function DonutCard({ title, subtitle, data, colors, emptyMessage,
                                         border: d.value > 0 ? 'none' : '1px solid currentColor'
                                     }}
                                 />
+                                {/* Zero rows are deliberately quieter, but not
+                                    unreadable: dark:text-slate-600 measured
+                                    2.34:1 against the card, which is a label
+                                    you cannot actually read. */}
                                 <span className={`truncate ${d.value > 0
                                     ? 'text-slate-600 dark:text-slate-300'
-                                    : 'text-slate-300 dark:text-slate-600'}`}>
+                                    : 'text-slate-400 dark:text-slate-500'}`}>
                                     {d.name}
                                 </span>
                                 <span className={`ml-auto font-semibold tabular-nums ${d.value > 0
                                     ? 'text-slate-700 dark:text-slate-200'
-                                    : 'text-slate-300 dark:text-slate-600'}`}>
+                                    : 'text-slate-400 dark:text-slate-500'}`}>
                                     {d.value}
                                 </span>
                             </li>
