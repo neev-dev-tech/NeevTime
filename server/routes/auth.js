@@ -128,7 +128,10 @@ router.post('/login', loginLimiter, async (req, res) => {
         // username travels in the token so audit entries can name the actor
         // without a database lookup on every mutating request
         const token = jwt.sign(
-            { id: user.id, role: user.role, username: user.username },
+            // company_id travels in the token so a session cannot be replayed
+            // against another customer's address: the host decides the tenant,
+            // the token says which one it was issued for, and the two must agree.
+            { id: user.id, role: user.role, username: user.username, company_id: user.company_id },
             JWT_SECRET,
             await tokenOptions()
         );
@@ -231,6 +234,15 @@ const authenticateToken = (req, res, next) => {
         // Employee portal tokens are a separate realm — not valid for admin APIs
         if (user.role === 'employee') return res.sendStatus(403);
         req.user = user;
+
+        // A token issued for one customer must not work at another's address.
+        // The host has already decided the tenant for this request; the token
+        // says which one it was issued for. Disagreement means the session is
+        // being replayed somewhere it does not belong.
+        if (!require('../utils/tenant').tokenMatchesTenant(req)) {
+            return res.status(403).json({ error: 'This session does not belong to this account' });
+        }
+
         next();
     });
 };

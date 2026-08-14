@@ -144,7 +144,7 @@ async function seedTestData() {
                     employee_code, name, department_id, area_id, 
                     designation, join_date, status
                 ) VALUES ($1, $2, $3, $4, $5, $6, 'Active')
-                ON CONFLICT (employee_code) DO UPDATE SET
+                ON CONFLICT (company_id, employee_code) DO UPDATE SET
                     name = EXCLUDED.name,
                     department_id = EXCLUDED.department_id,
                     area_id = EXCLUDED.area_id,

@@ -296,7 +296,7 @@ const processBiodataLine = async (line, SN, table) => {
         await db.query(`
             INSERT INTO employees (employee_code, name, department_id, status)
             VALUES ($1, 'Unknown', NULL, 'Active')
-            ON CONFLICT (employee_code) DO NOTHING
+            ON CONFLICT (company_id, employee_code) DO NOTHING
         `, [PIN]);
 
         // Check if this is a new template or update

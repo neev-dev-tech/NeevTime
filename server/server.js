@@ -110,6 +110,12 @@ app.use(express.json());
 // lower down it silently missed the attendance routes declared above it, which
 // is exactly the class of bug it exists to prevent. Reads pass through; writes
 // are denied unless the role allows them. See utils/rbac.js.
+// Establish the customer before anything reads the database. Row-level
+// security needs the tenant on the connection, and authentication is itself a
+// database lookup — the credentials cannot be checked until it is known whose
+// they are. Mounted above enforceRole so even a rejected request is scoped.
+app.use('/api', require('./utils/tenant').withTenantContext);
+
 app.use('/api', require('./utils/rbac').enforceRole);
 
 // Attendance Processing API
@@ -944,7 +950,7 @@ app.post('/api/employees/import', async (req, res) => {
             await client.query(`
                 INSERT INTO employees (employee_code, name, department_id, designation, card_number, password, privilege, area_id)
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-                ON CONFLICT (employee_code) DO NOTHING
+                ON CONFLICT (company_id, employee_code) DO NOTHING
             `, [
                 emp.employee_code,
                 emp.name,

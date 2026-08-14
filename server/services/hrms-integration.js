@@ -1145,7 +1145,7 @@ const syncEmployeesFromHRMS = async (integration) => {
                     INSERT INTO employees (employee_code, name, email, mobile, department_id,
                                            default_shift_id, holiday_location_id, designation, status)
                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'active')
-                    ON CONFLICT (employee_code) DO UPDATE SET
+                    ON CONFLICT (company_id, employee_code) DO UPDATE SET
                         name = COALESCE(EXCLUDED.name, employees.name),
                         email = COALESCE(EXCLUDED.email, employees.email),
                         mobile = COALESCE(EXCLUDED.mobile, employees.mobile),
