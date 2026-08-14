@@ -114,7 +114,7 @@ export default function Login({ setAuth }) {
                                 }}
                             />
                         </div>
-                        <p className="text-slate-grey dark:text-slate-400 text-sm font-medium">Sign in to your account</p>
+                        <p className="text-slate-grey dark:text-slate-300 text-sm font-medium">Sign in to your account</p>
                     </div>
 
                     {/* Login Form */}
