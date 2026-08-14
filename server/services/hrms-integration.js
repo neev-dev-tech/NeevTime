@@ -444,11 +444,60 @@ const syncEmployeesFromHRMS = async (integration) => {
         const employees = await integration.pullEmployees();
 
         const stats = { processed: 0, success: 0, failed: 0 };
+        const deptCache = new Map();
+
+        /**
+         * Turn the HRMS department *name* into a local departments.id.
+         *
+         * Every adapter returns `department_name`; the upsert below read
+         * `emp.department_id`, which no adapter has ever set. It was therefore
+         * always undefined, so department was NULL on insert — and absent from
+         * the update clause, so it could never be filled in later either. The
+         * result was every employee unassigned, an empty department filter on
+         * the register, and a workforce chart reading "Unassigned" for the
+         * whole company.
+         *
+         * Frappe suffixes department names with the company abbreviation —
+         * "Engineering - INN" — so an exact match against a local "Engineering"
+         * finds nothing. The suffix is stripped before matching.
+         *
+         * Unknown departments are created rather than dropped: the HRMS is the
+         * source of truth for org structure, and silently discarding a
+         * department is how this stayed invisible in the first place.
+         */
+        const resolveDepartment = async (rawName) => {
+            if (!rawName || typeof rawName !== 'string') return null;
+            const name = rawName.replace(/\s+-\s+[A-Z0-9]{1,6}$/, '').trim();
+            if (!name) return null;
+            if (deptCache.has(name.toLowerCase())) return deptCache.get(name.toLowerCase());
+
+            let id = null;
+            const found = await db.query(
+                'SELECT id FROM departments WHERE lower(name) = lower($1) LIMIT 1', [name]
+            );
+            if (found.rows.length) {
+                id = found.rows[0].id;
+            } else {
+                const created = await db.query(
+                    'INSERT INTO departments (name) VALUES ($1) RETURNING id', [name]
+                );
+                id = created.rows[0].id;
+                log('INFO', 'Created department from HRMS', { name });
+            }
+            deptCache.set(name.toLowerCase(), id);
+            return id;
+        };
 
         for (const emp of employees) {
             stats.processed++;
             try {
-                // Upsert employee
+                const departmentId = await resolveDepartment(emp.department_name);
+
+                // department_id is in the update clause, not just the insert.
+                // Everyone these deployments care about already exists, so an
+                // insert-only mapping would fix nothing on the next sync.
+                // COALESCE keeps a manual assignment when the HRMS has none,
+                // rather than wiping it.
                 await db.query(`
                     INSERT INTO employees (employee_code, name, email, mobile, department_id, designation, status)
                     VALUES ($1, $2, $3, $4, $5, $6, 'active')
@@ -456,10 +505,11 @@ const syncEmployeesFromHRMS = async (integration) => {
                         name = COALESCE(EXCLUDED.name, employees.name),
                         email = COALESCE(EXCLUDED.email, employees.email),
                         mobile = COALESCE(EXCLUDED.mobile, employees.mobile),
+                        department_id = COALESCE(EXCLUDED.department_id, employees.department_id),
                         designation = COALESCE(EXCLUDED.designation, employees.designation)
                 `, [
                     emp.employee_code, emp.name, emp.email, emp.mobile,
-                    emp.department_id, emp.designation
+                    departmentId, emp.designation
                 ]);
                 stats.success++;
             } catch (err) {
