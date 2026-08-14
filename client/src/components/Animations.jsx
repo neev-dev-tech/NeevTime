@@ -121,7 +121,7 @@ export function RippleButton({
                 className={`
                     inline-flex items-center justify-center
                     font-medium rounded-xl
-                    transform transition-all duration-200
+                    transform transition-ui duration-200
                     focus:outline-none focus:ring-2 focus:ring-orange-300 focus:ring-offset-2
                     disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none
                     active:scale-[0.98]
@@ -189,7 +189,7 @@ export function PageTransition({
     return (
         <div
             className={`
-                transform transition-all ease-out
+                transform transition-ui ease-out
                 ${isVisible ? anim.animate : anim.initial}
                 ${className}
             `}
@@ -315,7 +315,7 @@ export function AnimateOnScroll({
         <div
             ref={ref}
             className={`
-                transform transition-all duration-700 ease-out
+                transform transition-ui duration-700 ease-out
                 ${isVisible ? anim.animate : anim.initial}
                 ${className}
             `}

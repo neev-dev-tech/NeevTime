@@ -70,7 +70,7 @@ export const FormInput = ({
                     maxLength={maxLength}
                     className={`
                         w-full border rounded-[10px] px-4 py-2.5 text-sm dark:text-slate-100
-                        transition-all duration-200 ease-in-out
+                        transition-ui duration-200 ease-in-out
                         placeholder:text-slate-400
                         ${prefix ? 'pl-10' : ''}
                         ${suffix || isPassword ? 'pr-10' : ''}
@@ -174,7 +174,7 @@ export const FormSelect = ({
                     disabled={disabled}
                     className={`
                         w-full border rounded-[10px] px-4 py-2.5 text-sm dark:text-slate-100 appearance-none
-                        transition-all duration-200 ease-in-out
+                        transition-ui duration-200 ease-in-out
                         ${hasError
                             ? 'border-red-400 bg-red-50/50 dark:bg-red-900/20 focus:border-red-500'
                             : isValid
@@ -255,7 +255,7 @@ export const FormTextarea = ({
                 rows={rows}
                 className={`
                     w-full border rounded-[10px] px-4 py-2.5 text-sm dark:text-slate-100 resize-none
-                    transition-all duration-200 ease-in-out
+                    transition-ui duration-200 ease-in-out
                     placeholder:text-slate-400
                     ${hasError
                         ? 'border-red-400 bg-red-50/50 dark:bg-red-900/20 focus:border-red-500'
@@ -309,7 +309,7 @@ export const FormCheckbox = ({
                     className="sr-only peer"
                     {...props}
                 />
-                <div className="w-5 h-5 border-2 border-slate-300 dark:border-slate-600 rounded-md transition-all duration-200
+                <div className="w-5 h-5 border-2 border-slate-300 dark:border-slate-600 rounded-md transition-ui duration-200
                     peer-checked:bg-orange-500 peer-checked:border-orange-500
                     peer-focus:ring-2 peer-focus:ring-orange-200
                     group-hover:border-orange-400
@@ -362,10 +362,10 @@ export const FormToggle = ({
                 <div className="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer 
                     peer-checked:bg-green-500
                     peer-focus:ring-2 peer-focus:ring-green-200
-                    transition-all duration-300
+                    transition-ui duration-300
                     after:content-[''] after:absolute after:top-0.5 after:left-0.5
                     after:bg-white after:rounded-full after:h-5 after:w-5
-                    after:transition-all after:duration-300 after:shadow-md
+                    after:transition-ui after:duration-300 after:shadow-md
                     peer-checked:after:translate-x-5"
                 />
             </label>

@@ -42,7 +42,7 @@ function ModeCard({ active, icon: Icon, title, subtitle, onClick }) {
             type="button"
             onClick={onClick}
             aria-pressed={active}
-            className={`flex-1 min-w-[150px] p-4 rounded-xl border text-left transition-all ${
+            className={`flex-1 min-w-[150px] p-4 rounded-xl border text-left transition-ui ${
                 active
                     ? 'border-orange-400 bg-orange-50 dark:bg-orange-900/20 dark:border-orange-600 shadow-sm'
                     : 'border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900/50 hover:border-orange-200 dark:hover:border-orange-800'
@@ -155,7 +155,7 @@ export default function ThemeSettings() {
                                 type="button"
                                 onClick={() => setTheme(key)}
                                 aria-pressed={active}
-                                className={`p-3 rounded-xl border text-left transition-all ${
+                                className={`p-3 rounded-xl border text-left transition-ui ${
                                     active
                                         ? 'border-orange-400 shadow-sm bg-orange-50/60 dark:bg-orange-900/20 dark:border-orange-600'
                                         : 'border-slate-200 dark:border-slate-700 hover:border-orange-200 dark:hover:border-orange-800'

@@ -106,7 +106,7 @@ export default function ConfirmDialog() {
                 aria-describedby="confirm-dialog-description"
             >
                 <div
-                    className={`bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-md w-full p-6 pointer-events-auto transform transition-all ${
+                    className={`bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-md w-full p-6 pointer-events-auto transform transition-ui ${
                         isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
                     }`}
                     onClick={(e) => e.stopPropagation()}

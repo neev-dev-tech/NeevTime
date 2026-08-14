@@ -29,7 +29,7 @@ export function Card({
     style = {},
     ...props
 }) {
-    const baseClasses = 'rounded-2xl transition-all duration-200';
+    const baseClasses = 'rounded-2xl transition-ui duration-200';
 
     const variantClasses = {
         default: 'bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-sm',
@@ -197,7 +197,7 @@ export function StatCard({
                 ${styles.bg} ${styles.border}
                 ${sizeStyles[size]}
                 rounded-2xl shadow-sm
-                transition-all duration-200
+                transition-ui duration-200
                 ${onClick ? 'cursor-pointer hover:shadow-md hover:-translate-y-0.5' : ''}
                 ${className}
             `}

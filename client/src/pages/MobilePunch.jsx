@@ -219,7 +219,7 @@ const MobilePunch = () => {
                                     onClick={handlePunch}
                                     disabled={status !== 'ready' || !location}
                                     className={`
-                                    w-full py-4 rounded-2xl font-bold text-lg shadow-lg transform transition-all active:scale-95
+                                    w-full py-4 rounded-2xl font-bold text-lg shadow-lg transform transition-ui active:scale-95
                                     flex items-center justify-center gap-2
                                     ${status === 'ready'
                                             ? 'bg-saffron-gradient text-white hover:shadow-orange-200 dark:hover:shadow-orange-900/40'

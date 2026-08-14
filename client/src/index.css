@@ -5,9 +5,43 @@
 @tailwind utilities;
 
 :root {
+  /* ── Motion scale ──────────────────────────────────────────────────────
+     Three durations, and a rule for which easing goes with which direction.
+     Before this the app used 0.15s, 0.2s, 0.22s, 0.25s, 0.3s, 0.38s, 0.4s
+     and 0.6s with no reason behind any of them, which is why nothing felt
+     like it belonged to the same product.
+
+     micro    — a colour or opacity change under the pointer. Fast enough to
+                feel like a direct response rather than an animation.
+     standard — the default. Hover lifts, shadow changes, small moves.
+     entrance — something arriving or leaving: panels, menus, reveals.
+
+     Easing follows the direction of travel: things entering decelerate
+     (ease-out), things leaving accelerate away (ease-in), things moving
+     between two on-screen positions do both. */
   --ease-snappy: cubic-bezier(0.25, 0.8, 0.25, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  --duration-micro: 120ms;
+  --duration-standard: 200ms;
+  --duration-entrance: 320ms;
+
+  /* Kept: referenced in many rules that are being narrowed, not retimed. */
   --transition-fast: 200ms;
   --transition-normal: 400ms;
+}
+
+/* The properties worth animating, as one token.
+   `transition: all` was on 644 rendered elements. It animates *every*
+   property, including layout ones like width, height, top and margin — so a
+   hover that changed padding would animate the geometry and drag the rest of
+   the row with it, and any property added later silently joined in. Only
+   compositor-friendly properties and colour belong here. */
+:root {
+  --transition-props: color, background-color, border-color, fill, stroke,
+                      opacity, box-shadow, transform;
 }
 
 body {
@@ -34,10 +68,20 @@ body {
   min-height: 100vh;
 }
 
-/* Global Transition System */
+/* Global transition floor.
+   This set duration and easing on every element but left transition-property
+   at its default of `all` — which is how `transition: all` ended up computed
+   on 644 elements including <meta> and <script>. Any property change anywhere,
+   layout included, animated by default.
+
+   Constraining it to colour keeps what the rule was actually there for: hover
+   and focus tints ease rather than snap, across the whole app, without a
+   padding or width change dragging the layout with it. Anything that needs to
+   move declares `transition-ui` or its own transition, which overrides this. */
 * {
-  transition-duration: var(--transition-fast);
-  transition-timing-function: var(--ease-snappy);
+  transition-property: color, background-color, border-color, fill, stroke;
+  transition-duration: var(--duration-standard);
+  transition-timing-function: var(--ease-out);
 }
 
 @layer components {
@@ -46,7 +90,7 @@ body {
   .btn-primary {
     @apply px-6 py-3 rounded-[8px] text-white font-medium bg-saffron-gradient;
     box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
-    transition: all var(--transition-fast) var(--ease-snappy);
+    transition: var(--transition-props) var(--transition-fast) var(--ease-snappy);
     @apply flex items-center justify-center gap-2;
   }
 
@@ -62,7 +106,7 @@ body {
 
   .btn-secondary {
     @apply px-5 py-2.5 rounded-full bg-white border border-slate-300 text-slate-600 font-medium;
-    transition: all var(--transition-fast) var(--ease-snappy);
+    transition: var(--transition-props) var(--transition-fast) var(--ease-snappy);
     @apply flex items-center justify-center gap-2;
   }
 
@@ -76,7 +120,7 @@ body {
 
   .btn-ghost-red {
     @apply px-4 py-2 rounded-lg bg-transparent text-red-600 font-medium;
-    transition: all var(--transition-fast) var(--ease-snappy);
+    transition: var(--transition-props) var(--transition-fast) var(--ease-snappy);
   }
 
   .btn-ghost-red:hover {
@@ -87,7 +131,7 @@ body {
     @apply px-6 py-3 rounded-[12px] text-white font-medium;
     background: linear-gradient(135deg, #10B981 0%, #059669 100%);
     box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-    transition: all var(--transition-fast) var(--ease-snappy);
+    transition: var(--transition-props) var(--transition-fast) var(--ease-snappy);
     @apply flex items-center justify-center gap-2;
   }
 
@@ -110,7 +154,7 @@ body {
       0 1px 2px rgba(0, 0, 0, 0.04),
       0 6px 20px rgba(0, 0, 0, 0.06);
     padding: 24px;
-    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: var(--transition-props) 0.15s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
   }
@@ -124,7 +168,7 @@ body {
       0 1px 2px rgba(0, 0, 0, 0.04),
       0 8px 24px rgba(0, 0, 0, 0.08);
     padding: 24px;
-    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: var(--transition-props) 0.15s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
   }
@@ -145,7 +189,7 @@ body {
       0 1px 2px rgba(0, 0, 0, 0.04),
       0 4px 10px rgba(0, 0, 0, 0.06);
     padding: 24px;
-    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: var(--transition-props) 0.15s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
   }
@@ -209,7 +253,7 @@ body {
     background: linear-gradient(135deg, #FFFFFF 0%, #FFFBF5 100%);
     border-color: #E5E7EB;
     @apply placeholder:text-gray-400 text-charcoal;
-    transition: all var(--transition-fast) var(--ease-snappy);
+    transition: var(--transition-props) var(--transition-fast) var(--ease-snappy);
   }
 
   .input-base:focus {
@@ -278,7 +322,7 @@ body {
     @apply border-b;
     background: #FFFFFF;
     border-color: #F1F5F9;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: var(--transition-props) 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     height: 56px;
   }
 
@@ -452,7 +496,7 @@ body {
   .table-premium tbody tr {
     background: #FFFFFF;
     border-bottom: 1px solid #F1F5F9;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: var(--transition-props) 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .table-premium tbody tr:nth-child(even) {
@@ -841,7 +885,7 @@ body {
   .stat-card {
     @apply rounded-[16px] p-5 text-white;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    transition: all var(--transition-fast) var(--ease-snappy);
+    transition: var(--transition-props) var(--transition-fast) var(--ease-snappy);
   }
 
   .stat-card:hover {
@@ -852,7 +896,7 @@ body {
   /* Category Grid Item */
   .category-item {
     @apply bg-white border border-gray-200 rounded-[12px] p-4 flex flex-col items-center justify-center gap-2;
-    transition: all var(--transition-fast) var(--ease-snappy);
+    transition: var(--transition-props) var(--transition-fast) var(--ease-snappy);
     min-height: 88px;
   }
 
@@ -866,7 +910,7 @@ body {
   .summary-card {
     @apply rounded-[16px] p-5;
     border-left: 4px solid;
-    transition: all 0.2s ease;
+    transition: var(--transition-props) 0.2s ease;
     position: relative;
     overflow: hidden;
   }
@@ -1090,7 +1134,7 @@ body {
     0 10px 15px -3px rgba(0, 0, 0, 0.08),
     0 20px 25px -5px rgba(0, 0, 0, 0.04),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: var(--transition-props) 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
 }
 
@@ -1150,7 +1194,7 @@ body {
   padding: 14px;
   border-radius: 16px;
   background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(52, 211, 153, 0.05) 100%);
-  transition: all 0.3s ease;
+  transition: var(--transition-props) 0.3s ease;
 }
 
 .device-icon-container.offline {
@@ -1256,7 +1300,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: var(--transition-props) 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow:
     0 4px 6px -1px rgba(59, 130, 246, 0.3),
     0 2px 4px -1px rgba(59, 130, 246, 0.2),
@@ -1304,7 +1348,7 @@ body {
   background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%);
   border: 1px solid rgba(0, 0, 0, 0.05);
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: var(--transition-props) 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
 }
 
@@ -1383,7 +1427,7 @@ body {
   border: none;
   cursor: pointer;
   overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: var(--transition-props) 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow:
     0 4px 14px rgba(249, 115, 22, 0.35),
     inset 0 1px 0 rgba(255, 255, 255, 0.25);
@@ -1429,7 +1473,7 @@ body {
   border: 2px solid #2563EB;
   cursor: pointer;
   overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: var(--transition-props) 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 2px 8px rgba(37, 99, 235, 0.1);
 }
 
@@ -1457,7 +1501,7 @@ body {
   border: none;
   cursor: pointer;
   overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: var(--transition-props) 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow:
     0 4px 14px rgba(16, 185, 129, 0.35),
     inset 0 1px 0 rgba(255, 255, 255, 0.25);
@@ -1488,7 +1532,7 @@ body {
   border: 2px solid #7C3AED;
   cursor: pointer;
   overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: var(--transition-props) 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 2px 8px rgba(124, 58, 237, 0.1);
 }
 
@@ -1513,7 +1557,7 @@ body {
   font-size: 13px;
   cursor: pointer;
   overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: var(--transition-props) 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .btn-export-csv {
@@ -1670,7 +1714,7 @@ body {
   border: 2px solid #D1D5DB;
   background: linear-gradient(135deg, #FFFFFF 0%, #F9FAFB 100%);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: var(--transition-props) 0.2s ease;
   appearance: none;
   -webkit-appearance: none;
 }
@@ -2010,7 +2054,7 @@ body {
   .search-input-wrapper input {
     @apply w-full pl-10 pr-8 py-2 border border-gray-200 rounded-lg text-sm;
     @apply focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100;
-    transition: all 0.2s ease;
+    transition: var(--transition-props) 0.2s ease;
   }
 
   .search-input-wrapper .search-icon {
@@ -3182,7 +3226,7 @@ body {
   border-radius: 6px;
   border: 1.5px solid #CBD5E1;
   background: rgba(255, 255, 255, 0.7);
-  transition: all 160ms ease;
+  transition: var(--transition-props) 160ms ease;
 }
 .dark .dv-check span { border-color: #3F3F46; background: rgba(19, 19, 21, 0.7); }
 .dv-check input:checked + span {
@@ -3465,3 +3509,72 @@ tr:focus-within .dv-quiet { opacity: 1; transform: none; }
 .dark .dark\:bg-slate-800\/70 { background-color: rgba(48, 49, 56, 0.86) !important; }
 .dark .dark\:bg-slate-800\/50 { background-color: rgba(48, 49, 56, 0.70) !important; }
 .dark .dark\:bg-slate-800\/40 { background-color: rgba(48, 49, 56, 0.60) !important; }
+
+/* ── Motion utilities ──────────────────────────────────────────────────────
+   `transition-ui` replaces Tailwind's `transition-all` at the 41 call sites
+   that used it. Same intent — animate the hover treatment — without dragging
+   layout properties along, and pinned to the shared duration scale so the
+   whole app changes at one speed. */
+@layer utilities {
+  .transition-ui {
+    transition-property: var(--transition-props);
+    transition-duration: var(--duration-standard);
+    transition-timing-function: var(--ease-out);
+  }
+
+  .transition-micro {
+    transition-property: var(--transition-props);
+    transition-duration: var(--duration-micro);
+    transition-timing-function: var(--ease-out);
+  }
+}
+
+/* ── Focus ─────────────────────────────────────────────────────────────────
+   There were 3 uses of focus-visible against 216 of `focus:`, so keyboard
+   users mostly got the browser default — or nothing at all where an outline
+   had been reset. This gives every interactive element a visible ring when
+   focused *by keyboard*, without the ring appearing on mouse clicks, which is
+   the reason `outline: none` gets reached for in the first place. */
+/* !important, and not `:where()`.
+   The first version of this rule used :where(), which has zero specificity, so
+   Tailwind's `focus:outline-none` — which does not remove the outline but sets
+   it to `2px solid transparent` — won every time. The ring measured 2px wide
+   and fully transparent: present in the computed style, invisible on screen.
+   A keyboard focus indicator is an accessibility floor rather than a
+   preference, so it is allowed to win outright. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--color-primary, #F97316) !important;
+  outline-offset: 2px !important;
+}
+
+/* Mouse and touch users never see it. */
+a:focus:not(:focus-visible),
+button:focus:not(:focus-visible),
+input:focus:not(:focus-visible),
+select:focus:not(:focus-visible),
+textarea:focus:not(:focus-visible),
+summary:focus:not(:focus-visible),
+[tabindex]:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ── Reduced motion ────────────────────────────────────────────────────────
+   One global honour of the OS setting. Transitions collapse to near-zero
+   rather than 0 so that transitionend still fires and nothing that waits on
+   it hangs. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

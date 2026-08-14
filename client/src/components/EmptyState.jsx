@@ -93,7 +93,7 @@ export function EmptyState({
                                 bg-gradient-to-r from-orange-500 to-orange-600 text-white
                                 font-medium shadow-md hover:shadow-lg
                                 transform hover:-translate-y-0.5
-                                transition-all duration-200"
+                                transition-ui duration-200"
                         >
                             {actionIcon && React.cloneElement(actionIcon, { size: 18 })}
                             {actionLabel}

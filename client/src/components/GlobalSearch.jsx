@@ -219,7 +219,7 @@ export default function GlobalSearch() {
                 aria-label="Global search"
             >
                 <div
-                    className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-2xl w-full overflow-hidden pointer-events-auto transform transition-all"
+                    className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-2xl w-full overflow-hidden pointer-events-auto transform transition-ui"
                     onClick={(e) => e.stopPropagation()}
                 >
                     {/* Search Input */}

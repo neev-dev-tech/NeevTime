@@ -263,7 +263,7 @@ export function DarkModeToggle({ className = '' }) {
             <div
                 className={`
                     absolute w-5 h-5 rounded-full
-                    transform transition-all duration-300
+                    transform transition-ui duration-300
                     flex items-center justify-center
                     ${isDarkMode
                         ? 'translate-x-7 bg-slate-900'
@@ -374,7 +374,7 @@ export function ThemePanel({ isOpen, onClose }) {
                                     key={key}
                                     onClick={() => setTheme(key)}
                                     className={`
-                                        relative p-4 rounded-xl border-2 transition-all
+                                        relative p-4 rounded-xl border-2 transition-ui
                                         ${currentTheme === key && !themeColors.name?.includes('Custom')
                                             ? 'border-slate-800 dark:border-white'
                                             : 'border-slate-200 dark:border-slate-700 hover:border-slate-300'

@@ -100,13 +100,13 @@ export default function ImportWizard() {
                 {/* Connector Line */}
                 <div className="absolute top-[36px] left-[12.5%] right-[12.5%] h-1 bg-slate-100 dark:bg-slate-700 rounded-full" />
                 <div
-                    className="absolute top-[36px] left-[12.5%] h-1 bg-orange-500 dark:bg-orange-500 rounded-full transition-all duration-500"
+                    className="absolute top-[36px] left-[12.5%] h-1 bg-orange-500 dark:bg-orange-500 rounded-full transition-ui duration-500"
                     style={{ width: `calc(75% * ${(step - 1) / 3})` }}
                 />
 
                 {STEP_LABELS.map((label, i) => (
                     <div key={i} className="relative z-10 flex flex-col items-center gap-2 px-2">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all shadow-sm backdrop-blur-sm border ${step > i + 1
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-ui shadow-sm backdrop-blur-sm border ${step > i + 1
                             ? 'bg-emerald-500 text-white border-transparent'
                             : step === i + 1
                                 ? 'bg-orange-600 text-white border-transparent scale-110'
@@ -136,7 +136,7 @@ export default function ImportWizard() {
                                 <button
                                     key={type.id}
                                     onClick={() => { setImportType(type.id); setStep(2); }}
-                                    className="flex flex-col text-left p-6 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm hover:border-orange-400 dark:hover:border-orange-500 hover:shadow-md hover:bg-orange-50/40 dark:hover:bg-slate-700/60 transition-all group"
+                                    className="flex flex-col text-left p-6 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm hover:border-orange-400 dark:hover:border-orange-500 hover:shadow-md hover:bg-orange-50/40 dark:hover:bg-slate-700/60 transition-ui group"
                                 >
                                     <div className="w-12 h-12 rounded-xl bg-orange-100 text-orange-700 border border-orange-200 dark:bg-orange-900/40 dark:text-orange-300 dark:border-orange-800/70 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                                         <FileSpreadsheet size={24} />
@@ -163,7 +163,7 @@ export default function ImportWizard() {
                             </p>
                         </div>
 
-                        <div className="relative rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-600 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm p-12 text-center transition-all group cursor-pointer hover:border-orange-400 dark:hover:border-orange-500 hover:bg-orange-50/40 dark:hover:bg-slate-700/50">
+                        <div className="relative rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-600 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm p-12 text-center transition-ui group cursor-pointer hover:border-orange-400 dark:hover:border-orange-500 hover:bg-orange-50/40 dark:hover:bg-slate-700/50">
                             <input
                                 type="file"
                                 accept=".csv"

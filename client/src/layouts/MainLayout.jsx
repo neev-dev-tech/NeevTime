@@ -134,7 +134,7 @@ export default function MainLayout({ children }) {
                       setActiveModule(mod.name);
                       if (mod.path !== '#') navigate(mod.path);
                     }}
-                    className={`px-5 py-1.5 rounded-full transition-all flex items-center gap-2 text-sm font-semibold relative ${isActive ? 'text-white' : 'text-slate-600 hover:text-orange-600 dark:text-slate-200 dark:hover:text-orange-400'}`}
+                    className={`px-5 py-1.5 rounded-full transition-ui flex items-center gap-2 text-sm font-semibold relative ${isActive ? 'text-white' : 'text-slate-600 hover:text-orange-600 dark:text-slate-200 dark:hover:text-orange-400'}`}
                   >
                     {isActive && (
                       <motion.div 
@@ -238,7 +238,7 @@ export default function MainLayout({ children }) {
                           <Link
                             key={j}
                             to={item.path}
-                            className={`flex items-center gap-3 px-4 py-2 rounded-xl text-sm transition-all font-medium ${isActive ? 'bg-orange-500 text-white shadow-md shadow-orange-200 dark:shadow-none' : 'text-slate-600 dark:text-slate-200 hover:bg-orange-50 dark:hover:bg-slate-700 hover:text-orange-600 dark:hover:text-orange-400'}`}
+                            className={`flex items-center gap-3 px-4 py-2 rounded-xl text-sm transition-ui font-medium ${isActive ? 'bg-orange-500 text-white shadow-md shadow-orange-200 dark:shadow-none' : 'text-slate-600 dark:text-slate-200 hover:bg-orange-50 dark:hover:bg-slate-700 hover:text-orange-600 dark:hover:text-orange-400'}`}
                           >
                             <item.icon size={18} />
                             {item.label}

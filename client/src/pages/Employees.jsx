@@ -916,7 +916,7 @@ export default function Employees() {
                         </div>
 
                         <div className="p-8 text-center">
-                            <div className="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl p-8 hover:bg-orange-50/50 dark:hover:bg-slate-700/50 hover:border-saffron/50 transition-all cursor-pointer group">
+                            <div className="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl p-8 hover:bg-orange-50/50 dark:hover:bg-slate-700/50 hover:border-saffron/50 transition-ui cursor-pointer group">
                                 <div className="w-16 h-16 bg-orange-50 dark:bg-orange-900/30 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
                                     <Upload className="text-orange-500 dark:text-orange-400" size={28} />
                                 </div>

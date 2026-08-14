@@ -456,7 +456,7 @@ export default function Dashboard() {
             <div ref={revealRef} className="group relative overflow-hidden rounded-xl !p-3 flex items-center gap-3
                             bg-white/70 dark:bg-slate-800/60 backdrop-blur-xl
                             shadow-sm ring-1 ring-slate-900/[0.06] dark:ring-white/[0.07]
-                            hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300">
+                            hover:-translate-y-0.5 hover:shadow-lg transition-ui duration-300">
                 {/* A hairline that lights up on hover, so the row still has
                     motion without every tile carrying a permanent colour. */}
                 <span
@@ -769,7 +769,7 @@ export default function Dashboard() {
                         </div>
                         <div className="mt-3 h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
                             <div
-                                className={`h-full rounded-full transition-all ${onlinePercent === 100 ? 'bg-emerald-500' : onlinePercent >= 50 ? 'bg-amber-500' : 'bg-rose-500'}`}
+                                className={`h-full rounded-full transition-ui ${onlinePercent === 100 ? 'bg-emerald-500' : onlinePercent >= 50 ? 'bg-amber-500' : 'bg-rose-500'}`}
                                 style={{ width: `${onlinePercent}%` }}
                             />
                         </div>
@@ -922,7 +922,7 @@ export default function Dashboard() {
                                             {recent.map((log, i) => (
                                                 <div
                                                     key={i}
-                                                    className={`flex items-center justify-between py-3 px-4 rounded-lg transition-all mb-2 ${i === 0 ? 'bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 animate-pulse' : 'bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}
+                                                    className={`flex items-center justify-between py-3 px-4 rounded-lg transition-ui mb-2 ${i === 0 ? 'bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 animate-pulse' : 'bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}
                                                     style={i === 0 ? { animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' } : {}}
                                                 >
                                                     <div className="flex items-center gap-3">
@@ -954,7 +954,7 @@ export default function Dashboard() {
                                             {older.map((log, i) => (
                                                 <div
                                                     key={i + recent.length}
-                                                    className="flex items-center justify-between py-3 px-4 rounded-lg transition-all mb-2 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50"
+                                                    className="flex items-center justify-between py-3 px-4 rounded-lg transition-ui mb-2 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50"
                                                 >
                                                     <div className="flex items-center gap-3">
                                                         <div className={`p-1.5 rounded-lg ${log.punch_type === 'IN' ? 'bg-green-100 dark:bg-green-900/30' : 'bg-red-100 dark:bg-red-900/30'}`}>

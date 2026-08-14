@@ -106,7 +106,7 @@ function Toast({
                 relative overflow-hidden
                 min-w-[320px] max-w-md
                 rounded-xl shadow-2xl
-                transform transition-all duration-300 ease-out
+                transform transition-ui duration-300 ease-out
                 ${isExiting ? 'opacity-0 translate-x-4 scale-95' : 'opacity-100 translate-x-0 scale-100'}
                 ${config.className}
             `}
@@ -138,7 +138,7 @@ function Toast({
                                 handleClose();
                             }}
                             className="mt-2 text-sm font-medium underline underline-offset-2 
-                                hover:no-underline transition-all"
+                                hover:no-underline transition-ui"
                         >
                             {actionLabel}
                         </button>
@@ -160,7 +160,7 @@ function Toast({
             {showProgress && duration && type !== 'loading' && (
                 <div className="h-1 bg-black/10">
                     <div
-                        className={`h-full ${config.progressColor} transition-all duration-50 ease-linear`}
+                        className={`h-full ${config.progressColor} transition-ui duration-50 ease-linear`}
                         style={{ width: `${progress}%` }}
                     />
                 </div>

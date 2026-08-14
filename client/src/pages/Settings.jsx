@@ -243,7 +243,7 @@ export default function Settings() {
                         type="number"
                         value={value ?? ''}
                         onChange={(e) => handleChange(key, parseFloat(e.target.value) || 0)}
-                        className="input-premium transition-all duration-200"
+                        className="input-premium transition-ui duration-200"
                     />
                     {config.description && (
                         <p className="text-xs text-slate-500 dark:text-slate-400 ml-1">{config.description}</p>
@@ -284,7 +284,7 @@ export default function Settings() {
                         value={value ?? ''}
                         onChange={(e) => handleChange(key, e.target.value)}
                         rows={3}
-                        className="input-premium resize-y min-h-[100px] transition-all duration-200"
+                        className="input-premium resize-y min-h-[100px] transition-ui duration-200"
                     />
                     {config.description && (
                         <p className="text-xs text-slate-500 dark:text-slate-400 ml-1">{config.description}</p>
@@ -300,7 +300,7 @@ export default function Settings() {
                     type={isPassword ? 'password' : 'text'}
                     value={value ?? ''}
                     onChange={(e) => handleChange(key, e.target.value)}
-                    className="input-premium transition-all duration-200"
+                    className="input-premium transition-ui duration-200"
                 />
                 {config.description && (
                     <p className="text-xs text-slate-500 dark:text-slate-400 ml-1">{config.description}</p>

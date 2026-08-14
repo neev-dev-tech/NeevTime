@@ -133,7 +133,7 @@ export default function Login({ setAuth }) {
                                     type="text"
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value)}
-                                    className="w-full pl-12 pr-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-saffron/50 focus:border-saffron transition-all bg-slate-50/50 dark:bg-slate-900 dark:text-slate-100"
+                                    className="w-full pl-12 pr-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-saffron/50 focus:border-saffron transition-ui bg-slate-50/50 dark:bg-slate-900 dark:text-slate-100"
                                     placeholder="Enter your username"
                                 />
                             </div>
@@ -147,7 +147,7 @@ export default function Login({ setAuth }) {
                                     type="password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full pl-12 pr-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-saffron/50 focus:border-saffron transition-all bg-slate-50/50 dark:bg-slate-900 dark:text-slate-100"
+                                    className="w-full pl-12 pr-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-saffron/50 focus:border-saffron transition-ui bg-slate-50/50 dark:bg-slate-900 dark:text-slate-100"
                                     placeholder="Enter your password"
                                 />
                             </div>
@@ -159,7 +159,7 @@ export default function Login({ setAuth }) {
                             <a href="/forgot-password" className="text-saffron hover:underline font-medium">Forgot password?</a>
                         </div>
 
-                        <button className="w-full btn-primary py-3.5 rounded-xl shadow-lg shadow-orange-200 transition-all hover:scale-[1.02] hover:shadow-xl text-base font-semibold">
+                        <button className="w-full btn-primary py-3.5 rounded-xl shadow-lg shadow-orange-200 transition-ui hover:scale-[1.02] hover:shadow-xl text-base font-semibold">
                             Sign In
                         </button>
                     </form>
