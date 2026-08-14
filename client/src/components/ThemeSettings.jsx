@@ -204,7 +204,7 @@ export default function ThemeSettings() {
                                 type="color"
                                 value={themeColors[key] || '#000000'}
                                 onChange={(e) => setCustomColor(key, e.target.value)}
-                                className="w-10 h-10 rounded-lg border border-slate-200 dark:border-slate-600 cursor-pointer bg-transparent p-0.5"
+                                className="field w-10 h-10 cursor-pointer bg-transparent"
                                 aria-label={label}
                             />
                             <div className="min-w-0">

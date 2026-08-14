@@ -429,15 +429,13 @@ export function ThemePanel({ isOpen, onClose }) {
                                         type="color"
                                         value={themeColors.primary}
                                         onChange={(e) => setCustomColor('primary', e.target.value)}
-                                        className="w-12 h-10 rounded-lg cursor-pointer border-0"
+                                        className="field w-12 h-10 cursor-pointer border-0"
                                     />
                                     <input
                                         type="text"
                                         value={themeColors.primary}
                                         onChange={(e) => setCustomColor('primary', e.target.value)}
-                                        className="flex-1 px-3 py-2 border border-slate-200 dark:border-slate-700 
-                                            rounded-lg text-sm font-mono
-                                            dark:bg-slate-800 dark:text-white"
+                                        className="field flex-1 font-mono"
                                         placeholder="#F97316"
                                     />
                                 </div>

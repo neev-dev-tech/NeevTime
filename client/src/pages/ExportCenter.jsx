@@ -135,14 +135,14 @@ export default function ExportCenter() {
                     <div className="flex gap-4">
                         <input
                             type="date"
-                            className="flex-1 text-sm rounded-lg px-3 py-2 border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-100 focus:outline-none focus:border-orange-400 dark:focus:border-orange-500"
+                            className="field flex-1"
                             value={dateRange.start}
                             onChange={e => setDateRange({ ...dateRange, start: e.target.value })}
                         />
                         <span className="self-center text-sm text-slate-500 dark:text-slate-400">to</span>
                         <input
                             type="date"
-                            className="flex-1 text-sm rounded-lg px-3 py-2 border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-100 focus:outline-none focus:border-orange-400 dark:focus:border-orange-500"
+                            className="field flex-1"
                             value={dateRange.end}
                             onChange={e => setDateRange({ ...dateRange, end: e.target.value })}
                         />

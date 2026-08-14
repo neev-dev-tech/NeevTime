@@ -133,7 +133,7 @@ export default function Login({ setAuth }) {
                                     type="text"
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value)}
-                                    className="w-full pl-12 pr-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-saffron/50 focus:border-saffron transition-ui bg-slate-50/50 dark:bg-slate-900 dark:text-slate-100"
+                                    className="field pl-12 pr-4"
                                     placeholder="Enter your username"
                                 />
                             </div>
@@ -147,7 +147,7 @@ export default function Login({ setAuth }) {
                                     type="password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full pl-12 pr-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-saffron/50 focus:border-saffron transition-ui bg-slate-50/50 dark:bg-slate-900 dark:text-slate-100"
+                                    className="field pl-12 pr-4"
                                     placeholder="Enter your password"
                                 />
                             </div>

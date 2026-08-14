@@ -316,9 +316,7 @@ export default function DataTable({
                                 setSearchTerm(e.target.value);
                                 setCurrentPage(1);
                             }}
-                            className="w-full pl-10 pr-4 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg text-sm
-                                focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100
-                                transition-ui duration-200"
+                            className="field pl-10 pr-4"
                         />
                         {searchTerm && (
                             <button
@@ -529,7 +527,7 @@ export default function DataTable({
                                 setRowsPerPage(Number(e.target.value));
                                 setCurrentPage(1);
                             }}
-                            className="border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg px-2 py-1 focus:outline-none focus:border-orange-400"
+                            className="field-sm"
                         >
                             {pageSizeOptions.map(size => (
                                 <option key={size} value={size}>{size}</option>

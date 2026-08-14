@@ -335,7 +335,7 @@ export default function EmployeeProfile() {
                                         value={portalPassword}
                                         onChange={e => setPortalPassword(e.target.value)}
                                         placeholder="New portal password (min 6 chars)"
-                                        className="flex-1 text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-800 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                        className="field flex-1"
                                     />
                                     <Button
                                         variant="primary"
@@ -471,41 +471,41 @@ export default function EmployeeProfile() {
                             {/* Similar Form Fields to Add Modal */}
                             <div className="col-span-1 md:col-span-3 font-semibold text-slate-600 dark:text-slate-400 border-b dark:border-slate-700 pb-1 mb-2">Personal Details</div>
 
-                            <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Employee ID</label><input disabled type="text" className="w-full border border-slate-200 bg-slate-50 rounded-lg px-2 py-1.5 text-sm font-mono tabular-nums text-slate-500 dark:bg-slate-900/50 dark:border-slate-600 dark:text-slate-400" value={editForm.employee_code} /></div>
-                            <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Name</label><input type="text" className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm bg-white text-slate-800 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100" value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} /></div>
+                            <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Employee ID</label><input disabled type="text" className="field-sm font-mono tabular-nums" value={editForm.employee_code} /></div>
+                            <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Name</label><input type="text" className="field-sm" value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} /></div>
                             <div>
                                 <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Gender</label>
-                                <select className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm bg-white text-slate-800 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100" value={editForm.gender} onChange={e => setEditForm({ ...editForm, gender: e.target.value })}>
+                                <select className="field-sm" value={editForm.gender} onChange={e => setEditForm({ ...editForm, gender: e.target.value })}>
                                     <option value="Male">Male</option>
                                     <option value="Female">Female</option>
                                     <option value="Other">Other</option>
                                 </select>
                             </div>
-                            <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">DOB</label><input type="date" className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm bg-white text-slate-800 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100" value={editForm.dob ? editForm.dob.split('T')[0] : ''} onChange={e => setEditForm({ ...editForm, dob: e.target.value })} /></div>
-                            <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Mobile</label><input type="text" className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm bg-white text-slate-800 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100" value={editForm.mobile} onChange={e => setEditForm({ ...editForm, mobile: e.target.value })} /></div>
-                            <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Email</label><input type="email" className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm bg-white text-slate-800 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100" value={editForm.email} onChange={e => setEditForm({ ...editForm, email: e.target.value })} /></div>
-                            <div className="col-span-1 md:col-span-3"><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Address</label><textarea rows={2} className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm bg-white text-slate-800 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100" value={editForm.address} onChange={e => setEditForm({ ...editForm, address: e.target.value })} /></div>
+                            <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">DOB</label><input type="date" className="field-sm" value={editForm.dob ? editForm.dob.split('T')[0] : ''} onChange={e => setEditForm({ ...editForm, dob: e.target.value })} /></div>
+                            <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Mobile</label><input type="text" className="field-sm" value={editForm.mobile} onChange={e => setEditForm({ ...editForm, mobile: e.target.value })} /></div>
+                            <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Email</label><input type="email" className="field-sm" value={editForm.email} onChange={e => setEditForm({ ...editForm, email: e.target.value })} /></div>
+                            <div className="col-span-1 md:col-span-3"><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Address</label><textarea rows={2} className="field-sm" value={editForm.address} onChange={e => setEditForm({ ...editForm, address: e.target.value })} /></div>
 
                             <div className="col-span-1 md:col-span-3 font-semibold text-slate-600 dark:text-slate-400 border-b dark:border-slate-700 pb-1 mb-2 mt-2">Work Details</div>
                             <div>
                                 <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Department</label>
-                                <select className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm bg-white text-slate-800 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100" value={editForm.department_id} onChange={e => setEditForm({ ...editForm, department_id: e.target.value })}>
+                                <select className="field-sm" value={editForm.department_id} onChange={e => setEditForm({ ...editForm, department_id: e.target.value })}>
                                     <option value="">Select</option>
                                     {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                                 </select>
                             </div>
-                            <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Designation</label><input type="text" className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm bg-white text-slate-800 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100" value={editForm.designation} onChange={e => setEditForm({ ...editForm, designation: e.target.value })} /></div>
+                            <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Designation</label><input type="text" className="field-sm" value={editForm.designation} onChange={e => setEditForm({ ...editForm, designation: e.target.value })} /></div>
                             <div>
                                 <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Area</label>
-                                <select className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm bg-white text-slate-800 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100" value={editForm.area_id} onChange={e => setEditForm({ ...editForm, area_id: e.target.value })}>
+                                <select className="field-sm" value={editForm.area_id} onChange={e => setEditForm({ ...editForm, area_id: e.target.value })}>
                                     <option value="">Select</option>
                                     {areas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                                 </select>
                             </div>
-                            <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Joining Date</label><input type="date" className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm bg-white text-slate-800 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100" value={editForm.joining_date ? editForm.joining_date.split('T')[0] : ''} onChange={e => setEditForm({ ...editForm, joining_date: e.target.value })} /></div>
+                            <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Joining Date</label><input type="date" className="field-sm" value={editForm.joining_date ? editForm.joining_date.split('T')[0] : ''} onChange={e => setEditForm({ ...editForm, joining_date: e.target.value })} /></div>
                             <div>
                                 <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Status</label>
-                                <select className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm bg-white text-slate-800 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100" value={editForm.status} onChange={e => setEditForm({ ...editForm, status: e.target.value })}>
+                                <select className="field-sm" value={editForm.status} onChange={e => setEditForm({ ...editForm, status: e.target.value })}>
                                     <option value="active">Active</option>
                                     <option value="inactive">Inactive</option>
                                 </select>

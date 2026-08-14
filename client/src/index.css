@@ -3636,3 +3636,67 @@ code, kbd, samp, .font-mono, .employee-code, .device-serial {
   --radius-lg: 16px;
   --radius-full: 9999px;
 }
+
+/* ── Form fields ───────────────────────────────────────────────────────────
+   One definition for a text input, select or textarea.
+
+   There were seven variants of the same control across the pages, differing in
+   padding (px-2 py-1.5 against px-3 py-2 against px-4 py-2), in border colour,
+   in whether a focus ring appeared at all, and in which colour it was when it
+   did. Nothing chose between them; each was written where it was needed. That
+   is most of what reads as "every page is slightly different".
+
+   Two sizes, because that difference was real: `field` for forms, `field-sm`
+   for the dense filter rows in page toolbars, where a full-height input would
+   push the toolbar taller than the heading beside it.
+
+   Plain CSS rather than @apply so these do not depend on Tailwind's layer
+   ordering to beat the utilities they replace. */
+@layer components {
+  .field,
+  .field-sm {
+    width: 100%;
+    border: 1px solid #E2E8F0;
+    border-radius: var(--radius-sm);
+    background: #FFFFFF;
+    color: #1E293B;
+    transition: border-color var(--duration-standard) var(--ease-out),
+                box-shadow var(--duration-standard) var(--ease-out);
+  }
+
+  .field    { padding: 10px 14px; font-size: 14px; }
+  .field-sm { padding: 6px 10px;  font-size: 13px; }
+
+  .field::placeholder,
+  .field-sm::placeholder { color: #94A3B8; }
+
+  .field:focus,
+  .field-sm:focus {
+    outline: none;
+    border-color: var(--color-primary, #F97316);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary, #F97316) 18%, transparent);
+  }
+
+  .field:disabled,
+  .field-sm:disabled {
+    background: #F8FAFC;
+    color: #94A3B8;
+    cursor: not-allowed;
+  }
+
+  .dark .field,
+  .dark .field-sm {
+    background: rgba(48, 49, 56, 0.6);
+    border-color: #3B3C44;
+    color: #F1F5F9;
+  }
+
+  .dark .field::placeholder,
+  .dark .field-sm::placeholder { color: #64748B; }
+
+  .dark .field:disabled,
+  .dark .field-sm:disabled {
+    background: rgba(33, 34, 40, 0.6);
+    color: #64748B;
+  }
+}

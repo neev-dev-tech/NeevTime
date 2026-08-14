@@ -432,7 +432,7 @@ export default function Settings() {
                                     value={testEmail}
                                     onChange={e => setTestEmail(e.target.value)}
                                     placeholder="recipient@example.com"
-                                    className="flex-1 min-w-[220px] text-sm rounded-lg px-3 py-2 border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-orange-400 dark:focus:border-orange-500"
+                                    className="field flex-1 min-w-[220px]"
                                 />
                                 <Button variant="dark" icon={Send} onClick={handleTestEmail} disabled={testingEmail}>
                                     {testingEmail ? 'Sending...' : 'Send Test Email'}

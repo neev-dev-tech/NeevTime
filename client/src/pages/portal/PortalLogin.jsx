@@ -52,7 +52,7 @@ export default function PortalLogin() {
                             type="text"
                             value={employeeCode}
                             onChange={e => setEmployeeCode(e.target.value)}
-                            className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400 outline-none"
+                            className="field"
                             placeholder="e.g. EMP001"
                             required
                         />
@@ -63,7 +63,7 @@ export default function PortalLogin() {
                             type="password"
                             value={password}
                             onChange={e => setPassword(e.target.value)}
-                            className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400 outline-none"
+                            className="field"
                             required
                         />
                     </div>

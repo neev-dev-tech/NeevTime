@@ -224,9 +224,9 @@ export default function EmployeePortal() {
                 {tab === 'attendance' && (
                     <div className="bg-white/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
                         <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700 flex items-center gap-2 flex-wrap">
-                            <input type="date" value={range.start} onChange={e => setRange(r => ({ ...r, start: e.target.value }))} className="text-sm tabular-nums border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-100 rounded-lg px-2 py-1" />
+                            <input type="date" value={range.start} onChange={e => setRange(r => ({ ...r, start: e.target.value }))} className="field-sm tabular-nums" />
                             <span className="text-slate-400">→</span>
-                            <input type="date" value={range.end} onChange={e => setRange(r => ({ ...r, end: e.target.value }))} className="text-sm tabular-nums border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-100 rounded-lg px-2 py-1" />
+                            <input type="date" value={range.end} onChange={e => setRange(r => ({ ...r, end: e.target.value }))} className="field-sm tabular-nums" />
                         </div>
 
                         {loading.attendance ? (
@@ -314,22 +314,22 @@ export default function EmployeePortal() {
                                 <select
                                     value={form.leave_type_id}
                                     onChange={e => setForm(f => ({ ...f, leave_type_id: e.target.value }))}
-                                    className="w-full text-sm border dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg px-3 py-2"
+                                    className="field"
                                     required
                                 >
                                     <option value="">Select leave type</option>
                                     {leave.types.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                                 </select>
                                 <div className="flex gap-2">
-                                    <input type="date" value={form.from_date} onChange={e => setForm(f => ({ ...f, from_date: e.target.value }))} className="flex-1 text-sm border dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg px-3 py-2" required />
-                                    <input type="date" value={form.to_date} onChange={e => setForm(f => ({ ...f, to_date: e.target.value }))} className="flex-1 text-sm border dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg px-3 py-2" required />
+                                    <input type="date" value={form.from_date} onChange={e => setForm(f => ({ ...f, from_date: e.target.value }))} className="field flex-1" required />
+                                    <input type="date" value={form.to_date} onChange={e => setForm(f => ({ ...f, to_date: e.target.value }))} className="field flex-1" required />
                                 </div>
                                 <textarea
                                     value={form.reason}
                                     onChange={e => setForm(f => ({ ...f, reason: e.target.value }))}
                                     placeholder="Reason (optional)"
                                     rows={2}
-                                    className="w-full text-sm border dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg px-3 py-2"
+                                    className="field"
                                 />
                                 <Button type="submit" variant="primary" icon={Send} iconSize={14} className="w-full">
                                     Submit
@@ -389,16 +389,16 @@ export default function EmployeePortal() {
                             <form onSubmit={submitRegularization} className="bg-white/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 p-4 space-y-3">
                                 <div>
                                     <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Date</label>
-                                    <input type="date" value={regForm.date} max={today()} onChange={e => setRegForm(f => ({ ...f, date: e.target.value }))} className="w-full text-sm border dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg px-3 py-2" required />
+                                    <input type="date" value={regForm.date} max={today()} onChange={e => setRegForm(f => ({ ...f, date: e.target.value }))} className="field" required />
                                 </div>
                                 <div className="flex gap-2">
                                     <div className="flex-1">
                                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Correct In Time</label>
-                                        <input type="time" value={regForm.requested_in_time} onChange={e => setRegForm(f => ({ ...f, requested_in_time: e.target.value }))} className="w-full text-sm border dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg px-3 py-2" />
+                                        <input type="time" value={regForm.requested_in_time} onChange={e => setRegForm(f => ({ ...f, requested_in_time: e.target.value }))} className="field" />
                                     </div>
                                     <div className="flex-1">
                                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Correct Out Time</label>
-                                        <input type="time" value={regForm.requested_out_time} onChange={e => setRegForm(f => ({ ...f, requested_out_time: e.target.value }))} className="w-full text-sm border dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg px-3 py-2" />
+                                        <input type="time" value={regForm.requested_out_time} onChange={e => setRegForm(f => ({ ...f, requested_out_time: e.target.value }))} className="field" />
                                     </div>
                                 </div>
                                 <textarea
@@ -406,7 +406,7 @@ export default function EmployeePortal() {
                                     onChange={e => setRegForm(f => ({ ...f, reason: e.target.value }))}
                                     placeholder="Reason (e.g. forgot to punch out)"
                                     rows={2}
-                                    className="w-full text-sm border dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg px-3 py-2"
+                                    className="field"
                                     required
                                 />
                                 <Button type="submit" variant="primary" icon={Send} iconSize={14} className="w-full">

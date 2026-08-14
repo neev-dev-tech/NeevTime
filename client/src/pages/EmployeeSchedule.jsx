@@ -224,7 +224,7 @@ export default function EmployeeSchedule() {
                         placeholder="Search employee..."
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
-                        className="w-full pl-9 pr-3 py-2 text-sm rounded-lg bg-white/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                        className="field pl-9 pr-3 bg-white/70"
                     />
                 </div>
                 <div className="relative">
@@ -232,7 +232,7 @@ export default function EmployeeSchedule() {
                     <select
                         value={filterDepartment}
                         onChange={e => setFilterDepartment(e.target.value)}
-                        className="pl-9 pr-3 py-2 text-sm rounded-lg bg-white/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                        className="field pl-9 pr-3 bg-white/70"
                     >
                         <option value="">All Departments</option>
                         {departments.map(d => (
@@ -353,7 +353,7 @@ export default function EmployeeSchedule() {
                                 <select
                                     value={form.employee_id}
                                     onChange={e => setForm({ ...form, employee_id: e.target.value })}
-                                    className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                    className="field"
                                     required
                                 >
                                     <option value="">Select Employee</option>
@@ -369,7 +369,7 @@ export default function EmployeeSchedule() {
                                     <select
                                         value={form.shift_id}
                                         onChange={e => setForm({ ...form, shift_id: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                        className="field"
                                     >
                                         <option value="">Select Shift</option>
                                         {shifts.map(s => (
@@ -382,7 +382,7 @@ export default function EmployeeSchedule() {
                                     <select
                                         value={form.timetable_id}
                                         onChange={e => setForm({ ...form, timetable_id: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                        className="field"
                                     >
                                         <option value="">Select Timetable</option>
                                         {timetables.map(t => (
@@ -399,7 +399,7 @@ export default function EmployeeSchedule() {
                                         type="date"
                                         value={form.effective_from}
                                         onChange={e => setForm({ ...form, effective_from: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                        className="field"
                                         required
                                     />
                                 </div>
@@ -409,7 +409,7 @@ export default function EmployeeSchedule() {
                                         type="date"
                                         value={form.effective_to}
                                         onChange={e => setForm({ ...form, effective_to: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                        className="field"
                                     />
                                 </div>
                             </div>
@@ -433,7 +433,7 @@ export default function EmployeeSchedule() {
                                         type="text"
                                         value={form.reason}
                                         onChange={e => setForm({ ...form, reason: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                        className="field"
                                         placeholder="Reason for temporary schedule"
                                     />
                                 </div>
@@ -489,7 +489,7 @@ export default function EmployeeSchedule() {
                                     <select
                                         value={form.shift_id}
                                         onChange={e => setForm({ ...form, shift_id: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                        className="field"
                                     >
                                         <option value="">Select Shift</option>
                                         {shifts.map(s => (
@@ -502,7 +502,7 @@ export default function EmployeeSchedule() {
                                     <select
                                         value={form.timetable_id}
                                         onChange={e => setForm({ ...form, timetable_id: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                        className="field"
                                     >
                                         <option value="">Select Timetable</option>
                                         {timetables.map(t => (
@@ -516,7 +516,7 @@ export default function EmployeeSchedule() {
                                         type="date"
                                         value={form.effective_from}
                                         onChange={e => setForm({ ...form, effective_from: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                        className="field"
                                         required
                                     />
                                 </div>
@@ -526,7 +526,7 @@ export default function EmployeeSchedule() {
                                         type="date"
                                         value={form.effective_to}
                                         onChange={e => setForm({ ...form, effective_to: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                        className="field"
                                     />
                                 </div>
                                 <div className="pt-4 border-t dark:border-slate-700">

@@ -246,7 +246,7 @@ export default function ApprovalRole() {
             <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between text-sm text-slate-500 dark:text-slate-400 bg-slate-50/70 dark:bg-slate-900/50">
                 <div className="flex items-center gap-3">
                     <Button variant="ghost" size="sm" icon={RefreshCw} onClick={fetchRoles} title="Refresh" aria-label="Refresh" />
-                    <select value={itemsPerPage} onChange={e => setItemsPerPage(Number(e.target.value))} className="border border-slate-200 dark:border-slate-600 rounded-lg px-2 py-1 text-xs font-semibold bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 focus:outline-none focus:border-orange-400 dark:focus:border-orange-500">
+                    <select value={itemsPerPage} onChange={e => setItemsPerPage(Number(e.target.value))} className="field-sm font-semibold">
                         <option value={50}>50</option>
                         <option value={100}>100</option>
                     </select>

@@ -341,7 +341,7 @@ export default function Timetable() {
                                         type="text"
                                         value={form.name}
                                         onChange={e => setForm({ ...form, name: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                        className="field"
                                         required
                                     />
                                 </div>
@@ -351,7 +351,7 @@ export default function Timetable() {
                                         type="text"
                                         value={form.code}
                                         onChange={e => setForm({ ...form, code: e.target.value.toUpperCase() })}
-                                        className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                        className="field"
                                         maxLength={10}
                                         required
                                     />
@@ -365,7 +365,7 @@ export default function Timetable() {
                                         type="time"
                                         value={form.check_in}
                                         onChange={e => setForm({ ...form, check_in: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                        className="field"
                                         required
                                     />
                                 </div>
@@ -375,7 +375,7 @@ export default function Timetable() {
                                         type="time"
                                         value={form.check_out}
                                         onChange={e => setForm({ ...form, check_out: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                        className="field"
                                         required
                                     />
                                 </div>
@@ -388,7 +388,7 @@ export default function Timetable() {
                                         type="time"
                                         value={form.late_in}
                                         onChange={e => setForm({ ...form, late_in: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                        className="field"
                                     />
                                 </div>
                                 <div>
@@ -397,7 +397,7 @@ export default function Timetable() {
                                         type="time"
                                         value={form.early_out}
                                         onChange={e => setForm({ ...form, early_out: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                        className="field"
                                     />
                                 </div>
                             </div>
@@ -409,7 +409,7 @@ export default function Timetable() {
                                         type="number"
                                         value={form.grace_period_minutes}
                                         onChange={e => setForm({ ...form, grace_period_minutes: parseInt(e.target.value) })}
-                                        className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                        className="field"
                                     />
                                 </div>
                                 <div>
@@ -419,7 +419,7 @@ export default function Timetable() {
                                         step="0.5"
                                         value={form.min_hours_for_full_day}
                                         onChange={e => setForm({ ...form, min_hours_for_full_day: parseFloat(e.target.value) })}
-                                        className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                        className="field"
                                     />
                                 </div>
                                 <div>
@@ -429,7 +429,7 @@ export default function Timetable() {
                                         step="0.5"
                                         value={form.min_hours_for_half_day}
                                         onChange={e => setForm({ ...form, min_hours_for_half_day: parseFloat(e.target.value) })}
-                                        className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                        className="field"
                                     />
                                 </div>
                             </div>
@@ -469,7 +469,7 @@ export default function Timetable() {
                                 <textarea
                                     value={form.description}
                                     onChange={e => setForm({ ...form, description: e.target.value })}
-                                    className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                    className="field"
                                     rows={2}
                                 />
                             </div>
@@ -538,7 +538,7 @@ export default function Timetable() {
                                             placeholder="Break Name (e.g., Lunch Break)"
                                             value={breakForm.name}
                                             onChange={e => setBreakForm({ ...breakForm, name: e.target.value })}
-                                            className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                            className="field"
                                             required
                                         />
                                     </div>
@@ -546,14 +546,14 @@ export default function Timetable() {
                                         type="time"
                                         value={breakForm.start_time}
                                         onChange={e => setBreakForm({ ...breakForm, start_time: e.target.value })}
-                                        className="px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                        className="field"
                                         required
                                     />
                                     <input
                                         type="time"
                                         value={breakForm.end_time}
                                         onChange={e => setBreakForm({ ...breakForm, end_time: e.target.value })}
-                                        className="px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                        className="field"
                                         required
                                     />
                                 </div>

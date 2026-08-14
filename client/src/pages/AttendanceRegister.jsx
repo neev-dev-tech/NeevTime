@@ -147,14 +147,14 @@ export default function AttendanceRegister() {
                             type="date"
                             value={date}
                             onChange={e => setDate(e.target.value)}
-                            className="rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm tabular-nums text-slate-700 dark:text-slate-100 py-1.5 px-3 focus:outline-none focus:border-orange-400 dark:focus:border-orange-500"
+                            className="field-sm tabular-nums"
                         />
                         {/* The filter state and predicates already existed; this is the
                             UI that was missing, so the button did nothing. */}
                         <select
                             value={filters.status}
                             onChange={e => setFilters(f => ({ ...f, status: e.target.value }))}
-                            className="rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-100 py-1.5 px-3 focus:outline-none focus:border-orange-400 dark:focus:border-orange-500"
+                            className="field-sm"
                         >
                             <option value="">All statuses</option>
                             {statusOptions.map(s => <option key={s} value={s}>{s}</option>)}
@@ -162,7 +162,7 @@ export default function AttendanceRegister() {
                         <select
                             value={filters.department}
                             onChange={e => setFilters(f => ({ ...f, department: e.target.value }))}
-                            className="rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-100 py-1.5 px-3 focus:outline-none focus:border-orange-400 dark:focus:border-orange-500"
+                            className="field-sm"
                         >
                             <option value="">All departments</option>
                             {departmentOptions.map(d => <option key={d} value={d}>{d}</option>)}

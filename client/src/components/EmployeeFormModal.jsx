@@ -100,7 +100,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee = null, de
                 <select
                     value={value}
                     onChange={e => onChange(e.target.value)}
-                    className="flex-1 border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded px-3 py-1.5 text-sm focus:border-green-500 focus:outline-none"
+                    className="field-sm flex-1"
                 >
                     <option value="">----------</option>
                     {options.map(opt => <option key={opt.value || opt} value={opt.value || opt}>{opt.label || opt}</option>)}
@@ -111,7 +111,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee = null, de
                     value={value}
                     onChange={e => onChange(e.target.value)}
                     placeholder={placeholder}
-                    className="flex-1 border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded px-3 py-1.5 text-sm focus:border-green-500 focus:outline-none"
+                    className="field-sm flex-1"
                 />
             )}
         </div>
@@ -183,7 +183,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee = null, de
                                         value={formData.photo_url || ''}
                                         onChange={e => handleChange('photo_url', e.target.value)}
                                         placeholder="https://…"
-                                        className="mt-1 w-32 text-xs border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1"
+                                        className="field-sm mt-1 w-32"
                                     />
                                 </div>
                             </div>
@@ -233,7 +233,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee = null, de
                                             value={formData.permanent_address}
                                             onChange={e => handleChange('permanent_address', e.target.value)}
                                             rows={2}
-                                            className="flex-1 border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded px-3 py-1.5 text-sm focus:border-green-500 focus:outline-none resize-none"
+                                            className="field-sm flex-1 resize-none"
                                         />
                                     </div>
                                 </div>
@@ -286,7 +286,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee = null, de
                                     <select
                                         value={formData.default_shift_id || ''}
                                         onChange={e => handleChange('default_shift_id', e.target.value)}
-                                        className="flex-1 max-w-xs border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded px-3 py-1.5 text-sm"
+                                        className="field-sm flex-1 max-w-xs"
                                     >
                                         <option value="">----------</option>
                                         {shifts.map(shift => (
@@ -342,7 +342,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee = null, de
                                         type="tel"
                                         value={formData.whatsapp_number}
                                         onChange={e => handleChange('whatsapp_number', e.target.value)}
-                                        className="flex-1 max-w-xs border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded px-3 py-1.5 text-sm"
+                                        className="field-sm flex-1 max-w-xs"
                                         placeholder="+91"
                                     />
                                 </div>
@@ -358,7 +358,7 @@ export default function EmployeeFormModal({ isOpen, onClose, employee = null, de
                                         type="tel"
                                         value={formData.sms_number}
                                         onChange={e => handleChange('sms_number', e.target.value)}
-                                        className="flex-1 max-w-xs border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded px-3 py-1.5 text-sm"
+                                        className="field-sm flex-1 max-w-xs"
                                         placeholder="+91"
                                     />
                                 </div>

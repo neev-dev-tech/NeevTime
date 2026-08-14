@@ -178,7 +178,7 @@ export default function LeaveTypes() {
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">Color</label>
-                                    <input type="color" value={form.color} onChange={e => setForm(f => ({ ...f, color: e.target.value }))} className="h-10 w-14 border border-slate-200 dark:border-slate-600 rounded-lg cursor-pointer" />
+                                    <input type="color" value={form.color} onChange={e => setForm(f => ({ ...f, color: e.target.value }))} className="field h-10 w-14 cursor-pointer" />
                                 </div>
                             </div>
                             <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">

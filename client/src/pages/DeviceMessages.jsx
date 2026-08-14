@@ -56,14 +56,14 @@ export default function DeviceMessages() {
             <form onSubmit={handleSend} className="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm p-4 flex flex-wrap gap-3 items-end">
                 <div className="min-w-[220px]">
                     <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Device</label>
-                    <select value={form.device_serial} onChange={e => setForm(f => ({ ...f, device_serial: e.target.value }))} className="w-full text-sm border rounded-lg px-3 py-2 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100" required>
+                    <select value={form.device_serial} onChange={e => setForm(f => ({ ...f, device_serial: e.target.value }))} className="field" required>
                         <option value="">Select device</option>
                         {devices.map(d => <option key={d.serial_number} value={d.serial_number}>{d.device_name || d.serial_number}</option>)}
                     </select>
                 </div>
                 <div className="flex-1 min-w-[260px]">
                     <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Message</label>
-                    <input type="text" value={form.message} onChange={e => setForm(f => ({ ...f, message: e.target.value }))} maxLength={200} placeholder="e.g. Office closes early today at 4 PM" className="w-full text-sm border rounded-lg px-3 py-2 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100" required />
+                    <input type="text" value={form.message} onChange={e => setForm(f => ({ ...f, message: e.target.value }))} maxLength={200} placeholder="e.g. Office closes early today at 4 PM" className="field" required />
                 </div>
                 <Button type="submit" variant="primary" icon={Send} disabled={sending}>{sending ? 'Sending...' : 'Send'}</Button>
             </form>

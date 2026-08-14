@@ -128,7 +128,7 @@ export default function LeaveApplications() {
                     <select
                         value={statusFilter}
                         onChange={e => setStatusFilter(e.target.value)}
-                        className="appearance-none pl-3 pr-8 py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm font-semibold text-slate-700 dark:text-slate-100 cursor-pointer focus:outline-none focus:border-orange-400 dark:focus:border-orange-500"
+                        className="field-sm appearance-none pl-3 pr-8 font-semibold cursor-pointer"
                     >
                         <option value="All">All Status</option>
                         <option value="Pending">Pending</option>
@@ -144,7 +144,7 @@ export default function LeaveApplications() {
                         placeholder="Search employee..."
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
-                        className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-orange-400 dark:focus:border-orange-500"
+                        className="field-sm pl-8 pr-3"
                     />
                     <Search size={14} className="absolute left-2.5 top-2 text-slate-400 dark:text-slate-500" />
                 </div>
@@ -258,14 +258,14 @@ export default function LeaveApplications() {
                         <div className="p-6 space-y-4">
                             <div>
                                 <label className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">Employee</label>
-                                <select required className="w-full px-3 py-2 border rounded-lg border-slate-200 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100" value={form.employee_code} onChange={e => setForm({ ...form, employee_code: e.target.value })}>
+                                <select required className="field" value={form.employee_code} onChange={e => setForm({ ...form, employee_code: e.target.value })}>
                                     <option value="">Select Employee</option>
                                     {employees.map(e => <option key={e.employee_code} value={e.employee_code}>{e.name} ({e.employee_code})</option>)}
                                 </select>
                             </div>
                             <div>
                                 <label className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">Leave Type</label>
-                                <select required className="w-full px-3 py-2 border rounded-lg border-slate-200 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100" value={form.leave_type_id} onChange={e => setForm({ ...form, leave_type_id: e.target.value })}>
+                                <select required className="field" value={form.leave_type_id} onChange={e => setForm({ ...form, leave_type_id: e.target.value })}>
                                     <option value="">Select Type</option>
                                     {leaveTypes.map(lt => <option key={lt.id} value={lt.id}>{lt.name}</option>)}
                                 </select>
@@ -273,11 +273,11 @@ export default function LeaveApplications() {
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">From Date</label>
-                                    <input type="date" required className="w-full px-3 py-2 border rounded-lg border-slate-200 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100" value={form.from_date} onChange={e => setForm({ ...form, from_date: e.target.value })} />
+                                    <input type="date" required className="field" value={form.from_date} onChange={e => setForm({ ...form, from_date: e.target.value })} />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">To Date</label>
-                                    <input type="date" required className="w-full px-3 py-2 border rounded-lg border-slate-200 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100" value={form.to_date} onChange={e => setForm({ ...form, to_date: e.target.value })} />
+                                    <input type="date" required className="field" value={form.to_date} onChange={e => setForm({ ...form, to_date: e.target.value })} />
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">
@@ -286,7 +286,7 @@ export default function LeaveApplications() {
                             </div>
                             <div>
                                 <label className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">Reason</label>
-                                <textarea required className="w-full px-3 py-2 border rounded-lg border-slate-200 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100" rows={2} value={form.reason} onChange={e => setForm({ ...form, reason: e.target.value })} />
+                                <textarea required className="field" rows={2} value={form.reason} onChange={e => setForm({ ...form, reason: e.target.value })} />
                             </div>
                             <div className="flex justify-end gap-3 pt-4 border-t dark:border-slate-700">
                                 <Button variant="secondary" onClick={() => setShowApply(false)}>Cancel</Button>

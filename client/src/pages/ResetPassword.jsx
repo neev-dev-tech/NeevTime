@@ -59,12 +59,12 @@ export default function ResetPassword() {
                     <div>
                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">New Password</label>
                         <input type="password" value={password} onChange={e => setPassword(e.target.value)} minLength={6}
-                            className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400 outline-none" required />
+                            className="field" required />
                     </div>
                     <div>
                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Confirm Password</label>
                         <input type="password" value={confirm} onChange={e => setConfirm(e.target.value)} minLength={6}
-                            className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400 outline-none" required />
+                            className="field" required />
                     </div>
 
                     {message && (

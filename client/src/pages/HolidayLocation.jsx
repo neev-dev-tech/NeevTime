@@ -418,7 +418,7 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
                                     type="text"
                                     value={form.name}
                                     onChange={e => setForm({ ...form, name: e.target.value })}
-                                    className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                    className="field"
                                     placeholder="e.g., Head Office, Branch A"
                                     required
                                 />
@@ -428,7 +428,7 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
                                 <textarea
                                     value={form.description}
                                     onChange={e => setForm({ ...form, description: e.target.value })}
-                                    className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                    className="field"
                                     rows={3}
                                     placeholder="Location details..."
                                 />
@@ -461,7 +461,7 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
                                     type="text"
                                     value={holidayForm.name}
                                     onChange={e => setHolidayForm({ ...holidayForm, name: e.target.value })}
-                                    className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                    className="field"
                                     required
                                 />
                             </div>
@@ -472,7 +472,7 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
                                         type="date"
                                         value={holidayForm.date}
                                         onChange={e => setHolidayForm({ ...holidayForm, date: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                        className="field"
                                         required
                                     />
                                 </div>
@@ -481,7 +481,7 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
                                     <select
                                         value={holidayForm.holiday_type}
                                         onChange={e => setHolidayForm({ ...holidayForm, holiday_type: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                        className="field"
                                     >
                                         <option value="national">National</option>
                                         <option value="regional">Regional</option>
@@ -495,7 +495,7 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
                                     type="text"
                                     value={holidayForm.description}
                                     onChange={e => setHolidayForm({ ...holidayForm, description: e.target.value })}
-                                    className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                    className="field"
                                 />
                             </div>
                             <label className="flex items-center gap-2 cursor-pointer">

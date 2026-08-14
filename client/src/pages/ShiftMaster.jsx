@@ -203,22 +203,22 @@ export default function ShiftMaster() {
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Shift Name *</label>
-                                <input required type="text" className="w-full border rounded-lg px-3 py-2 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="e.g., General Shift" />
+                                <input required type="text" className="field" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="e.g., General Shift" />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Start Time</label>
-                                    <input type="time" className="w-full border rounded-lg px-3 py-2 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100" value={form.start_time} onChange={e => setForm({ ...form, start_time: e.target.value })} />
+                                    <input type="time" className="field" value={form.start_time} onChange={e => setForm({ ...form, start_time: e.target.value })} />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">End Time</label>
-                                    <input type="time" className="w-full border rounded-lg px-3 py-2 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100" value={form.end_time} onChange={e => setForm({ ...form, end_time: e.target.value })} />
+                                    <input type="time" className="field" value={form.end_time} onChange={e => setForm({ ...form, end_time: e.target.value })} />
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Shift Type</label>
-                                    <select className="w-full border rounded-lg px-3 py-2 bg-white dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100" value={form.shift_type} onChange={e => setForm({ ...form, shift_type: e.target.value })}>
+                                    <select className="field" value={form.shift_type} onChange={e => setForm({ ...form, shift_type: e.target.value })}>
                                         <option value="Fixed">Fixed</option>
                                         <option value="Rotational">Rotational</option>
                                         <option value="Night">Night</option>
@@ -228,17 +228,17 @@ export default function ShiftMaster() {
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Grace In (min)</label>
-                                    <input type="number" className="w-full border rounded-lg px-3 py-2 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100" value={form.grace_in_minutes} onChange={e => setForm({ ...form, grace_in_minutes: parseInt(e.target.value) || 0 })} />
+                                    <input type="number" className="field" value={form.grace_in_minutes} onChange={e => setForm({ ...form, grace_in_minutes: parseInt(e.target.value) || 0 })} />
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Late Threshold (min)</label>
-                                    <input type="number" className="w-full border rounded-lg px-3 py-2 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100" value={form.late_threshold_minutes} onChange={e => setForm({ ...form, late_threshold_minutes: parseInt(e.target.value) || 15 })} />
+                                    <input type="number" className="field" value={form.late_threshold_minutes} onChange={e => setForm({ ...form, late_threshold_minutes: parseInt(e.target.value) || 15 })} />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Break Duration (min)</label>
-                                    <input type="number" className="w-full border rounded-lg px-3 py-2 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100" value={form.break_duration_minutes} onChange={e => setForm({ ...form, break_duration_minutes: parseInt(e.target.value) || 0 })} />
+                                    <input type="number" className="field" value={form.break_duration_minutes} onChange={e => setForm({ ...form, break_duration_minutes: parseInt(e.target.value) || 0 })} />
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">

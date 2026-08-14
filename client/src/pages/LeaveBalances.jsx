@@ -59,7 +59,7 @@ export default function LeaveBalances() {
                         <select
                             value={year}
                             onChange={e => setYear(parseInt(e.target.value))}
-                            className="text-sm font-semibold tabular-nums rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-100 px-3 py-2 focus:outline-none focus:border-orange-400 dark:focus:border-orange-500"
+                            className="field font-semibold tabular-nums"
                         >
                             {[0, 1, 2].map(off => {
                                 const y = new Date().getFullYear() - off;

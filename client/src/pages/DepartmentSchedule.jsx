@@ -242,7 +242,7 @@ export default function DepartmentSchedule() {
                                 <select
                                     value={form.department_id}
                                     onChange={e => setForm({ ...form, department_id: e.target.value })}
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                    className="field"
                                     required
                                 >
                                     <option value="">Select Department</option>
@@ -258,7 +258,7 @@ export default function DepartmentSchedule() {
                                     <select
                                         value={form.shift_id}
                                         onChange={e => setForm({ ...form, shift_id: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                        className="field"
                                     >
                                         <option value="">Select Shift</option>
                                         {shifts.map(s => (
@@ -271,7 +271,7 @@ export default function DepartmentSchedule() {
                                     <select
                                         value={form.timetable_id}
                                         onChange={e => setForm({ ...form, timetable_id: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                        className="field"
                                     >
                                         <option value="">Select Timetable</option>
                                         {timetables.map(t => (
@@ -288,7 +288,7 @@ export default function DepartmentSchedule() {
                                         type="date"
                                         value={form.effective_from}
                                         onChange={e => setForm({ ...form, effective_from: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                        className="field"
                                         required
                                     />
                                 </div>
@@ -298,7 +298,7 @@ export default function DepartmentSchedule() {
                                         type="date"
                                         value={form.effective_to}
                                         onChange={e => setForm({ ...form, effective_to: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                        className="field"
                                     />
                                 </div>
                             </div>
