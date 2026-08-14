@@ -389,6 +389,47 @@ export default function Employees() {
         </button>
     );
 
+    /**
+     * Door access without attendance.
+     *
+     * Drivers, security and housekeeping are enrolled on the readers because
+     * they need to get into the building, but they are not on the HRMS list.
+     * Left as ordinary staff they are counted in the headcount and marked
+     * absent for every working day they do not appear — and their punches are
+     * pushed to the HRMS, which rejects codes it has never heard of and retries
+     * forever.
+     *
+     * Both flags already existed and the API already accepted them; the only
+     * screen with the toggles was EmployeeFormModal, which nothing renders. So
+     * this was a psql job until now.
+     */
+    const handleDoorAccessOnly = (excluded) => {
+        if (selectedIds.length === 0) return showToast('Please select at least one employee.', 'error');
+
+        setConfirmMessage(excluded
+            ? `Mark ${selectedIds.length} employee(s) as door access only? They keep punching and keep their biometric templates, but stop counting as staff and stop being pushed to the HRMS.`
+            : `Return ${selectedIds.length} employee(s) to normal attendance tracking?`);
+
+        setConfirmAction(() => async () => {
+            try {
+                await Promise.all(selectedIds.map(id =>
+                    api.patch(`/api/employees/${id}`, {
+                        attendance_required: !excluded,
+                        exclude_from_hrms: excluded
+                    })
+                ));
+                showToast(`Updated ${selectedIds.length} employee(s).`, 'success');
+                setSelectedIds([]);
+                fetchEmployees();
+            } catch (err) {
+                showToast('Update failed: ' + (err.response?.data?.error || err.message), 'error');
+            }
+            setShowConfirmModal(false);
+            setConfirmAction(null);
+        });
+        setShowConfirmModal(true);
+    };
+
     const handleMoreSettings = (action) => {
         console.log('HandleMoreSettings Action:', action, 'SelectedIds:', selectedIds);
         if (selectedIds.length === 0) return showToast('Please select at least one employee.', 'error');
@@ -615,6 +656,9 @@ export default function Employees() {
                             <DropdownItem label="Resynchronize to device" onClick={() => handleMoreSettings('push')} />
                             <DropdownItem label="Re-upload from device" onClick={() => handleMoreSettings('pull')} />
                             <DropdownItem label="Delete Biometric Template" onClick={() => handleMoreSettings('delete-bio')} danger />
+                            <div className="my-1 border-t border-slate-100 dark:border-slate-700" />
+                            <DropdownItem label="Mark as door access only" onClick={() => { setShowMoreMenu(false); handleDoorAccessOnly(true); }} />
+                            <DropdownItem label="Restore attendance tracking" onClick={() => { setShowMoreMenu(false); handleDoorAccessOnly(false); }} />
                         </div>
                             </>
                         )
@@ -724,6 +768,20 @@ export default function Employees() {
                                     <span className={isActive ? BADGE_ON : BADGE_OFF}>
                                         {dash(emp.status)}
                                     </span>
+                                    {/* Door-access-only staff look identical to
+                                        everyone else in this table otherwise,
+                                        which is how eleven of them sat in the
+                                        headcount unnoticed. */}
+                                    {emp.attendance_required === false && (
+                                        <span
+                                            className="ml-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold
+                                                       bg-slate-100 text-slate-600 border border-slate-200
+                                                       dark:bg-slate-700 dark:text-slate-300 dark:border-slate-600"
+                                            title="Door access only — not counted as staff, not pushed to the HRMS"
+                                        >
+                                            door only
+                                        </span>
+                                    )}
                                 </td>
                                 <td className="px-6 py-4 text-center">
                                     <div className="flex items-center justify-center gap-2">
