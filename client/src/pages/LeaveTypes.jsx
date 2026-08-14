@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { FileText, Plus, Trash2, X, AlertCircle, RefreshCw } from 'lucide-react';
 import api from '../api';
 import { Button, PageHeader, useToast } from '../components';
+import { TableToolbar, SortableTh, TablePager } from '../components/TableControls';
+import useTableControls from '../hooks/useTableControls';
 
 const DEFAULT_FORM = { code: '', name: '', annual_quota: 12, carry_forward: false, color: '#3b82f6' };
 const BADGE_BASE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide';
@@ -29,6 +31,15 @@ export default function LeaveTypes() {
     };
 
     useEffect(() => { fetchTypes(); }, []);
+
+    // Nine types today, but the list is sorted and searchable for the same
+    // reason the others are: a screen that behaves differently from its
+    // neighbours is the thing being fixed, not the row count.
+    const controls = useTableControls(types, {
+        searchKeys: ['code', 'name'],
+        initialSort: { key: 'name', dir: 'asc' },
+        pageSize: 25
+    });
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -86,23 +97,25 @@ export default function LeaveTypes() {
                         </p>
                     </div>
                 ) : (
+                    <>
+                    <TableToolbar controls={controls} placeholder="Search leave types…" />
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
                             <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">
                                 <tr>
                                     <th className="px-5 py-3 font-bold w-12">#</th>
-                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Code</th>
-                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Name</th>
-                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Annual Quota</th>
-                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Carry Forward</th>
+                                    <SortableTh controls={controls} sortKey="code" className="whitespace-nowrap">Code</SortableTh>
+                                    <SortableTh controls={controls} sortKey="name" className="whitespace-nowrap">Name</SortableTh>
+                                    <SortableTh controls={controls} sortKey="annual_quota" className="whitespace-nowrap">Annual Quota</SortableTh>
+                                    <SortableTh controls={controls} sortKey="carry_forward" className="whitespace-nowrap">Carry Forward</SortableTh>
                                     <th className="px-5 py-3 font-bold whitespace-nowrap">Color</th>
                                     <th className="px-5 py-3 font-bold text-right whitespace-nowrap">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                {types.map((t, idx) => (
+                                {controls.view.map((t, idx) => (
                                     <tr key={t.id} className="hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors">
-                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{idx + 1}</td>
+                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{(controls.page - 1) * controls.pageSize + idx + 1}</td>
                                         <td className="px-5 py-3 whitespace-nowrap">
                                             <span className="font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold">
                                                 {t.code || '—'}
@@ -144,12 +157,8 @@ export default function LeaveTypes() {
                             </tbody>
                         </table>
                     </div>
-                )}
-
-                {!loading && !error && types.length > 0 && (
-                    <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
-                        {types.length} record{types.length === 1 ? '' : 's'}
-                    </div>
+                    <TablePager controls={controls} noun="leave type" />
+                    </>
                 )}
             </div>
 

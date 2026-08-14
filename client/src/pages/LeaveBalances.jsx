@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { PieChart, RefreshCw, PlayCircle, AlertCircle } from 'lucide-react';
 import api from '../api';
 import { Button, PageHeader, ExportMenu, useToast } from '../components';
+import { TableToolbar, SortableTh, TablePager } from '../components/TableControls';
+import useTableControls from '../hooks/useTableControls';
 
 export default function LeaveBalances() {
     const toast = useToast();
@@ -31,6 +33,22 @@ export default function LeaveBalances() {
     };
 
     useEffect(() => { fetchData(); }, [year]);
+
+    // 71 employees times 9 leave types is roughly 640 rows in one list. Finding
+    // one person's balance meant scrolling; sorted by name and paged, it is a
+    // search box away.
+    const controls = useTableControls(balances, {
+        searchKeys: ['employee_name', 'employee_code', 'leave_type_name'],
+        initialSort: { key: 'employee_name', dir: 'asc' },
+        pageSize: 25
+    });
+
+    // Built from what is on screen, so the dropdown cannot offer a leave type
+    // that this year has no balances for.
+    const leaveTypeNames = React.useMemo(
+        () => [...new Set(balances.map(b => b.leave_type_name).filter(Boolean))].sort(),
+        [balances]
+    );
 
     // Create current-year balances from leave-type quotas for every active employee
     const initializeAll = async () => {
@@ -110,23 +128,35 @@ export default function LeaveBalances() {
                         </p>
                     </div>
                 ) : (
+                    <>
+                    <TableToolbar controls={controls} placeholder="Search by employee, code or leave type…">
+                        <select
+                            className="field-sm w-auto"
+                            value={controls.filters.leave_type_name ?? ''}
+                            onChange={(e) => controls.setFilter('leave_type_name', e.target.value)}
+                            aria-label="Filter by leave type"
+                        >
+                            <option value="">All leave types</option>
+                            {leaveTypeNames.map(n => <option key={n} value={n}>{n}</option>)}
+                        </select>
+                    </TableToolbar>
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
                             <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">
                                 <tr>
                                     <th className="px-5 py-3 font-bold w-12">#</th>
-                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Employee</th>
-                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Code</th>
-                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Leave Type</th>
-                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Opening</th>
-                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Used</th>
-                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Balance</th>
+                                    <SortableTh controls={controls} sortKey="employee_name" className="whitespace-nowrap">Employee</SortableTh>
+                                    <SortableTh controls={controls} sortKey="employee_code" className="whitespace-nowrap">Code</SortableTh>
+                                    <SortableTh controls={controls} sortKey="leave_type_name" className="whitespace-nowrap">Leave Type</SortableTh>
+                                    <SortableTh controls={controls} sortKey="opening_balance" className="whitespace-nowrap">Opening</SortableTh>
+                                    <SortableTh controls={controls} sortKey="used" className="whitespace-nowrap">Used</SortableTh>
+                                    <SortableTh controls={controls} sortKey="balance" className="whitespace-nowrap">Balance</SortableTh>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                {balances.map((b, idx) => (
+                                {controls.view.map((b, idx) => (
                                     <tr key={b.id} className="hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors">
-                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{idx + 1}</td>
+                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{(controls.page - 1) * controls.pageSize + idx + 1}</td>
                                         <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">
                                             {b.employee_name || '—'}
                                         </td>
@@ -158,12 +188,8 @@ export default function LeaveBalances() {
                             </tbody>
                         </table>
                     </div>
-                )}
-
-                {!loading && !error && balances.length > 0 && (
-                    <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
-                        {balances.length} record{balances.length === 1 ? '' : 's'}
-                    </div>
+                    <TablePager controls={controls} noun="balance" />
+                    </>
                 )}
             </div>
         </div>
