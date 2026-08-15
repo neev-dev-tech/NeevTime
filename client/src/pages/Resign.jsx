@@ -7,6 +7,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useToast, Button, PageHeader } from '../components';
 import Modal from '../components/Modal';
+import { toLocalDateString } from '../utils/dateFormat';
 
 export default function Resign() {
     const [resignations, setResignations] = useState([]);
@@ -24,9 +25,9 @@ export default function Resign() {
     // Resignation Form State
     const [formData, setFormData] = useState({
         selectedEmployee: '',
-        resignationDate: new Date().toISOString().split('T')[0],
+        resignationDate: toLocalDateString(),
         resignationType: 'Quit',
-        reportEndDate: new Date().toISOString().split('T')[0],
+        reportEndDate: toLocalDateString(),
         attendanceOption: 'Disable',
         reason: ''
     });
@@ -79,9 +80,9 @@ export default function Resign() {
     const resetForm = () => {
         setFormData({
             selectedEmployee: '',
-            resignationDate: new Date().toISOString().split('T')[0],
+            resignationDate: toLocalDateString(),
             resignationType: 'Quit',
-            reportEndDate: new Date().toISOString().split('T')[0],
+            reportEndDate: toLocalDateString(),
             attendanceOption: 'Disable',
             reason: ''
         });

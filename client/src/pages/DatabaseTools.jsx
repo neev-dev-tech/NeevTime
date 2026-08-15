@@ -7,6 +7,7 @@ import {
 
 import { confirm } from '../components/ConfirmDialog';
 import { Button, PageHeader, useToast } from '../components';
+import { toLocalDateString } from '../utils/dateFormat';
 
 const BADGE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide';
 const BADGE_AUTO = 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300';
@@ -25,7 +26,7 @@ export default function DatabaseTools() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [recomputeRange, setRecomputeRange] = useState(() => {
-        const today = new Date().toISOString().split('T')[0];
+        const today = toLocalDateString();
         return { start: today, end: today };
     });
     const [recomputing, setRecomputing] = useState(false);

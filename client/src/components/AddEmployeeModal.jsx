@@ -17,6 +17,7 @@ import { useFormValidation, validators } from '../hooks/useFormValidation';
 import { FormInput, FormSelect, FormTextarea } from './FormInputs';
 import Button from './ui/Button';
 import Modal from './Modal';
+import { toLocalDateString } from '../utils/dateFormat';
 
 // Validation rules for employee form
 const employeeValidationRules = {
@@ -59,7 +60,7 @@ export default function AddEmployeeModal({
         privilege: 0,
         gender: 'Male',
         dob: '',
-        joining_date: new Date().toISOString().split('T')[0],
+        joining_date: toLocalDateString(),
         mobile: '',
         email: '',
         address: '',

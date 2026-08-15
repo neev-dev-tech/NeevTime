@@ -3,6 +3,7 @@ import api from '../api';
 import Modal from '../components/Modal';
 import { Briefcase, Plus, Trash2, Edit2, Search, RefreshCw, Save, Download, Upload, AlertCircle, CheckCircle } from 'lucide-react';
 import { useToast, Button, PageHeader, ExportMenu } from '../components';
+import { toLocalDateString } from '../utils/dateFormat';
 
 export default function Positions() {
     const toast = useToast();
@@ -224,7 +225,7 @@ export default function Positions() {
                         { key: 'description', label: 'Description' }
                     ]}
                     mapRow={(p) => ({ ...p, description: p.description || '' })}
-                    filename={`positions_${new Date().toISOString().split('T')[0]}`}
+                    filename={`positions_${toLocalDateString()}`}
                     title="Positions"
                 />
 

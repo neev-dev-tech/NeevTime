@@ -12,6 +12,7 @@ import { TableSkeleton } from '../components/SkeletonLoader';
 import { useToast, Button, PageHeader } from '../components';
 import Modal from '../components/Modal';
 import { exportToExcel, exportToCSV } from '../utils/excelExport';
+import { toLocalDateString } from '../utils/dateFormat';
 
 // ==========================================
 // Sub-Components for Data Views
@@ -43,7 +44,7 @@ const DataView = ({ title, endpoint, columns, icon: Icon = Database }) => {
         try {
             await exportToCSV({
                 data,
-                filename: `${title.replace(/\s+/g, '_').toLowerCase()}_${new Date().toISOString().split('T')[0]}`,
+                filename: `${title.replace(/\s+/g, '_').toLowerCase()}_${toLocalDateString()}`,
                 headers: columns.map(col => ({ key: col.key, label: col.label })),
                 onSuccess: () => setExporting(null),
                 onError: () => setExporting(null)
@@ -60,7 +61,7 @@ const DataView = ({ title, endpoint, columns, icon: Icon = Database }) => {
         try {
             await exportToExcel({
                 data,
-                filename: `${title.replace(/\s+/g, '_').toLowerCase()}_${new Date().toISOString().split('T')[0]}`,
+                filename: `${title.replace(/\s+/g, '_').toLowerCase()}_${toLocalDateString()}`,
                 sheetName: title,
                 headers: columns.map(col => ({ key: col.key, label: col.label })),
                 onSuccess: () => setExporting(null),

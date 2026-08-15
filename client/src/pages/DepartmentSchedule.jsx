@@ -3,6 +3,7 @@ import api from '../api';
 import { Building2, Plus, Edit2, Trash2, Save, Calendar, Clock, AlertCircle, RefreshCw } from 'lucide-react';
 import { useToast, Button, PageHeader } from '../components';
 import Modal from '../components/Modal';
+import { toLocalDateString } from '../utils/dateFormat';
 
 export default function DepartmentSchedule() {
     const toast = useToast();
@@ -19,7 +20,7 @@ export default function DepartmentSchedule() {
         department_id: '',
         shift_id: '',
         timetable_id: '',
-        effective_from: new Date().toISOString().split('T')[0],
+        effective_from: toLocalDateString(),
         effective_to: '',
         week_off_days: ['saturday', 'sunday']
     });
@@ -102,7 +103,7 @@ export default function DepartmentSchedule() {
             department_id: '',
             shift_id: '',
             timetable_id: '',
-            effective_from: new Date().toISOString().split('T')[0],
+            effective_from: toLocalDateString(),
             effective_to: '',
             week_off_days: ['saturday', 'sunday']
         });

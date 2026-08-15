@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import ResignationModal from '../components/ResignationModal';
 import { Button, PageHeader } from '../components';
 import Modal from '../components/Modal';
+import { toLocalDateString } from '../utils/dateFormat';
 
 /* ---- shared cell vocabulary (matches DeviceData / Devices) ---- */
 const BADGE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide';
@@ -75,7 +76,7 @@ export default function Employees() {
         privilege: 0,
         gender: 'Male',
         dob: '',
-        joining_date: new Date().toISOString().split('T')[0],
+        joining_date: toLocalDateString(),
         mobile: '',
         email: '',
         address: '',
@@ -91,7 +92,7 @@ export default function Employees() {
 
     const [transferData, setTransferData] = useState({
         targetId: '',
-        effectiveDate: new Date().toISOString().split('T')[0]
+        effectiveDate: toLocalDateString()
     });
     // Target Selection State
     const [targetValue, setTargetValue] = useState('');
@@ -286,7 +287,7 @@ export default function Employees() {
             const url = URL.createObjectURL(blob);
 
             link.setAttribute('href', url);
-            link.setAttribute('download', `employees_export_${new Date().toISOString().split('T')[0]}.csv`);
+            link.setAttribute('download', `employees_export_${toLocalDateString()}.csv`);
             link.style.visibility = 'hidden';
             document.body.appendChild(link);
             link.click();

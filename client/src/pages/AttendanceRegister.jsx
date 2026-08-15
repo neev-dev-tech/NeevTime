@@ -4,6 +4,7 @@ import { Calendar, Clock, AlertTriangle, CheckCircle, XCircle, Filter, FileDown,
 import { exportToPDF } from '../utils/pdfExport';
 import { exportToExcel } from '../utils/excelExport';
 import { useToast, Button, PageHeader } from '../components';
+import { toLocalDateString } from '../utils/dateFormat';
 
 const BADGE_BASE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide';
 
@@ -12,7 +13,7 @@ export default function AttendanceRegister() {
     const [rawData, setRawData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+    const [date, setDate] = useState(toLocalDateString());
     const [filters, setFilters] = useState({ status: '', department: '' });
 
     // Only the date needs a refetch — filtering is client-side, and the raw rows
