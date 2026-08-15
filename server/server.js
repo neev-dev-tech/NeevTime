@@ -112,6 +112,19 @@ app.use(express.json());
 // are denied unless the role allows them. See utils/rbac.js.
 app.use('/api', require('./utils/rbac').enforceRole);
 
+// Attribute everything below to whoever is signed in, so the audit triggers can
+// record it.
+//
+// req.user is not populated this early — each router runs its own
+// authenticateToken later. rbac.js hit the same trap and notes that depending on
+// req.user there would silently let every write through; here it would silently
+// attribute every change to nobody. It reads the payload enforceRole has already
+// verified, which is why this is mounted immediately after it.
+app.use('/api', (req, res, next) => {
+    const actor = req.user?.id ?? req.tokenPayload?.id ?? null;
+    require('./db').withActor(actor, () => next());
+});
+
 // Attendance Processing API
 app.use((req, res, next) => {
     // Skip logging high-volume static assets if any, or health checks usually
