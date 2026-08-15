@@ -468,6 +468,7 @@ const settingsRouter = require('./routes/settings');
 const schedulingExtRouter = require('./routes/scheduling_extended');
 
 app.use('/api', authRouter);
+app.use('/api', require('./routes/audit'));
 
 // Liveness probe for the container healthcheck and load balancer. Must stay
 // above the authenticateToken-wrapped routers below — their middleware runs

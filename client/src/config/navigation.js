@@ -176,6 +176,7 @@ export const systemSidebar = [
     iconColor: '#2563EB',
     items: [
       { label: 'User', path: '/users', icon: Users, iconColor: '#2563EB' },
+      { label: 'Audit Trail', path: '/audit', icon: ShieldCheck, iconColor: '#1B4D8F' },
     ]
   },
   {
