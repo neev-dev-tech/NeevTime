@@ -23,8 +23,11 @@ const path = require('node:path');
 
 const DIR = path.join(__dirname, '..', 'services', 'integrations');
 const read = (f) => fs.readFileSync(path.join(DIR, f), 'utf8');
+// Everything in here is an adapter except the shared helpers and the registry
+// that lists them.
+const NOT_ADAPTERS = new Set(['punch_format.js', 'registry.js']);
 const adapters = fs.readdirSync(DIR)
-    .filter(f => f.endsWith('.js') && f !== 'punch_format.js');
+    .filter(f => f.endsWith('.js') && !NOT_ADAPTERS.has(f));
 
 /** Which capability each optional method backs. */
 const METHOD_FOR = {
@@ -122,4 +125,49 @@ test('the picker offers only what has an adapter', () => {
             `the integration picker still offers ${t}, which has no adapter`
         );
     }
+});
+
+test('the registry is the only place a service is declared', () => {
+    const registry = require('../services/integrations/registry');
+    const types = registry.list().map(a => a.type);
+
+    // Every adapter file is reachable through the registry. One that is not is
+    // dead weight nobody can select.
+    for (const f of adapters) {
+        const found = registry.ADAPTERS.some(entry => {
+            try { return entry.load() === require(path.join(DIR, f)); }
+            catch { return false; }
+        });
+        assert.ok(found, `${f} is not in the registry, so no integration can use it`);
+    }
+
+    // And the resolver goes through it rather than a switch of its own.
+    const src = fs.readFileSync(path.join(__dirname, '..', 'services', 'hrms-integration.js'), 'utf8');
+    assert.ok(
+        /registry\.find\(config\.type\)/.test(src),
+        'getIntegrationInstance no longer resolves through the registry — a second ' +
+        'list of services has appeared and the two will drift'
+    );
+
+    // The picker too.
+    const routes = fs.readFileSync(path.join(__dirname, '..', 'routes', 'integrations.js'), 'utf8');
+    assert.ok(
+        /registry\.list\(\)/.test(routes),
+        'the integration-types route hand-maintains its own list again. It already ' +
+        'drifted once: it offered four vendors that could not connect and claimed a ' +
+        'capability Horilla does not implement.'
+    );
+
+    assert.ok(types.includes('erpnext'), 'ERPNext is missing from the registry');
+});
+
+test('an alias keeps an existing saved integration working', () => {
+    const registry = require('../services/integrations/registry');
+    // custom_api was its own type in the old switch and resolved to the webhook
+    // adapter. Rows with that type still exist.
+    assert.strictEqual(
+        registry.find('custom_api'), registry.find('webhook'),
+        'custom_api no longer resolves — any integration saved with that type breaks'
+    );
+    assert.ok(registry.find('ERPNext'), 'type matching is case-sensitive again');
 });

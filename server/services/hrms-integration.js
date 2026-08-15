@@ -17,6 +17,7 @@
  */
 
 const db = require('../db');
+const registry = require('./integrations/registry');
 const fs = require('fs');
 
 // Logger
@@ -321,44 +322,34 @@ const getIntegrationInstance = async (integrationId) => {
             throw new Error('Integration type is not set');
         }
 
-        let instance;
+        // One lookup against services/integrations/registry.js, which is the
+        // only place a service is declared. The switch this replaces had to be
+        // kept in step with the picker route and each adapter's capability
+        // list by hand, and drifted: it offered four vendors whose APIs need a
+        // partner agreement, and advertised pulls two adapters never
+        // implemented.
+        const entry = registry.find(config.type);
 
-        try {
-            switch (config.type) {
-                case INTEGRATION_TYPE.ERPNEXT:
-                case 'erpnext':
-                    const ERPNextIntegration = require('./integrations/erpnext');
-                    instance = new ERPNextIntegration(config);
-                    break;
-                case INTEGRATION_TYPE.ODOO:
-                case 'odoo':
-                    const OdooIntegration = require('./integrations/odoo');
-                    instance = new OdooIntegration(config);
-                    break;
-                case INTEGRATION_TYPE.HORILLA:
-                case 'horilla':
-                    const HorillaIntegration = require('./integrations/horilla');
-                    instance = new HorillaIntegration(config);
-                    break;
-                case INTEGRATION_TYPE.WEBHOOK:
-                case INTEGRATION_TYPE.CUSTOM_API:
-                case 'webhook':
-                case 'custom_api':
-                    const WebhookIntegration = require('./integrations/webhook');
-                    instance = new WebhookIntegration(config);
-                    break;
-                default:
-                    if (RETIRED_TYPES[config.type]) {
-                        throw new Error(
-                            `${RETIRED_TYPES[config.type]} is no longer supported. Its API is ` +
-                            `available only under a partner agreement or a paid tier, which this ` +
-                            `application cannot satisfy on a customer's behalf — so the adapter was ` +
-                            `removed rather than left as something that could never connect. Point ` +
-                            `that system at the Webhook integration instead.`
-                        );
-                    }
-                    throw new Error(`Unknown integration type: ${config.type}`);
+        if (!entry) {
+            if (RETIRED_TYPES[config.type]) {
+                throw new Error(
+                    `${RETIRED_TYPES[config.type]} is no longer supported. Its API is ` +
+                    `available only under a partner agreement or a paid tier, which this ` +
+                    `application cannot satisfy on a customer's behalf — so the adapter was ` +
+                    `removed rather than left as something that could never connect. Point ` +
+                    `that system at the Webhook integration instead.`
+                );
             }
+            throw new Error(
+                `Unsupported integration type "${config.type}". Available: ` +
+                registry.list().map(a => a.type).join(', ')
+            );
+        }
+
+        let instance;
+        try {
+            const Adapter = entry.load();
+            instance = new Adapter(config);
         } catch (err) {
             log('ERROR', 'Failed to instantiate integration', {
                 type: config.type,
