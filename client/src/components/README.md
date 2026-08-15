@@ -511,7 +511,6 @@ client/src/
 │   ├── Toast.jsx         # Toast notifications
 │   ├── Animations.jsx    # Micro-animations
 │   ├── Theme.jsx         # Theme system
-│   ├── AddEmployeeModal.jsx
 │   └── README.md         # This file
 ├── hooks/
 │   └── useFormValidation.js

@@ -80,8 +80,6 @@ export {
 } from './Theme';
 
 // Modals
-export { default as AddEmployeeModal } from './AddEmployeeModal';
-export { default as EmployeeFormModal } from './EmployeeFormModal';
 
 // Re-export validation hook for convenience
 export { useFormValidation, validators, PATTERNS } from '../hooks/useFormValidation';
