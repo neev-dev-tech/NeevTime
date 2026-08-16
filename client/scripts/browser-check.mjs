@@ -109,7 +109,10 @@ const main = async () => {
             const text = msg.text();
             // A failed API call on an empty database is data, not a broken
             // screen. Anything else in the console is the page itself.
-            if (/Failed to load resource/i.test(text) && /\/api\//.test(text)) return;
+            // "Failed to load resource" never names the URL in a form worth
+            // matching on, and every one of them also arrives as a response
+            // event — which does carry the URL. Classified there instead.
+            if (/Failed to load resource/i.test(text)) return;
 
             // KNOWN OPEN DEFECT — reported, not fatal.
             //
@@ -130,7 +133,7 @@ const main = async () => {
             // degradation, and the day this check was written was spent finding
             // things that had been failing quietly for months. Blocking every
             // merge on it would be the other mistake.
-            if (/socket\.io|WebSocket connection/i.test(text)) {
+            if (/socket\.io|websocket|socket connection/i.test(text)) {
                 socketNoise.push(`${route}: ${text.slice(0, 100)}`);
                 return;
             }
@@ -144,9 +147,22 @@ const main = async () => {
             }
         };
 
+        // Classify failed responses by URL, which the console message lacks.
+        // A 4xx from /api on an empty database is missing data, not a broken
+        // screen; a 4xx from /socket.io is the known upgrade defect; anything
+        // else failing to load is the page.
+        const onResponse = (res) => {
+            if (res.status() < 400) return;
+            const url = res.url();
+            if (/\/socket\.io/.test(url)) { socketNoise.push(`${route}: ${res.status()} ${url.slice(0, 70)}`); return; }
+            if (/\/api\//.test(url)) return;
+            problems.push(`${res.status()} for ${url.slice(0, 100)}`);
+        };
+
         page.on('console', onConsole);
         page.on('pageerror', onPageError);
         page.on('requestfailed', onFailed);
+        page.on('response', onResponse);
 
         try {
             await page.goto(`${BASE}${route}`, { waitUntil: 'networkidle2', timeout: 25000 });
@@ -165,6 +181,7 @@ const main = async () => {
         page.off('console', onConsole);
         page.off('pageerror', onPageError);
         page.off('requestfailed', onFailed);
+        page.off('response', onResponse);
 
         if (problems.length) {
             broken.push({ route, problems });
