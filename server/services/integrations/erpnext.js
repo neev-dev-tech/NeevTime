@@ -30,7 +30,7 @@ class ERPNextIntegration extends BaseIntegration {
      * than running, returning nothing and reporting success.
      */
     static capabilities = [CAPABILITY.EMPLOYEES, CAPABILITY.SHIFTS, CAPABILITY.HOLIDAYS,
-        CAPABILITY.LEAVE, CAPABILITY.PUSH_ATTENDANCE];
+        CAPABILITY.LEAVE, CAPABILITY.PUSH_ATTENDANCE, CAPABILITY.PUSH_DAILY_ATTENDANCE];
 
     constructor(config) {
         super(config);
@@ -512,6 +512,97 @@ class ERPNextIntegration extends BaseIntegration {
                 throw err;
             }
         }
+    }
+
+    /**
+     * Push a day's computed attendance to ERPNext's Attendance doctype.
+     *
+     * This is the route to payroll, and it costs nothing to own: Frappe HR is
+     * free and already installed here, and Salary Slip reads payment days from
+     * Attendance records.
+     *
+     * ERPNext can derive Attendance itself, from the Employee Checkin records
+     * pushAttendance already sends, if Auto Attendance is enabled on the Shift
+     * Type. Doing that would throw away the part that was hard. Deciding whether
+     * a day is absence took four separate corrections here — public holidays
+     * matched by location, approved leave, days before joining, and days on
+     * which no reader in the building reported at all — and got 409 absences in
+     * a month down to a real number. Letting ERPNext re-derive presence from raw
+     * punches invites a second, differently wrong answer, and payroll is a poor
+     * place to discover the two disagree.
+     *
+     * ── Status mapping ─────────────────────────────────────────────────────
+     *
+     * ERPNext accepts exactly four: Present, Absent, On Leave, Half Day. Three
+     * of ours have no counterpart and are mapped deliberately:
+     *
+     *   Short Day    → Present.  They attended. Whether a short day is paid in
+     *                  full is a payroll policy, not an attendance fact, and
+     *                  marking it Absent would dock a day someone worked.
+     *   Miss Punch   → skipped.  A missing out-punch is an unresolved record.
+     *                  Guessing either way puts a guess into payroll; it stays
+     *                  out until someone regularises it.
+     *   Weekly Off   → skipped.  ERPNext has no such status and computes
+     *                  holidays from its own Holiday List.
+     *
+     * Anything unrecognised is skipped rather than defaulted. A status this
+     * method does not understand must not silently become Present.
+     */
+    async pushDailyAttendance(records) {
+        const stats = { processed: 0, success: 0, failed: 0, skipped: 0 };
+
+        const STATUS = {
+            'present': 'Present',
+            'absent': 'Absent',
+            'half day': 'Half Day',
+            'on leave': 'On Leave',
+            'short day': 'Present'
+        };
+
+        for (const record of records) {
+            stats.processed++;
+            const status = STATUS[String(record.status || '').trim().toLowerCase()];
+            if (!status) { stats.skipped++; continue; }
+
+            const date = String(record.date).slice(0, 10);
+
+            try {
+                // Attendance is unique per employee per day in ERPNext, and a
+                // submitted document cannot be edited. Re-running a sync must
+                // not fail the whole batch on days already sent, so an existing
+                // record is left alone rather than amended.
+                const existing = await this.client.get('/api/resource/Attendance', {
+                    params: {
+                        filters: JSON.stringify([
+                            ['employee', '=', record.employee_code],
+                            ['attendance_date', '=', date],
+                            ['docstatus', '!=', 2]
+                        ]),
+                        limit_page_length: 1
+                    }
+                });
+                if ((existing.data.data || []).length > 0) { stats.skipped++; continue; }
+
+                await this.client.post('/api/resource/Attendance', {
+                    employee: record.employee_code,
+                    attendance_date: date,
+                    status,
+                    working_hours: record.duration_minutes ? Number((record.duration_minutes / 60).toFixed(2)) : 0,
+                    late_entry: Number(record.late_minutes) > 0 ? 1 : 0,
+                    early_exit: Number(record.early_leave_minutes) > 0 ? 1 : 0,
+                    // Submitted, or payroll will not see it. A draft Attendance
+                    // record does not count towards payment days.
+                    docstatus: 1
+                });
+                stats.success++;
+            } catch (err) {
+                const detail = err.response?.data ? JSON.stringify(err.response.data).slice(0, 200) : err.message;
+                console.error(`ERPNext attendance push failed for ${record.employee_code} ${date}: ${detail}`);
+                stats.failed++;
+            }
+        }
+
+        return stats;
     }
 
     /**

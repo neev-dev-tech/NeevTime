@@ -36,6 +36,7 @@ const METHOD_FOR = {
     'holidays': 'pullHolidayLists',
     'leave': 'pullLeaveApplications',
     'push_attendance': 'pushAttendance',
+    'push_daily_attendance': 'pushDailyAttendance',
     'push_leave': 'pushLeaves'
 };
 
@@ -170,4 +171,53 @@ test('an alias keeps an existing saved integration working', () => {
         'custom_api no longer resolves — any integration saved with that type breaks'
     );
     assert.ok(registry.find('ERPNext'), 'type matching is case-sensitive again');
+});
+
+test('the payroll push is off unless an integration asks for it', () => {
+    const src = fs.readFileSync(path.join(__dirname, '..', 'services', 'hrms-integration.js'), 'utf8');
+
+    assert.ok(
+        /config\?\.push_daily_attendance/.test(src),
+        'daily attendance is pushed without an explicit opt-in. This writes the ' +
+        'documents payroll pays people from; it must not start doing that because ' +
+        'a version was deployed.'
+    );
+    assert.ok(
+        /supports\(CAPABILITY\.PUSH_DAILY_ATTENDANCE\)/.test(src),
+        'nothing checks the adapter can push daily attendance before calling it'
+    );
+});
+
+test('only settled days are sent to payroll', () => {
+    const src = fs.readFileSync(path.join(__dirname, '..', 'services', 'hrms-integration.js'), 'utf8');
+    const i = src.indexOf('syncDailyAttendanceToHRMS');
+    const body = src.slice(i, i + 1600);
+
+    assert.ok(
+        /ads\.date < CURRENT_DATE/.test(body),
+        "today is included in the payroll push. Someone who has punched in and not " +
+        "yet out would go across as a short day, and ERPNext cannot edit a " +
+        "submitted Attendance record afterwards."
+    );
+    assert.ok(
+        /exclude_from_hrms IS NOT TRUE/.test(body),
+        'door-access staff are pushed to the HRMS, which rejects codes it has ' +
+        'never heard of and retries forever'
+    );
+});
+
+test('an attendance status with no equivalent is skipped, not guessed', () => {
+    const src = fs.readFileSync(path.join(__dirname, '..', 'services', 'integrations', 'erpnext.js'), 'utf8');
+    const i = src.indexOf('async pushDailyAttendance');
+    const body = src.slice(i, i + 2600);
+
+    // ERPNext accepts four statuses. Ours has six.
+    assert.ok(/'short day': 'Present'/.test(body), 'Short Day no longer maps to Present — a worked day would be docked');
+    assert.ok(!/'miss punch'/.test(body), 'Miss Punch is being mapped; an unresolved record must not reach payroll');
+    assert.ok(!/'weekly off'/.test(body), 'Weekly Off is being mapped; ERPNext has no such status');
+    assert.ok(
+        /if \(!status\) \{ stats\.skipped\+\+; continue; \}/.test(body),
+        'an unrecognised status falls through to a default instead of being skipped'
+    );
+    assert.ok(/docstatus: 1/.test(body), 'the record is left in draft, so payroll will not count it');
 });

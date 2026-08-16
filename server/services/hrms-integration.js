@@ -62,6 +62,11 @@ const CAPABILITY = {
     HOLIDAYS: 'holidays',
     LEAVE: 'leave',
     PUSH_ATTENDANCE: 'push_attendance',
+    // Computed daily attendance, not raw punches. This is what payroll
+    // reads — ERPNext's Salary Slip takes payment days from Attendance
+    // records, so pushing them is the difference between an attendance
+    // system and one payroll can actually be run from.
+    PUSH_DAILY_ATTENDANCE: 'push_daily_attendance',
     PUSH_LEAVE: 'push_leave'
 };
 
@@ -377,6 +382,59 @@ const getIntegrationInstance = async (integrationId) => {
     }
 };
 
+
+/**
+ * Push computed daily attendance to the HRMS, for payroll to read.
+ *
+ * Off unless the integration explicitly turns it on. This writes documents that
+ * payroll pays people from, and a feature that starts doing that because it was
+ * deployed is a feature that should not have shipped. Set
+ * `config.push_daily_attendance` on the integration to enable it.
+ *
+ * Only days that are settled get sent. Today is excluded — an employee who has
+ * punched in and not yet out would go across as a short day, and in ERPNext a
+ * submitted Attendance record cannot be edited afterwards.
+ */
+const syncDailyAttendanceToHRMS = async (integration, options = {}) => {
+    const { days = 7 } = options;
+    const stats = { processed: 0, success: 0, failed: 0, skipped: 0 };
+
+    try {
+        const rows = (await db.query(`
+            SELECT ads.employee_code, ads.date, ads.status,
+                   ads.duration_minutes, ads.late_minutes, ads.early_leave_minutes
+              FROM attendance_daily_summary ads
+              JOIN employees e ON e.employee_code = ads.employee_code
+             WHERE ads.date >= CURRENT_DATE - $1::int
+               AND ads.date < CURRENT_DATE
+               AND e.attendance_required IS NOT FALSE
+               AND e.exclude_from_hrms IS NOT TRUE
+             ORDER BY ads.date, ads.employee_code
+        `, [days])).rows;
+
+        if (rows.length === 0) {
+            log('INFO', 'No settled attendance to push', { integration: integration.name });
+            return stats;
+        }
+
+        Object.assign(stats, await integration.pushDailyAttendance(rows));
+
+        log('INFO', 'Daily attendance pushed to HRMS', {
+            integration: integration.name,
+            ...stats,
+            note: stats.skipped ? 'skipped = already present in the HRMS, or a status it has no equivalent for' : undefined
+        });
+        await integration.logSync(SYNC_TYPE.ATTENDANCE, SYNC_DIRECTION.PUSH,
+            stats.failed > 0 ? 'partial' : 'success', stats);
+    } catch (err) {
+        log('ERROR', 'Daily attendance push failed', { integration: integration.name, error: err.message });
+        await integration.logSync(SYNC_TYPE.ATTENDANCE, SYNC_DIRECTION.PUSH, 'failed', stats, err.message);
+        throw err;
+    }
+
+    return stats;
+};
+
 /**
  * Get all active integrations
  */
@@ -423,6 +481,24 @@ const runScheduledSync = async (options = {}) => {
                         await syncAttendanceToHRMS(instance);
                     } else {
                         log('WARN', 'Attendance push is enabled but this integration cannot push', {
+                            integration: integration.name, type: integration.type
+                        });
+                    }
+                }
+
+                // Computed attendance for payroll. Opt-in per integration: it
+                // writes the documents payroll pays from.
+                if (instance.config?.push_daily_attendance) {
+                    if (instance.supports(CAPABILITY.PUSH_DAILY_ATTENDANCE)) {
+                        try {
+                            await syncDailyAttendanceToHRMS(instance);
+                        } catch (err) {
+                            log('ERROR', 'Daily attendance push failed', {
+                                integration: integration.name, error: err.message
+                            });
+                        }
+                    } else {
+                        log('WARN', 'Daily attendance push is on but this integration cannot do it', {
                             integration: integration.name, type: integration.type
                         });
                     }
@@ -1211,6 +1287,7 @@ const startScheduledSync = () => {
 
 module.exports = {
     CAPABILITY,
+    syncDailyAttendanceToHRMS,
     SYNC_DIRECTION,
     SYNC_TYPE,
     INTEGRATION_TYPE,
