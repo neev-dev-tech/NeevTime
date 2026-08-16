@@ -51,6 +51,14 @@ const PARSES = [
         `INSERT INTO areas (name, code, parent_area_id) VALUES ($1, $2, $3) RETURNING *`],
     ['routes/organization.js:126 — re-parent an area',
         `UPDATE areas SET name = $1, code = COALESCE($2, code), parent_area_id = $3 WHERE id = $4 RETURNING *`],
+    ['routes/organization.js:96 — the Areas page enrolment counts',
+        `SELECT (SELECT COUNT(*)::int FROM biometric_templates bt
+                   JOIN employees e ON e.employee_code = bt.employee_code
+                  WHERE e.area_id = a.id AND bt.template_type IN (1, 2)) AS fp_count,
+                (SELECT COUNT(*)::int FROM biometric_templates bt
+                   JOIN employees e ON e.employee_code = bt.employee_code
+                  WHERE e.area_id = a.id AND bt.template_type = 9) AS face_count
+           FROM areas a`],
     ['routes/organization.js:100 — the Areas page tree',
         `SELECT a.* FROM areas a LEFT JOIN areas parent ON a.parent_area_id = parent.id`],
     ['server.js:1414 — add a reader', `

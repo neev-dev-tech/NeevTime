@@ -93,8 +93,22 @@ router.get('/areas', async (req, res) => {
                    (SELECT COUNT(*)::int FROM employees e WHERE e.area_id = a.id AND (LOWER(e.status) IS DISTINCT FROM 'resigned')) as employee_count,
                    (SELECT COUNT(*)::int FROM devices d WHERE d.area_id = a.id) as device_count,
                    (SELECT COUNT(*)::int FROM employees e WHERE e.area_id = a.id AND LOWER(e.status) = 'resigned') as resigned_count,
-                   (SELECT COALESCE(SUM(e.fingerprint_count), 0)::int FROM employees e WHERE e.area_id = a.id) as fp_count,
-                   (SELECT COALESCE(SUM(e.face_count), 0)::int FROM employees e WHERE e.area_id = a.id) as face_count,
+                   -- Enrolment counts come from biometric_templates, not from
+                   -- employees. These two summed e.fingerprint_count and
+                   -- e.face_count, columns that exist on `devices` and have
+                   -- never existed on `employees` in any schema file — so the
+                   -- whole statement failed and the Areas page returned 500 on
+                   -- every install, this one included.
+                   --
+                   -- template_type 1 and 2 are fingerprints and 9 is face,
+                   -- matching how the device detail and system stats endpoints
+                   -- already classify them.
+                   (SELECT COUNT(*)::int FROM biometric_templates bt
+                      JOIN employees e ON e.employee_code = bt.employee_code
+                     WHERE e.area_id = a.id AND bt.template_type IN (1, 2)) as fp_count,
+                   (SELECT COUNT(*)::int FROM biometric_templates bt
+                      JOIN employees e ON e.employee_code = bt.employee_code
+                     WHERE e.area_id = a.id AND bt.template_type = 9) as face_count,
                    (SELECT COUNT(*)::int FROM employees e WHERE e.area_id = a.id AND e.card_number IS NOT NULL AND e.card_number != '') as card_count
             FROM areas a
             LEFT JOIN areas parent ON a.parent_area_id = parent.id
