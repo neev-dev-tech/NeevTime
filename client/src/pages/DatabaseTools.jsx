@@ -563,7 +563,7 @@ export default function DatabaseTools() {
                             <div className="flex gap-2">
                                 <input
                                     type="text"
-                                    placeholder="/mnt/backups   (leave empty for none)"
+                                    placeholder="/mnt/backup-external   (leave empty for none)"
                                     value={autoBackup.backup_external_path}
                                     onChange={(e) => { setAutoBackup(p => ({ ...p, backup_external_path: e.target.value })); setPathCheck(null); }}
                                     className={`${FIELD} flex-1`}
@@ -578,8 +578,15 @@ export default function DatabaseTools() {
                             </div>
                             <p className="text-xs text-slate-500 dark:text-slate-400">
                                 Every backup is copied here as well. A dump beside the database survives a bad
-                                migration; it does not survive losing the disk. This path is inside the app
-                                container, so it must be a mounted volume to reach other hardware.
+                                migration; it does not survive losing the disk.
+                            </p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">
+                                Use <code className="font-mono">/mnt/backup-external</code>. That is mounted from
+                                the host, so copies survive a redeploy. To put them on <em>other hardware</em>, set
+                                <code className="font-mono"> BACKUP_EXTERNAL_DIR</code> on the server to a mounted
+                                NAS or second disk and redeploy — the path here stays the same. Press Test: it
+                                writes, reads back and deletes a probe file, and tells you whether the location is
+                                a real mount or just the container&rsquo;s own disk.
                             </p>
                             {pathCheck && !pathCheck.checking && (
                                 <div className={`text-xs rounded-lg p-3 border ${

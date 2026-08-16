@@ -84,6 +84,20 @@ services:
       # that happens to sit in the build context and gets COPY'd into the image,
       # which made it look like the scheduler had stopped in March.
       - backups:/app/backups
+      # The door for "second copy — external path" in Settings > Database.
+      #
+      # That setting writes to a path INSIDE this container, so without a mount
+      # here anything it produces is destroyed by the next deploy — an
+      # off-machine copy that is neither off-machine nor a copy. The write probe
+      # in the UI detects this and says so, but it cannot create the mount.
+      #
+      # BACKUP_EXTERNAL_DIR is where it lands on the host. Point it at a mounted
+      # NAS, a second disk, or anything that is not this machine, and set the
+      # path in Settings to /mnt/backup-external. Left at the default it is
+      # still outside the container and survives redeploys — but it is the same
+      # disk as the database, which protects against a bad migration and not
+      # against losing the machine.
+      - ${BACKUP_EXTERNAL_DIR:-/opt/neevtime-backups}:/mnt/backup-external
     networks:
       - app-network
 
