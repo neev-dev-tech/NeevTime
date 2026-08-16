@@ -2506,6 +2506,18 @@ const ensureSchema = async () => {
         ['database', 'backup_frequency', 'daily', 'string', 'daily, weekly (Mondays) or monthly (1st)'],
         ['database', 'backup_time', '02:00', 'string', 'Server local time to run the backup'],
         ['database', 'backup_retention_count', '7', 'number', 'How many automatic backups to keep'],
+        // Seeded empty so it APPEARS in Settings > Database. The Settings page
+        // renders whatever rows exist in a category, and this key was only ever
+        // read with a default — so the one control that gets a backup off this
+        // machine was invisible on the screen where every other backup setting
+        // lives. It was reachable on Database Tools and nowhere a person would
+        // think to look.
+        //
+        // Empty means no second copy. /mnt/backup-external is mounted from the
+        // host for exactly this; see BACKUP_EXTERNAL_DIR in docker-compose.yml.
+        ['database', 'backup_external_path', '', 'string',
+            'Copy every backup here as well, e.g. /mnt/backup-external. Empty for none. '
+            + 'Use Database Tools to test the path before relying on it.'],
         ['timezone', 'system_timezone', 'Asia/Kolkata', 'string',
             'Zone used to decide which day a punch belongs to and to measure shift start, lateness and overtime'],
         // Off by default so enabling it is a deliberate decision — turning it on
