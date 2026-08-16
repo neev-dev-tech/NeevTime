@@ -94,7 +94,14 @@ const musterRoll = async ({ from, to, departmentId = null }) => {
           FROM employees e
           LEFT JOIN departments d ON e.department_id = d.id
          WHERE e.attendance_required IS NOT FALSE
-           AND (e.joining_date IS NULL OR e.joining_date <= $2)
+           AND (e.joining_date IS NULL OR e.joining_date <= $2::date)
+           -- Also uses $1, and not only to keep Postgres happy. Someone removed
+           -- before this period began never worked in it, and without this they
+           -- appear as a row of dashes. Leaving $1 unreferenced is what broke
+           -- this query outright: Postgres cannot infer a type for a parameter
+           -- the statement never mentions, and rejects the whole thing with
+           -- "could not determine data type of parameter $1".
+           AND (e.deleted_at IS NULL OR e.deleted_at::date >= $1::date)
            ${deptFilter}
          ORDER BY d.name NULLS LAST, e.name
     `, params)).rows;

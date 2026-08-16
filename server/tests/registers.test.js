@@ -30,7 +30,26 @@ const withFixture = (fixture, fn) => {
     require.cache[dbPath] = {
         id: dbPath, filename: dbPath, loaded: true,
         exports: {
-            query: async (sql) => {
+            query: async (sql, params = []) => {
+                // Every parameter passed must be referenced by the statement.
+                //
+                // Postgres cannot infer a type for a placeholder the query never
+                // mentions and rejects the whole statement with "could not
+                // determine data type of parameter $1". That is precisely how
+                // the muster roll — and the payroll export built on it — failed
+                // in production: params were [from, to] and only $2 appeared.
+                //
+                // These tests stub the database, so the SQL is never parsed by
+                // Postgres and nothing here would have noticed. This is the
+                // cheapest thing that would have.
+                for (let i = 1; i <= params.length; i++) {
+                    if (!new RegExp(`\\$${i}\\b`).test(sql)) {
+                        throw new Error(
+                            `query passes ${params.length} parameter(s) but never references $${i} — ` +
+                            `Postgres rejects this outright: ${sql.trim().slice(0, 80)}`
+                        );
+                    }
+                }
                 for (const [fragment, rows] of fixture) {
                     if (sql.includes(fragment)) return { rows };
                 }
