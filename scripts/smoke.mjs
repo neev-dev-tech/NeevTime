@@ -29,8 +29,15 @@ const BASE = (process.env.BASE || 'http://localhost').replace(/\/$/, '');
 const USER = process.env.SMOKE_USER || 'admin';
 const PASS = process.env.SMOKE_PASS || 'admin';
 
-// Self-signed certificates are the norm on these deployments.
-if (BASE.startsWith('https:')) process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+// Self-signed certificates are the norm on these deployments, and this has to
+// hold even when BASE is http:// — port 80 redirects browser paths to HTTPS, so
+// fetch follows the redirect onto the self-signed pair and fails there. Guarding
+// this on the scheme of BASE was wrong for exactly that reason.
+//
+// This makes the script useless for asserting anything about certificates. It
+// is a reachability check and nothing more; TLS itself is verified in CI by the
+// step that curls https:// and runs nginx -t.
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 const today = () => {
     const d = new Date();
@@ -88,7 +95,7 @@ const main = async () => {
         token = await login();
         console.log('  ok    sign in');
     } catch (err) {
-        console.error(`  FAIL  sign in — ${err.message}`);
+        console.error(`  FAIL  sign in — ${err.message}` + (err.cause ? `\n        cause: ${err.cause.message || err.cause}` : ''));
         process.exit(1);
     }
 
@@ -116,7 +123,7 @@ const main = async () => {
             console.log(`  ok    ${name}`);
         } catch (err) {
             failures += 1;
-            fail(`${name} — ${err.message}\n        ${path}`);
+            fail(`${name} — ${err.message}` + (err.cause ? ` (${err.cause.message || err.cause})` : '') + `\n        ${path}`);
         }
     }
 
