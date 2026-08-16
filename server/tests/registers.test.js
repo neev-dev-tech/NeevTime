@@ -228,9 +228,11 @@ test('every column the registers read is one ensureSchema guarantees', () => {
     const SERVER = path.join(__dirname, '..');
     const ensure = fs.readFileSync(path.join(SERVER, 'server.js'), 'utf8');
 
-    const READ_FROM_SUMMARY = [
-        'late_minutes', 'early_leave_minutes', 'overtime_minutes'
-    ];
+    // The names the attendance engine actually writes. overtime_minutes was
+    // read here for a while and is filled by nothing — every overtime figure
+    // came back zero, silently, which is the worst way for a payroll input to
+    // be wrong.
+    const READ_FROM_SUMMARY = ['late_minutes', 'early_leave_minutes'];
 
     for (const col of READ_FROM_SUMMARY) {
         assert.ok(
@@ -247,5 +249,25 @@ test('every column the registers read is one ensureSchema guarantees', () => {
         .map(f => fs.readFileSync(path.join(SERVER, f), 'utf8')).join('\n');
     for (const col of READ_FROM_SUMMARY) {
         assert.ok(sources.includes(col), `${col} is no longer read; drop it from this test`);
+    }
+});
+
+test('overtime is read from the column the engine writes', () => {
+    const fs = require('node:fs');
+    const path = require('node:path');
+    const SERVER = path.join(__dirname, '..');
+
+    // services/attendance_engine.js writes ot_minutes. Nothing anywhere writes
+    // overtime_minutes, so a query reading it returns zero for every employee
+    // and every day — a payroll input that is wrong and looks fine.
+    const engine = fs.readFileSync(path.join(SERVER, 'services/attendance_engine.js'), 'utf8');
+    assert.ok(/ot_minutes/.test(engine), 'the engine no longer writes ot_minutes; check what it writes now');
+
+    for (const f of ['services/registers.js', 'services/payroll_export.js']) {
+        const src = fs.readFileSync(path.join(SERVER, f), 'utf8');
+        const sqlRefs = [...src.matchAll(/(?:ads\.|SUM\(|COALESCE\()\s*overtime_minutes/g)];
+        assert.strictEqual(sqlRefs.length, 0,
+            `${f} reads overtime_minutes from the database. The engine writes ot_minutes; ` +
+            `overtime_minutes is filled by nothing and every overtime figure comes back zero.`);
     }
 });

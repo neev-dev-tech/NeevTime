@@ -66,7 +66,7 @@ const CANONICAL = {
     uncollected_days: 'Days no reader in the company reported. Reconcile before running payroll.',
     overtime_hours: 'Sum of overtime recorded on daily summaries',
     late_days: 'Days with a late arrival',
-    early_exit_days: 'Days with an early departure'
+    early_exit_days: 'Days with an early departure. Always 0 — the engine does not compute early exit.'
 };
 
 /**
@@ -132,7 +132,10 @@ const payrollSummary = async ({ from, to, departmentId = null }) => {
 
     const overtime = (await db.query(`
         SELECT employee_code,
-               COALESCE(SUM(overtime_minutes), 0) AS ot_minutes,
+               -- ot_minutes, not overtime_minutes. The engine writes ot_minutes;
+               -- overtime_minutes is a column nothing fills, so reading it
+               -- reported every employee as having worked no overtime.
+               COALESCE(SUM(ot_minutes), 0) AS ot_minutes,
                COUNT(*) FILTER (WHERE COALESCE(late_minutes, 0) > 0) AS late_days,
                COUNT(*) FILTER (WHERE COALESCE(early_leave_minutes, 0) > 0) AS early_exit_days
           FROM attendance_daily_summary

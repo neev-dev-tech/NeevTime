@@ -2038,7 +2038,6 @@ const ensureSchema = async () => {
         // already exists.
         `ALTER TABLE attendance_daily_summary ADD COLUMN IF NOT EXISTS late_minutes INTEGER`,
         `ALTER TABLE attendance_daily_summary ADD COLUMN IF NOT EXISTS early_leave_minutes INTEGER`,
-        `ALTER TABLE attendance_daily_summary ADD COLUMN IF NOT EXISTS overtime_minutes INTEGER`,
         // Avoids a failed INSERT and a retry on every document upload; the
         // route already falls back when this is absent.
         `ALTER TABLE employee_docs ADD COLUMN IF NOT EXISTS file_type VARCHAR(100)`,

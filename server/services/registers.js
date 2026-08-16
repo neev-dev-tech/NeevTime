@@ -232,12 +232,15 @@ const overtimeRegister = async ({ from, to, departmentId = null }) => {
                ads.date::text AS date,
                ads.in_time, ads.out_time,
                ads.duration_minutes,
-               ads.overtime_minutes
+               -- ot_minutes is what the attendance engine writes. overtime_minutes
+               -- is a column nothing fills, and reading it showed every day as
+               -- having no overtime.
+               ads.ot_minutes AS overtime_minutes
           FROM attendance_daily_summary ads
           JOIN employees e ON e.employee_code = ads.employee_code
           LEFT JOIN departments d ON e.department_id = d.id
          WHERE ads.date BETWEEN $1 AND $2
-           AND COALESCE(ads.overtime_minutes, 0) > 0
+           AND COALESCE(ads.ot_minutes, 0) > 0
            AND e.attendance_required IS NOT FALSE
            ${deptFilter}
          ORDER BY e.name, ads.date
@@ -256,7 +259,10 @@ const overtimeRegister = async ({ from, to, departmentId = null }) => {
         period: { from, to },
         rows,
         totals: { entries: rows.length, overtime_hours: Number((totalMinutes / 60).toFixed(2)) },
-        missingFields: ['overtime wage rate and amount — no pay rate is held in this system'],
+        missingFields: [
+            'overtime wage rate and amount — no pay rate is held in this system',
+            'early exit — the attendance engine does not compute it, so it is always empty'
+        ],
         notes: ['Only days with overtime above the configured threshold appear.']
     };
 };
