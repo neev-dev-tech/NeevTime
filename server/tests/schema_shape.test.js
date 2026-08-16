@@ -137,6 +137,18 @@ const PLANS = [
         `INSERT INTO holidays (holiday_location_id, date, name, type)
          VALUES (NULL,'2099-01-01','ZZTEST-SHAPE','public')
          ON CONFLICT (COALESCE(holiday_location_id, 0), date) DO UPDATE SET name = EXCLUDED.name`],
+    // The three holiday write paths, all of which wrote location_id while the
+    // index, the HRMS sync and the muster roll use holiday_location_id. The
+    // POST additionally named a conflict target matching no index, so it failed
+    // outright rather than merely writing somewhere nothing reads.
+    ['routes/scheduling.js:99 — add a holiday from the UI',
+        `INSERT INTO holidays (name, date, holiday_location_id, is_optional)
+         VALUES ('ZZTEST-SHAPE', DATE '2031-01-01', NULL, false)
+         ON CONFLICT (COALESCE(holiday_location_id, 0), date)
+         DO UPDATE SET name = EXCLUDED.name, is_optional = EXCLUDED.is_optional`],
+    ['routes/scheduling.js:340 — import a holiday from CSV',
+        `INSERT INTO holidays (name, date, holiday_location_id, is_optional)
+         VALUES ('ZZTEST-SHAPE', DATE '2031-01-02', NULL, false)`],
     ['services/adms.js:47 — punch ingest',
         `INSERT INTO attendance_logs (employee_code, punch_time, punch_state, verification_mode, device_serial)
          VALUES ('ZZTEST-SHAPE','2099-01-01 09:00','check_in',1,'ZZTEST-SHAPE')

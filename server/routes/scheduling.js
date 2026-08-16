@@ -94,12 +94,27 @@ router.get('/holidays', async (req, res) => {
 
 router.post('/holidays', async (req, res) => {
     try {
-        const { name, date, location_id, is_optional } = req.body;
+        // holiday_location_id, not location_id. Two columns, and the rest of the
+        // system uses the other one: the HRMS sync writes holiday_location_id,
+        // the unique index is on (COALESCE(holiday_location_id, 0), date), and
+        // the muster roll matches an employee's holidays through it. A holiday
+        // added here therefore applied to nobody — everyone was marked absent on
+        // a day the office was shut.
+        //
+        // The ON CONFLICT target must repeat the index expression exactly.
+        // `ON CONFLICT (date, location_id)` matched no unique index at all, so
+        // this statement did not merely write the wrong column, it failed
+        // outright with "no unique or exclusion constraint matching the ON
+        // CONFLICT specification".
+        const { name, date, location_id, holiday_location_id, is_optional } = req.body;
+        const locationId = holiday_location_id ?? location_id ?? null;
         const result = await db.query(`
-            INSERT INTO holidays (name, date, location_id, is_optional) VALUES ($1, $2, $3, $4)
-            ON CONFLICT (date, location_id) DO UPDATE SET name = EXCLUDED.name
+            INSERT INTO holidays (name, date, holiday_location_id, is_optional)
+            VALUES ($1, $2, $3, $4)
+            ON CONFLICT (COALESCE(holiday_location_id, 0), date)
+            DO UPDATE SET name = EXCLUDED.name, is_optional = EXCLUDED.is_optional
             RETURNING *
-        `, [name, date, location_id || null, is_optional || false]);
+        `, [name, date, locationId, is_optional || false]);
         res.json(result.rows[0]);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -115,11 +130,12 @@ router.delete('/holidays/:id', async (req, res) => {
 router.put('/holidays/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, date, location_id, is_optional } = req.body;
+        const { name, date, location_id, holiday_location_id, is_optional } = req.body;
+        const locationId = holiday_location_id ?? location_id ?? null;
         const result = await db.query(`
-            UPDATE holidays SET name=$1, date=$2, location_id=$3, is_optional=$4
+            UPDATE holidays SET name=$1, date=$2, holiday_location_id=$3, is_optional=$4
             WHERE id=$5 RETURNING *
-        `, [name, date, location_id || null, is_optional || false, id]);
+        `, [name, date, locationId, is_optional || false, id]);
         if (result.rows.length === 0) return res.status(404).json({ error: 'Holiday not found' });
         res.json(result.rows[0]);
     } catch (err) { res.status(500).json({ error: err.message }); }
@@ -318,15 +334,17 @@ router.post('/holidays/import', async (req, res) => {
                 || String(row.is_optional ?? '').toLowerCase() === 'true'
                 || String(row.is_optional ?? '') === '1';
 
-            const locationId = row.location_id ? parseInt(row.location_id) : null;
+            const locationId = row.holiday_location_id ?? row.location_id
+                ? parseInt(row.holiday_location_id ?? row.location_id) : null;
 
-            // Explicit find-then-write rather than ON CONFLICT: the unique index
-            // is on (date, location_id), and in SQL NULL never equals NULL, so a
-            // national holiday (no location) would never match the conflict
-            // target and would duplicate on every re-import.
+            // Explicit find-then-write rather than ON CONFLICT: NULL never
+            // equals NULL in SQL, so a national holiday (no location) would
+            // never match a plain conflict target and would duplicate on every
+            // re-import. The index handles this with COALESCE(..., 0); this
+            // path handles it with IS NOT DISTINCT FROM.
             const existing = await client.query(
                 `SELECT id FROM holidays
-                 WHERE date = $1 AND location_id IS NOT DISTINCT FROM $2`,
+                 WHERE date = $1 AND holiday_location_id IS NOT DISTINCT FROM $2`,
                 [date, locationId]
             );
 
@@ -337,7 +355,7 @@ router.post('/holidays/import', async (req, res) => {
                 );
             } else {
                 await client.query(
-                    'INSERT INTO holidays (name, date, location_id, is_optional) VALUES ($1, $2, $3, $4)',
+                    'INSERT INTO holidays (name, date, holiday_location_id, is_optional) VALUES ($1, $2, $3, $4)',
                     [name, date, locationId, isOptional]
                 );
             }
