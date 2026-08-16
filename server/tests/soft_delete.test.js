@@ -158,10 +158,20 @@ test('a backup is copied to the external path when one is set', () => {
     const src = stripComments(read('routes/database.js'));
 
     assert.ok(/const copyToExternal/.test(src), 'the external copy helper is gone');
-    const helper = src.slice(src.indexOf('const copyToExternal'), src.indexOf('const createBackup'));
+
+    // The slice runs from loadDestination, not from copyToExternal. Destination
+    // support for S3, SFTP and SharePoint moved the settings read into
+    // loadDestination, and the original assertion — which looked only between
+    // copyToExternal and createBackup — failed on a refactor that kept every
+    // behaviour it was protecting. Assert the behaviour, not the address.
+    const start = src.indexOf('const loadDestination');
+    const helper = src.slice(start > -1 ? start : src.indexOf('const copyToExternal'),
+        src.indexOf('const createBackup'));
+
     assert.ok(
         /backup_external_path/.test(helper),
-        'the external copy no longer reads the configured path'
+        'the copy no longer honours backup_external_path — an install that only ever ' +
+        'set a path must keep working with nothing to re-enter'
     );
     assert.ok(
         /catch \(err\)/.test(helper),
