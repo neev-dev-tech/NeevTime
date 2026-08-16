@@ -5,3 +5,7 @@ logs
 .DS_Store
 *.log
 debug_output.txt
+# Database dumps must not be baked into the image: they bloat every build and
+# their presence there disguised the fact that the runtime directory was
+# ephemeral. They live on the neevtime_backups volume.
+backups

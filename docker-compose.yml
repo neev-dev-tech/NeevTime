@@ -42,6 +42,17 @@ services:
       - JWT_SECRET=${JWT_SECRET:-super_secret_key_123}
     ports:
       - "3001:3001"
+    volumes:
+      # Backups MUST outlive the container.
+      #
+      # BACKUP_DIR is /app/backups inside the container and there was no mount
+      # here, so every nightly dump was written to the container's own writable
+      # layer and destroyed by the next `docker compose up --build`. Backups
+      # were enabled, running and succeeding the whole time; the files simply
+      # stopped existing on each deploy. The only survivor was one from 26 March
+      # that happens to sit in the build context and gets COPY'd into the image,
+      # which made it look like the scheduler had stopped in March.
+      - backups:/app/backups
     networks:
       - app-network
 
@@ -94,6 +105,8 @@ volumes:
     name: neevtime_postgres_data
     external: true
   nginx_certs:
+  backups:
+    name: neevtime_backups
 
 
 networks:
