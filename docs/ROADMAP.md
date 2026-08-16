@@ -52,7 +52,11 @@ Four independent faults, each sufficient alone. The visible symptom throughout w
 
 Done: CI now boots the entire compose stack and asserts that `/api/health` answers, `/iclock` does not return 502 through nginx, HTTPS serves the app, and nginx's configuration parses. Every route and service module is loaded, so a syntax error fails in a second rather than at container boot. Every SQL statement the application issues is prepared or executed against a real Postgres.
 
-Still open: the browser-level pass. Roughly forty dialogs and two compliance screens have never been rendered by a person or a script. The database and the deployment are now verified; the user interface is not.
+Done: all 47 authenticated screens are now loaded in a real browser on every push and fail the build on an uncaught exception, a console error, a failed script or stylesheet, or a page that renders nothing. It found a live defect on its first run.
+
+Still open, two things. The **dialogs** — roughly forty of them — are only reached by clicking, and the check currently stops at the page. And **socket.io cannot establish a websocket**: the upgrade returns 400 and the client falls back to polling, so live screens update on a timer rather than instantly.
+
+What is established about the websocket fault, so the next person does not repeat it: node answers a raw handshake with 101, and through nginx the same handshake returns 400 over HTTP/2 and 101 over HTTP/1.1. HTTP/2 cannot carry a websocket by the Connection: Upgrade mechanism at all, and nginx does not implement RFC 8441, so h2 is now disabled — necessary but not sufficient. Chrome's upgrade carries a session id from a prior polling request, and those polling requests are themselves failing. It needs a local reproduction rather than more CI rounds. Reported by the browser check and not treated as fatal, so it stays visible without blocking every merge.
 
 ### 0.4 · Decide the tenancy model — **UNCHANGED**
 
