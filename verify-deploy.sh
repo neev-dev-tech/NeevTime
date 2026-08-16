@@ -19,7 +19,18 @@
 
 set -uo pipefail
 
+# Follow the redirect and accept the self-signed certificate.
+#
+# Enabling TLS made every check here fail at once: nginx answers browser traffic
+# on port 80 with a 301, so this read the redirect page, found no bundle hash in
+# it, and reported an unhealthy deploy that was in fact fine. The readers are
+# unaffected — /iclock/ is served in clear text on purpose — but this script was
+# looking at the wrong thing and saying so loudly.
+#
+# -L follows to https, -k accepts the self-signed pair the entrypoint generates.
+# A real certificate needs neither, and both are harmless once one is installed.
 APP_URL="${APP_URL:-http://localhost}"
+CURL="curl -sL -k"
 DB_CONTAINER="${DB_CONTAINER:-attendance_db}"
 APP_CONTAINER="${APP_CONTAINER:-attendance_app}"
 DB_USER="${DB_USER:-postgres}"
@@ -74,7 +85,7 @@ restarts=$(d inspect -f '{{.RestartCount}}' "$APP_CONTAINER" 2>/dev/null || echo
 
 # ── 2. The app answers ────────────────────────────────────────────────────
 head_ "2. HTTP"
-code=$(curl -s -o /dev/null -w '%{http_code}' "$APP_URL/" 2>/dev/null)
+code=$($CURL -o /dev/null -w '%{http_code}' "$APP_URL/" 2>/dev/null)
 [ "$code" = "200" ] && ok "GET / returns 200" || bad "GET / returns ${code:-no response}"
 
 # Wait for it rather than asking once.
@@ -91,7 +102,7 @@ code=$(curl -s -o /dev/null -w '%{http_code}' "$APP_URL/" 2>/dev/null)
 # later; a deploy that is merely starting passes, which is the correct answer.
 health=""
 for i in $(seq 1 30); do
-    health=$(curl -s --max-time 3 "$APP_URL/api/health" 2>/dev/null)
+    health=$($CURL --max-time 3 "$APP_URL/api/health" 2>/dev/null)
     echo "$health" | grep -q '"status":"healthy"' && break
     [ "$i" = 1 ] && printf '  ....  waiting for the app to finish starting'
     printf '.'
@@ -110,7 +121,7 @@ fi
 
 # ── 3. Is the browser going to get the new build? ─────────────────────────
 head_ "3. Deployed bundle"
-served=$(curl -s "$APP_URL/" | grep -o 'assets/index-[A-Za-z0-9_-]*\.js' | head -1)
+served=$($CURL "$APP_URL/" | grep -o 'assets/index-[A-Za-z0-9_-]*\.js' | head -1)
 in_image=$(d exec "$APP_CONTAINER" sh -c 'ls /usr/share/nginx/html/assets/index-*.js 2>/dev/null | head -1' | xargs -n1 basename 2>/dev/null)
 
 if [ -n "$served" ]; then
@@ -124,7 +135,7 @@ else
     bad "could not read the asset hash from index.html"
 fi
 
-cache=$(curl -sI "$APP_URL/" | grep -i '^cache-control' | tr -d '\r')
+cache=$($CURL -I "$APP_URL/" | grep -i '^cache-control' | tr -d '\r')
 if echo "$cache" | grep -qi 'no-store\|no-cache'; then
     ok "index.html sent ${cache#*: }"
 else
