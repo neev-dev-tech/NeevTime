@@ -271,3 +271,36 @@ test('overtime is read from the column the engine writes', () => {
             `overtime_minutes is filled by nothing and every overtime figure comes back zero.`);
     }
 });
+
+test('date columns arrive as Date objects, not strings', () => withFixture(
+    // pg returns DATE columns as JS Date objects. Every fixture above passes
+    // strings, so none of them exercised the coercion — and the production bug
+    // was exactly there: String(date).slice(0, 10) gives "Wed Jul 09", which
+    // string-compares against "2026-08-04" with digits sorting before letters.
+    // Every day read as before the joining date, every worker was marked never
+    // employed, and the payroll export gave everyone zero payable days.
+    fixture({
+        employees: [{ ...baseEmployee, joining_date: new Date(2026, 7, 5), deleted_at: null }],
+        punches: [{ employee_code: 'E1', day: '2026-08-05' }],
+        collecting: ALL_WEEKDAYS
+    }),
+    async (svc) => {
+        const out = await svc.musterRoll(WEEK);
+        const row = out.rows[0];
+        assert.strictEqual(row.date_of_joining, '2026-08-05',
+            'a Date object is not being formatted to YYYY-MM-DD');
+        assert.deepStrictEqual(row.marks.slice(0, 2), ['–', '–'], 'days before joining');
+        assert.strictEqual(row.marks[2], 'P', 'the joining day itself has a punch');
+
+        // totals deliberately exclude days outside employment, so they sum to
+        // the days worked rather than the days in the period. That is what
+        // payable_days depends on: someone who joined mid-month is not owed the
+        // days before they started.
+        const counted = Object.values(row.totals).reduce((a, b) => a + b, 0);
+        const notEmployed = row.marks.filter(m => m === '–').length;
+        assert.strictEqual(counted + notEmployed, out.days.length, 'every day gets exactly one mark');
+        assert.strictEqual(notEmployed, 2, 'only the two days before joining are outside employment');
+        assert.notStrictEqual(row.totals.present + row.totals.absent + row.totals.weekly_off, 0,
+            'every day came back as outside employment, which is the Date-coercion bug');
+    }
+));

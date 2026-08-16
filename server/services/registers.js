@@ -64,6 +64,29 @@ const dayRange = (from, to) => {
     return out;
 };
 
+/**
+ * A date column as YYYY-MM-DD.
+ *
+ * pg hands DATE columns back as JS Date objects, and String(date).slice(0, 10)
+ * yields "Wed Jul 09" — which then gets string-compared against "2026-07-15".
+ * Digits sort before letters, so every day read as earlier than the joining
+ * date and every worker was marked as never employed. The muster roll showed
+ * nothing but dashes and the payroll export gave every employee zero payable
+ * days, which is a wage file that looks filled in and is entirely wrong.
+ *
+ * Local components, not toISOString: at UTC+5:30 the UTC date is the previous
+ * day for anything before 05:30, and a joining date is a calendar date rather
+ * than an instant.
+ */
+const isoDate = (value) => {
+    if (!value) return null;
+    if (typeof value === 'string') return value.slice(0, 10);
+    const d = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(d.getTime())) return null;
+    const p = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+};
+
 const MARK = { PRESENT: 'P', ABSENT: 'A', LEAVE: 'L', HOLIDAY: 'H', WEEKLY_OFF: 'W', NO_DATA: '?', NOT_EMPLOYED: '–' };
 
 /**
@@ -146,8 +169,8 @@ const musterRoll = async ({ from, to, departmentId = null }) => {
     }
 
     const rows = employees.map(e => {
-        const joined = e.joining_date ? String(e.joining_date).slice(0, 10) : null;
-        const left = e.deleted_at ? String(e.deleted_at).slice(0, 10) : null;
+        const joined = isoDate(e.joining_date);
+        const left = isoDate(e.deleted_at);
         const onLeave = leaveByEmployee.get(e.employee_code) || [];
 
         const marks = days.map(day => {
@@ -289,11 +312,20 @@ const leaveRegister = async ({ from, to, departmentId = null }) => {
                la.is_half_day,
                la.reason,
                la.status,
-               (SELECT SUM(CASE WHEN la.is_half_day THEN 0.5 ELSE 1 END)
+               -- count(*) inside, the half-day factor outside.
+               --
+               -- SUM(CASE WHEN la.is_half_day ...) referenced la, a column of the
+               -- OUTER query. Postgres then treats that aggregate as belonging to
+               -- the outer query, which makes the whole statement grouped and
+               -- fails with 'column "e.employee_code" must appear in the GROUP BY
+               -- clause'. Counting the days without touching an outer column keeps
+               -- the aggregate where it belongs.
+               (SELECT count(*)
                   FROM generate_series(GREATEST(la.from_date, $1::date),
                                        LEAST(la.to_date, $2::date),
                                        INTERVAL '1 day') AS dd
-                 WHERE EXTRACT(DOW FROM dd) NOT IN (0, 6)) AS days
+                 WHERE EXTRACT(DOW FROM dd) NOT IN (0, 6))
+               * (CASE WHEN la.is_half_day THEN 0.5 ELSE 1 END) AS days
           FROM leave_applications la
           JOIN employees e ON e.employee_code = la.employee_code
           LEFT JOIN departments d ON e.department_id = d.id
