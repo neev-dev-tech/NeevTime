@@ -2232,6 +2232,57 @@ const ensureSchema = async () => {
                  ON attendance_logs (employee_code, punch_time);
            END IF;
          END $$`,
+        // Biometric template storage. services/adms.js:323 writes eleven columns
+        // and the table has six of them, so every fingerprint and face uploaded
+        // by a reader is rejected. The insert also targets
+        // ON CONFLICT (employee_code, template_type, template_no) and no such
+        // unique index exists, which fails the statement outright rather than
+        // merely dropping a value.
+        //
+        // The consequence is not cosmetic: templates are how an enrolment made
+        // on one reader reaches the other three. With this table unwritable,
+        // enrolling a finger at the front door never propagates, and the person
+        // cannot get in at the back.
+        //
+        // Note the two pairs of names for the same idea — source_device beside
+        // device_serial, index_no beside template_index. Both are kept: existing
+        // databases may hold values in either, and dropping a column that might
+        // hold enrolment data is not something a boot sequence should decide.
+        `ALTER TABLE biometric_templates ADD COLUMN IF NOT EXISTS template_no INTEGER DEFAULT 0`,
+        `ALTER TABLE biometric_templates ADD COLUMN IF NOT EXISTS valid INTEGER DEFAULT 1`,
+        `ALTER TABLE biometric_templates ADD COLUMN IF NOT EXISTS duress INTEGER DEFAULT 0`,
+        `ALTER TABLE biometric_templates ADD COLUMN IF NOT EXISTS source_device VARCHAR(100)`,
+        `ALTER TABLE biometric_templates ADD COLUMN IF NOT EXISTS major_ver VARCHAR(20)`,
+        `ALTER TABLE biometric_templates ADD COLUMN IF NOT EXISTS minor_ver VARCHAR(20)`,
+        `ALTER TABLE biometric_templates ADD COLUMN IF NOT EXISTS format VARCHAR(20)`,
+        `ALTER TABLE biometric_templates ADD COLUMN IF NOT EXISTS index_no INTEGER`,
+        `ALTER TABLE biometric_templates ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT NOW()`,
+        // Carry any older values across so the new columns are not empty where
+        // the old ones held the same thing. Additive and idempotent.
+        `UPDATE biometric_templates SET template_no = COALESCE(template_no, template_index)
+          WHERE template_no IS NULL AND template_index IS NOT NULL`,
+        `UPDATE biometric_templates SET source_device = device_serial
+          WHERE source_device IS NULL AND device_serial IS NOT NULL`,
+        // The conflict target. Checked by columns rather than by name, for the
+        // same reason as attendance_logs: IF NOT EXISTS matches only the name,
+        // so it would happily build a second identical index.
+        //
+        // If a database already holds two rows for one (code, type, no) this
+        // fails, ensureSchema logs it and carries on, and nothing is deleted to
+        // force it through — a duplicate template is a question for a person.
+        `DO $$
+         BEGIN
+           IF NOT EXISTS (
+             SELECT 1 FROM pg_index i
+               JOIN pg_class t ON t.oid = i.indrelid
+              WHERE t.relname = 'biometric_templates'
+                AND i.indisunique
+                AND i.indnatts = 3
+           ) THEN
+             CREATE UNIQUE INDEX biometric_templates_emp_type_no_key
+                 ON biometric_templates (employee_code, template_type, template_no);
+           END IF;
+         END $$`,
         `ALTER TABLE attendance_logs ADD COLUMN IF NOT EXISTS punch_source VARCHAR(50) DEFAULT 'biometric'`,
         `ALTER TABLE attendance_logs ADD COLUMN IF NOT EXISTS latitude DECIMAL(10, 8)`,
         `ALTER TABLE attendance_logs ADD COLUMN IF NOT EXISTS longitude DECIMAL(11, 8)`,

@@ -266,16 +266,36 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     PRIMARY KEY (id)
 );
 
+-- The shape services/adms.js:323 actually writes. The previous definition had
+-- six of its eleven columns and no unique index, so the ON CONFLICT target did
+-- not resolve and every fingerprint and face uploaded by a reader was rejected
+-- outright. Enrolments made on one reader therefore never reached the others.
+--
+-- source_device/device_serial and index_no/template_index are two names for the
+-- same two ideas. Both are kept: existing databases hold values in either.
 CREATE TABLE IF NOT EXISTS biometric_templates (
     id SERIAL,
     employee_code VARCHAR(50) NOT NULL,
     template_type INTEGER NOT NULL,
+    template_no INTEGER DEFAULT 0,
     template_index INTEGER DEFAULT 0,
     template_data TEXT,
+    valid INTEGER DEFAULT 1,
+    duress INTEGER DEFAULT 0,
+    source_device VARCHAR(100),
     device_serial VARCHAR(100),
+    major_ver VARCHAR(20),
+    minor_ver VARCHAR(20),
+    format VARCHAR(20),
+    index_no INTEGER,
     created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now(),
     PRIMARY KEY (id)
 );
+
+-- The conflict target the device upload names.
+CREATE UNIQUE INDEX IF NOT EXISTS biometric_templates_emp_type_no_key
+    ON biometric_templates (employee_code, template_type, template_no);
 
 CREATE TABLE IF NOT EXISTS companies (
     id SERIAL,

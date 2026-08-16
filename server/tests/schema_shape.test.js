@@ -164,7 +164,18 @@ const PLANS = [
     ['services/attendance_engine.js:284 — daily summary upsert',
         `INSERT INTO attendance_daily_summary (employee_code, date, ot_minutes)
          VALUES ('ZZTEST-SHAPE','2099-01-01',0)
-         ON CONFLICT (employee_code, date) DO UPDATE SET ot_minutes = EXCLUDED.ot_minutes`]
+         ON CONFLICT (employee_code, date) DO UPDATE SET ot_minutes = EXCLUDED.ot_minutes`],
+    // The biometric template upload. Eleven columns against a table that had
+    // six, and a conflict target with no matching unique index — so a reader
+    // could not store a fingerprint or a face at all, and an enrolment made on
+    // one door never propagated to the others.
+    ['services/adms.js:323 — biometric template upload',
+        `INSERT INTO biometric_templates
+           (employee_code, template_type, template_no, valid, duress, template_data,
+            source_device, major_ver, minor_ver, format, index_no)
+         VALUES ('ZZTEST-SHAPE', 1, 0, 1, 0, 'x', 'ZZTESTDEV', '1', '0', '9', 0)
+         ON CONFLICT (employee_code, template_type, template_no)
+         DO UPDATE SET template_data = EXCLUDED.template_data, updated_at = NOW()`]
 ];
 
 test('every statement the application issues resolves its columns', async (t) => {
