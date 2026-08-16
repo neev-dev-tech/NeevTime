@@ -336,7 +336,20 @@ jobs:
           # The Areas page returned 500 on every install for as long as it has
           # existed and nobody knew, because nothing ever asked it for a
           # response. That is the class of fault this catches.
-          node scripts/smoke.mjs
+          # Dump the evidence on failure rather than leaving a bare exit code.
+          # A check that fails without saying why is the thing this whole job
+          # exists to stop.
+          node scripts/smoke.mjs || {
+            echo "--- server boot log"
+            docker compose logs --tail 80 server
+            echo "--- users table"
+            docker compose exec -T db psql -U postgres -d attendance_db \
+              -c "SELECT username, role, is_active, length(password_hash) AS hash_len FROM users" || true
+            echo "--- did the schema load at all"
+            docker compose exec -T db psql -U postgres -d attendance_db \
+              -c "SELECT count(*) AS tables FROM information_schema.tables WHERE table_schema='public'" || true
+            exit 1
+          }
 
       - name: Stop the stack
         if: always()
