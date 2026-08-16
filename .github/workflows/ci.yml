@@ -94,28 +94,34 @@ jobs:
         run: |
           docker run -d --name pgr -e POSTGRES_PASSWORD=ci -p 5433:5432 postgres:15-alpine
 
-          # pg_isready is not enough. The postgres image runs initdb, starts a
-          # temporary server so init scripts can run, stops it, then starts the
-          # real one — and pg_isready answers yes during that temporary phase.
-          # The first run of this job passed readiness and then failed the very
-          # next step with "connection to server on socket failed".
+          # Readiness here is harder than it looks, and two runs of this job were
+          # lost to it.
           #
-          # Wait for a query to succeed instead, and fail loudly rather than
-          # falling through to a step that will fail more confusingly.
+          # On first start the image runs initdb, brings up a TEMPORARY server so
+          # init scripts can run, stops it, then starts the real one. That
+          # temporary server answers on the unix socket, so both `pg_isready` and
+          # `psql -c 'SELECT 1'` run via `docker exec` return success during
+          # initialisation — and moments later the socket is gone and the next
+          # step dies with "connection to server on socket failed".
+          #
+          # The temporary server is started with listen_addresses='' and so
+          # accepts no TCP connection at all. Checking over TCP from the runner
+          # is therefore a question only the real server can answer.
+          export PGPASSWORD=ci
           ready=0
           for i in $(seq 1 60); do
-            if docker exec pgr psql -U postgres -c 'SELECT 1' >/dev/null 2>&1; then
+            if psql -h 127.0.0.1 -p 5433 -U postgres -d postgres -c 'SELECT 1' >/dev/null 2>&1; then
               ready=1
               break
             fi
             sleep 1
           done
           if [ "$ready" != "1" ]; then
-            echo "::error::Postgres never accepted a query"
+            echo "::error::Postgres never accepted a TCP connection"
             docker logs pgr | tail -30
             exit 1
           fi
-          echo "Postgres accepted a query after ${i}s"
+          echo "Postgres accepted a TCP query after ${i}s"
 
       - name: Build the schema the way production builds it
         run: |
