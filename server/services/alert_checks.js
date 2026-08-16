@@ -242,20 +242,27 @@ const checkNoPunches = async () => {
     // well before this; if nothing is recorded by now, something is wrong.
     const afterHour = Number(cfg.no_punch_after_hour) || 11;
 
+    // The database container runs UTC while punch_time holds local wall-clock
+    // time. CURRENT_DATE and LOCALTIME are therefore the UTC day and hour: the
+    // "past 11:00" gate would not become true until 16:30 in IST, and the day
+    // would roll over at 05:30. Every date this check reasons about has to be
+    // converted explicitly.
+    const tz = await settings.get('timezone', 'system_timezone', 'Asia/Kolkata');
+
     const res = await db.query(`
+        WITH t AS (SELECT (NOW() AT TIME ZONE $1) AS local_now)
         SELECT
-            -- Local server time, deliberately. NOW() AT TIME ZONE 'UTC' would
-            -- roll the day over at 05:30 IST and ask about the wrong date.
-            CURRENT_DATE                                  AS today,
-            EXTRACT(HOUR FROM LOCALTIME)::int             AS hour_now,
-            EXTRACT(DOW  FROM CURRENT_DATE)::int          AS dow,
+            local_now::date                               AS today,
+            EXTRACT(HOUR FROM local_now)::int             AS hour_now,
+            EXTRACT(DOW  FROM local_now)::int             AS dow,
             (SELECT count(*)::int FROM attendance_logs
-              WHERE punch_time >= CURRENT_DATE
-                AND punch_time <  CURRENT_DATE + 1)       AS punches_today,
+              WHERE punch_time >= local_now::date
+                AND punch_time <  local_now::date + 1)    AS punches_today,
             (SELECT max(punch_time) FROM attendance_logs) AS last_punch,
             (SELECT count(*)::int FROM holidays
-              WHERE date = CURRENT_DATE)                  AS is_holiday
-    `);
+              WHERE date = local_now::date)               AS is_holiday
+        FROM t
+    `, [tz]);
 
     const r = res.rows[0];
     const weekend = r.dow === 0 || r.dow === 6;

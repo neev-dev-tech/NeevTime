@@ -35,6 +35,8 @@ DB_CONTAINER="${DB_CONTAINER:-attendance_db}"
 APP_CONTAINER="${APP_CONTAINER:-attendance_app}"
 DB_USER="${DB_USER:-postgres}"
 DB_NAME="${DB_NAME:-attendance_db}"
+# Punch timestamps are local wall-clock time; the database container is UTC.
+REPORT_TZ="${REPORT_TZ:-Asia/Kolkata}"
 
 # Every docker call goes through this.
 #
@@ -182,14 +184,18 @@ esac
 head_ "4. Data flow"
 if d inspect "$DB_CONTAINER" >/dev/null 2>&1; then
     last=$(psql_q "SELECT to_char(max(punch_time),'YYYY-MM-DD HH24:MI') FROM attendance_logs")
-    mins=$(psql_q "SELECT COALESCE(EXTRACT(EPOCH FROM (NOW() - max(punch_time)))/60, 999999)::int FROM attendance_logs")
+    # NOW() is UTC in this container while punch_time is local wall-clock time.
+    # Subtracting them directly casts one through the server zone and reports a
+    # figure 5h30m out in IST — which is why `ago` came back NEGATIVE when this
+    # was first run against the readers.
+    mins=$(psql_q "SELECT COALESCE(EXTRACT(EPOCH FROM ((NOW() AT TIME ZONE '$REPORT_TZ') - max(punch_time)))/60, 999999)::int FROM attendance_logs")
     if [ -z "$mins" ]; then
         note "could not read attendance_logs"
     elif [ "$mins" -lt 240 ]; then
         ok "last punch $last (${mins} min ago)"
-    elif [ "$mins" -gt 2880 ] && [ "$(psql_q "SELECT EXTRACT(DOW FROM CURRENT_DATE)::int")" != "0" ] \
-                              && [ "$(psql_q "SELECT EXTRACT(DOW FROM CURRENT_DATE)::int")" != "6" ] \
-                              && [ "$(psql_q "SELECT EXTRACT(HOUR FROM LOCALTIME)::int")" -ge 11 ]; then
+    elif [ "$mins" -gt 2880 ] && [ "$(psql_q "SELECT EXTRACT(DOW FROM (NOW() AT TIME ZONE '$REPORT_TZ'))::int")" != "0" ] \
+                              && [ "$(psql_q "SELECT EXTRACT(DOW FROM (NOW() AT TIME ZONE '$REPORT_TZ'))::int")" != "6" ] \
+                              && [ "$(psql_q "SELECT EXTRACT(HOUR FROM (NOW() AT TIME ZONE '$REPORT_TZ'))::int")" -ge 11 ]; then
         # More than two days, on a working day, after the morning. Gated that
         # way because 48 hours alone is not enough: Friday evening to Monday
         # morning is 62 hours, so an ungated threshold would fail every Monday
@@ -207,9 +213,9 @@ if d inspect "$DB_CONTAINER" >/dev/null 2>&1; then
 
     # Judged, not just printed. This line read "punches recorded today: 0" as a
     # pass on every deploy through the entire outage.
-    today=$(psql_q "SELECT count(*) FROM attendance_logs WHERE DATE(punch_time) = CURRENT_DATE")
-    dow=$(psql_q "SELECT EXTRACT(DOW FROM CURRENT_DATE)::int")
-    hour=$(psql_q "SELECT EXTRACT(HOUR FROM LOCALTIME)::int")
+    today=$(psql_q "SELECT count(*) FROM attendance_logs WHERE punch_time::date = (NOW() AT TIME ZONE '$REPORT_TZ')::date")
+    dow=$(psql_q "SELECT EXTRACT(DOW FROM (NOW() AT TIME ZONE '$REPORT_TZ'))::int")
+    hour=$(psql_q "SELECT EXTRACT(HOUR FROM (NOW() AT TIME ZONE '$REPORT_TZ'))::int")
     if [ "${today:-0}" -gt 0 ]; then
         ok "punches recorded today: $today"
     elif [ "${dow:-0}" = "0" ] || [ "${dow:-0}" = "6" ]; then
