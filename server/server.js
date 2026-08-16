@@ -44,7 +44,44 @@ const io = new Server(server, {
         credentials: true
     },
     transports: ['websocket', 'polling'],
-    allowEIO3: true
+    allowEIO3: true,
+
+    // Same origin is always allowed, whatever ALLOWED_ORIGINS says.
+    //
+    // Without this the application refused its own front end. ALLOWED_ORIGINS
+    // is not set by docker-compose.yml, so the list defaulted to two developer
+    // URLs — http://localhost:5173 and :3000 — and a deployment served from
+    // https://192.168.1.237 matched neither.
+    //
+    // The symptom was baffling until the access log split it apart:
+    //
+    //   GET  /socket.io/?...&sid=X   200   (same-origin GET sends no Origin)
+    //   POST /socket.io/?...&sid=X   400   (engine.io's POST does send one)
+    //   GET  /socket.io/?...websocket 400  (the upgrade sends one too)
+    //
+    // So handshakes succeeded, reads succeeded, and every write was rejected.
+    // socket.io retried forever, the live monitor never worked, and the console
+    // filled with failures that looked like a proxy fault. It is not: nginx
+    // forwards these correctly and node answers a raw handshake with 101.
+    //
+    // A page served from this host talking back to this host needs no
+    // permission. ALLOWED_ORIGINS remains for genuinely cross-origin clients,
+    // such as a separate front end or the vite dev server.
+    allowRequest: (req, callback) => {
+        const origin = req.headers.origin;
+        if (!origin) return callback(null, true);
+
+        if (allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+
+        try {
+            // Host, not hostname: a different port is a different origin.
+            if (new URL(origin).host === req.headers.host) return callback(null, true);
+        } catch { /* an unparseable Origin is not same-origin */ }
+
+        return callback('origin not allowed', false);
+    }
 });
 
 // Middleware

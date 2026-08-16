@@ -68,6 +68,9 @@ services:
       # and the first administrator's password is generated and printed once to
       # this container's log.
       - ADMIN_PASSWORD=${ADMIN_PASSWORD:-}
+      # Only needed for genuinely cross-origin clients — a separate front end,
+      # or the vite dev server. Same-origin is always allowed in code.
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-}
     ports:
       - "3001:3001"
     volumes:
