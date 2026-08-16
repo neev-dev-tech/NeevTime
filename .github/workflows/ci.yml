@@ -69,6 +69,76 @@ jobs:
         working-directory: server
         run: npm test
 
+  reports-db:
+    name: Registers and payroll (real Postgres)
+    runs-on: ubuntu-latest
+    # These two services shipped four separate failures in one afternoon, every
+    # one invisible to the suite that stubs the database: an unused $1 Postgres
+    # rejects outright, columns this deployment did not have, a column nothing
+    # writes read instead of the one the engine fills, and String(date) against
+    # the Date objects pg returns. The stub answered with strings where pg
+    # answers with Dates, so it was not an incomplete mock but a differently
+    # shaped one — which is worse, because it produced confidence.
+    #
+    # This gives the database a vote.
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+
+      - name: Start Postgres
+        run: |
+          docker run -d --name pgr -e POSTGRES_PASSWORD=ci -p 5433:5432 postgres:15-alpine
+          for i in $(seq 1 30); do
+            docker exec pgr pg_isready -U postgres >/dev/null 2>&1 && break
+            sleep 1
+          done
+
+      - name: Build the schema the way production builds it
+        run: |
+          docker exec pgr psql -U postgres -q -c "CREATE DATABASE neevtime_ci" >/dev/null
+          for f in database/00_init_all.sql database/schema.sql \
+                   database/schema_easytime.sql database/schema_expansion.sql \
+                   database/schema_settings.sql; do
+            [ -f "$f" ] && docker exec -i pgr psql -U postgres -q -d neevtime_ci < "$f" >/dev/null 2>&1 || true
+          done
+
+      - name: Boot once so ensureSchema runs
+        working-directory: server
+        env:
+          DB_HOST: localhost
+          DB_PORT: '5433'
+          DB_NAME: neevtime_ci
+          DB_USER: postgres
+          DB_PASSWORD: ci
+          PORT: '3998'
+        run: |
+          npm ci
+          timeout 25 node server.js > /tmp/boot.log 2>&1 || true
+          tail -3 /tmp/boot.log || true
+
+      - name: Run the registers against it
+        working-directory: server
+        env:
+          DB_HOST: localhost
+          DB_PORT: '5433'
+          DB_NAME: neevtime_ci
+          DB_USER: postgres
+          DB_PASSWORD: ci
+        run: |
+          # A skipped run is not a pass. If the database were unreachable these
+          # tests would quietly skip, which is the exact shape of the problem
+          # they exist to prevent.
+          node --test tests/registers_db.test.js 2>&1 | tee /tmp/db-tests.log
+          if grep -qE '^# skipped [1-9]' /tmp/db-tests.log; then
+            echo "::error::the real-database tests skipped — the database was not reachable"
+            exit 1
+          fi
+
   isolation:
     name: Tenant isolation (real Postgres)
     runs-on: ubuntu-latest
