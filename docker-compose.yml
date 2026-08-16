@@ -28,7 +28,20 @@ services:
     ports:
       - "5432:5432"
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-attendance_db}" ]
+      # -h 127.0.0.1 forces TCP, and that is the whole point.
+      #
+      # On first start the postgres image runs initdb, brings up a TEMPORARY
+      # server so /docker-entrypoint-initdb.d can run, stops it, then starts the
+      # real one. That temporary server listens on the unix socket only, so a
+      # socket-based pg_isready reports healthy while the schema is still being
+      # loaded — compose then starts the application, ensureSchema races the
+      # init scripts, and the database ends up with a partial schema and no
+      # users table. Observed exactly that: 55 tables instead of 60, and an
+      # empty users table, so nobody could sign in.
+      #
+      # listen_addresses is empty on the temporary server, so a TCP check can
+      # only be answered by the real one.
+      test: [ "CMD-SHELL", "pg_isready -h 127.0.0.1 -U ${DB_USER:-postgres} -d ${DB_NAME:-attendance_db}" ]
       interval: 5s
       timeout: 5s
       retries: 10

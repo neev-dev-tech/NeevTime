@@ -2549,6 +2549,7 @@ const ensureFirstAdmin = async () => {
     try {
         const { rows } = await db.query('SELECT count(*)::int AS n FROM users');
         if (rows[0].n > 0) return;
+        console.log('No users exist; creating the first administrator.');
 
         const bcrypt = require('bcryptjs');
         const generated = !process.env.ADMIN_PASSWORD;
@@ -2573,7 +2574,16 @@ const ensureFirstAdmin = async () => {
             console.log('First administrator "admin" created with the password from ADMIN_PASSWORD.');
         }
     } catch (err) {
-        console.error('Could not create the first administrator:', err.message);
+        // Say which failure this is. When the users table does not exist yet,
+        // this means the application started before the database finished
+        // initialising — a healthcheck problem, not an account problem — and
+        // reporting it as "could not create the administrator" sent me looking
+        // in the wrong place.
+        console.error(/relation "users" does not exist/.test(err.message)
+            ? 'Could not create the first administrator: the users table does not '
+              + 'exist yet. The application started before the database finished '
+              + 'initialising; check the db healthcheck.'
+            : `Could not create the first administrator: ${err.message}`);
     }
 };
 
