@@ -37,9 +37,16 @@ export default function DatabaseTools() {
         backup_frequency: 'daily',
         backup_time: '02:00',
         backup_retention_count: 7,
-        backup_external_path: ''
     });
     const [pathCheck, setPathCheck] = useState(null);
+
+    // Where a second copy goes. Loaded from the server so the form is drawn
+    // from the destinations this build actually supports, rather than a list
+    // duplicated here that could drift from what the backend can do.
+    const [destinations, setDestinations] = useState([]);
+    const [destKey, setDestKey] = useState('');
+    const [destConfig, setDestConfig] = useState({});
+    const [savingDest, setSavingDest] = useState(false);
     const [savingSchedule, setSavingSchedule] = useState(false);
 
     const fetchAutoBackup = async () => {
@@ -56,31 +63,53 @@ export default function DatabaseTools() {
                 backup_frequency: val('backup_frequency', 'daily'),
                 backup_time: String(val('backup_time', '02:00')).slice(0, 5),
                 backup_retention_count: Number(val('backup_retention_count', 7)),
-                backup_external_path: String(val('backup_external_path', '') || '')
             });
         } catch {
             // Leave the defaults in place; the panel still saves
         }
     };
 
+    const fetchDestinations = async () => {
+        try {
+            const res = await api.get('/api/database/destinations');
+            setDestinations(res.data.available || []);
+            setDestKey(res.data.selected || '');
+            setDestConfig(res.data.config || {});
+        } catch {
+            // The panel still renders; it just cannot offer the picker.
+        }
+    };
+
     /**
-     * Prove the path works before anyone relies on it.
+     * Prove the destination works before anyone relies on it.
      *
-     * The path is inside the container, so a plausible one like /mnt/nas/backups
-     * writes into the container's own filesystem unless a volume is mounted
-     * there — and is destroyed on the next deploy. Backups would appear to
-     * succeed and the copies would be gone. Better to hear that here.
+     * Every destination writes a probe, reads it back and deletes it — not a
+     * directory listing. Read permission without write permission passes a
+     * listing and then fails every backup afterwards, silently, which is the
+     * failure this whole feature exists to prevent.
      */
-    const handleCheckPath = async () => {
+    const handleTestDestination = async () => {
         setPathCheck({ checking: true });
         try {
-            const res = await api.post('/api/database/backup-path/check', {
-                path: autoBackup.backup_external_path
+            const res = await api.post('/api/database/destinations/test', {
+                destination: destKey, config: destConfig,
             });
-            setPathCheck(res.data);
+            setPathCheck({ ok: true, message: res.data.detail, mounted: !res.data.warn });
         } catch (err) {
-            setPathCheck({ ok: false, error: err.response?.data?.error || err.message,
-                           hint: err.response?.data?.hint });
+            setPathCheck({ ok: false, error: err.response?.data?.error || err.message });
+        }
+    };
+
+    const handleSaveDestination = async () => {
+        setSavingDest(true);
+        try {
+            await api.put('/api/database/destinations', { destination: destKey, config: destConfig });
+            toast.success(destKey ? 'Backup destination saved' : 'Second copy turned off');
+            await fetchDestinations();
+        } catch (err) {
+            toast.error(err.response?.data?.error || 'Failed to save destination');
+        } finally {
+            setSavingDest(false);
         }
     };
 
@@ -123,6 +152,7 @@ export default function DatabaseTools() {
     useEffect(() => {
         fetchData();
         fetchAutoBackup();
+        fetchDestinations();
     }, []);
 
     const fetchData = async () => {
@@ -558,36 +588,88 @@ export default function DatabaseTools() {
                                 Older automatic backups are deleted once this many exist.
                             </p>
                         </div>
-                        <div className="space-y-2 md:col-span-2">
-                            <label className={FIELD_LABEL}>Second copy — external path</label>
-                            <div className="flex gap-2">
-                                <input
-                                    type="text"
-                                    placeholder="/mnt/backup-external   (leave empty for none)"
-                                    value={autoBackup.backup_external_path}
-                                    onChange={(e) => { setAutoBackup(p => ({ ...p, backup_external_path: e.target.value })); setPathCheck(null); }}
-                                    className={`${FIELD} flex-1`}
-                                />
-                                <Button
-                                    variant="secondary"
-                                    onClick={handleCheckPath}
-                                    disabled={!autoBackup.backup_external_path.trim() || pathCheck?.checking}
-                                >
-                                    {pathCheck?.checking ? 'Checking…' : 'Test'}
+                        <div className="space-y-3 md:col-span-2">
+                            <label className={FIELD_LABEL}>Second copy — where backups also go</label>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">
+                                A dump beside the database survives a bad migration. It does not survive the
+                                disk, the machine, or the room. Pick somewhere else for a copy of every backup.
+                            </p>
+
+                            <select
+                                className={`${FIELD} w-full`}
+                                value={destKey}
+                                onChange={(e) => { setDestKey(e.target.value); setDestConfig({}); setPathCheck(null); }}
+                            >
+                                <option value="">No second copy</option>
+                                {destinations.map((d) => (
+                                    <option key={d.key} value={d.key}>{d.name}</option>
+                                ))}
+                            </select>
+
+                            {destinations.filter((d) => d.key === destKey).map((d) => (
+                                <div key={d.key} className="space-y-3 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+                                    <p className="text-xs text-slate-500 dark:text-slate-400">{d.description}</p>
+
+                                    {d.fields.map((f) => (
+                                        <div key={f.key} className="space-y-1">
+                                            <label className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                                                {f.label}
+                                            </label>
+                                            <input
+                                                type={f.type === 'password' ? 'password' : 'text'}
+                                                className={`${FIELD} w-full`}
+                                                placeholder={f.placeholder || ''}
+                                                value={destConfig[f.key] ?? ''}
+                                                onChange={(e) => {
+                                                    const v = e.target.value;
+                                                    setDestConfig((p) => ({ ...p, [f.key]: v }));
+                                                    setPathCheck(null);
+                                                }}
+                                                autoComplete={f.secret ? 'new-password' : 'off'}
+                                            />
+                                            {f.help && (
+                                                <p className="text-[11px] text-slate-500 dark:text-slate-400">{f.help}</p>
+                                            )}
+                                            {f.secret && (
+                                                <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                                                    Stored encrypted. Leave the dots as they are to keep the saved value.
+                                                </p>
+                                            )}
+                                        </div>
+                                    ))}
+
+                                    <div className="flex gap-2 pt-1">
+                                        <Button
+                                            variant="secondary"
+                                            onClick={handleTestDestination}
+                                            disabled={pathCheck?.checking}
+                                        >
+                                            {pathCheck?.checking ? 'Testing…' : 'Test'}
+                                        </Button>
+                                        <Button
+                                            variant="dark"
+                                            icon={Save}
+                                            onClick={handleSaveDestination}
+                                            disabled={savingDest}
+                                        >
+                                            {savingDest ? 'Saving…' : 'Save destination'}
+                                        </Button>
+                                    </div>
+
+                                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                                        Test writes a small file, reads it back and deletes it. Listing a folder
+                                        proves less: read access without write access passes a listing and then
+                                        fails every backup.
+                                    </p>
+                                </div>
+                            ))}
+
+                            {!destKey && (
+                                <Button variant="dark" icon={Save} onClick={handleSaveDestination} disabled={savingDest}>
+                                    {savingDest ? 'Saving…' : 'Save destination'}
                                 </Button>
-                            </div>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">
-                                Every backup is copied here as well. A dump beside the database survives a bad
-                                migration; it does not survive losing the disk.
-                            </p>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">
-                                Use <code className="font-mono">/mnt/backup-external</code>. That is mounted from
-                                the host, so copies survive a redeploy. To put them on <em>other hardware</em>, set
-                                <code className="font-mono"> BACKUP_EXTERNAL_DIR</code> on the server to a mounted
-                                NAS or second disk and redeploy — the path here stays the same. Press Test: it
-                                writes, reads back and deletes a probe file, and tells you whether the location is
-                                a real mount or just the container&rsquo;s own disk.
-                            </p>
+                            )}
+
                             {pathCheck && !pathCheck.checking && (
                                 <div className={`text-xs rounded-lg p-3 border ${
                                     pathCheck.ok && pathCheck.mounted
@@ -596,8 +678,7 @@ export default function DatabaseTools() {
                                         ? 'bg-amber-50 border-amber-200 text-amber-800 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-300'
                                         : 'bg-rose-50 border-rose-200 text-rose-800 dark:bg-rose-900/20 dark:border-rose-800 dark:text-rose-300'
                                 }`}>
-                                    {pathCheck.ok ? pathCheck.message : (pathCheck.error || 'Not writable')}
-                                    {!pathCheck.ok && pathCheck.hint && <span className="block mt-1">{pathCheck.hint}</span>}
+                                    {pathCheck.ok ? pathCheck.message : (pathCheck.error || 'Not reachable')}
                                 </div>
                             )}
                         </div>
