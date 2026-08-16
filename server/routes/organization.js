@@ -95,8 +95,8 @@ router.get('/areas', async (req, res) => {
                    (SELECT COUNT(*)::int FROM employees e WHERE e.area_id = a.id AND LOWER(e.status) = 'resigned') as resigned_count,
                    -- Enrolment counts come from biometric_templates, not from
                    -- employees. These two summed e.fingerprint_count and
-                   -- e.face_count, columns that exist on `devices` and have
-                   -- never existed on `employees` in any schema file — so the
+                   -- e.face_count, columns that exist on the devices table and
+                   -- have never existed on employees in any schema file, so the
                    -- whole statement failed and the Areas page returned 500 on
                    -- every install, this one included.
                    --
