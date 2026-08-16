@@ -12,6 +12,17 @@ services:
       POSTGRES_DB: ${DB_NAME:-attendance_db}
     volumes:
       - pgdata:/var/lib/postgresql/data
+      # The authoritative schema, loaded on an empty data directory.
+      #
+      # Nothing loaded this file at deploy time — not compose, not either
+      # Dockerfile — so a genuinely fresh install got only what ensureSchema
+      # creates, which does not include the users table. The application could
+      # not have worked at all on a new machine. This deployment survives
+      # because its database predates every schema file in the repository.
+      #
+      # Postgres runs /docker-entrypoint-initdb.d only when the data directory
+      # is empty, so this can never re-run against an existing database.
+      - ./database/000_schema.sql:/docker-entrypoint-initdb.d/000_schema.sql:ro
     networks:
       - app-network
     ports:
