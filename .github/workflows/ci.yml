@@ -321,6 +321,17 @@ jobs:
           esac
           echo "port 80 /iclock -> $iclock80"
 
+      - name: Drive the critical paths
+        run: |
+          # Roadmap 0.3. The stack is up and the database is the one a new
+          # customer gets, built from database/000_schema.sql — so this is the
+          # first time the screens' endpoints are exercised on a fresh install.
+          #
+          # The Areas page returned 500 on every install for as long as it has
+          # existed and nobody knew, because nothing ever asked it for a
+          # response. That is the class of fault this catches.
+          node scripts/smoke.mjs
+
       - name: Stop the stack
         if: always()
         run: docker compose down -v
