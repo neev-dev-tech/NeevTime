@@ -146,6 +146,36 @@ echo
 echo "  Open the app and confirm DevTools > Network shows: ${served:-?}"
 echo "  A different hash there means your browser cache, not the server."
 
+# ── 3b. Can the readers actually reach the ADMS endpoint? ────────────────
+head_ "3b. Biometric readers"
+# This check did not exist, and its absence cost 145 days of attendance.
+#
+# On 2026-03-24 a deploy at 13:06 left nginx proxying /iclock to a node process
+# that was no longer there. Every reader kept polling every 30 seconds and every
+# poll got a 502. The health check above passed the whole time, because it asks
+# nginx, and nginx was fine. The last punch recorded was 13:06:52 that day; the
+# gap was found on 2026-08-16.
+#
+# It must be probed through the same address the readers use. Hitting node
+# directly on :3001 returns 200 while the proxy in front of it is broken —
+# that is exactly the state this system sat in for five months.
+#
+# No SN is sent deliberately. An unknown serial makes adms.js register a new
+# device row, and a real one would stamp last_activity as though the reader had
+# just reported. Reaching node at all is the thing being tested; the status it
+# answers with does not matter, only that something answered.
+iclock_code=$($CURL -o /dev/null -w '%{http_code}' --max-time 5 "$APP_URL/iclock/cdata" 2>/dev/null)
+case "$iclock_code" in
+    502|504|000|"")
+        bad "/iclock is ${iclock_code:-unreachable} — the readers cannot deliver punches.
+        nginx is answering but cannot reach node. Every punch made at every door is
+        being refused and will never be recovered beyond the readers' own buffers.
+        Check:  docker exec $APP_CONTAINER sh -c 'nginx -T | grep -A3 \"location /iclock\"'
+                curl -s -o /dev/null -w '%{http_code}' http://localhost:3001/iclock/cdata" ;;
+    *)
+        ok "/iclock reachable through $APP_URL (HTTP $iclock_code)" ;;
+esac
+
 # ── 4. Is attendance still being collected? ───────────────────────────────
 # The checks above can all pass on an app that has quietly stopped doing the
 # one thing it exists for.
@@ -157,12 +187,32 @@ if d inspect "$DB_CONTAINER" >/dev/null 2>&1; then
         note "could not read attendance_logs"
     elif [ "$mins" -lt 240 ]; then
         ok "last punch $last (${mins} min ago)"
+    elif [ "$mins" -gt 2880 ]; then
+        # More than two days. Out of hours does not explain this, and a long
+        # weekend does not reach it. Reported as a note for 145 days while
+        # nothing whatsoever was being collected — the message was accurate and
+        # the severity was wrong, so it scrolled past on every deploy.
+        bad "last punch $last (${mins} min ago) — attendance collection has stopped.
+        This is not an out-of-hours gap. Check 3b above: if /iclock is not reachable
+        the readers are being refused, and every punch since then is already lost."
     else
         note "last punch $last (${mins} min ago) — no recent punches; fine out of hours, not during a shift"
     fi
 
+    # Judged, not just printed. This line read "punches recorded today: 0" as a
+    # pass on every deploy through the entire outage.
     today=$(psql_q "SELECT count(*) FROM attendance_logs WHERE DATE(punch_time) = CURRENT_DATE")
-    ok "punches recorded today: ${today:-?}"
+    dow=$(psql_q "SELECT EXTRACT(DOW FROM CURRENT_DATE)::int")
+    hour=$(psql_q "SELECT EXTRACT(HOUR FROM LOCALTIME)::int")
+    if [ "${today:-0}" -gt 0 ]; then
+        ok "punches recorded today: $today"
+    elif [ "${dow:-0}" = "0" ] || [ "${dow:-0}" = "6" ]; then
+        note "no punches today (weekend)"
+    elif [ "${hour:-0}" -lt 11 ]; then
+        note "no punches yet today (before 11:00)"
+    else
+        bad "no punches recorded today, on a working day past 11:00 — collection is broken"
+    fi
 
     emp=$(psql_q "SELECT count(*) FROM employees WHERE lower(status)='active' AND attendance_required IS NOT FALSE")
     ok "active employees: ${emp:-?}"
