@@ -377,7 +377,23 @@ jobs:
           # the file's own location, and puppeteer-core is a client devDependency.
           npm --prefix client ci
           CHROME_PATH=$(which google-chrome || which chromium-browser) \
-            node client/scripts/browser-check.mjs
+            node client/scripts/browser-check.mjs || {
+              echo "--- does node itself accept a websocket upgrade?"
+              # Straight to the application, bypassing nginx. If this is also
+              # 400 the proxy is innocent and the fault is in the app's
+              # socket.io setup; if it upgrades here and not through nginx, the
+              # proxy is losing the handshake.
+              docker compose exec -T client sh -c \
+                'wget -q -S -O /dev/null --header="Connection: Upgrade" \
+                   --header="Upgrade: websocket" \
+                   --header="Sec-WebSocket-Version: 13" \
+                   --header="Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==" \
+                   "http://server:3001/socket.io/?EIO=4&transport=websocket" 2>&1' \
+                | head -12 || true
+              echo "--- server log"
+              docker compose logs --tail 30 server | grep -iE "socket|error" | head -15 || true
+              exit 1
+            }
 
       - name: A backup must actually be produced
         run: |
