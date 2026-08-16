@@ -2258,11 +2258,30 @@ const ensureSchema = async () => {
         `ALTER TABLE biometric_templates ADD COLUMN IF NOT EXISTS index_no INTEGER`,
         `ALTER TABLE biometric_templates ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT NOW()`,
         // Carry any older values across so the new columns are not empty where
-        // the old ones held the same thing. Additive and idempotent.
-        `UPDATE biometric_templates SET template_no = COALESCE(template_no, template_index)
-          WHERE template_no IS NULL AND template_index IS NOT NULL`,
-        `UPDATE biometric_templates SET source_device = device_serial
-          WHERE source_device IS NULL AND device_serial IS NOT NULL`,
+        // the old ones held the same thing.
+        //
+        // Guarded on the SOURCE column existing. The first version of this
+        // assumed both spellings were always present and failed on a database
+        // that has template_no and source_device but never had template_index
+        // or device_serial — which is the shape this deployment actually has.
+        // Referencing a column that is not there fails the whole statement, so
+        // the existence check has to be inside the same statement, not implied
+        // by the ADD COLUMN above it.
+        `DO $$
+         BEGIN
+           IF EXISTS (SELECT 1 FROM information_schema.columns
+                       WHERE table_name = 'biometric_templates'
+                         AND column_name = 'template_index') THEN
+             UPDATE biometric_templates SET template_no = template_index
+              WHERE template_no IS NULL AND template_index IS NOT NULL;
+           END IF;
+           IF EXISTS (SELECT 1 FROM information_schema.columns
+                       WHERE table_name = 'biometric_templates'
+                         AND column_name = 'device_serial') THEN
+             UPDATE biometric_templates SET source_device = device_serial
+              WHERE source_device IS NULL AND device_serial IS NOT NULL;
+           END IF;
+         END $$`,
         // The conflict target. Checked by columns rather than by name, for the
         // same reason as attendance_logs: IF NOT EXISTS matches only the name,
         // so it would happily build a second identical index.
