@@ -54,7 +54,7 @@ const MAX_PDF_ROWS = 1000;
  */
 
 import { getPdfDefaults, getCompanyInfo } from './reportSettings';
-import { toLocalDateString } from './dateFormat';
+import { formatDate, toLocalDateString } from './dateFormat';
 
 // Default company settings (can be overridden)
 const DEFAULT_COMPANY = {
@@ -356,14 +356,14 @@ export const exportToPDF = async (options) => {
                 // Format values
                 if (value === null || value === undefined) return '-';
                 if (typeof value === 'boolean') return value ? 'Yes' : 'No';
-                if (value instanceof Date) return value.toLocaleDateString();
+                if (value instanceof Date) return formatDate(value);
                 if (typeof value === 'string' && value.includes('T') && value.match(/^\d{4}-\d{2}-\d{2}T/)) {
                     const date = new Date(value);
                     if (!isNaN(date)) {
                         if (key.includes('time') || key.includes('punch')) {
                             return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
                         }
-                        return date.toLocaleDateString();
+                        return formatDate(date);
                     }
                 }
 

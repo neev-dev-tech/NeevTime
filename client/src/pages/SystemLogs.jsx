@@ -5,7 +5,7 @@ import {
     Database, Users, ChevronDown, Monitor, AlertCircle
 } from 'lucide-react';
 import { Button, PageHeader } from '../components';
-import { toLocalDateString } from '../utils/dateFormat';
+import { formatDate, toLocalDateString } from '../utils/dateFormat';
 
 const BADGE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide';
 const CELL_MONO = 'font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold';
@@ -317,7 +317,7 @@ export default function SystemLogs() {
                                         <td className="px-5 py-3">
                                             <div className="flex flex-col">
                                                 <span className={CELL_STRONG}>
-                                                    {log.created_at ? new Date(log.created_at).toLocaleDateString() : '—'}
+                                                    {formatDate(log.created_at)}
                                                 </span>
                                                 <span className="text-xs text-slate-400 dark:text-slate-500 tabular-nums">
                                                     {log.created_at ? new Date(log.created_at).toLocaleTimeString() : ''}

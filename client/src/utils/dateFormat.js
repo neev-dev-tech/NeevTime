@@ -24,11 +24,32 @@ const hasTimezone = (str) => /[zZ]$|[+-]\d{2}:?\d{2}$/.test(str.trim());
 
 /**
  * Format a database timestamp for display.
- * @param {string} timestamp - Database timestamp string
- * @returns {object} { date: 'M/D/YYYY', time: 'h:mm:ss AM/PM', datetime: 'M/D/YYYY h:mm:ss AM/PM' }
+ *
+ * Dates render as DD/MM/YYYY throughout. This is an Indian attendance system:
+ * 03/04/2026 means 3 April, and a muster roll handed to an inspector cannot be
+ * ambiguous about which. Note that most call sites used to reach for a bare
+ * `toLocaleDateString()`, which follows the *viewer's browser locale* — so the
+ * same register showed 4/3/2026 on one machine and 3/4/2026 on another, with
+ * nothing on screen to say which convention was in force.
+ *
+ * @param {string|Date} timestamp - Database timestamp string, or a Date
+ * @returns {object} { date: 'DD/MM/YYYY', time: 'h:mm:ss AM/PM', datetime: 'DD/MM/YYYY h:mm:ss AM/PM' }
  */
 export const formatTimestamp = (timestamp) => {
     if (!timestamp) return { date: '-', time: '-', datetime: '-' };
+
+    // A Date must be read through its accessors, never stringified. String(date)
+    // gives "Wed Jul 09 2026 00:00:00 GMT+0530", which the branches below would
+    // split on the wrong separator and mangle into nonsense. That exact mistake
+    // shipped in the payroll export and zeroed every employee's payable days.
+    if (timestamp instanceof Date) {
+        if (Number.isNaN(timestamp.getTime())) return { date: '-', time: '-', datetime: '-' };
+        const d = timestamp;
+        return build(
+            `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`,
+            `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+        );
+    }
 
     const str = String(timestamp);
     let datePart, timePart;
@@ -55,9 +76,18 @@ export const formatTimestamp = (timestamp) => {
         timePart = '00:00:00';
     }
 
-    // Format date as M/D/YYYY
+    return build(datePart, timePart);
+};
+
+/**
+ * Assemble the display strings from a YYYY-MM-DD date and an HH:MM:SS time.
+ *
+ * Day and month are zero-padded. 03/04/2026 lines up in a column and cannot be
+ * misread as a month-first date the way 3/4/2026 can.
+ */
+function build(datePart, timePart) {
     const [year, month, day] = datePart.split('-');
-    const formattedDate = `${parseInt(month)}/${parseInt(day)}/${year}`;
+    const formattedDate = `${pad(parseInt(day))}/${pad(parseInt(month))}/${year}`;
 
     // Format time as h:mm:ss AM/PM
     const timeParts = timePart.split(':');
@@ -73,7 +103,7 @@ export const formatTimestamp = (timestamp) => {
         time: formattedTime,
         datetime: `${formattedDate} ${formattedTime}`
     };
-};
+}
 
 /**
  * YYYY-MM-DD for a Date, in the viewer's own timezone.
@@ -104,8 +134,8 @@ export const formatTime = (timestamp) => {
 
 /**
  * Format date only
- * @param {string} timestamp - Database timestamp string
- * @returns {string} 'M/D/YYYY' or '-' if null
+ * @param {string|Date} timestamp - Database timestamp string, or a Date
+ * @returns {string} 'DD/MM/YYYY' or '-' if null
  */
 export const formatDate = (timestamp) => {
     if (!timestamp) return '-';
@@ -115,11 +145,29 @@ export const formatDate = (timestamp) => {
 /**
  * Format datetime (combined)
  * @param {string} timestamp - Database timestamp string
- * @returns {string} 'M/D/YYYY h:mm:ss AM/PM' or '-' if null
+ * @returns {string} 'DD/MM/YYYY h:mm:ss AM/PM' or '-' if null
  */
 export const formatDateTime = (timestamp) => {
     if (!timestamp) return '-';
     return formatTimestamp(timestamp).datetime;
+};
+
+/**
+ * 'Sat 15/08/2026' — for holiday lists, where which day of the week a holiday
+ * falls on is the thing people are actually looking for.
+ *
+ * @param {string|Date} timestamp
+ * @returns {string} 'Ddd DD/MM/YYYY' or '-' if null
+ */
+export const formatDateWithWeekday = (timestamp) => {
+    if (!timestamp) return '-';
+    const date = formatDate(timestamp);
+    if (date === '-') return '-';
+    const [day, month, year] = date.split('/');
+    // Built from the formatted parts rather than the input, so the weekday can
+    // never disagree with the date printed next to it.
+    const d = new Date(Number(year), Number(month) - 1, Number(day));
+    return `${d.toLocaleDateString('en-GB', { weekday: 'short' })} ${date}`;
 };
 
 /**

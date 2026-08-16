@@ -3,6 +3,7 @@ import api from '../api';
 import { Calendar, Plus, Check, X, Search, RefreshCw, ChevronDown, AlertCircle } from 'lucide-react';
 import { useToast, Button, PageHeader, ExportMenu } from '../components';
 import Modal from '../components/Modal';
+import { formatDate } from '../utils/dateFormat';
 
 const BADGE_BASE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide';
 
@@ -113,8 +114,8 @@ export default function LeaveApplications() {
                             title="Leave Applications"
                             mapRow={app => ({
                                 ...app,
-                                from_date: new Date(app.from_date).toLocaleDateString(),
-                                to_date: new Date(app.to_date).toLocaleDateString()
+                                from_date: formatDate(app.from_date),
+                                to_date: formatDate(app.to_date)
                             })}
                         />
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchData}>Refresh</Button>
@@ -213,10 +214,10 @@ export default function LeaveApplications() {
                                             )}
                                         </td>
                                         <td className="px-5 py-3 whitespace-nowrap text-slate-600 dark:text-slate-300 tabular-nums">
-                                            {app.from_date ? new Date(app.from_date).toLocaleDateString() : '—'}
+                                            {formatDate(app.from_date)}
                                         </td>
                                         <td className="px-5 py-3 whitespace-nowrap text-slate-600 dark:text-slate-300 tabular-nums">
-                                            {app.to_date ? new Date(app.to_date).toLocaleDateString() : '—'}
+                                            {formatDate(app.to_date)}
                                         </td>
                                         <td className="px-5 py-3 whitespace-nowrap text-slate-600 dark:text-slate-300 tabular-nums">
                                             {app.total_days ?? '—'}

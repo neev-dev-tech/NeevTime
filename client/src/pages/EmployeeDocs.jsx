@@ -3,6 +3,7 @@ import { FileText, Upload, Download, Trash2, X, Search, RefreshCw, User, Calenda
 import api from '../api';
 import { Button, PageHeader } from '../components';
 import Modal from '../components/Modal';
+import { formatDate as formatDateUtil } from '../utils/dateFormat';
 
 export default function EmployeeDocs() {
     const [documents, setDocuments] = useState([]);
@@ -197,11 +198,10 @@ export default function EmployeeDocs() {
         }
     };
 
-    const formatDate = (dateString) => {
-        if (!dateString) return '—';
-        const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-    };
+    // Delegates to the shared formatter so this page cannot drift from the
+    // rest of the app the way it had (it rendered "Aug 16, 2026" while the
+    // tables beside it rendered 8/16/2026).
+    const formatDate = (dateString) => (dateString ? formatDateUtil(dateString) : '—');
 
     return (
         <div className="space-y-6">

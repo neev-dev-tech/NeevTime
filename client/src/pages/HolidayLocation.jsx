@@ -3,6 +3,7 @@ import api from '../api';
 import { MapPin, Plus, Edit2, Trash2, Save, Calendar, Globe, AlertCircle, RefreshCw } from 'lucide-react';
 import { useToast, Button, PageHeader, ExportMenu } from '../components';
 import Modal from '../components/Modal';
+import { formatDate, formatDateWithWeekday } from '../utils/dateFormat';
 
 export default function HolidayLocation({ initialTab = 'locations' }) {
     const toast = useToast();
@@ -234,9 +235,7 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
                             <div key={h.id} className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 hover:-translate-y-0.5 transition-transform">
                                 <div className="font-semibold text-sm text-slate-800 dark:text-slate-100">{h.name || '—'}</div>
                                 <div className="text-xs tabular-nums text-slate-500 dark:text-slate-400">
-                                    {new Date(h.date).toLocaleDateString('en-US', {
-                                        month: 'short', day: 'numeric', year: 'numeric'
-                                    })}
+                                    {formatDate(h.date)}
                                 </div>
                             </div>
                         ))}
@@ -351,9 +350,7 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
                                                 )}
                                             </td>
                                             <td className="px-5 py-3 text-slate-600 dark:text-slate-300 tabular-nums whitespace-nowrap">
-                                                {new Date(h.date).toLocaleDateString('en-US', {
-                                                    weekday: 'short', month: 'short', day: 'numeric', year: 'numeric'
-                                                })}
+                                                {formatDateWithWeekday(h.date)}
                                             </td>
                                             <td className="px-5 py-3">
                                                 <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${getHolidayTypeColor(h.holiday_type)}`}>

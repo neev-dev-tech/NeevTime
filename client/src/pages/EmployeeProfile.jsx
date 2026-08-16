@@ -4,6 +4,7 @@ import api from '../api';
 import { User, Mail, Phone, Building, Briefcase, Calendar, Clock, ArrowLeft, Edit2, Trash2, AlertCircle, FileText, RefreshCw } from 'lucide-react';
 import { useToast, Button } from '../components';
 import Modal from '../components/Modal';
+import { formatDate } from '../utils/dateFormat';
 
 export default function EmployeeProfile() {
     const { id } = useParams();
@@ -278,7 +279,7 @@ export default function EmployeeProfile() {
                             </div>
                             <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 min-w-0">
                                 <Calendar size={16} className="text-slate-400 dark:text-slate-500 shrink-0" />
-                                <span className="truncate">Joined {employee.joining_date ? new Date(employee.joining_date).toLocaleDateString() : '—'}</span>
+                                <span className="truncate">Joined {formatDate(employee.joining_date)}</span>
                             </div>
                         </div>
                     </div>
@@ -310,7 +311,7 @@ export default function EmployeeProfile() {
                                 <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-500 dark:text-slate-400">Employee ID</dt><dd className="col-span-2 font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold">{employee.employee_code || '—'}</dd></div>
                                 <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-500 dark:text-slate-400">Full Name</dt><dd className="col-span-2 font-semibold text-slate-800 dark:text-slate-100">{employee.name || '—'}</dd></div>
                                 <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-500 dark:text-slate-400">Gender</dt><dd className="col-span-2 text-slate-600 dark:text-slate-300">{employee.gender || '—'}</dd></div>
-                                <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-500 dark:text-slate-400">Date of Birth</dt><dd className="col-span-2 text-slate-600 dark:text-slate-300">{employee.dob ? new Date(employee.dob).toLocaleDateString() : '—'}</dd></div>
+                                <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-500 dark:text-slate-400">Date of Birth</dt><dd className="col-span-2 text-slate-600 dark:text-slate-300">{formatDate(employee.dob)}</dd></div>
                                 <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-500 dark:text-slate-400">Mobile</dt><dd className="col-span-2 text-slate-600 dark:text-slate-300">{employee.mobile || '—'}</dd></div>
                                 <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-500 dark:text-slate-400">Address</dt><dd className="col-span-2 text-slate-600 dark:text-slate-300">{employee.address || '—'}</dd></div>
                             </dl>
@@ -321,7 +322,7 @@ export default function EmployeeProfile() {
                                 <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-500 dark:text-slate-400">Department</dt><dd className="col-span-2 font-semibold text-slate-800 dark:text-slate-100">{employee.department_name || '—'}</dd></div>
                                 <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-500 dark:text-slate-400">Designation</dt><dd className="col-span-2 text-slate-600 dark:text-slate-300">{employee.designation || '—'}</dd></div>
                                 <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-500 dark:text-slate-400">Area</dt><dd className="col-span-2 text-slate-600 dark:text-slate-300">{employee.area_name || '—'}</dd></div>
-                                <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-500 dark:text-slate-400">Joining Date</dt><dd className="col-span-2 text-slate-600 dark:text-slate-300">{employee.joining_date ? new Date(employee.joining_date).toLocaleDateString() : '—'}</dd></div>
+                                <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-500 dark:text-slate-400">Joining Date</dt><dd className="col-span-2 text-slate-600 dark:text-slate-300">{formatDate(employee.joining_date)}</dd></div>
                                 <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-500 dark:text-slate-400">Employment Type</dt><dd className="col-span-2 text-slate-600 dark:text-slate-300">{employee.employment_type || 'Permanent'}</dd></div>
                                 <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-500 dark:text-slate-400">App Access</dt><dd className="col-span-2 text-slate-600 dark:text-slate-300">{employee.app_login_enabled ? 'Enabled' : 'Disabled'}</dd></div>
                             </dl>
@@ -416,7 +417,7 @@ export default function EmployeeProfile() {
                                             <div className="min-w-0">
                                                 <p className="font-semibold text-slate-800 dark:text-slate-100 truncate">{doc.doc_name}</p>
                                                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                                                    {doc.uploaded_at ? new Date(doc.uploaded_at).toLocaleDateString() : '—'}
+                                                    {formatDate(doc.uploaded_at)}
                                                 </p>
                                             </div>
                                         </div>

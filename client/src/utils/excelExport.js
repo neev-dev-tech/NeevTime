@@ -1,4 +1,4 @@
-import { toLocalDateString } from './dateFormat';
+import { formatDate, toLocalDateString } from './dateFormat';
 /**
  * Enhanced Excel Export Utility
  * Provides premium Excel/XLSX generation with styling across all reports
@@ -71,7 +71,7 @@ export const exportToExcel = async (options) => {
 
                     // Format dates
                     if (value instanceof Date) {
-                        value = value.toLocaleDateString();
+                        value = formatDate(value);
                     }
                     // Format booleans
                     if (typeof value === 'boolean') {
@@ -105,7 +105,7 @@ export const exportToExcel = async (options) => {
 
                     // Format dates
                     if (value instanceof Date) {
-                        value = value.toLocaleDateString();
+                        value = formatDate(value);
                     }
                     // Format booleans
                     if (typeof value === 'boolean') {

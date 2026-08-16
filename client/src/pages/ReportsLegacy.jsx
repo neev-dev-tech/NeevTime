@@ -11,7 +11,7 @@ import {
 import { exportToPDF } from '../utils/pdfExport';
 import { exportToExcel as exportToExcelUtil } from '../utils/excelExport';
 import { Button } from '../components';
-import { toLocalDateString } from '../utils/dateFormat';
+import { formatDate, toLocalDateString } from '../utils/dateFormat';
 
 // Stat tile tones — written out in full so Tailwind's scanner keeps the classes
 const STAT_TONES = {
@@ -165,7 +165,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                                     {row.punch_time ? new Date(row.punch_time).toLocaleTimeString() : '—'}
                                 </span>
                                 <span className="text-xs tabular-nums text-slate-500 dark:text-slate-400">
-                                    {row.punch_time ? new Date(row.punch_time).toLocaleDateString() : '—'}
+                                    {formatDate(row.punch_time)}
                                 </span>
                             </div>
                         )

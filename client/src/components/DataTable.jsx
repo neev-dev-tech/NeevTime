@@ -22,6 +22,7 @@ import {
     Check, X
 } from 'lucide-react';
 import useDismissable from '../hooks/useDismissable';
+import { formatDate } from '../utils/dateFormat';
 
 /**
  * Sort state constants
@@ -222,7 +223,7 @@ export default function DataTable({
         if (column.type === 'date' || (typeof value === 'string' && value.match(/^\d{4}-\d{2}-\d{2}/))) {
             const date = new Date(value);
             if (!isNaN(date)) {
-                return date.toLocaleDateString();
+                return formatDate(date);
             }
         }
 

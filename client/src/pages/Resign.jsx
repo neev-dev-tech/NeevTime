@@ -7,7 +7,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useToast, Button, PageHeader } from '../components';
 import Modal from '../components/Modal';
-import { toLocalDateString } from '../utils/dateFormat';
+import { formatDate, toLocalDateString } from '../utils/dateFormat';
 
 export default function Resign() {
     const [resignations, setResignations] = useState([]);
@@ -136,7 +136,7 @@ export default function Resign() {
             item.department_name || '',
             item.position_name || '',
             item.area_name || '',
-            new Date(item.resignation_date).toLocaleDateString(),
+            formatDate(item.resignation_date),
             item.resignation_type,
             item.reason || ''
         ]);

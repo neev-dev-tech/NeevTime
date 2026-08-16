@@ -7,7 +7,7 @@ import {
 
 import { confirm } from '../components/ConfirmDialog';
 import { Button, PageHeader, useToast } from '../components';
-import { toLocalDateString } from '../utils/dateFormat';
+import { formatDate, toLocalDateString } from '../utils/dateFormat';
 
 const BADGE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide';
 const BADGE_AUTO = 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300';
@@ -269,7 +269,7 @@ export default function DatabaseTools() {
         { label: 'Holidays', value: dbStats?.total_holidays ?? 0, icon: Calendar, tint: 'text-rose-600 dark:text-rose-400', ring: 'bg-rose-50 dark:bg-rose-900/30' },
         {
             label: 'Last Backup',
-            value: dbStats?.last_backup ? new Date(dbStats.last_backup).toLocaleDateString() : 'Never',
+            value: dbStats?.last_backup ? formatDate(dbStats.last_backup) : 'Never',
             icon: CheckCircle,
             tint: 'text-slate-500 dark:text-slate-400',
             ring: 'bg-slate-100 dark:bg-slate-700',
@@ -413,7 +413,7 @@ export default function DatabaseTools() {
                                         <td className="px-5 py-3">
                                             <div className="flex flex-col">
                                                 <span className={CELL_STRONG}>
-                                                    {backup.created_at ? new Date(backup.created_at).toLocaleDateString() : '—'}
+                                                    {formatDate(backup.created_at)}
                                                 </span>
                                                 <span className="text-xs text-slate-400 dark:text-slate-500 tabular-nums">
                                                     {backup.created_at ? new Date(backup.created_at).toLocaleTimeString() : ''}

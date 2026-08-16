@@ -1,6 +1,7 @@
 import React from 'react';
 import { Info } from 'lucide-react';
 import { APP_VERSION, BUILD_DATE } from '../constants/version';
+import { formatDate } from '../utils/dateFormat';
 
 /**
  * Version Display Component
@@ -8,11 +9,7 @@ import { APP_VERSION, BUILD_DATE } from '../constants/version';
  * Can be added to Settings page or footer
  */
 export default function VersionDisplay({ className = '' }) {
-    const buildDate = new Date(BUILD_DATE).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-    });
+    const buildDate = formatDate(BUILD_DATE);
 
     return (
         <div className={`flex items-center gap-2 text-sm text-slate-500 ${className}`}>

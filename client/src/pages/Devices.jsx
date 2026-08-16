@@ -12,7 +12,7 @@ import { TableSkeleton } from '../components/SkeletonLoader';
 import { useToast, Button, PageHeader } from '../components';
 import Modal from '../components/Modal';
 import { exportToExcel, exportToCSV } from '../utils/excelExport';
-import { toLocalDateString } from '../utils/dateFormat';
+import { formatDate, toLocalDateString } from '../utils/dateFormat';
 
 // ==========================================
 // Sub-Components for Data Views
@@ -114,7 +114,7 @@ const DataView = ({ title, endpoint, columns, icon: Icon = Database }) => {
             const date = new Date(value);
             return (
                 <div className="cell-timestamp">
-                    <span className="cell-timestamp-date">{date.toLocaleDateString()}</span>
+                    <span className="cell-timestamp-date">{formatDate(date)}</span>
                     <span className="cell-timestamp-time"> {date.toLocaleTimeString()}</span>
                 </div>
             );

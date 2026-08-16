@@ -6,9 +6,10 @@ import {
 } from 'lucide-react';
 import api from '../api';
 import { Button, PageHeader, ExportMenu } from '../components';
+import { formatDate } from '../utils/dateFormat';
 
 const fmtTime = (v) => (v ? new Date(v).toLocaleString() : '—');
-const fmtDate = (v) => (v ? new Date(v).toLocaleDateString() : '—');
+const fmtDate = (v) => formatDate(v);
 
 /**
  * Each device-data endpoint returns a different row shape, so every view

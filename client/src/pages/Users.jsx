@@ -3,6 +3,7 @@ import { Plus, Trash2, Edit2, Check, RefreshCw, Users, Shield, AlertCircle } fro
 import api from '../api';
 import { Button, PageHeader, ExportMenu } from '../components';
 import Modal from '../components/Modal';
+import { formatDate } from '../utils/dateFormat';
 
 // Tiers enforced by server/utils/rbac.js. 'user' is retired — legacy accounts
 // still holding it are treated as hr — so it is not offered for new accounts.
@@ -232,7 +233,7 @@ export default function UsersPage() {
                                         </td>
                                         <td className="px-5 py-3">
                                             <span className={CELL_SOFT}>
-                                                {user.created_at ? new Date(user.created_at).toLocaleDateString() : '—'}
+                                                {formatDate(user.created_at)}
                                             </span>
                                         </td>
                                         <td className="px-5 py-3">
