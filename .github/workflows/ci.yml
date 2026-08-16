@@ -219,6 +219,36 @@ jobs:
           fi
           exit $status
 
+      - name: Prove the schema is the shape the code writes
+        working-directory: server
+        env:
+          DB_HOST: localhost
+          DB_PORT: '5433'
+          DB_NAME: neevtime_ci
+          DB_USER: postgres
+          DB_PASSWORD: ci
+        run: |
+          # Seventeen tables were once defined more than once across
+          # database/*.sql, every one with CREATE TABLE IF NOT EXISTS. The first
+          # file loaded won, the rest were silent no-ops, and a fresh install got
+          # whichever shape sorted first — which for areas and devices was a
+          # shape the application cannot write to. Nothing failed: the load
+          # reported zero errors, the boot succeeded, and the Areas and Devices
+          # pages returned 500 to the first person who opened them.
+          #
+          # This runs the application's own statements against the database this
+          # job just built and fails if any of them cannot resolve, and it fails
+          # if a table is ever again defined in two files at once.
+          set -o pipefail
+          node --test tests/schema_shape.test.js 2>&1 | tee /tmp/shape-tests.log
+          status=$?
+
+          if grep -qE '^# skipped [1-9]' /tmp/shape-tests.log; then
+            echo "::error::the schema shape tests skipped — the database was not reachable"
+            exit 1
+          fi
+          exit $status
+
   isolation:
     name: Tenant isolation (real Postgres)
     runs-on: ubuntu-latest
@@ -260,9 +290,13 @@ jobs:
         run: |
           createdb() { docker exec pg psql -U postgres -q -c "$1" >/dev/null; }
           docker exec pg psql -U postgres -q -c "CREATE DATABASE neevtime_ci" >/dev/null
-          for f in database/00_init_all.sql database/schema.sql \
-                   database/schema_easytime.sql database/schema_expansion.sql; do
-            [ -f "$f" ] && docker exec -i pg psql -U postgres -q -d neevtime_ci < "$f" >/dev/null 2>&1 || true
+          # Every file at the top level, not a hand-picked list. This step used to
+          # name four files by path, and three of those paths stopped existing the
+          # day the duplicated definitions were consolidated into
+          # database/000_schema.sql — with `|| true` swallowing it, this job would
+          # have gone on testing isolation against an empty database.
+          for f in database/*.sql; do
+            docker exec -i pg psql -U postgres -q -d neevtime_ci < "$f" >/dev/null 2>&1 || true
           done
 
       - name: Install and boot once so ensureSchema runs
