@@ -123,15 +123,30 @@ jobs:
           fi
           echo "Postgres accepted a TCP query after ${i}s"
 
-      - name: Build the schema the way production builds it
+      - name: Build the schema the way a fresh install does
         run: |
           docker exec pgr psql -U postgres -q -c "CREATE DATABASE neevtime_ci" >/dev/null
-          for f in database/00_init_all.sql database/schema.sql \
-                   database/schema_easytime.sql database/schema_expansion.sql \
-                   database/schema_settings.sql; do
-            [ -f "$f" ] && docker exec -i pgr psql -U postgres -q -d neevtime_ci < "$f" >/dev/null 2>&1 || true
-          done
 
+          # Every file, in sorted order — not a hand-picked five. The first
+          # version of this step listed five and dropped schema_leaves.sql, so
+          # leave_applications did not exist, and the leave assertions in the
+          # test quietly did nothing because their seed insert is best-effort.
+          #
+          # Two passes: these files have order dependencies between them, and a
+          # table created in pass one lets a foreign key in pass two resolve.
+          # Everything is CREATE ... IF NOT EXISTS, so a second pass is cheap.
+          #
+          # Errors are counted and printed rather than sent to /dev/null. Some
+          # are expected (the files overlap), but a silent load is how this step
+          # reported success while building a database missing three tables.
+          for pass in 1 2; do
+            echo "--- pass $pass"
+            for f in database/*.sql; do
+              errs=$(docker exec -i pgr psql -U postgres -q -d neevtime_ci \
+                       -v ON_ERROR_STOP=0 < "$f" 2>&1 | grep -c '^ERROR' || true)
+              echo "  $(basename "$f"): $errs error(s)"
+            done
+          done
       - name: Boot once so ensureSchema runs
         working-directory: server
         env:

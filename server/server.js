@@ -2038,6 +2038,32 @@ const ensureSchema = async () => {
         // already exists.
         `ALTER TABLE attendance_daily_summary ADD COLUMN IF NOT EXISTS late_minutes INTEGER`,
         `ALTER TABLE attendance_daily_summary ADD COLUMN IF NOT EXISTS early_leave_minutes INTEGER`,
+        // ot_minutes is the one the engine actually writes, and it is missing on
+        // a fresh install. Two schema files declare this table with CREATE TABLE
+        // IF NOT EXISTS and disagree about the column: 00_init_all.sql says
+        // overtime_minutes, schema_expansion.sql says ot_minutes. Whichever runs
+        // first wins and the other is a no-op, so a new customer's database gets
+        // overtime_minutes and the overtime engine writes into a column that is
+        // not there. That is not a hypothetical — reading the wrong one of these
+        // two names is exactly how the overtime register reported zero hours for
+        // every employee, and a fresh install would reproduce it permanently.
+        `ALTER TABLE attendance_daily_summary ADD COLUMN IF NOT EXISTS ot_minutes INTEGER DEFAULT 0`,
+        `ALTER TABLE attendance_daily_summary ADD COLUMN IF NOT EXISTS early_minutes INTEGER DEFAULT 0`,
+        // If the older column exists and holds anything, carry it across once
+        // rather than stranding it. Additive and idempotent: it only fills rows
+        // where ot_minutes has no value, and never removes the old column —
+        // deleting a column that might hold history is not something a boot
+        // sequence should decide on its own.
+        `DO $$
+         BEGIN
+           IF EXISTS (SELECT 1 FROM information_schema.columns
+                       WHERE table_name = 'attendance_daily_summary'
+                         AND column_name = 'overtime_minutes') THEN
+             UPDATE attendance_daily_summary
+                SET ot_minutes = overtime_minutes
+              WHERE ot_minutes IS NULL AND overtime_minutes IS NOT NULL;
+           END IF;
+         END $$`,
         // Avoids a failed INSERT and a retry on every document upload; the
         // route already falls back when this is absent.
         `ALTER TABLE employee_docs ADD COLUMN IF NOT EXISTS file_type VARCHAR(100)`,
