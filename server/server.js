@@ -1960,7 +1960,26 @@ const ensureSchema = async () => {
         //
         // Dropped first, because CREATE INDEX IF NOT EXISTS keeps whatever
         // index already holds the name, partial included.
-        `DROP INDEX IF EXISTS shifts_code_key`,
+        // Drop only if it is the partial index this replaces, and only if no
+        // constraint owns it. A plain DROP INDEX fails on every boot of a
+        // database whose table carries a real UNIQUE constraint — the index
+        // cannot be dropped without the constraint, and it does not need to be,
+        // because a constraint-owned unique index is already the desired state.
+        // That produced a permanent "Schema ensure failed" line on every start,
+        // and a boot log with a standing error in it is a boot log nobody reads.
+        `DO $$
+         BEGIN
+           IF EXISTS (
+             SELECT 1
+               FROM pg_class i
+               JOIN pg_index ix ON ix.indexrelid = i.oid
+              WHERE i.relname = 'shifts_code_key'
+                AND ix.indpred IS NOT NULL
+                AND NOT EXISTS (SELECT 1 FROM pg_constraint c WHERE c.conindid = i.oid)
+           ) THEN
+             EXECUTE 'DROP INDEX shifts_code_key';
+           END IF;
+         END $$`,
         `CREATE UNIQUE INDEX IF NOT EXISTS shifts_code_key ON shifts (code)`,
         // Holidays belong to a list. ERPNext keeps one per location, and
         // without the link every office's holidays apply to everybody —
@@ -2036,7 +2055,26 @@ const ensureSchema = async () => {
         // each run would insert another row per employee per leave type.
         `CREATE UNIQUE INDEX IF NOT EXISTS leave_balances_emp_type_year_key
              ON leave_balances (employee_code, leave_type_id, year)`,
-        `DROP INDEX IF EXISTS leave_types_code_key`,
+        // Drop only if it is the partial index this replaces, and only if no
+        // constraint owns it. A plain DROP INDEX fails on every boot of a
+        // database whose table carries a real UNIQUE constraint — the index
+        // cannot be dropped without the constraint, and it does not need to be,
+        // because a constraint-owned unique index is already the desired state.
+        // That produced a permanent "Schema ensure failed" line on every start,
+        // and a boot log with a standing error in it is a boot log nobody reads.
+        `DO $$
+         BEGIN
+           IF EXISTS (
+             SELECT 1
+               FROM pg_class i
+               JOIN pg_index ix ON ix.indexrelid = i.oid
+              WHERE i.relname = 'leave_types_code_key'
+                AND ix.indpred IS NOT NULL
+                AND NOT EXISTS (SELECT 1 FROM pg_constraint c WHERE c.conindid = i.oid)
+           ) THEN
+             EXECUTE 'DROP INDEX leave_types_code_key';
+           END IF;
+         END $$`,
         `CREATE UNIQUE INDEX IF NOT EXISTS leave_types_code_key ON leave_types (code)`,
         // The HRMS's own identifier for the application, and the only stable
         // way to upsert one. Matching on employee and dates instead would
@@ -2351,7 +2389,18 @@ const ensureSchema = async () => {
         // its thresholds from app_settings — so the columns are added alongside
         // it rather than dropping and recreating the table. setting_name loses
         // its NOT NULL because new rows have no value for it.
-        `ALTER TABLE attendance_rules ALTER COLUMN setting_name DROP NOT NULL`,
+        `DO $$
+         BEGIN
+           -- Only if the column is actually there. attendance_rules has two
+           -- historical shapes — a key/value stub with setting_name, and the
+           -- rule_type shape the code uses — and this statement fails on every
+           -- boot of a database with the second one.
+           IF EXISTS (SELECT 1 FROM information_schema.columns
+                       WHERE table_name = 'attendance_rules'
+                         AND column_name = 'setting_name') THEN
+             ALTER TABLE attendance_rules ALTER COLUMN setting_name DROP NOT NULL;
+           END IF;
+         END $$`,
         `ALTER TABLE attendance_rules ADD COLUMN IF NOT EXISTS rule_type VARCHAR(50) NOT NULL DEFAULT 'global'`,
         `ALTER TABLE attendance_rules ADD COLUMN IF NOT EXISTS department_id INTEGER REFERENCES departments(id)`,
         `ALTER TABLE attendance_rules ADD COLUMN IF NOT EXISTS name VARCHAR(100)`,
