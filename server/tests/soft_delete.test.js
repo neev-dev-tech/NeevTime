@@ -173,3 +173,37 @@ test('a backup is copied to the external path when one is set', () => {
         'createBackup no longer calls the external copy'
     );
 });
+
+test('the backup schedule cannot silently skip a day', () => {
+    const src = stripComments(read('routes/database.js'));
+    const i = src.indexOf('const startAutoBackup');
+    const body = src.slice(i, i + 2600);
+
+    // Exact HH:MM match on a 60-second timer: setInterval drifts, a tick moves
+    // from 01:59:58 to 02:01:00, and that day has no backup and no log line.
+    assert.ok(
+        !/current !== String\(time\)/.test(body),
+        'the schedule fires only on an exact minute match again, so timer drift ' +
+        'skips a day with nothing recorded'
+    );
+    assert.ok(
+        /< dueMinutes\) return/.test(body),
+        'the at-or-after comparison is gone'
+    );
+
+    // In-memory only: this box redeploys several times a day, and each restart
+    // after the scheduled time would take another dump until retention pruned
+    // the older days away.
+    assert.ok(
+        /startsWith\(`auto-\$\{stamp\}`\)/.test(body),
+        'the once-a-day check reads a variable rather than the backup directory, ' +
+        'so a container restart takes an extra dump'
+    );
+
+    // Local date, not UTC. IST is UTC+5:30, so a 02:00 run stamped with
+    // toISOString() carries the previous day.
+    assert.ok(
+        !/stamp = now\.toISOString\(\)/.test(body),
+        'the daily stamp is UTC again while the schedule is read in local time'
+    );
+});

@@ -108,7 +108,13 @@ const copyToExternal = async (filepath, filename) => {
 };
 
 const createBackup = (prefix = 'backup') => new Promise((resolve, reject) => {
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    // Local time in the filename. The daily check looks for `auto-<local date>`,
+    // and a UTC-stamped name would not match it between midnight and 05:30 IST —
+    // which includes the default 02:00 schedule.
+    const n = new Date();
+    const p2 = (v) => String(v).padStart(2, '0');
+    const timestamp = `${n.getFullYear()}-${p2(n.getMonth() + 1)}-${p2(n.getDate())}` +
+        `T${p2(n.getHours())}-${p2(n.getMinutes())}-${p2(n.getSeconds())}`;
     const filename = `${prefix}-${timestamp}.sql`;
     const filepath = path.join(BACKUP_DIR, filename);
 
@@ -290,12 +296,35 @@ const startAutoBackup = () => {
             const retention = await settingsStore.get('database', 'backup_retention_count', 7);
 
             const now = new Date();
-            const stamp = now.toISOString().slice(0, 10);
-            const current = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-            if (lastAutoBackupDate === stamp) return;
-            if (current !== String(time).slice(0, 5)) return;
+            // Local date, not toISOString(). The schedule is read in local time
+            // (getHours), and IST is UTC+5:30, so a 02:00 run stamps itself with
+            // the previous UTC day. Mixing the two is how a scheduled job
+            // silently skips.
+            const stamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
             if (!shouldRunToday(frequency, now)) return;
+
+            // At or after the scheduled time, not exactly on it.
+            //
+            // This was `current !== time` — an exact HH:MM match on a 60-second
+            // timer. setInterval drifts, so a tick can move from 01:59:58 to
+            // 02:01:00 and miss 02:00 entirely, skipping that day with nothing
+            // logged. A backup schedule that quietly does nothing is the failure
+            // this deployment already lived through: one manual dump, 143 days
+            // old, because nobody was told.
+            const [schedH, schedM] = String(time).slice(0, 5).split(':').map(Number);
+            const dueMinutes = (schedH || 0) * 60 + (schedM || 0);
+            if (now.getHours() * 60 + now.getMinutes() < dueMinutes) return;
+
+            // Has today's already been taken? Asked of the directory, not of a
+            // variable — lastAutoBackupDate lives in memory and resets on every
+            // container restart, and this deployment is redeployed several times
+            // a day. Without this, each restart after the scheduled time takes
+            // another dump, and retention then prunes the older days away.
+            const alreadyToday = fs.readdirSync(BACKUP_DIR)
+                .some(f => f.startsWith(`auto-${stamp}`));
+            if (alreadyToday || lastAutoBackupDate === stamp) return;
 
             lastAutoBackupDate = stamp;
             const backup = await createBackup('auto');
