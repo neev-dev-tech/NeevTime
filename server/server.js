@@ -2029,6 +2029,16 @@ const ensureSchema = async () => {
         // override that does not record its justification is worth little at
         // payroll time anyway.
         `ALTER TABLE attendance_daily_summary ADD COLUMN IF NOT EXISTS remarks TEXT`,
+        // The daily summary's own numbers. 00_init_all.sql declares all three,
+        // but this deployment's table predates it and has none of them — the
+        // attendance page already failed once with "column ads.early_leave_minutes
+        // does not exist", and the payroll export failed the same way on
+        // overtime_minutes. Schema files record what a fresh install would get;
+        // ensureSchema is the only thing that runs against a database that
+        // already exists.
+        `ALTER TABLE attendance_daily_summary ADD COLUMN IF NOT EXISTS late_minutes INTEGER`,
+        `ALTER TABLE attendance_daily_summary ADD COLUMN IF NOT EXISTS early_leave_minutes INTEGER`,
+        `ALTER TABLE attendance_daily_summary ADD COLUMN IF NOT EXISTS overtime_minutes INTEGER`,
         // Avoids a failed INSERT and a retry on every document upload; the
         // route already falls back when this is absent.
         `ALTER TABLE employee_docs ADD COLUMN IF NOT EXISTS file_type VARCHAR(100)`,

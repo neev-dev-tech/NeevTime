@@ -214,3 +214,38 @@ test('every day in the period gets exactly one mark', () => withFixture(
         assert.strictEqual(summed, 7, 'the marks do not add up to the number of days');
     }
 ));
+
+test('every column the registers read is one ensureSchema guarantees', () => {
+    // schema_columns.test.js walks INSERT statements. These failures were
+    // SELECTs, so it saw nothing: the muster roll and payroll export read
+    // late_minutes, early_leave_minutes and overtime_minutes from
+    // attendance_daily_summary, 00_init_all.sql declares all three, and this
+    // deployment's table had none of them. A schema file describes what a fresh
+    // install receives; ensureSchema is the only thing that runs against a
+    // database that already exists.
+    const fs = require('node:fs');
+    const path = require('node:path');
+    const SERVER = path.join(__dirname, '..');
+    const ensure = fs.readFileSync(path.join(SERVER, 'server.js'), 'utf8');
+
+    const READ_FROM_SUMMARY = [
+        'late_minutes', 'early_leave_minutes', 'overtime_minutes'
+    ];
+
+    for (const col of READ_FROM_SUMMARY) {
+        assert.ok(
+            new RegExp(`ALTER TABLE attendance_daily_summary ADD COLUMN IF NOT EXISTS ${col}\\b`).test(ensure),
+            `attendance_daily_summary.${col} is read by the registers or the payroll export, ` +
+            `but ensureSchema does not create it. On a database that predates the schema file ` +
+            `the query fails outright — which is exactly how the payroll export shipped broken.`
+        );
+    }
+
+    // And the services really do read them, so this test cannot quietly become
+    // vacuous if the queries change.
+    const sources = ['services/registers.js', 'services/payroll_export.js']
+        .map(f => fs.readFileSync(path.join(SERVER, f), 'utf8')).join('\n');
+    for (const col of READ_FROM_SUMMARY) {
+        assert.ok(sources.includes(col), `${col} is no longer read; drop it from this test`);
+    }
+});
