@@ -390,6 +390,15 @@ jobs:
                    --header="Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==" \
                    "http://server:3001/socket.io/?EIO=4&transport=websocket" 2>&1' \
                 | head -12 || true
+              echo "--- and through nginx?"
+              curl -sk -i -o /tmp/ws.txt -w '' \
+                -H "Connection: Upgrade" -H "Upgrade: websocket" \
+                -H "Sec-WebSocket-Version: 13" \
+                -H "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==" \
+                "https://localhost/socket.io/?EIO=4&transport=websocket" || true
+              head -12 /tmp/ws.txt || true
+              echo "--- what nginx says it sent"
+              docker compose logs --tail 20 client | grep -i socket | head -5 || true
               echo "--- server log"
               docker compose logs --tail 30 server | grep -iE "socket|error" | head -15 || true
               exit 1
