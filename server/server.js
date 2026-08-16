@@ -2523,12 +2523,67 @@ const ensureSchema = async () => {
     }
 };
 
+/**
+ * Create the first administrator, once, on an empty install.
+ *
+ * A fresh install could not be signed into at all. database/000_schema.sql
+ * seeded an `admin` row whose bcrypt hash matches no password anyone has —
+ * the comment beside it says "password: admin" and that is simply not true.
+ * The two scripts that do create a usable account, init_all_schemas.js and
+ * reset_admin_password.js, are not part of any install procedure. So the
+ * product installed, started, served a login page, and refused every
+ * credential.
+ *
+ * Deliberately NOT a fixed default password. `admin`/`admin` on every
+ * deployment is a credential an attacker knows before they arrive, on a system
+ * holding biometric identifiers and payroll evidence. Instead:
+ *
+ *   - ADMIN_PASSWORD set  -> that is used, and nothing is printed.
+ *   - not set             -> a random one is generated and printed ONCE to the
+ *                            boot log, the way Postgres and Jenkins do it.
+ *
+ * Runs only when the users table is empty, so it can never touch a deployment
+ * that already has accounts.
+ */
+const ensureFirstAdmin = async () => {
+    try {
+        const { rows } = await db.query('SELECT count(*)::int AS n FROM users');
+        if (rows[0].n > 0) return;
+
+        const bcrypt = require('bcryptjs');
+        const generated = !process.env.ADMIN_PASSWORD;
+        const password = process.env.ADMIN_PASSWORD
+            || require('crypto').randomBytes(12).toString('base64url');
+
+        await db.query(
+            `INSERT INTO users (username, password_hash, role, email, full_name)
+             VALUES ('admin', $1, 'admin', 'admin@localhost', 'System Administrator')`,
+            [await bcrypt.hash(password, 10)]
+        );
+
+        if (generated) {
+            console.log('\n' + '='.repeat(64));
+            console.log('  First administrator created.');
+            console.log('    username: admin');
+            console.log(`    password: ${password}`);
+            console.log('  Shown once and not recoverable. Change it after signing in.');
+            console.log('  Set ADMIN_PASSWORD before first start to choose your own.');
+            console.log('='.repeat(64) + '\n');
+        } else {
+            console.log('First administrator "admin" created with the password from ADMIN_PASSWORD.');
+        }
+    } catch (err) {
+        console.error('Could not create the first administrator:', err.message);
+    }
+};
+
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, '0.0.0.0', async () => {
     console.log(`Server running on port ${PORT}`);
     console.log(`ADMS Endpoint: http://0.0.0.0:${PORT}/iclock/cdata`);
 
     await ensureSchema();
+    await ensureFirstAdmin();
 
     // Start HRMS scheduled sync (pushes attendance to ERPNext every 5 minutes)
     try {

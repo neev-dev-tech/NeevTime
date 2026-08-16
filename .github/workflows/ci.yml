@@ -252,6 +252,12 @@ jobs:
   cutover:
     name: Split deployment serves the readers
     runs-on: ubuntu-latest
+    env:
+      # Consumed on first boot to create the administrator, so the smoke test
+      # has a credential. CI-only: the stack and its volume are destroyed at the
+      # end of the job. No fixed default exists in the product.
+      ADMIN_PASSWORD: ci-only-first-admin
+      SMOKE_PASS: ci-only-first-admin
     # The 145-day outage began with a deploy. The containers came up, nginx
     # answered, /api/health passed, and /iclock returned 502 to every reader
     # because Node was no longer in the container nginx proxied to. Nothing

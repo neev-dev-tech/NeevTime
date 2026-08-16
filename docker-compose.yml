@@ -40,6 +40,10 @@ services:
       - DB_NAME=${DB_NAME:-attendance_db}
       - DB_PORT=5432
       - JWT_SECRET=${JWT_SECRET:-super_secret_key_123}
+      # Only read on first boot, and only when no user exists. Leave it unset
+      # and the first administrator's password is generated and printed once to
+      # this container's log.
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-}
     ports:
       - "3001:3001"
     volumes:

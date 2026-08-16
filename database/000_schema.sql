@@ -991,11 +991,16 @@ CREATE OR REPLACE VIEW positions_with_counts AS
 -- department, area and holiday location.
 -- =====================================================
 
--- Default administrator (password: admin)
-INSERT INTO users (username, password_hash, email, role, full_name)
-SELECT 'admin', '$2a$10$rK7PbXVXKH3NQyRJ8TJFxuQYJQXRGWE6EJGf7qF6LqGZWx4dRyT1e',
-       'admin@vayutime.com', 'admin', 'System Administrator'
-WHERE NOT EXISTS (SELECT 1 FROM users WHERE lower(username) = 'admin');
+-- No administrator is seeded here, deliberately.
+--
+-- This file used to insert one with a hash annotated "password: admin". That
+-- annotation was false — the hash matches no password anyone has — so a fresh
+-- install started, served a login page, and refused every credential.
+--
+-- The account is now created on first boot by ensureFirstAdmin() in server.js,
+-- which runs only when the users table is empty and either takes ADMIN_PASSWORD
+-- or generates a random password and prints it once. A fixed default credential
+-- on a system holding biometric identifiers is not worth the convenience.
 
 INSERT INTO departments (name, code)
 SELECT v.name, v.code FROM (VALUES
