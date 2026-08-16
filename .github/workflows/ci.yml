@@ -265,6 +265,11 @@ jobs:
 
       - name: Build and start the stack
         run: |
+          # The db volume is declared external so that a missing volume fails
+          # the deploy instead of silently starting an empty database. CI has no
+          # such volume, so it makes one deliberately — which is exactly the
+          # step a genuinely new install performs.
+          docker volume create neevtime_postgres_data
           docker compose build client server
           docker compose up -d
           docker compose ps

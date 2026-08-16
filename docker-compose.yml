@@ -72,7 +72,27 @@ services:
       - app-network
 
 volumes:
+  # PINNED, and external on purpose.
+  #
+  # On 2026-08-16 a deploy brought the stack up on `neevtime_pgdata` — the name
+  # compose derives from the key `pgdata` — while the live database has always
+  # been `neevtime_postgres_data`. Postgres started happily on a stale copy
+  # whose last row was from 24 March, the application served it without
+  # complaint, and it took hours to work out that the missing five months of
+  # data had never been missing at all: the service was simply mounted on the
+  # wrong disk.
+  #
+  # `name:` stops the volume identity depending on a YAML key that anyone might
+  # tidy up. `external: true` means compose FAILS if that volume is absent
+  # rather than creating an empty one and quietly starting a blank database —
+  # which is the failure that happened here, and it announced itself as data
+  # loss.
+  #
+  # A genuinely new install therefore needs this once, deliberately:
+  #     docker volume create neevtime_postgres_data
   pgdata:
+    name: neevtime_postgres_data
+    external: true
   nginx_certs:
 
 
