@@ -1004,6 +1004,11 @@ const syncLeavesFromHRMS = async (integration) => {
 };
 
 const syncEmployeesFromHRMS = async (integration) => {
+    // Declared out here so the catch can report it. It used to be created after
+    // pullEmployees() returned, which is the one place it was needed least: when
+    // the pull throws — a rejected API key, a dead HRMS, a network timeout —
+    // there were no stats to log and nothing was written at all.
+    const stats = { processed: 0, success: 0, failed: 0 };
     try {
         log('INFO', 'Pulling employees from HRMS', { integration: integration.name });
 
@@ -1046,7 +1051,6 @@ const syncEmployeesFromHRMS = async (integration) => {
 
         const employees = await integration.pullEmployees();
 
-        const stats = { processed: 0, success: 0, failed: 0 };
         const deptCache = new Map();
 
         /**
@@ -1250,6 +1254,14 @@ const syncEmployeesFromHRMS = async (integration) => {
         return stats;
     } catch (err) {
         log('ERROR', 'Employee sync failed', { error: err.message });
+        // The shifts and holidays pulls both log their failures; this one did
+        // not, so the sync that matters most left no trace in the history at
+        // exactly the moment somebody would go looking. Production is failing
+        // employee pull right now on a rejected API key and the Integrations
+        // page shows two failed rows, for shifts and holidays, and nothing for
+        // employees — which reads as "employees is fine".
+        await integration.logSync(SYNC_TYPE.EMPLOYEES, SYNC_DIRECTION.PULL,
+            'failed', stats, err.message);
         await integration.updateSyncStatus('failed', err.message);
         throw err;
     }

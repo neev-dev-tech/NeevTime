@@ -48,6 +48,29 @@ test('the warning names the integration rather than counting it', () => {
         'the query should select the integration name, not just a count');
 });
 
+// ───────────────── every pull records its own failure ─────────────────
+
+test('each HRMS pull logs a failure, including employees', () => {
+    // On 2026-08-16 production was failing all three pulls on a rejected API
+    // key, and integration_sync_logs held two rows: shifts and holidays. The
+    // employee pull's catch called updateSyncStatus and returned without
+    // logging, so the history showed nothing for the sync that matters most —
+    // which reads as "employees is fine" rather than "employees is broken".
+    //
+    // Worse, its stats object was created after the pull returned, so at the
+    // moment of failure there was nothing to report even if it had tried.
+    const src = read('services/hrms-integration.js');
+
+    for (const [label, marker] of [
+        ['shifts', /logSync\('shifts', SYNC_DIRECTION\.PULL, 'failed'/],
+        ['holidays', /logSync\('holidays', SYNC_DIRECTION\.PULL, 'failed'/],
+        ['leaves', /logSync\('leaves', SYNC_DIRECTION\.PULL, 'failed'/],
+        ['employees', /logSync\(SYNC_TYPE\.EMPLOYEES, SYNC_DIRECTION\.PULL,\s*'failed'/]
+    ]) {
+        assert.ok(marker.test(src), `the ${label} pull does not log its failure`);
+    }
+});
+
 // ───────────────── the real-time path reports its health ─────────────────
 
 const punchIngest = () => {
