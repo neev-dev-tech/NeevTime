@@ -2270,6 +2270,40 @@ const ensureSchema = async () => {
                  ON attendance_logs (employee_code, punch_time);
            END IF;
          END $$`,
+        // Scheduled reports. Absent from every schema file — they exist only in
+        // scripts/fix_production_schema.js, which no new install runs, so the
+        // scheduler logs 'relation "scheduled_reports" does not exist' once a
+        // minute on a fresh database.
+        `CREATE TABLE IF NOT EXISTS scheduled_reports (
+            id SERIAL PRIMARY KEY,
+            name VARCHAR(100) NOT NULL,
+            report_type VARCHAR(50) NOT NULL,
+            schedule_type VARCHAR(20) NOT NULL,
+            schedule_time TIME,
+            schedule_day INTEGER,
+            recipients TEXT[],
+            filters JSONB,
+            format VARCHAR(20) DEFAULT 'pdf',
+            is_active BOOLEAN DEFAULT TRUE,
+            last_run_at TIMESTAMP,
+            next_run_at TIMESTAMP,
+            created_by VARCHAR(100),
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW()
+        )`,
+        `CREATE TABLE IF NOT EXISTS report_history (
+            id SERIAL PRIMARY KEY,
+            scheduled_report_id INTEGER,
+            report_type VARCHAR(50),
+            recipients TEXT,
+            status VARCHAR(20),
+            error_message TEXT,
+            sent_at TIMESTAMP DEFAULT NOW()
+        )`,
+        // The repair script's definition omits both, and the insert writes them,
+        // so saving a scheduled report failed even where the table existed.
+        `ALTER TABLE scheduled_reports ADD COLUMN IF NOT EXISTS format VARCHAR(20) DEFAULT 'pdf'`,
+        `ALTER TABLE scheduled_reports ADD COLUMN IF NOT EXISTS created_by VARCHAR(100)`,
         // Biometric template storage. services/adms.js:323 writes eleven columns
         // and the table has six of them, so every fingerprint and face uploaded
         // by a reader is rejected. The insert also targets

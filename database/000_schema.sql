@@ -273,6 +273,44 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 --
 -- source_device/device_serial and index_no/template_index are two names for the
 -- same two ideas. Both are kept: existing databases hold values in either.
+-- Scheduled reports and their delivery history.
+--
+-- Neither table appeared in ANY of the nine schema files. They exist only in
+-- scripts/fix_production_schema.js, a repair script nobody runs on a new
+-- install, so a fresh database has neither and the scheduler logs
+-- 'relation "scheduled_reports" does not exist' once a minute forever.
+--
+-- format and created_by are here because services/scheduled-reports.js:96
+-- writes them and the repair script's definition omits both — so even where the
+-- table had been created, saving a scheduled report failed.
+CREATE TABLE IF NOT EXISTS scheduled_reports (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    report_type VARCHAR(50) NOT NULL,
+    schedule_type VARCHAR(20) NOT NULL,
+    schedule_time TIME,
+    schedule_day INTEGER,
+    recipients TEXT[],
+    filters JSONB,
+    format VARCHAR(20) DEFAULT 'pdf',
+    is_active BOOLEAN DEFAULT TRUE,
+    last_run_at TIMESTAMP,
+    next_run_at TIMESTAMP,
+    created_by VARCHAR(100),
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS report_history (
+    id SERIAL PRIMARY KEY,
+    scheduled_report_id INTEGER,
+    report_type VARCHAR(50),
+    recipients TEXT,
+    status VARCHAR(20),
+    error_message TEXT,
+    sent_at TIMESTAMP DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS biometric_templates (
     id SERIAL,
     employee_code VARCHAR(50) NOT NULL,

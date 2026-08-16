@@ -51,6 +51,11 @@ const PARSES = [
         `INSERT INTO areas (name, code, parent_area_id) VALUES ($1, $2, $3) RETURNING *`],
     ['routes/organization.js:126 — re-parent an area',
         `UPDATE areas SET name = $1, code = COALESCE($2, code), parent_area_id = $3 WHERE id = $4 RETURNING *`],
+    ['services/scheduled-reports.js:96 — save a scheduled report',
+        `INSERT INTO scheduled_reports
+           (name, report_type, schedule_type, schedule_time, schedule_day,
+            recipients, filters, format, is_active, next_run_at, created_by)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`],
     ['routes/organization.js:96 — the Areas page enrolment counts',
         `SELECT (SELECT COUNT(*)::int FROM biometric_templates bt
                    JOIN employees e ON e.employee_code = bt.employee_code
