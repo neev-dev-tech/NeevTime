@@ -168,3 +168,26 @@ test('every template only names fields that exist', () => {
         }
     } finally { restore(); }
 });
+
+test('every column the payroll screen renders is a real field', () => {
+    // A screen reading a field the service does not produce renders a blank
+    // column, and a blank column in a payroll preview reads as a zero. This is
+    // the same class of mistake as a template naming a field that does not
+    // exist, and it crosses the client/server line where nothing else checks it.
+    const fs = require('node:fs');
+    const path = require('node:path');
+    const page = path.join(__dirname, '..', '..', 'client', 'src', 'pages', 'PayrollExport.jsx');
+    if (!fs.existsSync(page)) return; // server package used on its own
+
+    const { svc, restore } = load(roll({}));
+    try {
+        const canonical = new Set(Object.keys(svc.CANONICAL));
+        const keys = [...fs.readFileSync(page, 'utf8').matchAll(/key: '(\w+)'/g)].map(m => m[1]);
+        assert.ok(keys.length > 0, 'no columns found on the payroll screen');
+        for (const k of keys) {
+            assert.ok(canonical.has(k),
+                `PayrollExport.jsx renders a column for "${k}", which payrollSummary does not ` +
+                `produce — it would show blank, and a blank in a payroll preview reads as zero`);
+        }
+    } finally { restore(); }
+});
