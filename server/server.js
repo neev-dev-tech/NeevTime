@@ -2516,8 +2516,10 @@ const ensureSchema = async () => {
         // Empty means no second copy. /mnt/backup-external is mounted from the
         // host for exactly this; see BACKUP_EXTERNAL_DIR in docker-compose.yml.
         ['database', 'backup_external_path', '', 'string',
-            'Copy every backup here as well, e.g. /mnt/backup-external. Empty for none. '
-            + 'Use Database Tools to test the path before relying on it.'],
+            'Read-only here. Set the second copy in Database Tools > Second copy, which can '
+            + 'also send to S3, SFTP or SharePoint and tests the destination before saving. '
+            + 'That screen writes this value when a folder is chosen; editing it here has no '
+            + 'effect if a different destination is selected.'],
         ['timezone', 'system_timezone', 'Asia/Kolkata', 'string',
             'Zone used to decide which day a punch belongs to and to measure shift start, lateness and overtime'],
         // Off by default so enabling it is a deliberate decision — turning it on
