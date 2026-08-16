@@ -396,7 +396,14 @@ jobs:
                 -H "Sec-WebSocket-Version: 13" \
                 -H "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==" \
                 "https://localhost/socket.io/?EIO=4&transport=websocket" || true
-              head -12 /tmp/ws.txt || true
+              head -4 /tmp/ws.txt || true
+              echo "--- same handshake forced to HTTP/1.1"
+              curl -sk -i --http1.1 -o /tmp/ws11.txt \
+                -H "Connection: Upgrade" -H "Upgrade: websocket" \
+                -H "Sec-WebSocket-Version: 13" \
+                -H "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==" \
+                "https://localhost/socket.io/?EIO=4&transport=websocket" || true
+              head -4 /tmp/ws11.txt || true
               echo "--- what nginx says it sent"
               docker compose logs --tail 20 client | grep -i socket | head -5 || true
               echo "--- server log"
