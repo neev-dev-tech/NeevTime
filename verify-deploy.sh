@@ -187,11 +187,17 @@ if d inspect "$DB_CONTAINER" >/dev/null 2>&1; then
         note "could not read attendance_logs"
     elif [ "$mins" -lt 240 ]; then
         ok "last punch $last (${mins} min ago)"
-    elif [ "$mins" -gt 2880 ]; then
-        # More than two days. Out of hours does not explain this, and a long
-        # weekend does not reach it. Reported as a note for 145 days while
-        # nothing whatsoever was being collected — the message was accurate and
-        # the severity was wrong, so it scrolled past on every deploy.
+    elif [ "$mins" -gt 2880 ] && [ "$(psql_q "SELECT EXTRACT(DOW FROM CURRENT_DATE)::int")" != "0" ] \
+                              && [ "$(psql_q "SELECT EXTRACT(DOW FROM CURRENT_DATE)::int")" != "6" ] \
+                              && [ "$(psql_q "SELECT EXTRACT(HOUR FROM LOCALTIME)::int")" -ge 11 ]; then
+        # More than two days, on a working day, after the morning. Gated that
+        # way because 48 hours alone is not enough: Friday evening to Monday
+        # morning is 62 hours, so an ungated threshold would fail every Monday
+        # before the first person badges in. A check that cries wolf weekly is a
+        # check people learn to scroll past — which is precisely what happened
+        # to the previous version of this line. It reported a note for 145 days
+        # while nothing at all was being collected: the message was accurate and
+        # the severity was wrong.
         bad "last punch $last (${mins} min ago) — attendance collection has stopped.
         This is not an out-of-hours gap. Check 3b above: if /iclock is not reachable
         the readers are being refused, and every punch since then is already lost."
