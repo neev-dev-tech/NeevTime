@@ -206,6 +206,94 @@ const checkDevicesOffline = async () => {
     }
 };
 
+/**
+ * Nobody has punched today.
+ *
+ * On 2026-08-16 this system was found to have recorded no attendance since
+ * 2026-03-24 — 145 days. All four readers were powered on, on the network, and
+ * polling every 30 seconds the entire time. nginx was proxying /iclock to a Node
+ * process that had died inside its own container, so every poll got a 502 and
+ * never reached the application.
+ *
+ * Every check in this file missed it:
+ *
+ *  - checkDevicesOffline reads devices.last_activity, which is only written when
+ *    a request *reaches* Node. A 502 never does, so the readers looked exactly
+ *    like readers that had been unplugged — and would have, had the check
+ *    existed before the outage started.
+ *  - the container healthcheck asks nginx, and nginx was healthy.
+ *  - the attendance push and sync checks watch what leaves the system, and with
+ *    nothing arriving there was nothing to push and nothing to complain about.
+ *
+ * Every one of those watches a component. This watches the outcome: did any
+ * punch, from any reader, get stored today? It is indifferent to where the chain
+ * broke — reader, network, proxy, ingest or database — which is exactly the
+ * property the others lack.
+ *
+ * Deliberately not a rolling window. "No punches in the last 24 hours" fires
+ * every Monday morning, because Friday evening to Monday is longer than that,
+ * and a check that cries wolf weekly is a check people turn off. This asks a
+ * question with an unambiguous answer: it is a working day, the morning is over,
+ * and the attendance table is empty.
+ */
+const checkNoPunches = async () => {
+    const cfg = await alerts.alertConfig();
+    // Late enough that a genuinely quiet morning has ended. First shift starts
+    // well before this; if nothing is recorded by now, something is wrong.
+    const afterHour = Number(cfg.no_punch_after_hour) || 11;
+
+    const res = await db.query(`
+        SELECT
+            -- Local server time, deliberately. NOW() AT TIME ZONE 'UTC' would
+            -- roll the day over at 05:30 IST and ask about the wrong date.
+            CURRENT_DATE                                  AS today,
+            EXTRACT(HOUR FROM LOCALTIME)::int             AS hour_now,
+            EXTRACT(DOW  FROM CURRENT_DATE)::int          AS dow,
+            (SELECT count(*)::int FROM attendance_logs
+              WHERE punch_time >= CURRENT_DATE
+                AND punch_time <  CURRENT_DATE + 1)       AS punches_today,
+            (SELECT max(punch_time) FROM attendance_logs) AS last_punch,
+            (SELECT count(*)::int FROM holidays
+              WHERE date = CURRENT_DATE)                  AS is_holiday
+    `);
+
+    const r = res.rows[0];
+    const weekend = r.dow === 0 || r.dow === 6;
+
+    // Only ask on a working day, once the morning has passed. Outside that the
+    // check is silent rather than guessing — and critically, it does not resolve
+    // an open alert either, so an outage raised on Friday stays open over the
+    // weekend instead of appearing to fix itself.
+    if (weekend || r.is_holiday > 0 || r.hour_now < afterHour) return;
+
+    const silentDays = r.last_punch
+        ? Math.floor((Date.now() - new Date(r.last_punch).getTime()) / 86400000)
+        : null;
+
+    await alerts.track('no_punches_today', r.punches_today === 0, {
+        severity: 'critical',
+        subject: 'No attendance recorded today — collection may be broken',
+        body: 'Not one punch from any reader has been stored today.\n\n'
+            + (r.last_punch
+                // localDate, not toISOString — the latter reports the UTC date,
+                // which in IST is the previous day for everything before 05:30.
+                // An alert about attendance dates must not name the wrong day.
+                ? `The most recent punch in the database is ${localDate(new Date(r.last_punch))}`
+                  + `${silentDays ? `, ${silentDays} day(s) ago` : ''}.\n\n`
+                : 'There are no punches in the database at all.\n\n')
+            + 'This is the outcome check: it does not care which part of the chain '
+            + 'failed. Readers can be powered on and polling and still have every '
+            + 'request rejected before it reaches the application — that state is '
+            + 'invisible to the device-offline alert, and it went unnoticed for 145 '
+            + 'days once already.\n\n'
+            + 'Check, in order: that /iclock returns 200 through the same address '
+            + 'the readers use (not just directly against the API port), that the '
+            + 'server process is actually running, and only then the readers '
+            + 'themselves.',
+        details: { punches_today: 0, last_punch: r.last_punch, silent_days: silentDays }
+    });
+};
+
 /** Commands the readers refused for good — someone has to look at these. */
 const checkDeadLetters = async () => {
     const res = await db.query(
@@ -327,6 +415,7 @@ const runChecks = async () => {
         ['sync aging', checkSyncAging],
         ['account lockouts', checkAccountLockouts],
         ['devices offline', checkDevicesOffline],
+        ['no punches today', checkNoPunches],
         ['dead letters', checkDeadLetters]
     ]) {
         try {
@@ -401,5 +490,5 @@ module.exports = {
     runChecks, sendDigest, startAlertChecks, notifyConfigChange,
     localDate, digestTimeReached,
     checkAttendancePush, checkSyncBacklog, checkSyncAging, checkAccountLockouts,
-    checkDevicesOffline, checkDeadLetters
+    checkDevicesOffline, checkDeadLetters, checkNoPunches
 };

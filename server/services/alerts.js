@@ -41,6 +41,9 @@ const alertConfig = async () => {
         enabled: false,
         recipients: '',
         device_offline_minutes: 30,
+        // Hour of the local working day after which an empty attendance table is
+        // treated as a fault rather than a quiet morning.
+        no_punch_after_hour: 11,
         digest_enabled: true,
         digest_time: '08:00',
         notify_config_changes: true

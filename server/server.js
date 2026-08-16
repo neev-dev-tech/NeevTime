@@ -752,16 +752,65 @@ app.get('/api/stats/database', async (req, res) => {
 });
 
 // Get Logs
+/**
+ * Punch log, newest first.
+ *
+ * `date` (or `from`/`to`) filters to a day. Without one this returns the newest
+ * rows whatever their age, which is fine for a log viewer and was catastrophic
+ * for the dashboard: it drove both the "Punches today" figure and the
+ * "Real-Time Monitor", so five-month-old punches rendered as live traffic while
+ * attendance collection was completely dead. See /api/logs/count.
+ */
 app.get('/api/logs', async (req, res) => {
     try {
-        const { limit = 50 } = req.query;
+        const { limit = 50, date, from, to } = req.query;
+
+        const where = [];
+        const params = [];
+        if (date) {
+            params.push(date);
+            where.push(`al.punch_time >= $${params.length}::date
+                        AND al.punch_time < $${params.length}::date + 1`);
+        } else {
+            if (from) { params.push(from); where.push(`al.punch_time >= $${params.length}::date`); }
+            if (to) { params.push(to); where.push(`al.punch_time < $${params.length}::date + 1`); }
+        }
+
+        params.push(Math.min(Number(limit) || 50, 5000));
+
         const result = await db.query(`
-            SELECT al.*, e.name as emp_name 
+            SELECT al.*, e.name as emp_name
             FROM attendance_logs al
             LEFT JOIN employees e ON al.employee_code = e.employee_code
-            ORDER BY al.punch_time DESC LIMIT $1
-        `, [limit]);
+            ${where.length ? `WHERE ${where.join(' AND ')}` : ''}
+            ORDER BY al.punch_time DESC LIMIT $${params.length}
+        `, params);
         res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+/**
+ * How many punches were actually recorded on a day.
+ *
+ * A real COUNT(*), because the dashboard used to report the *length of the
+ * fetched array* as "Punches today" — a query with LIMIT 100 and no date
+ * filter. It therefore displayed exactly 100 every single day from the moment
+ * the database held 100 punches, including the 145 consecutive days on which
+ * not one punch was recorded. The number that should have screamed was
+ * structurally incapable of changing.
+ */
+app.get('/api/logs/count', async (req, res) => {
+    try {
+        const date = req.query.date || null;
+        const result = await db.query(`
+            SELECT count(*)::int AS count
+              FROM attendance_logs
+             WHERE ($1::date IS NULL)
+                OR (punch_time >= $1::date AND punch_time < $1::date + 1)
+        `, [date]);
+        res.json({ date, count: result.rows[0].count });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -2020,6 +2069,34 @@ const ensureSchema = async () => {
         `ALTER TABLE devices ADD COLUMN IF NOT EXISTS first_seen_at TIMESTAMP`,
         // Shared secret for webhook-based vendors; NULL for push-protocol devices
         `ALTER TABLE devices ADD COLUMN IF NOT EXISTS ingest_token VARCHAR(64)`,
+        // The reader's own configuration, which Add Device and Edit Device both
+        // write in full and the Devices page renders. Same duplicate-definition
+        // failure as ot_minutes and the attendance_logs columns: schema.sql
+        // declared devices with all seven of these and 00_init_all.sql declared
+        // it with none, both under CREATE TABLE IF NOT EXISTS, and sorted order
+        // ran 00_init_all.sql first — so a fresh install got a devices table
+        // that POST and PUT /api/devices cannot write to at all. Adding a reader
+        // failed with `column "transfer_mode" of relation "devices" does not
+        // exist`, which is the whole Devices page on a new customer's database.
+        //
+        // device_direction is the one with a quiet failure rather than a loud
+        // one: services/integrations/erpnext.js reads it once per record while
+        // pushing attendance, inside a per-record catch, so every checkin would
+        // count as failed and nothing would reach ERPNext.
+        `ALTER TABLE devices ADD COLUMN IF NOT EXISTS transfer_mode VARCHAR(50) DEFAULT 'realtime'`,
+        `ALTER TABLE devices ADD COLUMN IF NOT EXISTS timezone VARCHAR(50) DEFAULT 'Etc/GMT+5:30'`,
+        `ALTER TABLE devices ADD COLUMN IF NOT EXISTS is_registration_device BOOLEAN DEFAULT TRUE`,
+        `ALTER TABLE devices ADD COLUMN IF NOT EXISTS is_attendance_device BOOLEAN DEFAULT TRUE`,
+        `ALTER TABLE devices ADD COLUMN IF NOT EXISTS connection_interval INTEGER DEFAULT 10`,
+        `ALTER TABLE devices ADD COLUMN IF NOT EXISTS device_direction VARCHAR(20) DEFAULT 'both'`,
+        `ALTER TABLE devices ADD COLUMN IF NOT EXISTS enable_access_control BOOLEAN DEFAULT FALSE`,
+        // The parent an area hangs off. routes/organization.js and the Area page
+        // both use parent_area_id; 00_init_all.sql called the column parent_id
+        // and won the fresh install, so the Areas page returned 500 on every
+        // read and could neither create nor re-parent an area. The old column is
+        // left where it is — nothing reads it, and dropping a column that might
+        // hold history is not a decision for a boot sequence.
+        `ALTER TABLE areas ADD COLUMN IF NOT EXISTS parent_area_id INTEGER REFERENCES areas(id) ON DELETE SET NULL`,
         // Marks a summary row as hand-corrected so a recompute leaves it alone
         `ALTER TABLE attendance_daily_summary ADD COLUMN IF NOT EXISTS is_finalized BOOLEAN DEFAULT false`,
         // Why a row was corrected by hand. Manual Entry requires a reason and

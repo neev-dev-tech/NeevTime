@@ -148,19 +148,25 @@ export default function Dashboard() {
             // initial zero — the whole dashboard read 0 employees, 0 devices,
             // 0 punches because one query had broken. Each panel now stands or
             // falls on its own request.
-            const [employeesRes, devicesRes, summaryRes, logsRes, yesterdaySummaryRes] =
+            const [employeesRes, devicesRes, summaryRes, logsRes, yesterdaySummaryRes, punchCountRes] =
                 await Promise.allSettled([
                     api.get('/api/employees'),
                     api.get('/api/devices'),
                     api.get('/api/attendance/summary', { params: { date: today } }),
-                    api.get('/api/logs', { params: { limit: 100 } }),
-                    api.get('/api/attendance/summary', { params: { date: yesterday } })
+                    // Date-filtered, and the count comes from a real COUNT(*).
+                    // This used to be an undated limit-100 fetch whose array
+                    // length was displayed as "Punches today" — so it read 100
+                    // every day, including the 145 days on which nothing was
+                    // recorded at all.
+                    api.get('/api/logs', { params: { date: today, limit: 200 } }),
+                    api.get('/api/attendance/summary', { params: { date: yesterday } }),
+                    api.get('/api/logs/count', { params: { date: today } })
                 ]);
 
             const rowsOfSettled = (settled) =>
                 (settled.status === 'fulfilled' ? settled.value.data : null) || [];
 
-            const failed = [employeesRes, devicesRes, summaryRes, logsRes, yesterdaySummaryRes]
+            const failed = [employeesRes, devicesRes, summaryRes, logsRes, yesterdaySummaryRes, punchCountRes]
                 .filter(r => r.status === 'rejected');
             if (failed.length) {
                 // Logged rather than swallowed: a panel quietly showing zero is
@@ -228,7 +234,10 @@ export default function Dashboard() {
             const totalEmployees = employees.length;
             const attendanceRate = totalEmployees > 0 ? Math.round((present / totalEmployees) * 100) : 0;
             const punctualityRate = totalEmployees > 0 ? Math.round(((totalEmployees - late) / totalEmployees) * 100) : 0;
-            const totalPunches = rowsOfSettled(logsRes).length;
+            // A real count for today, not the number of rows that came back.
+            const totalPunches = punchCountRes.status === 'fulfilled'
+                ? (punchCountRes.value.data?.count ?? 0)
+                : 0;
             const avgHours = summary.length > 0
                 ? Math.round(summary.reduce((sum, r) => sum + (r.duration_minutes || 0), 0) / summary.length / 60 * 10) / 10
                 : 0;
@@ -322,7 +331,12 @@ export default function Dashboard() {
 
     const fetchRecentLogs = async () => {
         try {
-            const res = await api.get('/api/logs', { params: { limit: 10 } });
+            // Today only. Without the filter this showed the newest rows in the
+            // table whatever their date, so March punches appeared in a panel
+            // titled "Real-Time Monitor" while nothing was being collected.
+            const res = await api.get('/api/logs', {
+                params: { date: toLocalDateString(new Date()), limit: 10 }
+            });
             // Transform logs to match expected format
             const formattedLogs = (res.data || []).map(log => ({
                 ...log,
@@ -638,7 +652,7 @@ export default function Dashboard() {
                                     : { text: `${stats.devices - stats.devicesOnline} offline`, color: '#DC2626' })
                                 : null}
                         />
-                        <StatCard icon={Fingerprint} label="Verifications" value={stats.verificationCount} tone="biometric" />
+                        <StatCard icon={Fingerprint} label="Enrolled biometrics" value={stats.verificationCount} tone="biometric" />
                         {/* Moved up from the removed attendance-status row —
                             the only two figures on it that were not already
                             stated by the headline cards. */}
