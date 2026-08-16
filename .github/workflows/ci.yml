@@ -373,9 +373,11 @@ jobs:
           # list from a query parameter the server never read. Both had healthy
           # endpoints. A vite build misses them too: esbuild does not resolve
           # identifiers, so a missing import ships as a blank page.
+          # The script lives in client/scripts because ESM resolves imports from
+          # the file's own location, and puppeteer-core is a client devDependency.
           npm --prefix client ci
           CHROME_PATH=$(which google-chrome || which chromium-browser) \
-            node scripts/browser-check.mjs
+            node client/scripts/browser-check.mjs
 
       - name: A backup must actually be produced
         run: |
