@@ -249,6 +249,74 @@ jobs:
           fi
           exit $status
 
+  cutover:
+    name: Split deployment serves the readers
+    runs-on: ubuntu-latest
+    # The 145-day outage began with a deploy. The containers came up, nginx
+    # answered, /api/health passed, and /iclock returned 502 to every reader
+    # because Node was no longer in the container nginx proxied to. Nothing
+    # tested the one path the system exists to serve.
+    #
+    # This brings the whole compose stack up exactly as the VM will and proves
+    # that a punch can reach the application through nginx — not through :3001,
+    # which answers 200 while the proxy in front of it is broken.
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build and start the stack
+        run: |
+          docker compose build client server
+          docker compose up -d
+          docker compose ps
+
+      - name: Wait for the app to answer
+        run: |
+          for i in $(seq 1 60); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 http://localhost/api/health || true)
+            [ "$code" = "200" ] && { echo "healthy after ${i}s"; break; }
+            sleep 2
+          done
+          [ "$code" = "200" ] || {
+            echo "::error::/api/health never returned 200 (last: ${code:-none})"
+            docker compose logs --tail 60
+            exit 1
+          }
+
+      - name: The readers must be able to reach /iclock
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 http://localhost/iclock/cdata || true)
+          echo "/iclock -> $code"
+          case "$code" in
+            502|504|000|"")
+              echo "::error::/iclock is $code — nginx cannot reach the server container."
+              echo "This is the exact state that lost 145 days of attendance."
+              docker compose exec -T client sh -c 'nginx -T 2>/dev/null | grep -A4 "location /iclock"' || true
+              docker compose logs --tail 40 client
+              exit 1 ;;
+          esac
+
+      - name: TLS is served, and the config parses
+        run: |
+          docker compose exec -T client nginx -t
+          code=$(curl -sk -o /dev/null -w '%{http_code}' --max-time 5 https://localhost/ || true)
+          echo "https:// -> $code"
+          [ "$code" = "200" ] || { echo "::error::HTTPS did not serve the app ($code)"; exit 1; }
+
+          # Port 80 must keep serving /iclock in clear text whatever browsers
+          # are redirected to: the readers speak plain HTTP and cannot follow a
+          # redirect to TLS.
+          iclock80=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 http://localhost/iclock/cdata || true)
+          case "$iclock80" in
+            301|302|307|308)
+              echo "::error::port 80 redirects /iclock to HTTPS ($iclock80) — the readers cannot follow it"
+              exit 1 ;;
+          esac
+          echo "port 80 /iclock -> $iclock80"
+
+      - name: Stop the stack
+        if: always()
+        run: docker compose down -v
+
   isolation:
     name: Tenant isolation (real Postgres)
     runs-on: ubuntu-latest

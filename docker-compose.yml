@@ -48,19 +48,32 @@ services:
   # Frontend Client Service
   client:
     build:
-      context: ./client
-      dockerfile: Dockerfile
+      # Repo root, not ./client: the nginx configuration is shared with the
+      # single-container image and lives at the root, and a build context
+      # cannot reach above itself.
+      context: .
+      dockerfile: client/Dockerfile
     container_name: attendance_client
     restart: always
     depends_on:
       - server
+    environment:
+      - TLS_ENABLED=${TLS_ENABLED:-true}
+      - TLS_COMMON_NAME=${TLS_COMMON_NAME:-neevtime.local}
     ports:
       - "80:80"
+      - "443:443"
+    volumes:
+      # The self-signed pair must outlive the container. Without this every
+      # deploy issues a new certificate and every browser shows a fresh warning,
+      # which teaches people to click through them.
+      - nginx_certs:/etc/nginx/certs
     networks:
       - app-network
 
 volumes:
   pgdata:
+  nginx_certs:
 
 
 networks:

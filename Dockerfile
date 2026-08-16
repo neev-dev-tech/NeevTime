@@ -58,6 +58,8 @@ COPY nginx-docker.conf /etc/nginx/nginx-http.conf
 # Installed over default.conf by the entrypoint when TLS_ENABLED=true
 COPY nginx-tls.conf /etc/nginx/nginx-tls.conf
 # Shared by both configurations so they cannot drift apart
+# Backend location for this image: Node runs in the same container.
+COPY nginx-upstream-combined.conf /etc/nginx/conf.d/01-upstream.conf
 COPY nginx-locations.conf /etc/nginx/app-locations.conf
 COPY nginx-iclock.conf /etc/nginx/iclock.conf
 # http-level map feeding the HSTS header. conf.d/*.conf is auto-included there,
