@@ -2130,8 +2130,31 @@ const ensureSchema = async () => {
         // This fails loudly and harmlessly if a database somehow holds two
         // punches with the same code and timestamp; ensureSchema logs and
         // carries on, and nothing is deleted to make it fit.
-        `CREATE UNIQUE INDEX IF NOT EXISTS attendance_logs_emp_time_key
-             ON attendance_logs (employee_code, punch_time)`,
+        // IF NOT EXISTS matches on the index NAME, not its columns, so a plain
+        // CREATE UNIQUE INDEX here would build a second, redundant unique index
+        // over every punch row on any database that already has this constraint
+        // under the name Postgres generated for it — which is this one. Check
+        // for a unique index covering exactly these two columns instead.
+        `DO $$
+         BEGIN
+           IF NOT EXISTS (
+             SELECT 1
+               FROM pg_index i
+               JOIN pg_class t ON t.oid = i.indrelid
+              WHERE t.relname = 'attendance_logs'
+                AND i.indisunique
+                AND i.indnatts = 2
+                AND i.indkey::int2[] @> ARRAY[
+                      (SELECT attnum FROM pg_attribute
+                        WHERE attrelid = t.oid AND attname = 'employee_code'),
+                      (SELECT attnum FROM pg_attribute
+                        WHERE attrelid = t.oid AND attname = 'punch_time')
+                    ]::int2[]
+           ) THEN
+             CREATE UNIQUE INDEX attendance_logs_emp_time_key
+                 ON attendance_logs (employee_code, punch_time);
+           END IF;
+         END $$`,
         `ALTER TABLE attendance_logs ADD COLUMN IF NOT EXISTS punch_source VARCHAR(50) DEFAULT 'biometric'`,
         `ALTER TABLE attendance_logs ADD COLUMN IF NOT EXISTS latitude DECIMAL(10, 8)`,
         `ALTER TABLE attendance_logs ADD COLUMN IF NOT EXISTS longitude DECIMAL(11, 8)`,
