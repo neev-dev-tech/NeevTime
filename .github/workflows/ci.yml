@@ -135,10 +135,41 @@ jobs:
           DB_USER: postgres
           DB_PASSWORD: ci
           PORT: '3998'
+          # Throwaway, this container only. routes/auth.js refuses to load
+          # without it, and on the first run the server died on exactly this
+          # line — `|| true` swallowed it, ensureSchema never ran, and the tests
+          # skipped on a missing column instead of reporting a dead boot.
+          JWT_SECRET: ci-only-not-a-real-secret
         run: |
           npm ci
+          # The boot is expected to be killed by timeout; that is not a failure.
+          # A boot that exits early is, so the log is checked below rather than
+          # trusted.
           timeout 25 node server.js > /tmp/boot.log 2>&1 || true
-          tail -3 /tmp/boot.log || true
+          tail -5 /tmp/boot.log || true
+
+      - name: Verify ensureSchema actually ran
+        run: |
+          # Without this, any future boot failure degrades into "tests skipped"
+          # again. Assert the columns the services read are really present, and
+          # print the boot log when they are not.
+          missing=""
+          for pair in "employees deleted_at" "employees attendance_required" \
+                      "attendance_daily_summary ot_minutes" \
+                      "attendance_daily_summary late_minutes"; do
+            set -- $pair
+            found=$(docker exec pgr psql -U postgres -d neevtime_ci -tAc \
+              "SELECT 1 FROM information_schema.columns
+                WHERE table_name='$1' AND column_name='$2'")
+            [ "$found" = "1" ] || missing="$missing $1.$2"
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::ensureSchema did not create:$missing"
+            echo "--- boot log ---"
+            cat /tmp/boot.log
+            exit 1
+          fi
+          echo "ensureSchema built every column the registers read"
 
       - name: Run the registers against it
         working-directory: server
