@@ -96,7 +96,15 @@ const insertSites = () => {
 const BASELINE = new Set([
     // FALSE POSITIVE — all present in production
     'server.js|devices',
-    'services/hrms-integration.js|integration_sync_logs',
+    // integration_sync_logs was here, classified FALSE POSITIVE and marked
+    // "verified by hand against the live schema on 2026-08-03". That
+    // verification was wrong. On 2026-08-16 production logged, repeatedly:
+    //
+    //   column "direction" of relation "integration_sync_logs" does not exist
+    //
+    // The scan was right and the hand check was not. ensureSchema now creates
+    // the column, so this entry is removed rather than re-justified — a
+    // baseline that absorbs a true finding stops being a baseline.
     'services/scheduled-reports.js|scheduled_reports',
 
     // Development-only scripts, not on any request path

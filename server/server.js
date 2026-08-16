@@ -2161,6 +2161,28 @@ const ensureSchema = async () => {
         `ALTER TABLE attendance_logs ADD COLUMN IF NOT EXISTS is_geofence_verified BOOLEAN DEFAULT FALSE`,
         `ALTER TABLE attendance_logs ADD COLUMN IF NOT EXISTS geofence_id INTEGER REFERENCES geofences(id) ON DELETE SET NULL`,
         `ALTER TABLE employees ADD COLUMN IF NOT EXISTS assigned_geofence_id INTEGER REFERENCES geofences(id) ON DELETE SET NULL`,
+        // Every sync log insert on this deployment has been failing with
+        // 'column "direction" of relation "integration_sync_logs" does not
+        // exist'. scripts/fix_production_schema.js creates the table without
+        // that column; services/hrms-integration.js writes it. logSync catches
+        // and logs, so the sync itself carried on and nothing surfaced — which
+        // means the success and failure counts on the Integrations page, and
+        // the history at routes/integrations.js:254, have always been empty.
+        // A sync that never ran and a sync that failed looked identical.
+        `CREATE TABLE IF NOT EXISTS integration_sync_logs (
+            id                 SERIAL PRIMARY KEY,
+            integration_id     INTEGER NOT NULL,
+            sync_type          VARCHAR(50),
+            direction          VARCHAR(20),
+            status             VARCHAR(20),
+            records_processed  INTEGER DEFAULT 0,
+            records_success    INTEGER DEFAULT 0,
+            records_failed     INTEGER DEFAULT 0,
+            error_message      TEXT,
+            started_at         TIMESTAMP DEFAULT NOW(),
+            completed_at       TIMESTAMP
+        )`,
+        `ALTER TABLE integration_sync_logs ADD COLUMN IF NOT EXISTS direction VARCHAR(20)`,
         // Sign-in matches usernames case-insensitively, because an account made
         // as "Mukesh" that cannot be signed into as "mukesh" just looks broken —
         // a missing user and a wrong password return the same message. That
