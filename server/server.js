@@ -2103,6 +2103,35 @@ const ensureSchema = async () => {
             is_active BOOLEAN DEFAULT TRUE,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )`,
+        // The columns the two ingest paths write. Same failure as ot_minutes and
+        // worse: 00_init_all.sql and schema.sql both declare attendance_logs
+        // with CREATE TABLE IF NOT EXISTS and disagree about nearly every
+        // column. Sorted order runs 00_init_all.sql first, so a fresh install
+        // gets punch_type/verify_type and none of the below — while adms.js
+        // writes punch_state, verification_mode and sync_status, and
+        // punch_ingest.js writes raw_data, source, is_attendance and
+        // upload_time. On a new customer's database every punch from every
+        // device would fail to insert, and the only symptom is an empty
+        // attendance page.
+        `ALTER TABLE attendance_logs ADD COLUMN IF NOT EXISTS punch_state VARCHAR(10) DEFAULT 'check_in'`,
+        `ALTER TABLE attendance_logs ADD COLUMN IF NOT EXISTS verification_mode INTEGER`,
+        `ALTER TABLE attendance_logs ADD COLUMN IF NOT EXISTS sync_status VARCHAR(20)`,
+        `ALTER TABLE attendance_logs ADD COLUMN IF NOT EXISTS raw_data TEXT`,
+        `ALTER TABLE attendance_logs ADD COLUMN IF NOT EXISTS source INTEGER`,
+        `ALTER TABLE attendance_logs ADD COLUMN IF NOT EXISTS is_attendance INTEGER`,
+        `ALTER TABLE attendance_logs ADD COLUMN IF NOT EXISTS upload_time TIMESTAMP`,
+        // Both inserts use ON CONFLICT (employee_code, punch_time), which needs
+        // a unique constraint on exactly those two columns. 00_init_all.sql
+        // declares UNIQUE(employee_code, punch_time, device_serial) — three
+        // columns, which does not match, so on a fresh install the insert would
+        // not merely miss a column but be rejected outright with "no unique or
+        // exclusion constraint matching the ON CONFLICT specification".
+        //
+        // This fails loudly and harmlessly if a database somehow holds two
+        // punches with the same code and timestamp; ensureSchema logs and
+        // carries on, and nothing is deleted to make it fit.
+        `CREATE UNIQUE INDEX IF NOT EXISTS attendance_logs_emp_time_key
+             ON attendance_logs (employee_code, punch_time)`,
         `ALTER TABLE attendance_logs ADD COLUMN IF NOT EXISTS punch_source VARCHAR(50) DEFAULT 'biometric'`,
         `ALTER TABLE attendance_logs ADD COLUMN IF NOT EXISTS latitude DECIMAL(10, 8)`,
         `ALTER TABLE attendance_logs ADD COLUMN IF NOT EXISTS longitude DECIMAL(11, 8)`,

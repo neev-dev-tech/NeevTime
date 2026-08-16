@@ -201,14 +201,23 @@ jobs:
           DB_USER: postgres
           DB_PASSWORD: ci
         run: |
-          # A skipped run is not a pass. If the database were unreachable these
-          # tests would quietly skip, which is the exact shape of the problem
-          # they exist to prevent.
+          # pipefail, and it is not optional. Without it the exit status of this
+          # step is tee's, which is always 0 — the previous version reported the
+          # whole job green while all five tests were failing. A guard that only
+          # catches skips, wrapped in a pipe that discards failures, is worse
+          # than no guard: it reads as coverage.
+          set -o pipefail
           node --test tests/registers_db.test.js 2>&1 | tee /tmp/db-tests.log
+          status=$?
+
+          # A skipped run is not a pass either. If the database were unreachable
+          # these tests would quietly skip, which is the exact shape of the
+          # problem they exist to prevent.
           if grep -qE '^# skipped [1-9]' /tmp/db-tests.log; then
             echo "::error::the real-database tests skipped — the database was not reachable"
             exit 1
           fi
+          exit $status
 
   isolation:
     name: Tenant isolation (real Postgres)
