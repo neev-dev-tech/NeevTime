@@ -132,3 +132,44 @@ test('an unrecognised view is rejected rather than silently defaulted', () => {
         'the ?? fallback is back — an unknown view resolves to active again'
     );
 });
+
+test('a setting with no seeded row still saves', () => {
+    // UPDATE ... WHERE category AND setting_key affects nothing when the row
+    // does not exist, and returns success. A setting added in code but never
+    // seeded would appear to save and silently not — the same shape as the
+    // sync_leaves toggle nothing read, and the ?status= parameter the server
+    // ignored. backup_external_path was exactly this case.
+    const src = stripComments(read('routes/settings.js'));
+    const i = src.indexOf("router.put('/:category'");
+    const body = src.slice(i, i + 1800);
+
+    assert.ok(
+        /INSERT INTO app_settings/.test(body) && /ON CONFLICT \(category, setting_key\)/.test(body),
+        'the settings write is a bare UPDATE again, so any setting without a seeded ' +
+        'row saves nothing and says it worked'
+    );
+    assert.ok(
+        !/^\s*UPDATE app_settings\s*$/m.test(body),
+        'a bare UPDATE against app_settings has returned'
+    );
+});
+
+test('a backup is copied to the external path when one is set', () => {
+    const src = stripComments(read('routes/database.js'));
+
+    assert.ok(/const copyToExternal/.test(src), 'the external copy helper is gone');
+    const helper = src.slice(src.indexOf('const copyToExternal'), src.indexOf('const createBackup'));
+    assert.ok(
+        /backup_external_path/.test(helper),
+        'the external copy no longer reads the configured path'
+    );
+    assert.ok(
+        /catch \(err\)/.test(helper),
+        'a failing external copy must not fail the backup — a dump in one place ' +
+        'beats an error and no dump at all'
+    );
+    assert.ok(
+        /copyToExternal\(filepath, filename\)/.test(src),
+        'createBackup no longer calls the external copy'
+    );
+});

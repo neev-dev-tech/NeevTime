@@ -36,8 +36,10 @@ export default function DatabaseTools() {
         backup_enabled: false,
         backup_frequency: 'daily',
         backup_time: '02:00',
-        backup_retention_count: 7
+        backup_retention_count: 7,
+        backup_external_path: ''
     });
+    const [pathCheck, setPathCheck] = useState(null);
     const [savingSchedule, setSavingSchedule] = useState(false);
 
     const fetchAutoBackup = async () => {
@@ -53,10 +55,32 @@ export default function DatabaseTools() {
                 backup_enabled: String(val('backup_enabled', false)) === 'true',
                 backup_frequency: val('backup_frequency', 'daily'),
                 backup_time: String(val('backup_time', '02:00')).slice(0, 5),
-                backup_retention_count: Number(val('backup_retention_count', 7))
+                backup_retention_count: Number(val('backup_retention_count', 7)),
+                backup_external_path: String(val('backup_external_path', '') || '')
             });
         } catch {
             // Leave the defaults in place; the panel still saves
+        }
+    };
+
+    /**
+     * Prove the path works before anyone relies on it.
+     *
+     * The path is inside the container, so a plausible one like /mnt/nas/backups
+     * writes into the container's own filesystem unless a volume is mounted
+     * there — and is destroyed on the next deploy. Backups would appear to
+     * succeed and the copies would be gone. Better to hear that here.
+     */
+    const handleCheckPath = async () => {
+        setPathCheck({ checking: true });
+        try {
+            const res = await api.post('/api/database/backup-path/check', {
+                path: autoBackup.backup_external_path
+            });
+            setPathCheck(res.data);
+        } catch (err) {
+            setPathCheck({ ok: false, error: err.response?.data?.error || err.message,
+                           hint: err.response?.data?.hint });
         }
     };
 
@@ -533,6 +557,42 @@ export default function DatabaseTools() {
                             <p className="text-xs text-slate-500 dark:text-slate-400">
                                 Older automatic backups are deleted once this many exist.
                             </p>
+                        </div>
+                        <div className="space-y-2 md:col-span-2">
+                            <label className={FIELD_LABEL}>Second copy — external path</label>
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    placeholder="/mnt/backups   (leave empty for none)"
+                                    value={autoBackup.backup_external_path}
+                                    onChange={(e) => { setAutoBackup(p => ({ ...p, backup_external_path: e.target.value })); setPathCheck(null); }}
+                                    className={`${FIELD} flex-1`}
+                                />
+                                <Button
+                                    variant="secondary"
+                                    onClick={handleCheckPath}
+                                    disabled={!autoBackup.backup_external_path.trim() || pathCheck?.checking}
+                                >
+                                    {pathCheck?.checking ? 'Checking…' : 'Test'}
+                                </Button>
+                            </div>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">
+                                Every backup is copied here as well. A dump beside the database survives a bad
+                                migration; it does not survive losing the disk. This path is inside the app
+                                container, so it must be a mounted volume to reach other hardware.
+                            </p>
+                            {pathCheck && !pathCheck.checking && (
+                                <div className={`text-xs rounded-lg p-3 border ${
+                                    pathCheck.ok && pathCheck.mounted
+                                        ? 'bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-900/20 dark:border-emerald-800 dark:text-emerald-300'
+                                        : pathCheck.ok
+                                        ? 'bg-amber-50 border-amber-200 text-amber-800 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-300'
+                                        : 'bg-rose-50 border-rose-200 text-rose-800 dark:bg-rose-900/20 dark:border-rose-800 dark:text-rose-300'
+                                }`}>
+                                    {pathCheck.ok ? pathCheck.message : (pathCheck.error || 'Not writable')}
+                                    {!pathCheck.ok && pathCheck.hint && <span className="block mt-1">{pathCheck.hint}</span>}
+                                </div>
+                            )}
                         </div>
                     </div>
                     <div className="mt-6 flex justify-end">
