@@ -80,7 +80,9 @@ New. Every item below was a real production state on 16 August, and none of them
 - The dashboard counts punches with a `COUNT(*)`; it previously displayed the length of a `limit: 100` fetch, which read 100 every day regardless of reality.
 - `ensureSchema` no longer logs failures that are not failures. A boot log with standing errors in it is a log nobody reads — and a genuinely broken statement sat in that stream unnoticed.
 
-Still open: an alert that reaches a person. SMTP has never been configured, so six alerts are currently open and undeliverable. **Detection without delivery is not monitoring.**
+Alert delivery works — status mails have been arriving all along. The six "Email not configured" alerts that suggested otherwise were read from the stale database volume, along with the five-month outage and the backup scheduler that had supposedly stopped. Worth stating plainly: three separate conclusions on 16 August came from a database the service was mounted on by accident, and each was confidently wrong.
+
+Still open here: `checkNoPunches` has never actually fired. It is the alert written to catch a dead ingest on a working day, and until it triggers once — deliberately or otherwise — its delivery is assumed rather than observed. **Detection without delivery is not monitoring, and delivery nobody has seen is not delivery.**
 
 *The unifying fault: a signal that cannot change carries no information. A count that was always 100, a zero printed as a pass, a healthcheck asking nginx about Node, boot errors that fired every restart. Each looked like monitoring and none could ever report a problem.*
 
