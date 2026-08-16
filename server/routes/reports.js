@@ -14,6 +14,7 @@
 const express = require('express');
 const router = express.Router();
 const reports = require('../services/reports');
+const registers = require('../services/registers');
 const { authenticateToken } = require('./auth');
 const { validateDateRange } = require('../middleware/validation');
 
@@ -535,5 +536,55 @@ router.get('/history', async (req, res) => {
 // table, a second store the mailer only falls back to when app_settings has
 // no smtp_host. Settings -> Email/SMTP is the single source of truth, and
 // nothing in the client ever called these.
+
+// ==========================================
+// STATUTORY REGISTERS
+// ==========================================
+//
+// The muster roll, overtime register and leave register that the Factories Act
+// requires be kept and produced on demand. Every field they need already
+// existed here; there was simply no way to print them, so the one document an
+// inspector asks for could not come out of the system holding the data.
+//
+// These return the register's content, not a certified form. Form numbers and
+// layouts are set by each state's Factories Rules and differ between them —
+// lay the output out to whatever your state prescribes. Each response carries
+// `missingFields` for anything the register wants that this system does not
+// hold, so a blank column is never mistaken for a zero.
+
+const REGISTERS = {
+    'muster-roll': registers.musterRoll,
+    'overtime': registers.overtimeRegister,
+    'leave': registers.leaveRegister
+};
+
+router.get('/registers/:type', validateDateRange, async (req, res) => {
+    try {
+        const build = REGISTERS[req.params.type];
+        if (!build) {
+            // Named explicitly rather than defaulting to one of them. A register
+            // that quietly returns different content than was asked for is worse
+            // than an error, particularly this one.
+            return res.status(400).json({
+                error: `Unknown register "${req.params.type}"`,
+                allowed: Object.keys(REGISTERS)
+            });
+        }
+
+        const { from, to, department_id } = req.query;
+        if (!from || !to) {
+            return res.status(400).json({ error: 'from and to dates are required' });
+        }
+
+        res.json(await build({
+            from,
+            to,
+            departmentId: department_id ? parseInt(department_id, 10) : null
+        }));
+    } catch (err) {
+        console.error(`Register (${req.params.type}) failed:`, err);
+        res.status(500).json({ error: err.message });
+    }
+});
 
 module.exports = router;
