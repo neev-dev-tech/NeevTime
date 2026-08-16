@@ -21,34 +21,67 @@ const loadDateFormat = () => import(`file://${dateFormatPath}`);
 
 // ─────────────────────── client-side display formatting ──────────────────────
 
+test('dates render day-first, zero-padded', async () => {
+    const { formatDate } = await loadDateFormat();
+    // The whole app used to call toLocaleDateString(), which follows the
+    // viewer's browser locale — the same register read 4/3/2026 on one machine
+    // and 3/4/2026 on another. On a muster roll that ambiguity is a finding, so
+    // the format is pinned rather than left to the browser.
+    assert.strictEqual(formatDate('2026-04-03'), '03/04/2026', '3 April, not 4 March');
+    assert.strictEqual(formatDate('2026-12-25'), '25/12/2026');
+    // Padding is what keeps a column of dates aligned and unambiguous.
+    assert.strictEqual(formatDate('2026-01-05'), '05/01/2026');
+});
+
+test('a Date object is read through its accessors, not stringified', async () => {
+    const { formatDate, formatTimestamp } = await loadDateFormat();
+    // String(date) is "Wed Jul 09 2026 00:00:00 GMT+0530". Splitting that on a
+    // space or a T yields nonsense, and this precise mistake shipped in the
+    // payroll export: every employee's joining date became "Wed Jul 09", which
+    // string-compared before every day in the period, so the whole company was
+    // marked never-employed and exported zero payable days.
+    //
+    // DataTable and the PDF and Excel exports all pass Date objects.
+    assert.strictEqual(formatDate(new Date(2026, 6, 9)), '09/07/2026');
+    assert.strictEqual(formatTimestamp(new Date(2026, 0, 5, 17, 52, 3)).datetime,
+        '05/01/2026 5:52:03 PM');
+    assert.strictEqual(formatDate(new Date('nonsense')), '-', 'an invalid Date must not render');
+});
+
+test('the weekday variant agrees with the date printed beside it', async () => {
+    const { formatDateWithWeekday } = await loadDateFormat();
+    // 15 August 2026 is a Saturday.
+    assert.strictEqual(formatDateWithWeekday('2026-08-15'), 'Sat 15/08/2026');
+});
+
 test('a UTC instant renders in the viewer local time, not the UTC clock face', async () => {
     const { formatTimestamp } = await loadDateFormat();
     // 07:41:52Z is 13:11:52 IST — this displayed as 7:41 AM before the fix
     const out = formatTimestamp('2026-07-31T07:41:52.000Z');
-    assert.strictEqual(out.datetime, '7/31/2026 1:11:52 PM');
+    assert.strictEqual(out.datetime, '31/07/2026 1:11:52 PM');
 });
 
 test('a bare wall clock is shown as written, with no shifting', async () => {
     const { formatTimestamp } = await loadDateFormat();
     // to_char() output has no zone; parsing it as an instant would move it
     const out = formatTimestamp('2026-07-31 13:11:52');
-    assert.strictEqual(out.datetime, '7/31/2026 1:11:52 PM');
+    assert.strictEqual(out.datetime, '31/07/2026 1:11:52 PM');
 });
 
 test('a date column does not display as the previous day', async () => {
     const { formatTimestamp } = await loadDateFormat();
     // Midnight IST on the 15th serialises as 18:30Z on the 14th
-    assert.strictEqual(formatTimestamp('2026-07-14T18:30:00.000Z').date, '7/15/2026');
+    assert.strictEqual(formatTimestamp('2026-07-14T18:30:00.000Z').date, '15/07/2026');
 });
 
 test('a date-only string stays on its own date', async () => {
     const { formatTimestamp } = await loadDateFormat();
-    assert.strictEqual(formatTimestamp('2026-07-15').date, '7/15/2026');
+    assert.strictEqual(formatTimestamp('2026-07-15').date, '15/07/2026');
 });
 
 test('an explicit offset is honoured', async () => {
     const { formatTimestamp } = await loadDateFormat();
-    assert.strictEqual(formatTimestamp('2026-07-31T13:11:52+05:30').datetime, '7/31/2026 1:11:52 PM');
+    assert.strictEqual(formatTimestamp('2026-07-31T13:11:52+05:30').datetime, '31/07/2026 1:11:52 PM');
 });
 
 test('empty and unparseable values degrade to a dash rather than "Invalid Date"', async () => {
