@@ -258,6 +258,10 @@ jobs:
       # end of the job. No fixed default exists in the product.
       ADMIN_PASSWORD: ci-only-first-admin
       SMOKE_PASS: ci-only-first-admin
+      # Straight to HTTPS. Port 80 redirects, and while that now preserves the
+      # method, a smoke test should exercise the address people actually use
+      # rather than the redirect in front of it.
+      BASE: https://localhost
     # The 145-day outage began with a deploy. The containers came up, nginx
     # answered, /api/health passed, and /iclock returned 502 to every reader
     # because Node was no longer in the container nginx proxied to. Nothing
@@ -319,6 +323,16 @@ jobs:
           # Port 80 must keep serving /iclock in clear text whatever browsers
           # are redirected to: the readers speak plain HTTP and cannot follow a
           # redirect to TLS.
+          # A redirect that rewrites POST to GET breaks every API client that
+          # reaches port 80. 301 and 302 permit that rewrite; 308 does not.
+          redirect=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 http://localhost/api/health || true)
+          case "$redirect" in
+            308|200) echo "port 80 -> $redirect" ;;
+            301|302|307)
+              echo "::error::port 80 redirects with $redirect — POST becomes GET for browsers and fetch()"
+              exit 1 ;;
+          esac
+
           iclock80=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 http://localhost/iclock/cdata || true)
           case "$iclock80" in
             301|302|307|308)
