@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../api';
 import { Calendar, ChevronLeft, ChevronRight, Clock, CheckCircle, XCircle, AlertCircle, RefreshCw } from 'lucide-react';
 import { Button, PageHeader } from '../components';
+import { toLocalDateString } from '../utils/dateFormat';
 
 export default function AttendanceCalendar() {
     const [currentDate, setCurrentDate] = useState(new Date());
@@ -68,7 +69,7 @@ export default function AttendanceCalendar() {
         for (let day = 1; day <= daysInMonth; day++) {
             const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
             const dayData = data[dateStr];
-            const isToday = new Date().toISOString().split('T')[0] === dateStr;
+            const isToday = toLocalDateString() === dateStr;
 
             days.push(
                 <div

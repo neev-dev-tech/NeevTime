@@ -480,11 +480,52 @@ const Integrations = () => {
                                 </FormControl>
                                 {formData.type && (() => {
                                     const typeInfo = integrationTypes.find(t => t.type === formData.type);
-                                    return typeInfo ? (
-                                        <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
-                                            {typeInfo.description}
-                                        </Typography>
-                                    ) : null;
+                                    if (!typeInfo) return null;
+
+                                    // What this integration will and will not sync, read off
+                                    // the adapter class by the server. Shown before saving
+                                    // because the gaps are not obvious and not cosmetic: an
+                                    // integration without holidays counts every public
+                                    // holiday as an absence, and without shifts everyone is
+                                    // measured against one fallback start time. That
+                                    // combination produced 409 absences in a month here.
+                                    const LABELS = {
+                                        employees: 'Employees',
+                                        shifts: 'Shifts',
+                                        holidays: 'Holidays',
+                                        leave: 'Leave',
+                                        push_attendance: 'Attendance push',
+                                        push_leave: 'Leave push'
+                                    };
+                                    const has = typeInfo.capabilities || [];
+                                    const missing = Object.keys(LABELS).filter(
+                                        k => !has.includes(k) && k !== 'push_leave'
+                                    );
+
+                                    return (
+                                        <Box sx={{ mt: 0.5 }}>
+                                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                                                {typeInfo.description}
+                                            </Typography>
+                                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 1 }}>
+                                                {has.map(c => (
+                                                    <Chip key={c} size="small" color="success" variant="outlined"
+                                                        label={LABELS[c] || c} />
+                                                ))}
+                                                {missing.map(c => (
+                                                    <Chip key={c} size="small" variant="outlined"
+                                                        label={`No ${(LABELS[c] || c).toLowerCase()}`} />
+                                                ))}
+                                            </Box>
+                                            {missing.includes('holidays') && (
+                                                <Typography variant="caption" color="warning.main" sx={{ display: 'block', mt: 1 }}>
+                                                    This integration does not sync holidays or leave. Public holidays and
+                                                    approved days off will be counted as absences unless they are entered
+                                                    here directly.
+                                                </Typography>
+                                            )}
+                                        </Box>
+                                    );
                                 })()}
                             </Grid>
                             <Grid size={{ xs: 12 }}>

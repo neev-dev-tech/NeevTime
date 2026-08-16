@@ -1,3 +1,4 @@
+import { toLocalDateString } from './dateFormat';
 /**
  * Enhanced Excel Export Utility
  * Provides premium Excel/XLSX generation with styling across all reports
@@ -201,7 +202,7 @@ export const exportToExcel = async (options) => {
         if (onProgress) onProgress(85);
 
         // Generate filename with timestamp
-        const timestamp = new Date().toISOString().split('T')[0];
+        const timestamp = toLocalDateString();
         const finalFilename = filename
             ? (filename.endsWith('.xlsx') ? filename : `${filename}.xlsx`)
             : `export_${timestamp}.xlsx`;
@@ -340,7 +341,7 @@ export const exportToCSV = async (options) => {
         a.href = url;
 
         // Generate filename
-        const timestamp = new Date().toISOString().split('T')[0];
+        const timestamp = toLocalDateString();
         const finalFilename = filename
             ? (filename.endsWith('.csv') ? filename : `${filename}.csv`)
             : `export_${timestamp}.csv`;

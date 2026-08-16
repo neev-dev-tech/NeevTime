@@ -5,12 +5,13 @@ import { useNavigate } from 'react-router-dom';
 import { exportToPDF } from '../../utils/pdfExport';
 import { exportToExcel as exportToExcelUtil } from '../../utils/excelExport';
 import { Button, useToast } from '../../components';
+import { toLocalDateString } from '../../utils/dateFormat';
 
 function FirstLastReport() {
     const navigate = useNavigate();
     const toast = useToast();
-    const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0].substring(0, 8) + '01'); // First of month
-    const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
+    const [startDate, setStartDate] = useState(toLocalDateString().substring(0, 8) + '01'); // First of month
+    const [endDate, setEndDate] = useState(toLocalDateString());
     const [employeeId, setEmployeeId] = useState('');
     const [firstName, setFirstName] = useState('');
     const [data, setData] = useState([]);

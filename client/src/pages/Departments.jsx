@@ -3,6 +3,7 @@ import api from '../api';
 import Modal from '../components/Modal';
 import { Building2, Plus, Trash2, Edit2, Search, RefreshCw, Save, Download, Upload, AlertCircle, CheckCircle } from 'lucide-react';
 import { useToast, Button, PageHeader, ExportMenu } from '../components';
+import { toLocalDateString } from '../utils/dateFormat';
 
 export default function Departments() {
     const toast = useToast();
@@ -211,7 +212,7 @@ export default function Departments() {
                         { key: 'id', label: 'ID' },
                         { key: 'name', label: 'Department Name' }
                     ]}
-                    filename={`departments_${new Date().toISOString().split('T')[0]}`}
+                    filename={`departments_${toLocalDateString()}`}
                     title="Departments"
                 />
 

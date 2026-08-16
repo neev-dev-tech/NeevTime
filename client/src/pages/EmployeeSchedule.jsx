@@ -3,6 +3,7 @@ import api from '../api';
 import { UserCheck, Plus, Edit2, Trash2, Save, Users, Search, Filter, AlertCircle, RefreshCw } from 'lucide-react';
 import { useToast, Button, PageHeader, ExportMenu } from '../components';
 import Modal from '../components/Modal';
+import { toLocalDateString } from '../utils/dateFormat';
 
 export default function EmployeeSchedule() {
     const toast = useToast();
@@ -24,7 +25,7 @@ export default function EmployeeSchedule() {
         employee_id: '',
         shift_id: '',
         timetable_id: '',
-        effective_from: new Date().toISOString().split('T')[0],
+        effective_from: toLocalDateString(),
         effective_to: '',
         is_temporary: false,
         reason: '',
@@ -137,7 +138,7 @@ export default function EmployeeSchedule() {
             employee_id: '',
             shift_id: '',
             timetable_id: '',
-            effective_from: new Date().toISOString().split('T')[0],
+            effective_from: toLocalDateString(),
             effective_to: '',
             is_temporary: false,
             reason: '',

@@ -12,6 +12,7 @@
  */
 
 const express = require('express');
+const registry = require('../services/integrations/registry');
 const router = express.Router();
 const db = require('../db');
 const hrmsIntegration = require('../services/hrms-integration');
@@ -312,56 +313,15 @@ router.post('/integrations/:id/mappings', async (req, res) => {
 
 // Get available integration types with documentation
 router.get('/integration-types', (req, res) => {
-    res.json([
-        {
-            type: 'erpnext',
-            name: 'ERPNext / Frappe',
-            description: 'Connect to ERPNext HRMS or Frappe Framework based systems',
-            documentation: 'https://frappeframework.com/docs/user/en/api',
-            required_fields: ['base_url', 'api_key', 'api_secret'],
-            features: ['pull_employees', 'push_attendance', 'push_leaves'],
-            icon: '🏢',
-            color: '#0089FF'
-        },
-        {
-            type: 'odoo',
-            name: 'Odoo',
-            description: 'Connect to Odoo ERP/HRMS (versions 14-17)',
-            documentation: 'https://www.odoo.com/documentation/17.0/developer/reference/external_api.html',
-            required_fields: ['base_url', 'database_name', 'username', 'password'],
-            // Matches OdooIntegration.capabilities. resource.calendar and
-            // hr.leave exist in Odoo but are not pulled yet.
-            features: ['pull_employees', 'push_attendance'],
-            unsupported: ['shifts', 'holidays', 'leave'],
-            icon: '🟣',
-            color: '#714B67'
-        },
-        {
-            type: 'horilla',
-            name: 'Horilla',
-            description: 'Connect to Horilla Open Source HRMS',
-            documentation: 'https://github.com/horlocom/horilla',
-            required_fields: ['base_url', 'username', 'password'],
-            // Matches HorillaIntegration.capabilities. Horilla models shifts and
-            // leave; this adapter does not pull them yet, and claiming otherwise
-            // in the picker is how someone ends up with a deployment that counts
-            // every public holiday as an absence.
-            features: ['pull_employees', 'push_attendance'],
-            unsupported: ['shifts', 'holidays', 'leave'],
-            icon: '🌿',
-            color: '#4CAF50'
-        },
-        {
-            type: 'webhook',
-            name: 'Generic Webhook / API',
-            description: 'Connect to any system via webhooks or REST API',
-            required_fields: ['base_url'],
-            optional_fields: ['api_key', 'api_secret', 'username', 'password'],
-            features: ['configurable_endpoints', 'field_mappings', 'multiple_auth_methods'],
-            icon: '🔗',
-            color: '#FF9800'
-        }
-    ]);
+    // Read from services/integrations/registry.js rather than a second list
+    // maintained by hand. The two drifted: this route advertised SAP,
+    // Workday, BambooHR and Zoho People, none of which could connect, and
+    // claimed push_leaves for Horilla, which does not implement it. Whoever
+    // picked one found out through wrong absence numbers.
+    //
+    // `capabilities` comes off each adapter class, so what is advertised is
+    // what the sync will actually run.
+    res.json(registry.list());
 });
 
 module.exports = router;

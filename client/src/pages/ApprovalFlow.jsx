@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useToast, Button, PageHeader } from '../components';
 import Modal from '../components/Modal';
+import { toLocalDateString } from '../utils/dateFormat';
 
 export default function ApprovalFlow() {
     const toast = useToast();
@@ -63,7 +64,7 @@ export default function ApprovalFlow() {
     });
 
     const resetForm = () => {
-        const today = new Date().toISOString().split('T')[0];
+        const today = toLocalDateString();
         setFormData({ flow_code: '', name: '', start_date: today, end_date: '', request_type: '', requester: '', position_id: '', department_id: '' });
         setFlowNodes([]);
     };

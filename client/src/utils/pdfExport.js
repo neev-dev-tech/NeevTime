@@ -54,6 +54,7 @@ const MAX_PDF_ROWS = 1000;
  */
 
 import { getPdfDefaults, getCompanyInfo } from './reportSettings';
+import { toLocalDateString } from './dateFormat';
 
 // Default company settings (can be overridden)
 const DEFAULT_COMPANY = {
@@ -551,7 +552,7 @@ export const exportToPDF = async (options) => {
     // ============================================================
 
     try {
-        const finalFilename = filename || `${title?.replace(/\s+/g, '_') || 'report'}_${new Date().toISOString().split('T')[0]}.pdf`;
+        const finalFilename = filename || `${title?.replace(/\s+/g, '_') || 'report'}_${toLocalDateString()}.pdf`;
         doc.save(finalFilename);
     } catch (saveError) {
         console.error('Error saving PDF:', saveError);

@@ -21,6 +21,8 @@ import GenericCrud from './components/GenericCrud';
 import Area from './pages/Area';
 import Resign from './pages/Resign';
 import DeletedEmployees from './pages/DeletedEmployees';
+import StatutoryRegisters from './pages/StatutoryRegisters';
+import PayrollExport from './pages/PayrollExport';
 import EmployeeDocs from './pages/EmployeeDocs';
 import ShiftMaster from './pages/ShiftMaster';
 import ImportWizard from './pages/ImportWizard';
@@ -163,6 +165,8 @@ export default function App() {
                         <Route path="/areas" element={<Area />} />
                         <Route path="/resign" element={<Resign />} />
                         <Route path="/employees/deleted" element={<DeletedEmployees />} />
+                        <Route path="/reports/registers" element={<StatutoryRegisters />} />
+                        <Route path="/reports/payroll" element={<PayrollExport />} />
                         <Route path="/employee-docs" element={<EmployeeDocs />} />
                         <Route path="/workflow/roles" element={<ApprovalRole />} />
                         <Route path="/workflow/flows" element={<ApprovalFlow />} />

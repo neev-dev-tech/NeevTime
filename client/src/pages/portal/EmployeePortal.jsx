@@ -7,12 +7,13 @@ import {
 import api from '../../api';
 import useStore from '../../store/useStore';
 import { Button } from '../../components';
+import { toLocalDateString } from '../../utils/dateFormat';
 
 const firstOfMonth = () => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
 };
-const today = () => new Date().toISOString().split('T')[0];
+const today = () => toLocalDateString();
 
 const TABS = [
     { id: 'attendance', label: 'My Attendance', icon: Clock },

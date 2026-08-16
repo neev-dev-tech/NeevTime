@@ -14,6 +14,8 @@
 const express = require('express');
 const router = express.Router();
 const reports = require('../services/reports');
+const registers = require('../services/registers');
+const payrollExport = require('../services/payroll_export');
 const { authenticateToken } = require('./auth');
 const { validateDateRange } = require('../middleware/validation');
 
@@ -535,5 +537,111 @@ router.get('/history', async (req, res) => {
 // table, a second store the mailer only falls back to when app_settings has
 // no smtp_host. Settings -> Email/SMTP is the single source of truth, and
 // nothing in the client ever called these.
+
+// ==========================================
+// STATUTORY REGISTERS
+// ==========================================
+//
+// The muster roll, overtime register and leave register that the Factories Act
+// requires be kept and produced on demand. Every field they need already
+// existed here; there was simply no way to print them, so the one document an
+// inspector asks for could not come out of the system holding the data.
+//
+// These return the register's content, not a certified form. Form numbers and
+// layouts are set by each state's Factories Rules and differ between them —
+// lay the output out to whatever your state prescribes. Each response carries
+// `missingFields` for anything the register wants that this system does not
+// hold, so a blank column is never mistaken for a zero.
+
+const REGISTERS = {
+    'muster-roll': registers.musterRoll,
+    'overtime': registers.overtimeRegister,
+    'leave': registers.leaveRegister
+};
+
+router.get('/registers/:type', validateDateRange, async (req, res) => {
+    try {
+        const build = REGISTERS[req.params.type];
+        if (!build) {
+            // Named explicitly rather than defaulting to one of them. A register
+            // that quietly returns different content than was asked for is worse
+            // than an error, particularly this one.
+            return res.status(400).json({
+                error: `Unknown register "${req.params.type}"`,
+                allowed: Object.keys(REGISTERS)
+            });
+        }
+
+        const { from, to, department_id } = req.query;
+        if (!from || !to) {
+            return res.status(400).json({ error: 'from and to dates are required' });
+        }
+
+        res.json(await build({
+            from,
+            to,
+            departmentId: department_id ? parseInt(department_id, 10) : null
+        }));
+    } catch (err) {
+        console.error(`Register (${req.params.type}) failed:`, err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ==========================================
+// PAYROLL EXPORT
+// ==========================================
+//
+// There is no way to integrate with every payroll product by API. Tally, Busy
+// and Marg are desktop applications with none. The cloud products that have one
+// gate it behind a partner agreement this application cannot obtain on a
+// customer's behalf — the same wall that got four HRMS adapters deleted.
+//
+// Every payroll product can import a file. So the numbers are computed once and
+// rendered into whatever columns a given payroll expects, and a template is
+// data rather than code: supporting a new client's payroll is one entry, added
+// by whoever has actually seen that import screen.
+
+router.get('/payroll-templates', (req, res) => {
+    res.json(payrollExport.listTemplates());
+});
+
+router.get('/payroll-export', validateDateRange, async (req, res) => {
+    try {
+        const { from, to, department_id, template = 'generic', format = 'json' } = req.query;
+        if (!from || !to) {
+            return res.status(400).json({ error: 'from and to dates are required' });
+        }
+
+        const summary = await payrollExport.payrollSummary({
+            from, to,
+            departmentId: department_id ? parseInt(department_id, 10) : null
+        });
+
+        if (format !== 'csv') return res.json(summary);
+
+        let csv;
+        try {
+            csv = payrollExport.toCSV(summary, template);
+        } catch (err) {
+            // An unknown template is refused rather than silently rendered as
+            // the generic one. A payroll import that goes in with the wrong
+            // columns is worse than one that does not go in at all.
+            return res.status(400).json({ error: err.message, allowed: err.allowed });
+        }
+
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+        res.setHeader('Content-Disposition',
+            `attachment; filename="payroll_${template}_${from}_to_${to}.csv"`);
+        // Warnings cannot travel inside a CSV, and an uncollected day silently
+        // folded into a payroll run is a deduction nobody chose. It rides on a
+        // header so a caller can surface it.
+        if (summary.warnings.length) res.setHeader('X-Payroll-Warnings', summary.warnings.join(' | '));
+        res.send(csv);
+    } catch (err) {
+        console.error('Payroll export failed:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
 
 module.exports = router;

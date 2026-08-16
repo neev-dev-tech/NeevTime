@@ -139,7 +139,7 @@ export default function Dashboard() {
 
     const fetchStats = async () => {
         try {
-            const today = new Date().toISOString().split('T')[0];
+            const today = toLocalDateString();
             const yesterday = toLocalDateString(new Date(Date.now() - 24 * 60 * 60 * 1000));
             const sevenDaysAgo = toLocalDateString(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
 
@@ -337,7 +337,7 @@ export default function Dashboard() {
     const fetchAttendanceTrends = async () => {
         try {
             const start = toLocalDateString(new Date(Date.now() - 6 * 24 * 60 * 60 * 1000));
-            const end = new Date().toISOString().split('T')[0];
+            const end = toLocalDateString();
             const [lateEarlyRes, absentRes] = await Promise.all([
                 api.get('/api/reports/late-early', { params: { start_date: start, end_date: end } }),
                 api.get('/api/reports/absent', { params: { start_date: start, end_date: end } })

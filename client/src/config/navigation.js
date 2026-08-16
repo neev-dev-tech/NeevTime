@@ -1,5 +1,5 @@
 import {
-  RefreshCw, LayoutDashboard, Users, Clock, TabletSmartphone, Settings2, Grid, MapPin, Plane, UserCheck, GitBranch, GitCommit, Calendar, Database, Activity, ClipboardList, UserX, Briefcase, Building2, Timer, CalendarDays, CalendarCheck, Upload, Download, Shield, ShieldCheck, UserCircle, FolderOpen, FileCheck, TrendingUp, Server, FileText, PieChart, Globe, Network, MessageSquare, Workflow, BarChart3, Zap, Fingerprint, Camera, FileQuestion, AlertCircle, Building, Trash2 } from 'lucide-react';
+  RefreshCw, LayoutDashboard, Users, Clock, TabletSmartphone, Settings2, Grid, MapPin, Plane, UserCheck, GitBranch, GitCommit, Calendar, Database, Activity, ClipboardList, UserX, Briefcase, Building2, Timer, CalendarDays, CalendarCheck, Upload, Download, Shield, ShieldCheck, UserCircle, FolderOpen, FileCheck, TrendingUp, Server, FileText, PieChart, Globe, Network, MessageSquare, Workflow, BarChart3, Zap, Fingerprint, Camera, FileQuestion, AlertCircle, Building, Trash2, Calculator } from 'lucide-react';
 
 export const modules = [
   { name: 'Dashboard', icon: LayoutDashboard, path: '/', iconColor: '#F97316' },
@@ -152,6 +152,8 @@ export const attendanceSidebar = [
     icon: BarChart3,
     iconColor: '#059669',
     items: [
+      { label: 'Statutory Registers', path: '/reports/registers', icon: FileText, iconColor: '#0F766E' },
+      { label: 'Payroll Export', path: '/reports/payroll', icon: Calculator, iconColor: '#B45309' },
       { label: 'All Reports', path: '/reports', icon: BarChart3, iconColor: '#059669' },
       { label: 'Export Center', path: '/export', icon: Download, iconColor: '#2563EB' },
     ]

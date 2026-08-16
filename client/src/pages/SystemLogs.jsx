@@ -87,7 +87,7 @@ export default function SystemLogs() {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `system_logs_${new Date().toISOString().split('T')[0]}.csv`;
+        a.download = `system_logs_${toLocalDateString()}.csv`;
         a.click();
     };
 

@@ -41,8 +41,8 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
     };
 
     const [reportType, setReportType] = useState(getInitialReportType());
-    const [dateFrom, setDateFrom] = useState(new Date().toISOString().split('T')[0]);
-    const [dateTo, setDateTo] = useState(new Date().toISOString().split('T')[0]);
+    const [dateFrom, setDateFrom] = useState(toLocalDateString());
+    const [dateTo, setDateTo] = useState(toLocalDateString());
     const [department, setDepartment] = useState('');
     const [departments, setDepartments] = useState([]);
     const [employees, setEmployees] = useState([]);

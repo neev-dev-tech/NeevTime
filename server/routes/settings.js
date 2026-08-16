@@ -91,11 +91,23 @@ router.put('/:category', async (req, res) => {
             // Convert value to string for storage
             const stringValue = typeof value === 'object' ? JSON.stringify(value) : String(value);
 
+            // Upsert, not update. An UPDATE against a setting_key that has no
+            // row affects nothing and returns success, so a setting added in
+            // code but never seeded into app_settings would appear to save and
+            // silently not — the same shape as the sync_leaves toggle that
+            // nothing read, and the ?status= parameter the server ignored.
+            //
+            // The table has UNIQUE(category, setting_key), so the conflict
+            // target is exact. data_type is only set when the row is created;
+            // an existing row keeps whatever type it was seeded with.
             await client.query(`
-                UPDATE app_settings 
-                SET setting_value = $1, updated_at = NOW()
-                WHERE category = $2 AND setting_key = $3
-            `, [stringValue, category, key]);
+                INSERT INTO app_settings (category, setting_key, setting_value, data_type)
+                VALUES ($2, $3, $1, $4)
+                ON CONFLICT (category, setting_key) DO UPDATE
+                SET setting_value = EXCLUDED.setting_value, updated_at = NOW()
+            `, [stringValue, category, key, typeof value === 'boolean' ? 'boolean'
+                : typeof value === 'number' ? 'number'
+                : typeof value === 'object' ? 'json' : 'string']);
         }
 
         await client.query('COMMIT');

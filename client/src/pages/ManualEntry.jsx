@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../api';
 import { ClipboardEdit, Search, Calendar, Clock, User, AlertCircle, CheckCircle, RefreshCw } from 'lucide-react';
 import { useToast, Button, PageHeader } from '../components';
+import { toLocalDateString } from '../utils/dateFormat';
 
 export default function ManualEntry() {
     const toast = useToast();
@@ -11,7 +12,7 @@ export default function ManualEntry() {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedEmployee, setSelectedEmployee] = useState(null);
     const [form, setForm] = useState({
-        date: new Date().toISOString().split('T')[0],
+        date: toLocalDateString(),
         in_time: '09:00',
         out_time: '18:00',
         reason: ''
@@ -55,7 +56,7 @@ export default function ManualEntry() {
                 reason: form.reason
             });
             setResult({ success: true, message: 'Manual attendance added successfully' });
-            setForm({ date: new Date().toISOString().split('T')[0], in_time: '09:00', out_time: '18:00', reason: '' });
+            setForm({ date: toLocalDateString(), in_time: '09:00', out_time: '18:00', reason: '' });
             setSelectedEmployee(null);
         } catch (err) {
             setResult({ success: false, message: err.response?.data?.error || 'Failed to add' });

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const fs = require('fs');
 const path = require('path');
+const fsp = require('fs').promises;
 const { exec } = require('child_process');
 
 const BACKUP_DIR = path.join(__dirname, '../backups');
@@ -77,8 +78,43 @@ router.get('/backups', (req, res) => {
  * Run pg_dump into BACKUP_DIR. Shared by the manual endpoint and the scheduler
  * so both produce identical artefacts.
  */
+/**
+ * Copy a finished dump to a second location.
+ *
+ * A dump beside the database survives a bad migration. It does not survive
+ * losing the disk, and until today this deployment had exactly one backup, taken
+ * by hand five months earlier, on that disk. Both copies would have gone
+ * together.
+ *
+ * The path is inside the container, so it only reaches other hardware if it is a
+ * mounted volume — a NAS, a bind mount, an object-storage FUSE mount. That is
+ * the whole point and it is easy to get wrong, so this reports what it did
+ * rather than failing quietly, and a copy that fails never fails the backup
+ * itself. A dump in one place beats an error and no dump at all.
+ */
+const copyToExternal = async (filepath, filename) => {
+    const settingsStore = require('../utils/settings');
+    const dest = String(await settingsStore.get('database', 'backup_external_path', '') || '').trim();
+    if (!dest) return { attempted: false };
+
+    try {
+        await fsp.mkdir(dest, { recursive: true });
+        await fsp.copyFile(filepath, path.join(dest, filename));
+        return { attempted: true, ok: true, path: path.join(dest, filename) };
+    } catch (err) {
+        console.error(`[Backup] external copy to ${dest} failed:`, err.message);
+        return { attempted: true, ok: false, error: err.message };
+    }
+};
+
 const createBackup = (prefix = 'backup') => new Promise((resolve, reject) => {
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    // Local time in the filename. The daily check looks for `auto-<local date>`,
+    // and a UTC-stamped name would not match it between midnight and 05:30 IST —
+    // which includes the default 02:00 schedule.
+    const n = new Date();
+    const p2 = (v) => String(v).padStart(2, '0');
+    const timestamp = `${n.getFullYear()}-${p2(n.getMonth() + 1)}-${p2(n.getDate())}` +
+        `T${p2(n.getHours())}-${p2(n.getMinutes())}-${p2(n.getSeconds())}`;
     const filename = `${prefix}-${timestamp}.sql`;
     const filepath = path.join(BACKUP_DIR, filename);
 
@@ -89,7 +125,9 @@ const createBackup = (prefix = 'backup') => new Promise((resolve, reject) => {
     exec(cmd, { env }, (error) => {
         if (error) return reject(error);
         const stats = fs.statSync(filepath);
-        resolve({ name: filename, size: stats.size, created_at: stats.birthtime });
+        copyToExternal(filepath, filename).then(external => {
+            resolve({ name: filename, size: stats.size, created_at: stats.birthtime, external });
+        });
     });
 });
 
@@ -109,6 +147,57 @@ const pruneAutoBackups = (keep) => {
         }
     }
 };
+
+/**
+ * Can we actually write there?
+ *
+ * The path is inside the container, so a plausible-looking one like
+ * /mnt/nas/backups silently writes into the container's own filesystem unless
+ * it is a mounted volume — and is then destroyed on the next deploy, which
+ * recreates the container. That failure is invisible: backups appear to
+ * succeed, and the copies are gone.
+ *
+ * So this writes a real file, reads it back, removes it, and reports whether
+ * the path is a mount point. Better to find out here than during a restore.
+ */
+router.post('/backup-path/check', async (req, res) => {
+    const dest = String(req.body?.path || '').trim();
+    if (!dest) return res.status(400).json({ error: 'No path given' });
+
+    const probe = path.join(dest, `.neevtime-write-check-${Date.now()}`);
+    try {
+        await fsp.mkdir(dest, { recursive: true });
+        await fsp.writeFile(probe, 'write check');
+        const readBack = await fsp.readFile(probe, 'utf8');
+        await fsp.unlink(probe);
+        if (readBack !== 'write check') throw new Error('file read back different than written');
+
+        // A path that is not a separate mount is on the container's own disk.
+        // It will work, and it will not survive the next deploy.
+        let mounted = false;
+        try {
+            const [here, parent] = await Promise.all([fsp.stat(dest), fsp.stat(path.dirname(dest))]);
+            mounted = here.dev !== parent.dev;
+        } catch { /* leave mounted false; the warning is advisory */ }
+
+        res.json({
+            ok: true,
+            path: dest,
+            mounted,
+            message: mounted
+                ? 'Writable, and on a separate mount — copies will survive a redeploy.'
+                : 'Writable, but this is inside the container. Copies here are lost when the ' +
+                  'container is recreated on the next deploy. Mount a volume at this path in ' +
+                  'docker-compose.production.yml.'
+        });
+    } catch (err) {
+        res.status(400).json({
+            ok: false,
+            error: err.message,
+            hint: 'Mount the destination into the app container, then use the path it has inside it.'
+        });
+    }
+});
 
 // Create Backup
 router.post('/backups', async (req, res) => {
@@ -207,12 +296,35 @@ const startAutoBackup = () => {
             const retention = await settingsStore.get('database', 'backup_retention_count', 7);
 
             const now = new Date();
-            const stamp = now.toISOString().slice(0, 10);
-            const current = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-            if (lastAutoBackupDate === stamp) return;
-            if (current !== String(time).slice(0, 5)) return;
+            // Local date, not toISOString(). The schedule is read in local time
+            // (getHours), and IST is UTC+5:30, so a 02:00 run stamps itself with
+            // the previous UTC day. Mixing the two is how a scheduled job
+            // silently skips.
+            const stamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
             if (!shouldRunToday(frequency, now)) return;
+
+            // At or after the scheduled time, not exactly on it.
+            //
+            // This was `current !== time` — an exact HH:MM match on a 60-second
+            // timer. setInterval drifts, so a tick can move from 01:59:58 to
+            // 02:01:00 and miss 02:00 entirely, skipping that day with nothing
+            // logged. A backup schedule that quietly does nothing is the failure
+            // this deployment already lived through: one manual dump, 143 days
+            // old, because nobody was told.
+            const [schedH, schedM] = String(time).slice(0, 5).split(':').map(Number);
+            const dueMinutes = (schedH || 0) * 60 + (schedM || 0);
+            if (now.getHours() * 60 + now.getMinutes() < dueMinutes) return;
+
+            // Has today's already been taken? Asked of the directory, not of a
+            // variable — lastAutoBackupDate lives in memory and resets on every
+            // container restart, and this deployment is redeployed several times
+            // a day. Without this, each restart after the scheduled time takes
+            // another dump, and retention then prunes the older days away.
+            const alreadyToday = fs.readdirSync(BACKUP_DIR)
+                .some(f => f.startsWith(`auto-${stamp}`));
+            if (alreadyToday || lastAutoBackupDate === stamp) return;
 
             lastAutoBackupDate = stamp;
             const backup = await createBackup('auto');
