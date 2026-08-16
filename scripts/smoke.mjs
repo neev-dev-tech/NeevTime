@@ -62,7 +62,7 @@ const CHECKS = [
     ['dashboard', `/api/reports/dashboard`],
     ['punch log — today', `/api/logs?date=${today()}&limit=5`],
     ['punch count — today', `/api/logs/count?date=${today()}`],
-    ['muster roll', `/api/reports/registers/muster?from=${monthStart()}&to=${today()}`],
+    ['muster roll', `/api/reports/registers/muster-roll?from=${monthStart()}&to=${today()}`],
     ['overtime register', `/api/reports/registers/overtime?from=${monthStart()}&to=${today()}`],
     ['leave register', `/api/reports/registers/leave?from=${monthStart()}&to=${today()}`],
     ['payroll summary', `/api/reports/payroll?from=${monthStart()}&to=${today()}`],
