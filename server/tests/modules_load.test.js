@@ -31,6 +31,17 @@ const path = require('node:path');
 
 const SERVER = path.join(__dirname, '..');
 
+// routes/auth.js calls process.exit(1) at load time when JWT_SECRET is absent,
+// which would take the whole test runner down with it rather than failing one
+// assertion — and it did exactly that in CI, where no .env exists, while
+// passing on a machine that happened to have the variable set.
+//
+// A placeholder, not a secret. Nothing here signs or verifies a token; the
+// value only has to exist so the module can be loaded and checked for syntax.
+// Refusing to boot without a real secret is correct behaviour and is left
+// alone.
+process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-only-never-used-to-sign';
+
 const jsFilesIn = (dir) => {
     const full = path.join(SERVER, dir);
     if (!fs.existsSync(full)) return [];
