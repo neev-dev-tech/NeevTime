@@ -48,6 +48,8 @@ COPY nginx-tls.conf /etc/nginx/nginx-tls.conf
 COPY nginx-locations.conf /etc/nginx/app-locations.conf
 COPY nginx-iclock.conf /etc/nginx/iclock.conf
 COPY nginx-hsts-map.conf /etc/nginx/conf.d/00-hsts-map.conf
+# $connection_upgrade, used by the socket.io proxy block.
+COPY nginx-upgrade-map.conf /etc/nginx/conf.d/00-upgrade-map.conf
 COPY nginx-security-headers.conf /etc/nginx/security-headers.conf
 
 COPY client/docker-entrypoint.sh /entrypoint.sh

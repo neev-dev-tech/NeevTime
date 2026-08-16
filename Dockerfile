@@ -65,6 +65,8 @@ COPY nginx-iclock.conf /etc/nginx/iclock.conf
 # http-level map feeding the HSTS header. conf.d/*.conf is auto-included there,
 # which is exactly what a map needs — unlike the header file, which must not be.
 COPY nginx-hsts-map.conf /etc/nginx/conf.d/00-hsts-map.conf
+# $connection_upgrade, used by the socket.io proxy block.
+COPY nginx-upgrade-map.conf /etc/nginx/conf.d/00-upgrade-map.conf
 # Deliberately NOT under conf.d/: nginx.conf auto-includes conf.d/*.conf at
 # the http level, which would apply these globally — including to /iclock/ —
 # and duplicate every header. It is included per-location by default.conf.
