@@ -66,4 +66,28 @@ const getCategory = async (category, fallbacks = {}) => {
     return out;
 };
 
-module.exports = { get, getCategory, invalidate };
+/**
+ * Write one setting.
+ *
+ * Upsert on (category, setting_key), which app_settings declares UNIQUE. The
+ * cache is invalidated rather than patched: a stale read here decides whether a
+ * backup is copied off the machine, and cache-patching bugs are the kind that
+ * only show up under the exact conditions nobody tests.
+ *
+ * description is only set when the row is created, so a value written at
+ * runtime never overwrites the explanation seeded for the settings screen.
+ */
+const set = async (category, key, value, dataType = 'string', description = null) => {
+    await db.query(
+        `INSERT INTO app_settings (category, setting_key, setting_value, data_type, description)
+         VALUES ($1, $2, $3, $4, $5)
+         ON CONFLICT (category, setting_key) DO UPDATE
+            SET setting_value = EXCLUDED.setting_value,
+                data_type     = EXCLUDED.data_type,
+                updated_at    = NOW()`,
+        [category, key, value === null || value === undefined ? '' : String(value), dataType, description]
+    );
+    invalidate();
+};
+
+module.exports = { get, getCategory, invalidate, set };

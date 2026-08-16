@@ -96,18 +96,62 @@ router.get('/backups', (req, res) => {
  * rather than failing quietly, and a copy that fails never fails the backup
  * itself. A dump in one place beats an error and no dump at all.
  */
-const copyToExternal = async (filepath, filename) => {
+/**
+ * Read the configured destination, decrypting whatever secrets it holds.
+ *
+ * backup_external_path predates this and still works on its own: an install
+ * that only ever set a path keeps behaving exactly as before, with no
+ * migration and nothing to re-enter.
+ */
+const loadDestination = async () => {
     const settingsStore = require('../utils/settings');
-    const dest = String(await settingsStore.get('database', 'backup_external_path', '') || '').trim();
-    if (!dest) return { attempted: false };
+    const secrets = require('../utils/secrets');
+
+    const key = String(await settingsStore.get('database', 'backup_destination', '') || '').trim();
+    const legacyPath = String(await settingsStore.get('database', 'backup_external_path', '') || '').trim();
+
+    if (!key || key === 'filesystem') {
+        let config = {};
+        try { config = JSON.parse(await settingsStore.get('database', 'backup_destination_config', '{}') || '{}'); }
+        catch { config = {}; }
+        const dest = String(config.path || legacyPath || '').trim();
+        return dest ? { key: 'filesystem', config: { path: dest } } : null;
+    }
+
+    let stored = {};
+    try { stored = JSON.parse(await settingsStore.get('database', 'backup_destination_config', '{}') || '{}'); }
+    catch { return null; }
+
+    const config = {};
+    for (const [k, v] of Object.entries(stored)) config[k] = secrets.decrypt(v);
+    return { key, config };
+};
+
+/**
+ * The second copy.
+ *
+ * Failure here never fails the backup. The local dump is already written and is
+ * worth keeping even when the copy cannot be made — losing both because the NAS
+ * was unplugged would be the wrong trade. The outcome is returned so it can be
+ * shown and, when it keeps failing, alerted on.
+ */
+const copyToExternal = async (filepath, filename) => {
+    const destinations = require('../services/backup_destinations');
+
+    const chosen = await loadDestination();
+    if (!chosen) return { attempted: false };
+
+    const impl = destinations.get(chosen.key);
+    if (!impl) {
+        return { attempted: true, ok: false, error: `Unknown backup destination "${chosen.key}"` };
+    }
 
     try {
-        await fsp.mkdir(dest, { recursive: true });
-        await fsp.copyFile(filepath, path.join(dest, filename));
-        return { attempted: true, ok: true, path: path.join(dest, filename) };
+        const where = await impl.send(chosen.config, filepath, filename);
+        return { attempted: true, ok: true, destination: chosen.key, path: where };
     } catch (err) {
-        console.error(`[Backup] external copy to ${dest} failed:`, err.message);
-        return { attempted: true, ok: false, error: err.message };
+        console.error(`[Backup] copy to ${chosen.key} failed:`, err.message);
+        return { attempted: true, ok: false, destination: chosen.key, error: err.message };
     }
 };
 
@@ -175,6 +219,123 @@ const pruneAutoBackups = (keep) => {
  * So this writes a real file, reads it back, removes it, and reports whether
  * the path is a mount point. Better to find out here than during a restore.
  */
+/**
+ * The destinations this build supports, and the one currently configured.
+ *
+ * Secrets are returned as a mask, never as the value. A settings form that
+ * renders a real credential leaks it to anyone who can open the page or read
+ * the response in a browser's network tab.
+ */
+router.get('/destinations', async (req, res) => {
+    try {
+        const destinations = require('../services/backup_destinations');
+        const settingsStore = require('../utils/settings');
+        const secrets = require('../utils/secrets');
+
+        const key = String(await settingsStore.get('database', 'backup_destination', '') || '')
+            || (String(await settingsStore.get('database', 'backup_external_path', '') || '') ? 'filesystem' : '');
+
+        let stored = {};
+        try { stored = JSON.parse(await settingsStore.get('database', 'backup_destination_config', '{}') || '{}'); }
+        catch { stored = {}; }
+
+        // Carry the old single-path setting into the form so an existing
+        // install sees what it already has rather than an empty field.
+        if (key === 'filesystem' && !stored.path) {
+            stored.path = String(await settingsStore.get('database', 'backup_external_path', '') || '');
+        }
+
+        const masked = {};
+        const secretKeys = new Set(destinations.secretFields(key));
+        for (const [k, v] of Object.entries(stored)) {
+            masked[k] = secretKeys.has(k) ? secrets.mask(v) : v;
+        }
+
+        res.json({ available: destinations.describe(), selected: key || null, config: masked });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+/**
+ * Try the destination before trusting it.
+ *
+ * Every implementation writes, reads back and deletes a probe. Listing a
+ * folder or a bucket proves far less — read permission without write
+ * permission passes a list check and fails every backup afterwards, silently,
+ * which is the failure this whole feature exists to prevent.
+ */
+router.post('/destinations/test', async (req, res) => {
+    const destinations = require('../services/backup_destinations');
+    const secrets = require('../utils/secrets');
+    const settingsStore = require('../utils/settings');
+
+    const key = String(req.body?.destination || '').trim();
+    const impl = destinations.get(key);
+    if (!impl) {
+        return res.status(400).json({ ok: false, error: `Unknown destination "${key}"` });
+    }
+
+    try {
+        // A masked field means "keep what is stored" — the browser was never
+        // given the real value, so it cannot send it back.
+        const submitted = req.body?.config || {};
+        let stored = {};
+        try { stored = JSON.parse(await settingsStore.get('database', 'backup_destination_config', '{}') || '{}'); }
+        catch { stored = {}; }
+
+        const config = {};
+        for (const [k, v] of Object.entries(submitted)) {
+            config[k] = secrets.isMask(v) ? secrets.decrypt(stored[k]) : v;
+        }
+
+        const result = await impl.test(config);
+        res.json({ ok: true, ...result });
+    } catch (err) {
+        res.status(400).json({ ok: false, error: err.message });
+    }
+});
+
+/** Save the destination. Secrets are encrypted before they touch the database. */
+router.put('/destinations', async (req, res) => {
+    const destinations = require('../services/backup_destinations');
+    const secrets = require('../utils/secrets');
+    const settingsStore = require('../utils/settings');
+
+    const key = String(req.body?.destination || '').trim();
+    if (key && !destinations.get(key)) {
+        return res.status(400).json({ error: `Unknown destination "${key}"` });
+    }
+
+    try {
+        const submitted = req.body?.config || {};
+        let stored = {};
+        try { stored = JSON.parse(await settingsStore.get('database', 'backup_destination_config', '{}') || '{}'); }
+        catch { stored = {}; }
+
+        const secretKeys = new Set(destinations.secretFields(key));
+        const toStore = {};
+        for (const [k, v] of Object.entries(submitted)) {
+            if (!secretKeys.has(k)) { toStore[k] = v; continue; }
+            // Unchanged mask keeps the existing ciphertext; anything else is a
+            // new secret and gets encrypted now.
+            toStore[k] = secrets.isMask(v) ? (stored[k] || '') : secrets.encrypt(v);
+        }
+
+        await settingsStore.set('database', 'backup_destination', key, 'string');
+        await settingsStore.set('database', 'backup_destination_config', JSON.stringify(toStore), 'string');
+
+        // Keep the legacy field in step so nothing that still reads it diverges.
+        if (key === 'filesystem') {
+            await settingsStore.set('database', 'backup_external_path', String(toStore.path || ''), 'string');
+        }
+
+        res.json({ ok: true, destination: key || null });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 router.post('/backup-path/check', async (req, res) => {
     const dest = String(req.body?.path || '').trim();
     if (!dest) return res.status(400).json({ error: 'No path given' });
