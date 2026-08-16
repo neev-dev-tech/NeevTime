@@ -24,8 +24,12 @@ router.get('/backups/download', (req, res) => {
         // Decode the filename
         const decodedFilename = decodeURIComponent(filename);
         
-        // Security: Only allow alphanumeric, dash, underscore, dot, and ensure it's a .sql file
-        if (!/^[a-zA-Z0-9._-]+\.sql$/.test(decodedFilename)) {
+        // Security: no path separators, and the name must end .sql or .dump.
+        // Both are accepted because pg_dump's custom format is what this
+        // writes; requiring .sql alone rejected every dump the system had
+        // actually produced, so they could not be downloaded or restored
+        // through the application at all.
+        if (!/^[a-zA-Z0-9._-]+\.(sql|dump)$/.test(decodedFilename)) {
             return res.status(400).json({ error: 'Invalid filename' });
         }
         
@@ -115,7 +119,13 @@ const createBackup = (prefix = 'backup') => new Promise((resolve, reject) => {
     const p2 = (v) => String(v).padStart(2, '0');
     const timestamp = `${n.getFullYear()}-${p2(n.getMonth() + 1)}-${p2(n.getDate())}` +
         `T${p2(n.getHours())}-${p2(n.getMinutes())}-${p2(n.getSeconds())}`;
-    const filename = `${prefix}-${timestamp}.sql`;
+    // .dump, not .sql. These are pg_dump's custom format (-F c) — a binary
+    // archive that only pg_restore can read. Naming it .sql invites someone
+    // recovering under pressure to try `psql < file`, which fails with a parse
+    // error on the archive header and looks like a corrupt backup rather than
+    // the wrong tool. The daily check matches on the `auto-<date>` prefix, so
+    // the extension is free to be accurate.
+    const filename = `${prefix}-${timestamp}.dump`;
     const filepath = path.join(BACKUP_DIR, filename);
 
     // DB_HOST *or* DB_SERVER, matching db/index.js. docker-compose.yml sets only
@@ -221,8 +231,12 @@ router.delete('/backups/:filename(*)', (req, res) => {
         // Decode the filename parameter to handle special characters
         let filename = decodeURIComponent(req.params.filename);
         
-        // Security: Only allow alphanumeric, dash, underscore, dot, and ensure it's a .sql file
-        if (!/^[a-zA-Z0-9._-]+\.sql$/.test(filename)) {
+        // Security: no path separators, and the name must end .sql or .dump.
+        // Both are accepted because pg_dump's custom format is what this
+        // writes; requiring .sql alone rejected every dump the system had
+        // actually produced, so they could not be downloaded or restored
+        // through the application at all.
+        if (!/^[a-zA-Z0-9._-]+\.(sql|dump)$/.test(filename)) {
             return res.status(400).json({ error: 'Invalid filename' });
         }
         
@@ -247,7 +261,7 @@ router.post('/restore', (req, res) => {
     if (confirm !== 'RESTORE') {
         return res.status(400).json({ error: 'Confirmation required: pass confirm="RESTORE"' });
     }
-    if (!filename || !/^[a-zA-Z0-9._-]+\.sql$/.test(filename)) {
+    if (!filename || !/^[a-zA-Z0-9._-]+\.(sql|dump)$/.test(filename)) {
         return res.status(400).json({ error: 'Invalid filename' });
     }
 
