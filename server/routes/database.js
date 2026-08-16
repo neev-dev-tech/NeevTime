@@ -118,9 +118,14 @@ const createBackup = (prefix = 'backup') => new Promise((resolve, reject) => {
     const filename = `${prefix}-${timestamp}.sql`;
     const filepath = path.join(BACKUP_DIR, filename);
 
-    const { DB_USER, DB_HOST, DB_NAME, DB_PASSWORD, DB_PORT } = process.env;
+    // DB_HOST *or* DB_SERVER, matching db/index.js. docker-compose.yml sets only
+    // DB_SERVER, so this fell through to 'localhost' — and there is no Postgres
+    // inside the server container, so this would have failed even once pg_dump
+    // and pg_restore existed in the image.
+    const { DB_USER, DB_NAME, DB_PASSWORD, DB_PORT } = process.env;
+    const DB_HOST = process.env.DB_HOST || process.env.DB_SERVER || 'db';
     const env = { ...process.env, PGPASSWORD: DB_PASSWORD };
-    const cmd = `pg_dump -h ${DB_HOST || 'localhost'} -U ${DB_USER || 'postgres'} -p ${DB_PORT || 5432} -F c -f "${filepath}" ${DB_NAME || 'attendance_db'}`;
+    const cmd = `pg_dump -h ${DB_HOST} -U ${DB_USER || 'postgres'} -p ${DB_PORT || 5432} -F c -f "${filepath}" ${DB_NAME || 'attendance_db'}`;
 
     exec(cmd, { env }, (error) => {
         if (error) return reject(error);
@@ -251,11 +256,16 @@ router.post('/restore', (req, res) => {
         return res.status(404).json({ error: 'Backup not found' });
     }
 
-    const { DB_USER, DB_HOST, DB_NAME, DB_PASSWORD, DB_PORT } = process.env;
+    // DB_HOST *or* DB_SERVER, matching db/index.js. docker-compose.yml sets only
+    // DB_SERVER, so this fell through to 'localhost' — and there is no Postgres
+    // inside the server container, so this would have failed even once pg_dump
+    // and pg_restore existed in the image.
+    const { DB_USER, DB_NAME, DB_PASSWORD, DB_PORT } = process.env;
+    const DB_HOST = process.env.DB_HOST || process.env.DB_SERVER || 'db';
     const env = { ...process.env, PGPASSWORD: DB_PASSWORD };
     // Backups are pg_dump custom format (-F c); --clean drops objects before
     // recreating them, --if-exists keeps that quiet on fresh databases.
-    const cmd = `pg_restore --clean --if-exists -h ${DB_HOST || 'localhost'} -U ${DB_USER || 'postgres'} -p ${DB_PORT || 5432} -d ${DB_NAME || 'attendance_db'} "${filepath}"`;
+    const cmd = `pg_restore --clean --if-exists -h ${DB_HOST} -U ${DB_USER || 'postgres'} -p ${DB_PORT || 5432} -d ${DB_NAME || 'attendance_db'} "${filepath}"`;
 
     console.warn(`DATABASE RESTORE started from ${filename} by user ${req.user?.username || req.user?.id}`);
     exec(cmd, { env, timeout: 10 * 60 * 1000 }, (error, stdout, stderr) => {

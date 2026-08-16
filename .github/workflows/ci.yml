@@ -365,6 +365,27 @@ jobs:
             exit 1
           }
 
+      - name: A backup must actually be produced
+        run: |
+          # pg_dump was never installed in any image of this application, so
+          # every scheduled backup since the feature was written failed. The
+          # only evidence was an empty directory, which looked like a scheduler
+          # that had stopped. Asserting the tool exists is not enough — the
+          # host was also wrong — so this takes a real dump and checks the file.
+          docker compose exec -T server pg_dump --version
+
+          docker compose exec -T server sh -c \
+            'PGPASSWORD=$DB_PASSWORD pg_dump -h $DB_SERVER -U $DB_USER -F c \
+               -f /app/backups/ci-check.dump $DB_NAME'
+
+          size=$(docker compose exec -T server sh -c \
+                   'stat -c %s /app/backups/ci-check.dump' | tr -d '\r')
+          echo "backup size: ${size} bytes"
+          [ "${size:-0}" -gt 2000 ] || {
+            echo "::error::pg_dump produced ${size:-no} bytes — a backup that small is not a backup"
+            exit 1
+          }
+
       - name: Stop the stack
         if: always()
         run: docker compose down -v
