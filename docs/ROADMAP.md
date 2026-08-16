@@ -38,9 +38,11 @@ Passwords no longer cross the network in clear text.
 
 ### 0.2 · Backup and a rehearsed restore — **NEARLY**
 
-Done: the restore has been performed end to end and matched — 91 employees, 92,644 punches, 9,480 summaries. Backups now persist on a named volume, verified by rebuilding the container and confirming the files survive.
+Done: the scheduler produced its first successful backup on 16 August, and that file has been restored into a scratch database and matched exactly — 91 employees, 92,644 punches, 174 biometric templates. Files persist on a named volume, verified by rebuilding the container.
 
-That verification mattered more than expected. Backups were enabled, scheduled and succeeding the whole time, into a directory with no mount — so every deploy deleted them, and the only surviving file was one from March that happened to sit in the build context. The scheduler was never broken; the storage was never persistent.
+Backups had never worked, and the reasons compounded. `pg_dump` was not installed in any image this application has ever shipped — neither Dockerfile included postgresql-client — so every scheduled run failed on a missing binary. The command also read `DB_HOST`, which compose does not set, and fell through to `localhost` where no database runs. The output directory had no volume mount, so anything written there was deleted by the next rebuild. And three validators required filenames ending `.sql`, while every dump the system produced ends `.dump` — so the application refused to download or restore its own backups.
+
+Four independent faults, each sufficient alone. The visible symptom throughout was an empty directory, which reads as a scheduler that stopped.
 
 **Still open: an off-machine copy.** Database, backups and application all live on one VM. Blocked only on naming a destination host.
 
