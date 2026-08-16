@@ -365,6 +365,18 @@ jobs:
             exit 1
           }
 
+      - name: Render every screen in a browser
+        run: |
+          # Roadmap 0.3, the half the API smoke test cannot reach. Two
+          # regressions reached production in one week that opening the page
+          # would have caught in seconds — a crash on null state, and an emptied
+          # list from a query parameter the server never read. Both had healthy
+          # endpoints. A vite build misses them too: esbuild does not resolve
+          # identifiers, so a missing import ships as a blank page.
+          npm --prefix client ci
+          CHROME_PATH=$(which google-chrome || which chromium-browser) \
+            node scripts/browser-check.mjs
+
       - name: A backup must actually be produced
         run: |
           # pg_dump was never installed in any image of this application, so

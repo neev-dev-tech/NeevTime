@@ -1,0 +1,163 @@
+#!/usr/bin/env node
+/**
+ * Load every screen in a real browser and fail on anything that breaks.
+ *
+ *     node scripts/browser-check.mjs                      # http://localhost
+ *     BASE=https://192.168.1.237 node scripts/browser-check.mjs
+ *
+ * Roadmap 0.3, the half that scripts/smoke.mjs cannot reach. That one asks the
+ * API for a response; this one renders the page the way a person does.
+ *
+ * The distinction matters here more than usual. Two regressions reached
+ * production in one week that opening the page would have caught in seconds:
+ * a crash from `transferType.toLowerCase()` on state initialised to null, and
+ * an emptied Resign list from a query parameter the server never read. Neither
+ * was visible to any API check — the endpoints were fine, the screens were not.
+ * A vite build does not catch them either, because esbuild does not resolve
+ * identifiers, so a missing import ships as a blank page.
+ *
+ * What counts as a failure:
+ *   - an uncaught exception in the page
+ *   - a console error
+ *   - a failed request for a script or stylesheet
+ *   - a root element that renders nothing
+ *
+ * Deliberately NOT a failure: an API returning 4xx/5xx for missing data. On the
+ * empty CI database many screens legitimately have nothing to show; a screen
+ * that renders "no records" is working. Those are reported and not fatal, so
+ * this stays a check on the interface rather than a second copy of the smoke
+ * test.
+ *
+ * Uses puppeteer-core against the system Chrome — no bundled browser download.
+ */
+
+import { existsSync } from 'node:fs';
+import puppeteer from 'puppeteer-core';
+
+const BASE = (process.env.BASE || 'http://localhost').replace(/\/$/, '');
+const USER = process.env.SMOKE_USER || 'admin';
+const PASS = process.env.SMOKE_PASS || 'admin';
+
+const CHROME = process.env.CHROME_PATH
+    || ['/usr/bin/google-chrome', '/usr/bin/chromium-browser', '/usr/bin/chromium',
+        '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome']
+        .find((p) => existsSync(p));
+
+// Every authenticated screen. Kept in the order the sidebar presents them so a
+// person reading a failure can find the page.
+const ROUTES = [
+    '/', '/employees', '/departments', '/positions', '/areas', '/resign',
+    '/employees/deleted', '/employee-docs',
+    '/reports/registers', '/reports/payroll', '/reports', '/reports/legacy',
+    '/reports/first-last', '/advanced-reports', '/export', '/import',
+    '/devices', '/devices/data', '/device-commands', '/device-sync', '/device-messages',
+    '/attendance-rules', '/attendance/manual', '/attendance-register', '/attendance-calendar',
+    '/holidays', '/holiday-locations', '/geofences', '/break-times', '/timetables', '/shifts',
+    '/schedule/department', '/schedule/employee', '/schedule/calendar',
+    '/leaves', '/leave-types', '/leave-balance', '/regularizations',
+    '/workflow/roles', '/workflow/flows', '/workflow/nodes',
+    '/users', '/database/backup', '/system-logs', '/settings', '/integrations', '/logs',
+];
+
+const main = async () => {
+    if (!CHROME) {
+        console.error('No Chrome found. Set CHROME_PATH.');
+        process.exit(1);
+    }
+
+    const browser = await puppeteer.launch({
+        executablePath: CHROME,
+        headless: true,
+        args: ['--no-sandbox', '--disable-dev-shm-usage', '--ignore-certificate-errors'],
+    });
+
+    const page = await browser.newPage();
+    await page.setViewport({ width: 1440, height: 900 });
+
+    // Load the origin first — fetch and localStorage both need one. Then sign in
+    // through the API and seed the token rather than typing into the form: the
+    // login screen is covered by scripts/smoke.mjs, and driving it here would
+    // make every route failure look like an authentication failure.
+    await page.goto(`${BASE}/login`, { waitUntil: 'domcontentloaded' });
+
+    const seeded = await page.evaluate(async (base, u, p) => {
+        const r = await fetch(`${base}/api/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: u, password: p }),
+        });
+        if (!r.ok) return false;
+        const { token: t, user } = await r.json();
+        localStorage.setItem('token', t);
+        if (user) localStorage.setItem('user', JSON.stringify(user));
+        return true;
+    }, BASE, USER, PASS);
+
+    if (!seeded) {
+        console.error('  FAIL  could not sign in — every route would fail for the same reason');
+        await browser.close();
+        process.exit(1);
+    }
+
+    const broken = [];
+
+    for (const route of ROUTES) {
+        const problems = [];
+        const onConsole = (msg) => {
+            if (msg.type() !== 'error') return;
+            const text = msg.text();
+            // A failed API call on an empty database is data, not a broken
+            // screen. Anything else in the console is the page itself.
+            if (/Failed to load resource/i.test(text) && /\/api\//.test(text)) return;
+            problems.push(`console: ${text.slice(0, 160)}`);
+        };
+        const onPageError = (err) => problems.push(`uncaught: ${String(err).slice(0, 160)}`);
+        const onFailed = (req) => {
+            const type = req.resourceType();
+            if (type === 'script' || type === 'stylesheet') {
+                problems.push(`${type} failed: ${req.url().split('/').pop()}`);
+            }
+        };
+
+        page.on('console', onConsole);
+        page.on('pageerror', onPageError);
+        page.on('requestfailed', onFailed);
+
+        try {
+            await page.goto(`${BASE}${route}`, { waitUntil: 'networkidle2', timeout: 25000 });
+            // Give React a moment past the last request to render or throw.
+            await new Promise((r) => setTimeout(r, 400));
+
+            const rendered = await page.evaluate(() => {
+                const root = document.getElementById('root') || document.body;
+                return (root.innerText || '').trim().length;
+            });
+            if (rendered < 20) problems.push(`rendered ${rendered} characters — blank page`);
+        } catch (err) {
+            problems.push(`navigation: ${err.message.split('\n')[0]}`);
+        }
+
+        page.off('console', onConsole);
+        page.off('pageerror', onPageError);
+        page.off('requestfailed', onFailed);
+
+        if (problems.length) {
+            broken.push({ route, problems });
+            console.error(`  FAIL  ${route}`);
+            problems.forEach((p) => console.error(`          ${p}`));
+        } else {
+            console.log(`  ok    ${route}`);
+        }
+    }
+
+    await browser.close();
+
+    console.log();
+    if (broken.length) {
+        console.error(`${broken.length} of ${ROUTES.length} screens failed to render cleanly.`);
+        process.exit(1);
+    }
+    console.log(`All ${ROUTES.length} screens rendered without errors.`);
+};
+
+main().catch((err) => { console.error(err); process.exit(1); });
