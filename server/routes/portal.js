@@ -696,6 +696,148 @@ router.get('/punch-status', async (req, res) => {
     }
 });
 
+/**
+ * The employee's own record, as HR holds it.
+ *
+ * Read-only on purpose. Someone editing their own joining date or department is
+ * an audit problem — those fields decide leave accrual, shift, and who approves
+ * their requests. Corrections are requested and applied by HR.
+ *
+ * The device PIN, the portal password hash and the directory identifiers are
+ * not selected. There is no reason for a page to carry them.
+ */
+router.get('/profile', async (req, res) => {
+    try {
+        const result = await db.query(
+            `SELECT e.employee_code, e.name, e.designation, e.gender, e.dob,
+                    e.joining_date, e.mobile, e.email, e.address, e.status,
+                    e.employment_type, e.card_number,
+                    d.name AS department, a.name AS area
+               FROM employees e
+               LEFT JOIN departments d ON d.id = e.department_id
+               LEFT JOIN areas a ON a.id = e.area_id
+              WHERE e.employee_code = $1`,
+            [req.employee_code]
+        );
+        if (!result.rows[0]) return res.status(404).json({ error: 'Employee not found' });
+        res.json(result.rows[0]);
+    } catch (err) {
+        console.error('Portal profile error:', err.message);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+/**
+ * Shift and holidays — the two questions HR is asked most often, and both are
+ * already in the database.
+ *
+ * Holidays are filtered to the employee's own location where a mapping exists.
+ * A national list shown to someone whose plant does not observe half of it is
+ * worse than no list: they plan a day off that is not one.
+ */
+router.get('/schedule', async (req, res) => {
+    // Installs differ. Shift and holiday tables arrived later than the core
+    // schema and are absent on older databases — including the development one
+    // this was written against. A missing table means the feature was never set
+    // up, which is not an error worth a 500 on a page that also shows holidays.
+    const optional = async (text, params) => {
+        try {
+            return (await db.query(text, params)).rows;
+        } catch (err) {
+            if (err.code === '42P01') return [];   // undefined_table
+            throw err;
+        }
+    };
+
+    try {
+        const [shift, holidays] = await Promise.all([
+            optional(
+                `SELECT s.name, s.start_time, s.end_time, es.effective_date
+                   FROM employee_shifts es
+                   JOIN shifts s ON s.id = es.shift_id
+                  WHERE es.employee_code = $1 AND es.effective_date <= CURRENT_DATE
+                  ORDER BY es.effective_date DESC LIMIT 1`,
+                [req.employee_code]
+            ),
+            optional(
+                `SELECT DISTINCT h.name, h.date, h.type, h.is_optional
+                   FROM holidays h
+                   LEFT JOIN holiday_location_mapping m ON m.holiday_id = h.id
+                   LEFT JOIN employees e ON e.employee_code = $1
+                  WHERE h.date >= CURRENT_DATE - INTERVAL '30 days'
+                    AND (m.location_id IS NULL OR m.location_id = e.area_id)
+                  ORDER BY h.date`,
+                [req.employee_code]
+            ),
+        ]);
+
+        res.json({
+            // Null rather than invented. An employee with no shift assigned
+            // should be told that, not shown a default they are not on.
+            shift: shift[0] || null,
+            holidays,
+        });
+    } catch (err) {
+        console.error('Portal schedule error:', err.message);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+/**
+ * The employee's own attendance for a month, as a spreadsheet.
+ *
+ * The same figures the register and payroll use — read from
+ * attendance_daily_summary rather than recomputed here, so a discrepancy
+ * between what somebody downloads and what they are paid on cannot appear.
+ *
+ * CSV, not PDF: it opens in Excel, it is a few lines of code with no dependency,
+ * and someone disputing a month's hours wants the numbers rather than a layout.
+ */
+router.get('/attendance/export', async (req, res) => {
+    const month = String(req.query.month || '').trim();      // YYYY-MM
+    if (!/^\d{4}-\d{2}$/.test(month)) {
+        return res.status(400).json({ error: 'month must be YYYY-MM' });
+    }
+
+    try {
+        const rows = await db.query(
+            `SELECT to_char(date, 'YYYY-MM-DD') AS date,
+                    to_char(in_time,  'HH24:MI') AS in_time,
+                    to_char(out_time, 'HH24:MI') AS out_time,
+                    COALESCE(duration_minutes, 0) AS duration_minutes,
+                    COALESCE(late_minutes, 0)     AS late_minutes,
+                    COALESCE(ot_minutes, 0)       AS ot_minutes,
+                    status
+               FROM attendance_daily_summary
+              WHERE employee_code = $1
+                AND to_char(date, 'YYYY-MM') = $2
+              ORDER BY date`,
+            [req.employee_code, month]
+        );
+
+        const header = ['Date', 'In', 'Out', 'Hours', 'Late (min)', 'Overtime (min)', 'Status'];
+        const lines = [header.join(',')];
+        for (const r of rows.rows) {
+            const hours = (r.duration_minutes / 60).toFixed(2);
+            lines.push([
+                r.date, r.in_time || '', r.out_time || '', hours,
+                r.late_minutes, r.ot_minutes,
+                // Quoted: a status could contain a comma, and one stray comma
+                // shifts every later column on that row.
+                `"${String(r.status || '').replace(/"/g, '""')}"`,
+            ].join(','));
+        }
+
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+        res.setHeader('Content-Disposition',
+            `attachment; filename="attendance-${req.employee_code}-${month}.csv"`);
+        res.send(lines.join('\n'));
+    } catch (err) {
+        console.error('Portal export error:', err.message);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 // ==========================================
 // MY ATTENDANCE
 // ==========================================

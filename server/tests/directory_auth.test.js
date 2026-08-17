@@ -224,3 +224,59 @@ test('an employee route refuses a non-employee token with a reason', () => {
     assert.match(src, /This is an employee route and the token is not an employee token/,
         'a bare 403 leaves the page with nothing to show');
 });
+
+// ─────────────────────────── what the portal exposes ─────────────────────────
+
+test('every portal route takes its identity from the token', () => {
+    // The whole safety property of the portal. One route reading an employee
+    // code from a query string or body would let any employee read anyone's
+    // record — which is exactly what /api/mobile/punch does deliberately for
+    // administrators, and must never happen here.
+    const src = fs.readFileSync(path.join(__dirname, '../routes/portal.js'), 'utf8');
+    const guarded = src.slice(src.indexOf('router.use(requireEmployee)'));
+
+    assert.ok(!/req\.query\.employee_code|req\.body\.employee_code|req\.params\.employee_code/.test(guarded),
+        'a portal route takes an employee code from the request instead of the token');
+    // Spot-check the new reads specifically.
+    for (const route of ['/profile', '/schedule', '/attendance/export']) {
+        const at = guarded.indexOf(`router.get('${route}'`);
+        assert.ok(at > -1, `${route} has gone`);
+        const body = guarded.slice(at, at + 2000);
+        assert.match(body, /req\.employee_code/,
+            `${route} does not scope its query to the signed-in employee`);
+    }
+});
+
+test('the profile is read-only and hides what a page has no use for', () => {
+    const src = fs.readFileSync(path.join(__dirname, '../routes/portal.js'), 'utf8');
+    const at = src.indexOf("router.get('/profile'");
+    const body = src.slice(at, at + 1200);
+
+    // Joining date and department decide leave accrual, shift and approvals.
+    assert.ok(!/router\.(put|patch)\('\/profile'/.test(src),
+        'employees can edit their own record — an audit problem');
+    for (const secret of ['portal_password_hash', 'e.password', 'directory_subject']) {
+        assert.ok(!body.includes(secret), `${secret} is sent to the portal page`);
+    }
+});
+
+test('the export reads the same rows payroll does', () => {
+    // Recomputing here would let a downloaded sheet disagree with what somebody
+    // is paid on, and the employee would be right to believe the download.
+    const src = fs.readFileSync(path.join(__dirname, '../routes/portal.js'), 'utf8');
+    const at = src.indexOf("router.get('/attendance/export'");
+    const body = src.slice(at, at + 2000);
+    assert.match(body, /FROM attendance_daily_summary/,
+        'the export recomputes instead of reading the stored summary');
+    assert.match(body, /replace\(\/"\/g, '""'\)/,
+        'a status containing a comma or quote would shift every later column');
+});
+
+test('the schedule survives an install where those tables were never created', () => {
+    // Shift and holiday tables arrived after the core schema and are absent on
+    // older databases. A missing table means the feature was not set up, which
+    // is not worth a 500 on a page that also shows holidays.
+    const src = fs.readFileSync(path.join(__dirname, '../routes/portal.js'), 'utf8');
+    assert.match(src, /err\.code === '42P01'/,
+        'a missing shift table takes the whole schedule page down');
+});

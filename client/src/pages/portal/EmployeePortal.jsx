@@ -2,13 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Calendar, Clock, LogOut, User, Briefcase, CheckCircle, XCircle,
-    Plus, Send, Fingerprint, AlertCircle, RefreshCw, Inbox
+    Plus, Send, Fingerprint, AlertCircle, RefreshCw, Inbox, Download, CalendarDays
 } from 'lucide-react';
 import api from '../../api';
 import PunchCard from './PunchCard';
 import useStore from '../../store/useStore';
 import { Button } from '../../components';
-import { toLocalDateString } from '../../utils/dateFormat';
+import { toLocalDateString, formatDate, formatDateWithWeekday } from '../../utils/dateFormat';
 
 const firstOfMonth = () => {
     const now = new Date();
@@ -19,7 +19,11 @@ const today = () => toLocalDateString();
 const TABS = [
     { id: 'attendance', label: 'My Attendance', icon: Clock },
     { id: 'leave', label: 'My Leave', icon: Calendar },
-    { id: 'requests', label: 'Requests', icon: Send }
+    { id: 'requests', label: 'Requests', icon: Send },
+    // The two questions HR is asked most often, and the system already knows
+    // both answers.
+    { id: 'schedule', label: 'Shift & Holidays', icon: CalendarDays },
+    { id: 'profile', label: 'My Profile', icon: User }
 ];
 
 const ListSkeleton = ({ rows = 5 }) => (
@@ -57,6 +61,37 @@ export default function EmployeePortal() {
     const navigate = useNavigate();
     const { auth, logout } = useStore();
     const [tab, setTab] = useState('attendance');
+    const [schedule, setSchedule] = useState(null);
+    // Distinct from `profile` above, which holds the small /me payload used by
+    // the header. This is the full record for the My Profile tab.
+    const [profileDetail, setProfileDetail] = useState(null);
+    const [downloading, setDownloading] = useState(false);
+
+    /**
+     * Download this month's attendance.
+     *
+     * Fetched rather than linked, for the same reason the punch photos are: an
+     * anchor sends no Authorization header, and this route is authenticated
+     * because it is somebody's attendance record.
+     */
+    const downloadMonth = async () => {
+        setDownloading(true);
+        try {
+            const month = new Date().toISOString().slice(0, 7);
+            const res = await api.get(`/api/portal/attendance/export?month=${month}`,
+                { responseType: 'blob' });
+            const url = URL.createObjectURL(res.data);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `my-attendance-${month}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        } catch {
+            /* the button simply does nothing rather than throwing a stack at someone */
+        } finally {
+            setDownloading(false);
+        }
+    };
     const [profile, setProfile] = useState(null);
     const [attendance, setAttendance] = useState([]);
     const [leave, setLeave] = useState({ applications: [], balances: [], types: [] });
@@ -106,6 +141,12 @@ export default function EmployeePortal() {
 
     useEffect(() => {
         if (tab === 'requests') fetchRegularizations();
+        if (tab === 'schedule' && !schedule) {
+            api.get('/api/portal/schedule').then(r => setSchedule(r.data)).catch(() => setSchedule({ shift: null, holidays: [] }));
+        }
+        if (tab === 'profile' && !profileDetail) {
+            api.get('/api/portal/profile').then(r => setProfileDetail(r.data)).catch(() => {});
+        }
     }, [tab]);
 
     const submitRegularization = async (e) => {
@@ -174,17 +215,17 @@ export default function EmployeePortal() {
                 {profile && (
                     <div className="bg-white/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 p-4 flex items-center gap-4">
                         <div className="w-12 h-12 rounded-full bg-orange-600 text-white flex items-center justify-center font-bold text-lg shrink-0">
-                            {(profile.name || '?').charAt(0)}
+                            {(profileDetail.name || '?').charAt(0)}
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-slate-800 dark:text-slate-100 truncate">{profile.name || '—'}</p>
+                            <p className="font-semibold text-slate-800 dark:text-slate-100 truncate">{profileDetail.name || '—'}</p>
                             <p className="text-xs flex items-center gap-2">
                                 <span className="font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold">
-                                    {profile.employee_code || '—'}
+                                    {profileDetail.employee_code || '—'}
                                 </span>
-                                {profile.department && (
+                                {profileDetail.department && (
                                     <span className="flex items-center gap-1 text-slate-600 dark:text-slate-300">
-                                        <Briefcase size={11} />{profile.department}
+                                        <Briefcase size={11} />{profileDetail.department}
                                     </span>
                                 )}
                             </p>
@@ -466,6 +507,105 @@ export default function EmployeePortal() {
                                 </>
                             )}
                         </div>
+                    </div>
+                )}
+
+                {tab === 'schedule' && (
+                    <div className="space-y-4">
+                        <div className="bg-white/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+                            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">My shift</h3>
+                            {!schedule ? (
+                                <div className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
+                            ) : schedule.shift ? (
+                                <>
+                                    <p className="text-lg font-semibold text-slate-800 dark:text-slate-100">{schedule.shift.name}</p>
+                                    <p className="text-sm font-mono tabular-nums text-slate-600 dark:text-slate-300">
+                                        {String(schedule.shift.start_time).slice(0, 5)} – {String(schedule.shift.end_time).slice(0, 5)}
+                                    </p>
+                                </>
+                            ) : (
+                                /* Said, not hidden. Somebody with no shift assigned is
+                                   measured against the default rules, and should know
+                                   rather than assume the page is broken. */
+                                <p className="text-sm text-slate-500 dark:text-slate-400">
+                                    No shift is assigned to you. Your hours are measured against the
+                                    company default — ask HR if that is not right.
+                                </p>
+                            )}
+                        </div>
+
+                        <div className="bg-white/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+                            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 px-4 pt-4 pb-2">Holidays</h3>
+                            {!schedule ? (
+                                <ListSkeleton rows={3} />
+                            ) : schedule.holidays.length === 0 ? (
+                                <EmptyRow icon={CalendarDays} title="No holidays listed"
+                                          hint="Once HR publishes the holiday list it appears here." />
+                            ) : (
+                                <div className="divide-y divide-slate-100 dark:divide-slate-700">
+                                    {schedule.holidays.map((h, i) => {
+                                        const past = new Date(h.date) < new Date(new Date().toDateString());
+                                        return (
+                                            <div key={i} className={`px-4 py-3 flex items-center justify-between gap-3 ${past ? 'opacity-50' : ''}`}>
+                                                <div>
+                                                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{h.name}</p>
+                                                    <p className="text-xs tabular-nums text-slate-500 dark:text-slate-400">
+                                                        {formatDateWithWeekday(h.date)}
+                                                    </p>
+                                                </div>
+                                                {h.is_optional && (
+                                                    <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded-full border border-slate-300 dark:border-slate-600 text-slate-500">
+                                                        Optional
+                                                    </span>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {tab === 'profile' && (
+                    <div className="space-y-4">
+                        <div className="bg-white/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+                            {!profileDetail ? (
+                                <ListSkeleton rows={5} />
+                            ) : (
+                                <dl className="space-y-2 text-sm">
+                                    {[
+                                        ['Employee code', profileDetail.employee_code],
+                                        ['Name', profileDetail.name],
+                                        ['Department', profileDetail.department],
+                                        ['Designation', profileDetail.designation],
+                                        ['Area', profileDetail.area],
+                                        ['Employment type', profileDetail.employment_type],
+                                        ['Joined', profileDetail.joining_date && formatDate(profileDetail.joining_date)],
+                                        ['Mobile', profileDetail.mobile],
+                                        ['Email', profileDetail.email],
+                                        ['Address', profileDetail.address],
+                                    ].map(([label, value]) => (
+                                        <div key={label} className="grid grid-cols-3 gap-2 border-b border-slate-100 dark:border-slate-700 pb-2 last:border-0">
+                                            <dt className="text-slate-500 dark:text-slate-400">{label}</dt>
+                                            <dd className="col-span-2 text-slate-700 dark:text-slate-200">{value || '—'}</dd>
+                                        </div>
+                                    ))}
+                                </dl>
+                            )}
+                            {/* Read-only, and it says why. Joining date and department
+                                decide leave accrual and who approves requests; an
+                                employee editing them is an audit problem. */}
+                            <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">
+                                Something wrong here? Ask HR to correct it — these fields decide your
+                                leave and your shift, so they are not editable from this page.
+                            </p>
+                        </div>
+
+                        <Button variant="secondary" icon={Download} onClick={downloadMonth}
+                                disabled={downloading} className="w-full">
+                            {downloading ? 'Preparing...' : 'Download this month\'s attendance'}
+                        </Button>
                     </div>
                 )}
             </main>
