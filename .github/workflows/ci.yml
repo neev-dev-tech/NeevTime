@@ -436,6 +436,91 @@ jobs:
         if: always()
         run: docker compose down -v
 
+  destinations:
+    name: Backup destinations (real Samba, MinIO, SSH)
+    runs-on: ubuntu-latest
+    # Every destination, against a real server of its kind.
+    #
+    # This product will be handed to customers who each pick a different one,
+    # and "it worked on the single share we happened to have" says nothing about
+    # the other three. A destination nobody has exercised is a button that might
+    # not work — four HRMS adapters were deleted from this codebase for being
+    # exactly that.
+    #
+    # Real servers, not mocks. A mock SMB server agrees with whatever the code
+    # does, including being wrong, which is how a payroll stub agreed with a
+    # query Postgres rejected outright.
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+
+      - name: smbclient, for the SMB destination
+        run: sudo apt-get update && sudo apt-get install -y smbclient
+
+      - name: Start a Samba server
+        run: |
+          docker run -d --name samba -p 1445:445 \
+            -e "USER=tester;testpass" \
+            -e "SHARE=backups;/shared;yes;no;no;tester" \
+            dperson/samba -u "tester;testpass" -s "backups;/shared;yes;no;no;tester;tester" -p
+          # Make the share writable by the test account.
+          sleep 5
+          docker exec samba sh -c 'mkdir -p /shared && chmod 0777 /shared'
+
+      - name: Start MinIO and make a bucket
+        run: |
+          docker run -d --name minio -p 9000:9000 \
+            -e MINIO_ROOT_USER=minioadmin -e MINIO_ROOT_PASSWORD=minioadmin \
+            minio/minio server /data
+          for i in $(seq 1 30); do
+            curl -sf http://127.0.0.1:9000/minio/health/live && break
+            sleep 1
+          done
+          docker run --rm --network host --entrypoint sh minio/mc -c '
+            mc alias set local http://127.0.0.1:9000 minioadmin minioadmin &&
+            mc mb --ignore-existing local/neevtime-test'
+
+      - name: Start an SSH server
+        run: |
+          docker run -d --name sftp -p 2222:22 \
+            atmoz/sftp tester:testpass:::upload
+          sleep 5
+
+      - name: Install
+        working-directory: server
+        run: npm ci
+
+      - name: Every destination writes, reads back and deletes
+        working-directory: server
+        env:
+          TEST_SMB_HOST: 127.0.0.1
+          TEST_S3_ENDPOINT: http://127.0.0.1:9000
+          TEST_SFTP_HOST: 127.0.0.1
+        run: |
+          # A skipped run is not a pass. If a service failed to start these
+          # would quietly skip and the job would go green having proved nothing
+          # — the exact shape of failure this file keeps having to prevent.
+          set -o pipefail
+          node --test tests/backup_destinations_live.test.js 2>&1 | tee /tmp/dest.log
+          status=$?
+          if grep -qE '^# skipped [1-9]' /tmp/dest.log; then
+            echo "::error::a destination test skipped — its server did not start"
+            docker logs samba --tail 20 || true
+            docker logs minio --tail 20 || true
+            docker logs sftp  --tail 20 || true
+            exit 1
+          fi
+          exit $status
+
+      - name: Stop the servers
+        if: always()
+        run: docker rm -f samba minio sftp || true
+
   isolation:
     name: Tenant isolation (real Postgres)
     runs-on: ubuntu-latest
