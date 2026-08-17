@@ -189,6 +189,12 @@ const checkDevicesOffline = async () => {
                ROUND(EXTRACT(EPOCH FROM (NOW() - last_activity)) / 60)::int AS silent_minutes
         FROM devices
         WHERE retired_at IS NULL AND status IS DISTINCT FROM 'retired'
+          -- The mobile app is a row in devices so mobile punches satisfy the
+          -- foreign key and can be reported on by device. It has no heartbeat,
+          -- so without this it would be announced as a dead reader every five
+          -- minutes forever — and an alert that always fires is one people
+          -- learn to delete unread.
+          AND is_virtual IS NOT TRUE
     `);
 
     for (const d of res.rows) {

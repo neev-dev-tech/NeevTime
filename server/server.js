@@ -2440,6 +2440,21 @@ const ensureSchema = async () => {
         // fraud, while matching brings an accuracy claim and a far heavier
         // consent obligation for biometric data under the DPDP Act.
         `ALTER TABLE attendance_logs ADD COLUMN IF NOT EXISTS photo_path VARCHAR(255)`,
+        // Mobile punches record device_serial = 'MOBILE_APP', and that column
+        // has a foreign key to devices. Without a matching row every punch from
+        // a phone failed with "violates foreign key constraint
+        // attendance_logs_device_serial_fkey" — admin and self-service alike.
+        //
+        // A row rather than a NULL, because the punch did come from somewhere
+        // and a report grouped by device should be able to say so. is_virtual
+        // keeps it out of the places that count physical readers: it has no
+        // heartbeat, so the offline alert would otherwise report the mobile app
+        // as a dead reader every five minutes, forever.
+        `ALTER TABLE devices ADD COLUMN IF NOT EXISTS is_virtual BOOLEAN DEFAULT FALSE`,
+        `INSERT INTO devices (serial_number, device_name, status, vendor, approval_status, is_virtual)
+         SELECT 'MOBILE_APP', 'Mobile App (self-service)', 'online', 'neevtime', 'approved', TRUE
+          WHERE NOT EXISTS (SELECT 1 FROM devices WHERE serial_number = 'MOBILE_APP')`,
+        `UPDATE devices SET is_virtual = TRUE WHERE serial_number = 'MOBILE_APP' AND is_virtual IS DISTINCT FROM TRUE`,
         `ALTER TABLE attendance_logs ADD COLUMN IF NOT EXISTS latitude DECIMAL(10, 8)`,
         `ALTER TABLE attendance_logs ADD COLUMN IF NOT EXISTS longitude DECIMAL(11, 8)`,
         `ALTER TABLE attendance_logs ADD COLUMN IF NOT EXISTS is_geofence_verified BOOLEAN DEFAULT FALSE`,

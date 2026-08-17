@@ -174,6 +174,17 @@ const PLANS = [
     // six, and a conflict target with no matching unique index — so a reader
     // could not store a fingerprint or a face at all, and an enrolment made on
     // one door never propagated to the others.
+    // Mobile punching failed entirely on this deployment: device_serial is
+    // 'MOBILE_APP' and that column has a foreign key to devices, which had no
+    // such row. PREPARE would not have caught it — a foreign key is enforced on
+    // execution — so this belongs with the statements that are actually run.
+    ['routes/mobile_attendance.js:170 — a punch from a phone',
+        `INSERT INTO attendance_logs
+           (employee_code, punch_time, punch_state, device_serial, verification_mode,
+            punch_source, latitude, longitude, is_geofence_verified, photo_path)
+         SELECT employee_code, NOW(), 'check_in', 'MOBILE_APP', 1, 'mobile',
+                12.9, 77.6, TRUE, NULL
+           FROM employees LIMIT 1`],
     ['services/adms.js:323 — biometric template upload',
         `INSERT INTO biometric_templates
            (employee_code, template_type, template_no, valid, duress, template_data,

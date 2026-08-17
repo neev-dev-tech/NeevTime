@@ -210,6 +210,16 @@ CREATE TABLE IF NOT EXISTS attendance_logs (
     longitude DECIMAL(11,8),
     is_geofence_verified BOOLEAN DEFAULT false,
     geofence_id INTEGER,
+    -- Production enforces this and the schema did not declare it, so a fresh
+    -- install had no constraint while the live database rejected the insert.
+    -- Mobile punching failed on the deployment and would have looked perfectly
+    -- healthy in CI — the same drift that has produced most of this week's
+    -- surprises, in the other direction.
+    --
+    -- ON DELETE SET NULL, not CASCADE: retiring a reader must never delete the
+    -- attendance recorded through it. Those punches are payroll evidence with a
+    -- multi-year retention obligation, and the device is only how they arrived.
+    FOREIGN KEY (device_serial) REFERENCES devices(serial_number) ON DELETE SET NULL,
     FOREIGN KEY (geofence_id) REFERENCES geofences(id) ON DELETE SET NULL,
     PRIMARY KEY (id)
 );
