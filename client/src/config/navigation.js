@@ -18,7 +18,6 @@ export const personnelSidebar = [
       { label: 'Department', path: '/departments', icon: Grid, iconColor: '#2563EB' },
       { label: 'Position', path: '/positions', icon: Briefcase, iconColor: '#7C3AED' },
       { label: 'Area', path: '/areas', icon: MapPin, iconColor: '#059669' },
-      { label: 'Holiday Location', path: '/holiday-locations', icon: Plane, iconColor: '#D97706' },
     ]
   },
   {
@@ -186,14 +185,6 @@ export const systemSidebar = [
     iconColor: '#059669',
     items: [
       { label: 'HRMS Integration', path: '/integrations', icon: Network, iconColor: '#059669' },
-    ]
-  },
-  {
-    group: 'Reports',
-    icon: BarChart3,
-    iconColor: '#7C3AED',
-    items: [
-      { label: 'All Reports', path: '/reports', icon: TrendingUp, iconColor: '#7C3AED' },
     ]
   },
   {

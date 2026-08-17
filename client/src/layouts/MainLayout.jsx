@@ -51,9 +51,14 @@ export default function MainLayout({ children }) {
     const path = location.pathname;
     if (path === '/' || path === '/dashboard') {
       setActiveModule('Dashboard');
-    } else if (['/devices', '/device-commands', '/device-messages'].some(p => path.startsWith(p))) {
+    } else if (['/devices', '/device-commands', '/device-messages', '/device-sync'].some(p => path.startsWith(p))) {
       setActiveModule('Device');
-    } else if (['/logs', '/shifts', '/timetables', '/break-times', '/schedule', '/rules', '/holidays', '/leaves', '/leave-types', '/leave-balance', '/attendance', '/reports', '/export', '/import'].some(p => path.startsWith(p))) {
+    // /geofences and /mobile belong here too. Both appear in attendanceSidebar,
+    // and both were missing from this list — so opening either switched the
+    // active module to Personnel, the sidebar changed under the reader, and the
+    // page they had just clicked was no longer anywhere in the menu. The link
+    // worked; finding it a second time did not.
+    } else if (['/logs', '/shifts', '/timetables', '/break-times', '/schedule', '/rules', '/holidays', '/leaves', '/leave-types', '/leave-balance', '/attendance', '/reports', '/export', '/import', '/geofences', '/holiday-locations', '/mobile', '/regularizations'].some(p => path.startsWith(p))) {
       setActiveModule('Attendance');
     } else if (['/settings', '/users', '/database', '/system-logs', '/integrations', '/advanced-reports'].some(p => path.startsWith(p))) {
       setActiveModule('System');
