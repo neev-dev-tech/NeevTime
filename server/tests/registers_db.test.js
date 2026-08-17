@@ -44,7 +44,8 @@ const cleanup = async () => {
         `DELETE FROM attendance_daily_summary WHERE employee_code LIKE '${P}%'`,
         `DELETE FROM leave_applications WHERE employee_code LIKE '${P}%'`,
         `DELETE FROM holidays WHERE name LIKE '${P}%'`,
-        `DELETE FROM employees WHERE employee_code LIKE '${P}%'`
+        `DELETE FROM employees WHERE employee_code LIKE '${P}%'`,
+        `DELETE FROM devices WHERE serial_number = 'ZZTESTDEV'`
     ]) {
         try { await db.query(sql); } catch { /* table may not exist */ }
     }
@@ -70,6 +71,16 @@ test.before(async () => {
     await db.query(
         `INSERT INTO employees (employee_code, name, status, joining_date, attendance_required)
          VALUES ($1, 'ZZ Test Worker', 'active', DATE '2026-06-08', TRUE)`, [`${P}1`]);
+
+    // The reader these punches came from. attendance_logs.device_serial has a
+    // foreign key to devices, so a punch from a serial nobody has registered is
+    // rejected — which is correct, and is exactly how mobile punching was found
+    // to be broken on the deployment.
+    await db.query(
+        `INSERT INTO devices (serial_number, device_name, status)
+         VALUES ('ZZTESTDEV', 'ZZ Test Reader', 'online')
+         ON CONFLICT (serial_number) DO NOTHING`
+    ).catch(() => { /* older schemas without the constraint */ });
 
     // Punches on Mon 8, Tue 9, Wed 10 June 2026.
     for (const d of ['2026-06-08', '2026-06-09', '2026-06-10']) {
