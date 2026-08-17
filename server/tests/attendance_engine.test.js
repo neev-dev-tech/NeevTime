@@ -332,3 +332,35 @@ test('the employee query still loads status', () => {
     assert.ok(/SELECT employee_code, status FROM employees/.test(src),
         'status is not loaded, so the former-employee guard silently never matches');
 });
+
+// ────────────────────── the shape production actually sends ──────────────────
+//
+// Every test above hands in an ISO string carrying +05:30, so the frame is
+// already correct and a zone bug cannot show itself. Production sends what the
+// database holds: local wall-clock with no zone at all. Read in the wrong zone,
+// someone nine minutes late scored 324 — and the whole workforce scored at
+// least 5h24m — while these tests stayed green.
+
+test('a bare wall-clock time is read in the rule zone, not the container zone', () => {
+    // 09:09 against a 09:00 shift with 15 minutes of grace is not late, whether
+    // the process runs in UTC, IST, or anywhere else.
+    const s = day([`${WEDNESDAY} 09:09:00`, `${WEDNESDAY} 18:00:00`]);
+    assert.strictEqual(s.lateMinutes, 0,
+        'a wall-clock punch was read as UTC and scored late by the zone offset');
+});
+
+test('a bare wall-clock time still measures real lateness', () => {
+    const s = day([`${WEDNESDAY} 09:45:00`, `${WEDNESDAY} 18:00:00`]);
+    assert.strictEqual(s.lateMinutes, 30,
+        'late is measured from the end of grace, in the shift zone');
+});
+
+test('punches are fetched as text so the driver cannot reinterpret them', () => {
+    // node-postgres turns `timestamp without time zone` into a Date in the
+    // container zone. Besides lateness, that pushed any punch after 18:30 onto
+    // the next day when grouping. Text keeps the digits that were stored.
+    const src = fs.readFileSync(
+        path.join(__dirname, '../services/attendance_engine.js'), 'utf8');
+    assert.match(src, /to_char\(punch_time, 'YYYY-MM-DD HH24:MI:SS'\) AS punch_time/,
+        'punch_time is being read as a Date again — lateness and day grouping both break');
+});

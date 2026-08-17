@@ -82,9 +82,20 @@ class AttendanceEngine {
         const rules = await this.loadRules();
 
         // 1. Fetch all required logs in ONE query
+        // punch_time comes back as text, deliberately.
+        //
+        // The column is `timestamp without time zone` holding local wall-clock,
+        // and node-postgres turns that into a Date in the container's zone —
+        // UTC, since nothing sets TZ. Everything downstream then read 09:09 as
+        // 09:09Z and compared it against a shift written in IST: nine minutes
+        // late scored 324, and the grouping below pushed any punch after 18:30
+        // onto the following day. Handing the wall clock over as digits keeps
+        // the reading in the zone the shift is written in.
         let logsQuery = `
-            SELECT employee_code, punch_time, punch_state
-            FROM attendance_logs 
+            SELECT employee_code,
+                   to_char(punch_time, 'YYYY-MM-DD HH24:MI:SS') AS punch_time,
+                   punch_state
+            FROM attendance_logs
             WHERE punch_time >= $1 AND punch_time <= $2
         `;
         const logsParams = [
@@ -258,7 +269,21 @@ class AttendanceEngine {
             // so a grace of 15 minutes means 09:16 is the first late minute.
             const graceEnd = moment.tz(`${date} ${r.shiftStart}:00`, r.timezone)
                 .add(r.graceMinutes, 'minutes');
-            const entry = moment(inTime);
+            // Both sides must be read in the same zone.
+            //
+            // punch_time is `timestamp without time zone` holding local
+            // wall-clock, and node-postgres turns that into a Date in the
+            // container's zone — UTC, since nothing sets TZ. So 09:09 came back
+            // as 09:09Z and was compared against a grace end built in IST,
+            // 03:45Z: someone nine minutes late scored 324, and every arrival
+            // in the working day scored at least 5h24m late. Late minutes drive
+            // deductions.
+            //
+            // Formatting the Date back to wall-clock recovers exactly the
+            // digits stored, whatever zone the process runs in, and reading
+            // those in the rule's zone puts entry and graceEnd on the same
+            // clock — the one the shift is written in.
+            const entry = moment.tz(inTime, r.timezone);
             if (entry.isAfter(graceEnd)) {
                 lateMinutes = entry.diff(graceEnd, 'minutes');
             }
