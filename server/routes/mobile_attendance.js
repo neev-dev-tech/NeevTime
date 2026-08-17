@@ -260,9 +260,25 @@ router.post('/punch', async (req, res) => {
         }
 
         if (!insideGeofence) {
+            // "You are outside the allowed location" is wrong when there is no
+            // location at all — it sends someone walking around the car park
+            // looking for a signal, when the fix is an administrator adding a
+            // site. The owner hit exactly this: zero geofences, and a message
+            // about being in the wrong place.
+            const configured = await db.query(
+                'SELECT count(*)::int AS n FROM geofences WHERE is_active IS TRUE'
+            );
+            if (configured.rows[0].n === 0) {
+                return res.status(409).json({
+                    error: 'No work location has been set up yet.',
+                    details: 'An administrator needs to add one under Attendance > Rule > '
+                        + 'Geofences before anyone can punch from a phone.'
+                });
+            }
+
             return res.status(403).json({
                 error: 'You are outside the allowed location.',
-                details: 'Geofence violation.'
+                details: 'You are not within range of any approved site.'
             });
         }
 
