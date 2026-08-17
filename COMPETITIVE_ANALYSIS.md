@@ -38,7 +38,7 @@
 | Kiosk/tablet time-clock mode | ❌ | ◐ | ✅ | ◐ | ❌ | ❌ | ✅ | ❌ |
 | Contractor / multi-vendor workforce mgmt | ❌ single flag | ❌ | ✅ core | ◐ | ◐ | ◐ | ❌ | ❌ |
 | Full payroll (PF/ESI/income tax) | ❌ export only | ❌ | ❌ | ◐ | ✅ | ✅ | ❌ | ◐ |
-| HRMS integrations (ERPNext, Odoo, SAP, Workday, BambooHR, Zoho, webhook) | ✅ 8 types | ❌ | ◐ | ❌ | ◐ | ◐ | ❌ | native |
+| HRMS integrations (ERPNext, Odoo, Horilla, generic webhook) | ✅ 4, all working | ❌ | ◐ | ❌ | ◐ | ◐ | ❌ | native |
 | Audit trail (who changed what) | ✅ built | ◐ | ❌ | ◐ | ◐ | ◐ | ❌ | ◐ |
 | Backup/restore + health monitoring | ✅ unusual | ◐ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | Self-hosted / data ownership | ✅ | ✅ on-prem | ❌ | ◐ | ❌ | ❌ | ❌ | ❌ |
@@ -46,6 +46,8 @@
 | Price | ₹40K–1.5L license + AMC **or** ₹25–35/emp/mo | per-device one-time | $2.25/emp/mo | bundle | ₹50/emp/mo | ~₹99/emp/mo | free / $1.25 | $1.25–4.50/emp/mo |
 
 ---
+
+> **On integrations, four is the honest number and the better story.** Adapters for SAP SuccessFactors, Workday, BambooHR and Zoho People existed and were deleted: those vendors gate their APIs behind partner agreements a self-hosted product cannot obtain, so the adapters could never have worked at a customer site. Competitors list them as checkboxes. When a prospect asks "does it integrate with X", the answer that wins is a working file export and a webhook, not a button that fails after the sale. Every payroll and HRMS not on the list is served by the CSV/template export.
 
 ## 3. Where NeevTime wins and loses today
 

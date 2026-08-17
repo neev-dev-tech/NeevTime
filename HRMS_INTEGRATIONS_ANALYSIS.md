@@ -17,11 +17,18 @@ The backend has **comprehensive HRMS integration support** with:
 1. ✅ **ERPNext / Frappe** - Fully implemented
 2. ✅ **Odoo** - Fully implemented
 3. ✅ **Horilla** - Fully implemented
-4. ✅ **SAP SuccessFactors** - Fully implemented
-5. ✅ **Workday** - Fully implemented
-6. ✅ **BambooHR** - Fully implemented
-7. ✅ **Zoho People** - Fully implemented
-8. ✅ **Generic Webhook / API** - Fully implemented
+4. ✅ **Generic Webhook / API** - Fully implemented
+
+**Removed, deliberately:** SAP SuccessFactors, Workday, BambooHR and Zoho People
+were listed here as "fully implemented" and were not. Each vendor gates its API
+behind a partner agreement or a reviewed OAuth application that a self-hosted
+product cannot obtain on a customer's behalf, so the adapters could never have
+worked at a customer site — they were buttons that would fail after the sale.
+They were deleted from services/integrations/registry.js. Those systems are
+served by the file export and the generic webhook, which do work.
+
+This document is retained as history. The registry is the current source of
+truth: four types, each with declared capabilities the UI reads.
 
 #### Backend Files:
 - `server/routes/integrations.js` - Complete API routes

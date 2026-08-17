@@ -13,7 +13,7 @@ NeevTime is **sellable now to a narrow, well-defined buyer** — an India-based 
 |---|---|---|
 | Security | ✅ Good | SQL injection fixed, auth on all report routes, validation middleware, TLS done, password hashing |
 | Core functionality | ✅ Good | 53 tables, 57 routes, device sync (ADMS + ZKTeco TCP), attendance engine, leaves, approvals, payroll export |
-| Reliability/ops | ⚠️ Needs 1-2 days | Off-machine backup still open; websocket falls back to polling; ~40 dialogs untested in CI |
+| Reliability/ops | ✅ Good | Off-machine backup working (SMB to file server, restore rehearsed); websockets fixed; every destination verified in CI against real Samba/MinIO/SSH. Remaining: ~40 dialogs are loaded but not clicked in CI |
 | Sales readiness | ⚠️ Needs work | No public site/pricing, no trial flow, no billing, tenancy decision open, install procedure not single-doc |
 | Product-market fit (India factory/compliance niche) | ✅ Strong | Statutory registers + ZKTeco ecosystem + self-host are defensible against SaaS competitors |
 | Product-market fit (broad HRMS / hourly workforce) | ❌ Weak | No native mobile app, no offline capture, no contractor entity, no face recognition — Truein/eSSL win there |
@@ -34,7 +34,7 @@ NeevTime is **sellable now to a narrow, well-defined buyer** — an India-based 
 - **Backend:** Node.js/Express + PostgreSQL (53 tables), Socket.io, JWT auth, bcrypt, Nodemailer, morgan logging.
 - **Device layer:** ADMS protocol handler + ZKTeco TCP (`zkteco-tcp.js`), command queue, device registry/capabilities, punch ingest, real-time sync, `/iclock` endpoint (ZKTeco push protocol).
 - **Frontend:** React 18 + Vite, MUI v7 + Tailwind, Zustand, Recharts; 57 routes ≈ 47 authenticated screens + employee portal.
-- **Modules:** employees (incl. deleted-employee restore), departments/positions/areas, devices, attendance rules (global & department), shifts, timetables, break times, grace, OT calc, schedules (dept/employee/temp) + calendar, holidays + holiday locations, geofences, leaves (types/balances/applications), approval workflows (flows/nodes/roles), regularizations, mobile punch (GPS), manual entry, statutory registers, payroll export, 10+ reports + scheduled reports + report history, export center (CSV/PDF/Excel), import wizard, HRMS integrations (ERPNext, Odoo, Horilla, SAP SuccessFactors, Workday, BambooHR, Zoho People, webhook), backup destinations (S3/SFTP/SharePoint/mounted), audit trail, system logs, alerts/health monitor, employee portal (ESS), Docker + nginx + PM2 deployment.
+- **Modules:** employees (incl. deleted-employee restore), departments/positions/areas, devices, attendance rules (global & department), shifts, timetables, break times, grace, OT calc, schedules (dept/employee/temp) + calendar, holidays + holiday locations, geofences, leaves (types/balances/applications), approval workflows (flows/nodes/roles), regularizations, mobile punch (GPS), manual entry, statutory registers, payroll export, 10+ reports + scheduled reports + report history, export center (CSV/PDF/Excel), import wizard, HRMS integrations (ERPNext, Odoo, Horilla, generic webhook — four, all reachable; adapters for SAP SuccessFactors, Workday, BambooHR and Zoho People were deliberately removed because those APIs need partner agreements a self-hosted product cannot obtain), backup destinations (S3/SFTP/SharePoint/mounted), audit trail, system logs, alerts/health monitor, employee portal (ESS), Docker + nginx + PM2 deployment.
 
 ### 2.2 What was fixed recently (verified in code)
 

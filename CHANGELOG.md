@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Employee management with profile photos and documents
 - Department and position management
 - Multiple report types with PDF & XLSX export
-- HRMS integrations (ERPNext, Odoo, Horilla, SAP SuccessFactors, Workday, BambooHR, Zoho People, Generic Webhook/API)
+- HRMS integrations (ERPNext, Odoo, Horilla, Generic Webhook/API). Adapters for SAP SuccessFactors, Workday, BambooHR and Zoho People were removed: those vendors gate their APIs behind partner agreements a self-hosted product cannot obtain, so the buttons could never have worked.
 - Toast notification system (replaces alert dialogs)
 - Modern confirmation dialogs (replaces confirm)
 - Global search functionality (Cmd+K / Ctrl+K)
