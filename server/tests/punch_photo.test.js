@@ -135,3 +135,20 @@ test('photos expire — personal data with no end date is a liability', () => {
     assert.ok(!/DELETE FROM attendance_logs/.test(src),
         'the photo purge deletes attendance records');
 });
+
+test('the log table does not link photos with a bare img src', () => {
+    // /api/mobile requires an admin token, attached by the API client. An
+    // <img src> sends no Authorization header, so every thumbnail returned 401
+    // and the table drew alt text where the photo should be. The images must be
+    // fetched, not linked — and the route must stay authenticated, because
+    // these are photographs of employees.
+    const src = fs.readFileSync(
+        path.join(__dirname, '../../client/src/pages/Logs.jsx'), 'utf8');
+
+    assert.ok(!/<img[^>]*src=\{`\/api\/mobile\/punch-photo/.test(src),
+        'a punch photo is linked with a bare img src again — it will 401');
+    assert.match(src, /responseType: 'blob'/,
+        'punch photos are no longer fetched through the authenticated client');
+    assert.match(src, /revokeObjectURL/,
+        'object URLs are not released — the table leaks every image it shows');
+});

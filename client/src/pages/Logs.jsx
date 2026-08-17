@@ -7,6 +7,46 @@ import { formatTimestamp } from '../utils/dateFormat';
 
 const BADGE_BASE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide';
 
+/**
+ * A punch photo, fetched rather than linked.
+ *
+ * /api/mobile requires an admin token, and the token lives in memory for the
+ * API client to attach — an <img src> sends no Authorization header, so every
+ * thumbnail came back 401 and the browser drew the alt text. Fetching through
+ * the same client and handing the bytes to the tag as a blob keeps the route
+ * authenticated, which is the point: these are photographs of employees and
+ * must not be readable by anyone who guesses a filename.
+ *
+ * The object URL is revoked on unmount; a table of these would otherwise hold
+ * every image it ever showed.
+ */
+const PunchPhoto = ({ name, alt, className }) => {
+    const [src, setSrc] = useState(null);
+    const [failed, setFailed] = useState(false);
+
+    useEffect(() => {
+        let url = null;
+        let cancelled = false;
+        api.get(`/api/mobile/punch-photo/${name}`, { responseType: 'blob' })
+            .then((res) => {
+                if (cancelled) return;
+                url = URL.createObjectURL(res.data);
+                setSrc(url);
+            })
+            .catch(() => { if (!cancelled) setFailed(true); });
+        return () => {
+            cancelled = true;
+            if (url) URL.revokeObjectURL(url);
+        };
+    }, [name]);
+
+    // Retention deletes the file and clears photo_path, so a missing image
+    // usually means the row is mid-purge rather than that anything is broken.
+    if (failed) return <span className="text-xs text-slate-400 dark:text-slate-500">gone</span>;
+    if (!src) return <span className={`${className} block animate-pulse bg-slate-100 dark:bg-slate-700`} />;
+    return <img src={src} alt={alt} className={className} />;
+};
+
 export default function Logs() {
     const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -246,10 +286,9 @@ export default function Logs() {
                                                     className="block"
                                                     title="Taken at the moment of this punch"
                                                 >
-                                                    <img
-                                                        src={`/api/mobile/punch-photo/${log.photo_path}`}
+                                                    <PunchPhoto
+                                                        name={log.photo_path}
                                                         alt={`Punch by ${log.emp_name || log.employee_code}`}
-                                                        loading="lazy"
                                                         className="h-10 w-10 rounded-md object-cover border border-slate-200 dark:border-slate-700"
                                                     />
                                                 </button>
@@ -276,8 +315,8 @@ export default function Logs() {
                             className="max-w-lg w-full rounded-2xl bg-white dark:bg-slate-800 overflow-hidden"
                             onClick={(e) => e.stopPropagation()}
                         >
-                            <img
-                                src={`/api/mobile/punch-photo/${photo.photo_path}`}
+                            <PunchPhoto
+                                name={photo.photo_path}
                                 alt={`Punch by ${photo.emp_name || photo.employee_code}`}
                                 className="w-full"
                             />
