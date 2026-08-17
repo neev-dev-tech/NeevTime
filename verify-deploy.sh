@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Post-deploy verification. Run on the VM straight after
-#   docker compose -f docker-compose.production.yml up -d --build app
+#   docker compose up -d --build client server
 #
 #   ./verify-deploy.sh
 #
@@ -32,7 +32,14 @@ set -uo pipefail
 APP_URL="${APP_URL:-http://localhost}"
 CURL="curl -sL -k"
 DB_CONTAINER="${DB_CONTAINER:-attendance_db}"
-APP_CONTAINER="${APP_CONTAINER:-attendance_app}"
+# nginx and node run in separate containers. This script named a single
+# `attendance_app` — the old combined container — and kept reporting it after
+# the split, so a healthy deploy failed on a corpse that had exited cleanly a
+# day earlier while `docker exec` on it broke the bundle check. Container names
+# come from compose now, so the script follows the file rather than a memory of
+# what the file used to say.
+WEB_CONTAINER="${WEB_CONTAINER:-}"   # nginx: serves the bundle, proxies /iclock
+API_CONTAINER="${API_CONTAINER:-}"   # node: the API and the ADMS endpoint
 DB_USER="${DB_USER:-postgres}"
 DB_NAME="${DB_NAME:-attendance_db}"
 # Punch timestamps are local wall-clock time; the database container is UTC.
@@ -60,6 +67,25 @@ if ! d info >/dev/null 2>&1; then
     exit 2
 fi
 
+# Ask compose which container is which. A container that compose no longer
+# lists is not part of this deployment, whatever it is called and whether or not
+# it is still lying around.
+# By id, not by parsing the table. `docker compose ps --format` has accepted
+# different things across compose versions, and a format string this script
+# guesses wrong resolves to an empty name and silently falls back to the old
+# combined container — the exact failure being fixed here.
+compose_container() {
+    local id
+    id=$(d compose ps -q "$1" 2>/dev/null | head -1)
+    [ -n "$id" ] && d inspect -f '{{.Name}}' "$id" 2>/dev/null | sed 's,^/,,'
+}
+[ -z "$WEB_CONTAINER" ] && WEB_CONTAINER=$(compose_container client)
+[ -z "$API_CONTAINER" ] && API_CONTAINER=$(compose_container server)
+# Older installs still run the combined container, and this script has to work
+# on them too — that is the deployment most likely to need verifying.
+[ -z "$WEB_CONTAINER" ] && WEB_CONTAINER="attendance_app"
+[ -z "$API_CONTAINER" ] && API_CONTAINER="$WEB_CONTAINER"
+
 pass=0; fail=0; warn=0
 ok()   { printf '  \033[32mPASS\033[0m  %s\n' "$1"; pass=$((pass+1)); }
 bad()  { printf '  \033[31mFAIL\033[0m  %s\n' "$1"; fail=$((fail+1)); }
@@ -70,7 +96,7 @@ psql_q() { d exec "$DB_CONTAINER" psql -U "$DB_USER" -d "$DB_NAME" -tAc "$1" 2>/
 
 # ── 1. Containers ─────────────────────────────────────────────────────────
 head_ "1. Containers"
-for c in "$APP_CONTAINER" "$DB_CONTAINER"; do
+for c in $(printf '%s\n' "$WEB_CONTAINER" "$API_CONTAINER" "$DB_CONTAINER" | awk '!seen[$0]++'); do
     state=$(d inspect -f '{{.State.Status}}' "$c" 2>/dev/null)
     if [ "$state" = "running" ]; then
         # Uptime under a minute is the signal that this deploy actually
@@ -82,8 +108,19 @@ for c in "$APP_CONTAINER" "$DB_CONTAINER"; do
     fi
 done
 
-restarts=$(d inspect -f '{{.RestartCount}}' "$APP_CONTAINER" 2>/dev/null || echo 0)
-[ "${restarts:-0}" -gt 0 ] && note "$APP_CONTAINER has restarted $restarts times — check logs for a crash loop"
+for c in $(printf '%s\n' "$WEB_CONTAINER" "$API_CONTAINER" | awk '!seen[$0]++'); do
+    restarts=$(d inspect -f '{{.RestartCount}}' "$c" 2>/dev/null || echo 0)
+    [ "${restarts:-0}" -gt 0 ] && note "$c has restarted $restarts times — check logs for a crash loop"
+done
+
+# A container carrying a name from an earlier layout is not a failure, but it is
+# worth saying: it holds a port or a volume claim until someone removes it, and
+# it is the reason this check used to report a broken deploy.
+for stale in attendance_app; do
+    case " $WEB_CONTAINER $API_CONTAINER " in *" $stale "*) continue ;; esac
+    [ "$(d inspect -f '{{.State.Status}}' "$stale" 2>/dev/null)" = "exited" ] &&
+        note "$stale is a stopped container from the old single-container layout, not part of this deploy — remove it with: docker rm $stale"
+done
 
 # ── 2. The app answers ────────────────────────────────────────────────────
 head_ "2. HTTP"
@@ -116,7 +153,7 @@ if echo "$health" | grep -q '"status":"healthy"'; then
     up=$(echo "$health" | grep -o '"uptime":[0-9.]*' | cut -d: -f2 | cut -d. -f1)
     ok "/api/health healthy, database connected (node up ${up:-?}s)"
 elif echo "$health" | grep -q '502 Bad Gateway'; then
-    bad "/api/health still 502 after 60s — nginx is up but node is not listening on 3001. Check: docker logs $APP_CONTAINER --tail 50"
+    bad "/api/health still 502 after 60s — nginx is up but node is not listening on 3001. Check: docker logs $API_CONTAINER --tail 50"
 else
     bad "/api/health: ${health:-no response after 60s}"
 fi
@@ -124,7 +161,7 @@ fi
 # ── 3. Is the browser going to get the new build? ─────────────────────────
 head_ "3. Deployed bundle"
 served=$($CURL "$APP_URL/" | grep -o 'assets/index-[A-Za-z0-9_-]*\.js' | head -1)
-in_image=$(d exec "$APP_CONTAINER" sh -c 'ls /usr/share/nginx/html/assets/index-*.js 2>/dev/null | head -1' | xargs -n1 basename 2>/dev/null)
+in_image=$(d exec "$WEB_CONTAINER" sh -c 'ls /usr/share/nginx/html/assets/index-*.js 2>/dev/null | head -1' | xargs -n1 basename 2>/dev/null)
 
 if [ -n "$served" ]; then
     ok "serving $served"
@@ -172,7 +209,7 @@ case "$iclock_code" in
         bad "/iclock is ${iclock_code:-unreachable} — the readers cannot deliver punches.
         nginx is answering but cannot reach node. Every punch made at every door is
         being refused and will never be recovered beyond the readers' own buffers.
-        Check:  docker exec $APP_CONTAINER sh -c 'nginx -T | grep -A3 \"location /iclock\"'
+        Check:  docker exec $WEB_CONTAINER sh -c 'nginx -T | grep -A3 \"location /iclock\"'
                 curl -s -o /dev/null -w '%{http_code}' http://localhost:3001/iclock/cdata" ;;
     *)
         ok "/iclock reachable through $APP_URL (HTTP $iclock_code)" ;;
@@ -257,7 +294,7 @@ head_ "5. Recent errors"
 # it silently and matched nothing; ugrep rejects it outright as an empty
 # subexpression. Either way the noise came through on every run.
 NOISE='connect\(\) failed .*upstream'
-errline() { d logs --since 5m "$APP_CONTAINER" 2>&1 | grep -iE '\[ERROR\]|UnhandledPromise|ECONNREFUSED' | grep -vE "$NOISE"; }
+errline() { { d logs --since 5m "$API_CONTAINER" 2>&1; [ "$WEB_CONTAINER" != "$API_CONTAINER" ] && d logs --since 5m "$WEB_CONTAINER" 2>&1; } | grep -iE '\[ERROR\]|UnhandledPromise|ECONNREFUSED' | grep -vE "$NOISE"; }
 
 errs=$(errline | grep -c . || true)
 if [ "${errs:-0}" -eq 0 ]; then
