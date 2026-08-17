@@ -2431,6 +2431,15 @@ const ensureSchema = async () => {
            END IF;
          END $$`,
         `ALTER TABLE attendance_logs ADD COLUMN IF NOT EXISTS punch_source VARCHAR(50) DEFAULT 'biometric'`,
+        // A still captured at the moment of the punch. Filename only — the file
+        // lives on the uploads volume, not in the database, because 92,000
+        // punches with an image each would make every dump unrestorable.
+        //
+        // This is the anti-buddy-punching story, and it is deliberately a photo
+        // rather than face matching: a reviewable image removes most of the
+        // fraud, while matching brings an accuracy claim and a far heavier
+        // consent obligation for biometric data under the DPDP Act.
+        `ALTER TABLE attendance_logs ADD COLUMN IF NOT EXISTS photo_path VARCHAR(255)`,
         `ALTER TABLE attendance_logs ADD COLUMN IF NOT EXISTS latitude DECIMAL(10, 8)`,
         `ALTER TABLE attendance_logs ADD COLUMN IF NOT EXISTS longitude DECIMAL(11, 8)`,
         `ALTER TABLE attendance_logs ADD COLUMN IF NOT EXISTS is_geofence_verified BOOLEAN DEFAULT FALSE`,
@@ -2523,6 +2532,10 @@ const ensureSchema = async () => {
     const seeds = [
         ['database', 'backup_enabled', 'false', 'boolean', 'Take unattended backups on a schedule'],
         ['database', 'backup_frequency', 'daily', 'string', 'How often to take one'],
+        ['attendance', 'punch_photo_retention_days', '90', 'number',
+            'How long a photo taken at the moment of a punch is kept. The attendance record '
+            + 'itself is never deleted — only the image, which is personal data and only needs '
+            + 'to outlive any dispute about that punch.'],
         ['database', 'backup_day', '', 'string',
             'Which day, for weekly (0 Sunday to 6 Saturday) or monthly (1 to 31). '
             + 'Ignored for daily. A monthly date that does not exist in a short month runs on '
@@ -2674,6 +2687,15 @@ server.listen(PORT, '0.0.0.0', async () => {
 
     await ensureSchema();
     await ensureFirstAdmin();
+
+    // Punch photos are personal data; keeping them forever is a liability, not
+    // an asset. The attendance record is what must survive for years.
+    try {
+        require('./routes/mobile_attendance').startPhotoPurge();
+        console.log('Punch photo retention: started (daily)');
+    } catch (err) {
+        console.log('Punch photo retention: not available -', err.message);
+    }
 
     // Start HRMS scheduled sync (pushes attendance to ERPNext every 5 minutes)
     try {

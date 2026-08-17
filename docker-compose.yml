@@ -84,6 +84,11 @@ services:
       # that happens to sit in the build context and gets COPY'd into the image,
       # which made it look like the scheduler had stopped in March.
       - backups:/app/backups
+      # Punch photos. On a volume for the same reason backups are: anything
+      # written inside the container is destroyed by the next deploy, and a
+      # photo attached to an attendance record is evidence — losing it silently
+      # is worse than never capturing it.
+      - uploads:/app/uploads
       # The door for "second copy — external path" in Settings > Database.
       #
       # That setting writes to a path INSIDE this container, so without a mount
@@ -152,6 +157,8 @@ volumes:
   nginx_certs:
   backups:
     name: neevtime_backups
+  uploads:
+    name: neevtime_uploads
 
 
 networks:

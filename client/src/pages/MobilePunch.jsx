@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { MapPin, Navigation, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
+import { MapPin, Navigation, CheckCircle, XCircle, RefreshCw, Camera, X } from 'lucide-react';
 import api from '../api';
 import { Button, PageHeader } from '../components';
 
@@ -14,6 +14,42 @@ const MobilePunch = () => {
     const [user, setUser] = useState(null); // Current user/employee
     const [employees, setEmployees] = useState([]); // For Admin simulation
     const [selectedEmployeeId, setSelectedEmployeeId] = useState(''); // For simulation
+    const [photo, setPhoto] = useState(null);       // data URL, sent with the punch
+    const [photoNote, setPhotoNote] = useState(''); // why there is no photo, if there is none
+
+    /**
+     * Read the captured image, shrink it, and keep it as a data URL.
+     *
+     * Shrunk on the phone rather than the server. A modern camera produces
+     * 4–8 MB; the point of this image is to recognise a face in a review
+     * screen, and 640px does that. Sending the original would fail the server's
+     * 2 MB limit and waste a factory worker's mobile data on every punch.
+     *
+     * A failure here never blocks the punch — it clears the photo and says why.
+     */
+    const handlePhoto = (file) => {
+        setPhotoNote('');
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = () => {
+            const img = new Image();
+            img.onload = () => {
+                const maxSide = 640;
+                const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+                const canvas = document.createElement('canvas');
+                canvas.width = Math.round(img.width * scale);
+                canvas.height = Math.round(img.height * scale);
+                canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                // 0.75 keeps a face clearly recognisable at roughly 40-80 KB.
+                setPhoto(canvas.toDataURL('image/jpeg', 0.75));
+            };
+            img.onerror = () => setPhotoNote('That image could not be read. Punching without a photo.');
+            img.src = reader.result;
+        };
+        reader.onerror = () => setPhotoNote('That image could not be read. Punching without a photo.');
+        reader.readAsDataURL(file);
+    };
 
     useEffect(() => {
         fetchData();
@@ -97,12 +133,17 @@ const MobilePunch = () => {
                 employee_id: selectedEmployeeId,
                 latitude: location.latitude,
                 longitude: location.longitude,
-                punch_time: new Date()
+                punch_time: new Date(),
+                photo
             });
 
             if (res.data.success) {
                 setStatus('success');
-                setTimeout(() => setStatus('ready'), 3000); // Reset after 3s
+                // The punch succeeded either way; say so if the image did not,
+                // rather than letting someone believe one was stored.
+                if (res.data.photo_warning) setPhotoNote(res.data.photo_warning);
+                setPhoto(null);
+                setTimeout(() => { setStatus('ready'); setPhotoNote(''); }, 3000);
             }
         } catch (err) {
             setError(err.response?.data?.error || 'Punch Failed');
@@ -212,6 +253,46 @@ const MobilePunch = () => {
                                     <p className="mt-1 text-slate-600 dark:text-slate-300">
                                         You must be within <span className="tabular-nums font-semibold">{nearestFence?.radius_meters || 100}m</span> of an office location.
                                     </p>
+                                </div>
+
+                                {/* Photo at the moment of the punch.
+                                    A reviewable image removes most buddy punching without
+                                    face matching — which would bring an accuracy claim and a
+                                    far heavier consent obligation for biometric data.
+                                    Optional on purpose: a camera that fails must not stop
+                                    someone clocking in. */}
+                                <div className="mb-4">
+                                    {photo ? (
+                                        <div className="relative">
+                                            <img
+                                                src={photo}
+                                                alt="Photo that will be attached to this punch"
+                                                className="w-full rounded-2xl border border-slate-200 dark:border-slate-700"
+                                            />
+                                            <button
+                                                onClick={() => { setPhoto(null); setPhotoNote(''); }}
+                                                aria-label="Remove photo"
+                                                className="absolute top-2 right-2 rounded-full bg-slate-900/70 p-2 text-white"
+                                            >
+                                                <X size={16} />
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <label className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-600 py-4 text-slate-600 dark:text-slate-300">
+                                            <Camera size={20} />
+                                            <span className="font-medium">Add a photo (optional)</span>
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                capture="user"
+                                                className="hidden"
+                                                onChange={(e) => handlePhoto(e.target.files?.[0])}
+                                            />
+                                        </label>
+                                    )}
+                                    {photoNote && (
+                                        <p className="mt-2 text-xs text-amber-700 dark:text-amber-400">{photoNote}</p>
+                                    )}
                                 </div>
 
                                 {/* Deliberate gradient CTA — the one loud element on the page */}
