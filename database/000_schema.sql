@@ -210,16 +210,6 @@ CREATE TABLE IF NOT EXISTS attendance_logs (
     longitude DECIMAL(11,8),
     is_geofence_verified BOOLEAN DEFAULT false,
     geofence_id INTEGER,
-    -- Production enforces this and the schema did not declare it, so a fresh
-    -- install had no constraint while the live database rejected the insert.
-    -- Mobile punching failed on the deployment and would have looked perfectly
-    -- healthy in CI — the same drift that has produced most of this week's
-    -- surprises, in the other direction.
-    --
-    -- ON DELETE SET NULL, not CASCADE: retiring a reader must never delete the
-    -- attendance recorded through it. Those punches are payroll evidence with a
-    -- multi-year retention obligation, and the device is only how they arrived.
-    FOREIGN KEY (device_serial) REFERENCES devices(serial_number) ON DELETE SET NULL,
     FOREIGN KEY (geofence_id) REFERENCES geofences(id) ON DELETE SET NULL,
     PRIMARY KEY (id)
 );
@@ -992,6 +982,37 @@ CREATE OR REPLACE VIEW positions_with_counts AS
    FROM positions p;
 
 -- =====================================================
+-- =====================================================
+-- Constraints that span tables defined far apart
+-- =====================================================
+
+-- attendance_logs.device_serial -> devices.serial_number
+--
+-- Production enforces this; the schema did not declare it. So a fresh install
+-- had no constraint while the live database rejected the insert, and mobile
+-- punching failed on the deployment while looking perfectly healthy in CI. The
+-- same drift behind most of this week's surprises, running the other way.
+--
+-- Declared here rather than inline because attendance_logs is created long
+-- before devices, and an inline reference to a table that does not exist yet
+-- fails the whole file.
+--
+-- ON DELETE SET NULL, never CASCADE: retiring a reader must not delete the
+-- attendance recorded through it. Those punches are payroll evidence with a
+-- multi-year retention obligation; the device is only how they arrived.
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint
+         WHERE conname = 'attendance_logs_device_serial_fkey'
+    ) THEN
+        ALTER TABLE attendance_logs
+            ADD CONSTRAINT attendance_logs_device_serial_fkey
+            FOREIGN KEY (device_serial) REFERENCES devices(serial_number)
+            ON DELETE SET NULL;
+    END IF;
+END $$;
+
 -- Seed data
 --
 -- Every insert is guarded on absence rather than on ON CONFLICT DO NOTHING.
