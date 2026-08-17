@@ -348,7 +348,132 @@ const sharepoint = {
     },
 };
 
-const DESTINATIONS = { filesystem, s3, sftp, sharepoint };
+/**
+ * A Windows or Samba share, spoken directly — no mount.
+ *
+ * Asked for by name: the owner wanted to point backups at
+ * \\10.81.20.100\IT_Team\NeevTime Backup with a username and password, from the
+ * settings screen.
+ *
+ * Mounting that share is a host operation needing privileges this container
+ * does not have and should not be given. smbclient talks the protocol instead,
+ * which needs no mount, no root, and no change to the VM — the credentials live
+ * here, encrypted, and the copy is a single command.
+ *
+ * On MFA, plainly: an unattended backup at 02:00 cannot answer a prompt on
+ * somebody's phone. Use a service account without MFA for this, or use the
+ * SharePoint destination, which authenticates as an application and is the
+ * option that genuinely coexists with MFA on user accounts.
+ *
+ * The password is passed through the environment, never on the command line —
+ * an argument is visible to every process on the machine via ps.
+ */
+const smb = {
+    key: 'smb',
+    name: 'Windows share (SMB)',
+    description:
+        'A Windows or Samba share, by host and share name. No mounting required. Needs an '
+        + 'account that can write to the share — a service account without MFA, because an '
+        + 'unattended backup cannot answer an MFA prompt.',
+    fields: [
+        { key: 'host', label: 'Server', type: 'text', placeholder: '10.81.20.100' },
+        { key: 'share', label: 'Share name', type: 'text', placeholder: 'IT_Team',
+          help: 'Just the share, not the whole path. For \\\\10.81.20.100\\IT_Team this is IT_Team.' },
+        { key: 'folder', label: 'Folder inside the share', type: 'text', placeholder: 'NeevTime Backup' },
+        { key: 'domain', label: 'Domain', type: 'text', placeholder: 'INNOPAY',
+          help: 'Leave empty for a local account on the file server.' },
+        { key: 'username', label: 'Username', type: 'text' },
+        { key: 'password', label: 'Password', type: 'password', secret: true },
+    ],
+
+    /**
+     * Run one smbclient command inside the share.
+     *
+     * -E sends messages to stderr so a failure is not mistaken for output, and
+     * the exit code alone is not enough: smbclient exits 0 for some failures
+     * and prints NT_STATUS_... instead. Both are checked.
+     */
+    run(cfg, command) {
+        const { execFile } = require('node:child_process');
+        const args = [
+            `//${String(cfg.host || '').trim()}/${String(cfg.share || '').trim()}`,
+            '-U', cfg.domain ? `${cfg.domain}\\${cfg.username}` : String(cfg.username || ''),
+            '-E',
+            '-c', command,
+        ];
+
+        return new Promise((resolve, reject) => {
+            execFile('smbclient', args, {
+                env: { ...process.env, PASSWD: String(cfg.password || '') },
+                timeout: 120000,
+            }, (err, stdout, stderr) => {
+                const out = `${stdout || ''}${stderr || ''}`;
+                if (err) return reject(new Error(out.trim().split('\n')[0] || err.message));
+                const status = out.match(/NT_STATUS_[A-Z_]+/);
+                if (status) return reject(new Error(smbExplain(status[0])));
+                resolve(out);
+            });
+        });
+    },
+
+    async test(cfg) {
+        if (!cfg.host || !cfg.share) throw new Error('Server and share name are required');
+        if (!cfg.username) throw new Error('A username is required');
+
+        const folder = String(cfg.folder || '').replace(/^[\\/]+|[\\/]+$/g, '');
+        const name = `.neevtime-write-check-${Date.now()}`;
+        const local = path.join(require('node:os').tmpdir(), name);
+        await fsp.writeFile(local, 'write check');
+
+        try {
+            // Write, read back, delete — a directory listing would pass with
+            // read-only access and then fail every backup afterwards. That is
+            // not hypothetical here: this share refused write access when it
+            // was first tried from the command line.
+            const cd = folder ? `cd "${folder}"; ` : '';
+            await this.run(cfg, `${cd}put "${local}" "${name}"`);
+            await this.run(cfg, `${cd}get "${name}" "${local}.back"`);
+            await this.run(cfg, `${cd}del "${name}"`);
+
+            const back = await fsp.readFile(`${local}.back`, 'utf8');
+            if (back !== 'write check') throw new Error('file read back different than written');
+
+            return {
+                ok: true,
+                detail: `Wrote, read and deleted a probe file on \\\\${cfg.host}\\${cfg.share}`
+                    + `${folder ? `\\${folder}` : ''}.`,
+            };
+        } finally {
+            await fsp.unlink(local).catch(() => {});
+            await fsp.unlink(`${local}.back`).catch(() => {});
+        }
+    },
+
+    async send(cfg, filepath, filename) {
+        const folder = String(cfg.folder || '').replace(/^[\\/]+|[\\/]+$/g, '');
+        const cd = folder ? `cd "${folder}"; ` : '';
+        await this.run(cfg, `${cd}put "${filepath}" "${filename}"`);
+        return `\\\\${cfg.host}\\${cfg.share}${folder ? `\\${folder}` : ''}\\${filename}`;
+    },
+};
+
+/** smbclient's status codes, in words someone can act on. */
+const smbExplain = (status) => ({
+    NT_STATUS_LOGON_FAILURE: 'Wrong username or password. If the account is in a domain, set the '
+        + 'Domain field too.',
+    NT_STATUS_ACCESS_DENIED: 'The account signed in but is not allowed to write here. Grant it '
+        + 'write permission on the share and the folder.',
+    NT_STATUS_BAD_NETWORK_NAME: 'That share name does not exist on the server.',
+    NT_STATUS_OBJECT_NAME_NOT_FOUND: 'That folder does not exist inside the share.',
+    NT_STATUS_UNSUCCESSFUL: 'The server refused the request without saying why. Check the share '
+        + 'name and the folder.',
+    NT_STATUS_IO_TIMEOUT: 'No answer from the server. Check the address and that it is reachable '
+        + 'from this machine.',
+    NT_STATUS_CONNECTION_REFUSED: 'The server refused the connection. Check SMB is enabled and '
+        + 'reachable on port 445.',
+}[status] || `The file server returned ${status}.`);
+
+const DESTINATIONS = { filesystem, smb, s3, sftp, sharepoint };
 
 /** Everything the settings screen needs to draw the form, and no secrets. */
 const describe = () => Object.values(DESTINATIONS).map((d) => ({

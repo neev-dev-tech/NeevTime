@@ -35,6 +35,7 @@ export default function DatabaseTools() {
     const [autoBackup, setAutoBackup] = useState({
         backup_enabled: false,
         backup_frequency: 'daily',
+        backup_day: '',
         backup_time: '02:00',
         backup_retention_count: 7,
     });
@@ -63,6 +64,7 @@ export default function DatabaseTools() {
                 backup_frequency: val('backup_frequency', 'daily'),
                 backup_time: String(val('backup_time', '02:00')).slice(0, 5),
                 backup_retention_count: Number(val('backup_retention_count', 7)),
+                backup_day: String(val('backup_day', '') ?? ''),
             });
         } catch {
             // Leave the defaults in place; the panel still saves
@@ -574,10 +576,45 @@ export default function DatabaseTools() {
                                 className={`${FIELD} w-full`}
                             >
                                 <option value="daily">Daily</option>
-                                <option value="weekly">Weekly (Mondays)</option>
-                                <option value="monthly">Monthly (1st)</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="monthly">Monthly</option>
                             </select>
                         </div>
+
+                        {/* Which day, when it is not every day. Weekly was hardcoded to
+                            Mondays and monthly to the 1st, which suits a business whose
+                            quiet day happens to be Monday and nobody else. */}
+                        {autoBackup.backup_frequency === 'weekly' && (
+                            <div className="space-y-2">
+                                <label className={FIELD_LABEL}>Day of the week</label>
+                                <select
+                                    value={autoBackup.backup_day || '1'}
+                                    onChange={(e) => setAutoBackup(p => ({ ...p, backup_day: e.target.value }))}
+                                    className={`${FIELD} w-full`}
+                                >
+                                    {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+                                        .map((d, i) => <option key={d} value={String(i)}>{d}</option>)}
+                                </select>
+                            </div>
+                        )}
+
+                        {autoBackup.backup_frequency === 'monthly' && (
+                            <div className="space-y-2">
+                                <label className={FIELD_LABEL}>Day of the month</label>
+                                <select
+                                    value={autoBackup.backup_day || '1'}
+                                    onChange={(e) => setAutoBackup(p => ({ ...p, backup_day: e.target.value }))}
+                                    className={`${FIELD} w-full`}
+                                >
+                                    {Array.from({ length: 31 }, (_, i) => i + 1)
+                                        .map((d) => <option key={d} value={String(d)}>{d}</option>)}
+                                </select>
+                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                    A date that does not exist in a short month runs on the last day
+                                    instead of being skipped.
+                                </p>
+                            </div>
+                        )}
                         <div className="space-y-2">
                             <label className={FIELD_LABEL}>Preferred Time</label>
                             <input

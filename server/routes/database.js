@@ -461,10 +461,25 @@ router.post('/restore', (req, res) => {
  */
 let lastAutoBackupDate = null;
 
-const shouldRunToday = (frequency, now) => {
+const shouldRunToday = (frequency, now, day = null) => {
     if (frequency === 'daily') return true;
-    if (frequency === 'weekly') return now.getDay() === 1; // Monday
-    if (frequency === 'monthly') return now.getDate() === 1;
+
+    // Which day was hardcoded — Mondays, and the 1st. Neither suits a business
+    // whose quiet day is a Sunday or whose month closes on the 25th, and the
+    // help text said "weekly (Mondays)" as though it were a law rather than an
+    // unasked assumption.
+    if (frequency === 'weekly') {
+        const target = day === null || day === '' ? 1 : Number(day);
+        return now.getDay() === (Number.isFinite(target) ? target : 1);
+    }
+    if (frequency === 'monthly') {
+        const target = day === null || day === '' ? 1 : Number(day);
+        // 29th to 31st do not exist in every month. Run on the last day
+        // instead of skipping February entirely — a backup that silently does
+        // not happen for a month is the failure this whole area keeps having.
+        const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+        return now.getDate() === Math.min(Number.isFinite(target) ? target : 1, lastDay);
+    }
     return false;
 };
 
@@ -477,6 +492,7 @@ const startAutoBackup = () => {
             if (!enabled) return;
 
             const frequency = await settingsStore.get('database', 'backup_frequency', 'daily');
+            const day = await settingsStore.get('database', 'backup_day', '');
             const time = await settingsStore.get('database', 'backup_time', '02:00');
             const retention = await settingsStore.get('database', 'backup_retention_count', 7);
 
@@ -488,7 +504,7 @@ const startAutoBackup = () => {
             // silently skips.
             const stamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
-            if (!shouldRunToday(frequency, now)) return;
+            if (!shouldRunToday(frequency, now, day)) return;
 
             // At or after the scheduled time, not exactly on it.
             //

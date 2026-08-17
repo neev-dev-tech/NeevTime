@@ -18,7 +18,7 @@ RUN apt-get update \
 https://apt.postgresql.org/pub/repos/apt bullseye-pgdg main" \
          > /etc/apt/sources.list.d/pgdg.list \
     && apt-get update \
-    && apt-get install -y postgresql-client-15 \
+    && apt-get install -y postgresql-client-15 smbclient \
     && rm -rf /var/lib/apt/lists/*
 
 COPY package*.json ./

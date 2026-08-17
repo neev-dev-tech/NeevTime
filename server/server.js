@@ -2503,7 +2503,11 @@ const ensureSchema = async () => {
     // Settings the app reads but that predate this deployment's seed data
     const seeds = [
         ['database', 'backup_enabled', 'false', 'boolean', 'Take unattended backups on a schedule'],
-        ['database', 'backup_frequency', 'daily', 'string', 'daily, weekly (Mondays) or monthly (1st)'],
+        ['database', 'backup_frequency', 'daily', 'string', 'How often to take one'],
+        ['database', 'backup_day', '', 'string',
+            'Which day, for weekly (0 Sunday to 6 Saturday) or monthly (1 to 31). '
+            + 'Ignored for daily. A monthly date that does not exist in a short month runs on '
+            + 'the last day instead of being skipped.'],
         ['database', 'backup_time', '02:00', 'string', 'Server local time to run the backup'],
         ['database', 'backup_retention_count', '7', 'number', 'How many automatic backups to keep'],
         // Seeded empty so it APPEARS in Settings > Database. The Settings page
