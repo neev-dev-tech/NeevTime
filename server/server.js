@@ -2557,7 +2557,14 @@ const ensureSchema = async () => {
             await db.query(
                 `INSERT INTO app_settings (category, setting_key, setting_value, data_type, description)
                  VALUES ($1, $2, $3, $4, $5)
-                 ON CONFLICT (category, setting_key) DO NOTHING`,
+                 -- The VALUE is never overwritten: a setting someone chose must
+                 -- survive every deploy. The DESCRIPTION is, because it is help
+                 -- text, not data — and stale help is worse than none. "weekly
+                 -- (Mondays)" sat on screen after the day became selectable,
+                 -- telling the reader something the software had stopped doing.
+                 ON CONFLICT (category, setting_key) DO UPDATE
+                    SET description = EXCLUDED.description,
+                        data_type   = EXCLUDED.data_type`,
                 [category, key, value, type, description]
             );
         } catch (err) {
