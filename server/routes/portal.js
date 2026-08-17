@@ -178,15 +178,37 @@ router.post('/punch', async (req, res) => {
         );
         const state = last.rows[0]?.punch_state === 'check_in' ? 'check_out' : 'check_in';
 
-        const result = await db.query(
-            `INSERT INTO attendance_logs
-             (employee_code, punch_time, punch_state, device_serial, verification_mode,
-              punch_source, latitude, longitude, is_geofence_verified, geofence_id, photo_path)
-             VALUES ($1, NOW(), $2, 'MOBILE_APP', 1, 'mobile', $3, $4, TRUE, $5, $6)
-             ON CONFLICT (employee_code, punch_time) DO NOTHING
-             RETURNING punch_time, punch_state`,
-            [req.employee_code, state, latitude, longitude, match.fence.id, photoName]
-        );
+        // The same path a biometric reader uses. Inserting directly stored the
+        // punch and did nothing else — no daily summary, no live feed, no push
+        // to the HR system — so attendance from a phone stayed a raw event
+        // until the nightly recompute at 01:00. Nobody would have seen it as
+        // attendance today, which is what "how do I mark it" meant.
+        const ingest = require('../services/punch_ingest');
+        let stored;
+        try {
+            stored = await ingest.recordPunch({
+                employeeCode: req.employee_code,
+                deviceSerial: 'MOBILE_APP',
+                timestamp: new Date(),
+                state,
+                verifyMode: 'mobile',
+                punchSource: 'mobile',
+                photoPath: photoName,
+                location: {
+                    latitude, longitude, geofenceId: match.fence.id,
+                },
+            }, { io: req.app.get('io') || null });
+        } catch (err) {
+            // No record, no photograph. An image of an employee kept for a
+            // punch that does not exist is data held for no reason.
+            await mobile.discardPhoto(photoName);
+            throw err;
+        }
+
+        if (!stored.stored) {
+            await mobile.discardPhoto(photoName);
+            return res.status(400).json({ error: stored.reason || 'The punch could not be recorded' });
+        }
 
         res.json({
             success: true,
@@ -194,7 +216,7 @@ router.post('/punch', async (req, res) => {
             punch_state: state,
             location: match.fence.name,
             distance_m: Math.round(match.distance),
-            punch_time: result.rows[0]?.punch_time || null,
+            punch_time: new Date().toISOString(),
             photo_saved: Boolean(photoName),
             photo_warning: photoWarning,
         });

@@ -304,26 +304,34 @@ router.post('/punch', async (req, res) => {
             console.error('[PunchPhoto] not saved:', err.message);
         }
 
-        const result = await db.query(
-            `INSERT INTO attendance_logs 
-             (employee_code, punch_time, punch_state, device_serial, verification_mode,
-              punch_source, latitude, longitude, is_geofence_verified, geofence_id, photo_path)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) 
-             RETURNING *`,
-            [
+        // Through the shared ingest, exactly as a reader's punch is. Inserting
+        // directly recorded the row and skipped everything that turns a punch
+        // into attendance: the daily summary, the live feed and the push to the
+        // HR system.
+        const ingest = require('../services/punch_ingest');
+        let stored;
+        try {
+            stored = await ingest.recordPunch({
                 employeeCode,
-                logTime,
-                'check_in', // Default to check_in or infer logic later? For now simplistic.
-                'MOBILE_APP',
-                1, // 1 could mean fingerprint elsewhere, 20 is mobile? Let's use 20.
-                'mobile',
-                latitude,
-                longitude,
-                true,
-                matchedGeofence.id,
-                photoName
-            ]
-        );
+                deviceSerial: 'MOBILE_APP',
+                timestamp: logTime,
+                state: 'check_in',
+                verifyMode: 'mobile',
+                punchSource: 'mobile',
+                photoPath: photoName,
+                location: {
+                    latitude, longitude, geofenceId: matchedGeofence.id,
+                },
+            }, { io: req.app.get('io') || null });
+        } catch (err) {
+            await module.exports.discardPhoto(photoName);
+            throw err;
+        }
+
+        if (!stored.stored) {
+            await module.exports.discardPhoto(photoName);
+            return res.status(400).json({ error: stored.reason || 'The punch could not be recorded' });
+        }
 
         res.json({
             success: true,
@@ -334,7 +342,7 @@ router.post('/punch', async (req, res) => {
             // still a punch, and whoever reviews it later should know why there
             // is nothing to look at.
             photo_warning: photoWarning,
-            log: result.rows[0]
+            punch_time: stored.punchDate,
         });
 
     } catch (err) {
@@ -379,4 +387,22 @@ module.exports.startPhotoPurge = startPhotoPurge;
 module.exports.savePunchPhoto = savePunchPhoto;
 module.exports.PHOTO_DIR = PHOTO_DIR;
 module.exports.findMatchingGeofence = findMatchingGeofence;
+
+/**
+ * Remove a photo whose punch was never recorded.
+ *
+ * The image is written before the INSERT, so a rejected punch leaves it on
+ * disk with nothing pointing at it. That happened here: INT089's failed
+ * attempts left a 33 KB photograph of a person that no record refers to, which
+ * retention would not clear for ninety days.
+ *
+ * An orphan is not a small tidiness problem. It is a photograph of an employee
+ * kept for no reason, which is exactly what the DPDP Act asks about.
+ */
+module.exports.discardPhoto = async (name) => {
+    if (!name) return;
+    try {
+        await fsp.unlink(path.join(PHOTO_DIR, name));
+    } catch { /* already gone */ }
+};
 module.exports.purgePunchPhotos = purgePunchPhotos;

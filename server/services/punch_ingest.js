@@ -117,13 +117,29 @@ const recordPunch = async (punch, options = {}) => {
             [employeeCode]
         );
 
+        // Optional, and only ever set by a punch from a phone: where the person
+        // was and what they looked like. A reader supplies none of it and the
+        // columns stay null.
+        const { location = null, photoPath = null, punchSource = null } = punch;
+
         await db.query(`
             INSERT INTO attendance_logs
-            (employee_code, device_serial, punch_time, punch_state, verification_mode, raw_data, source, is_attendance, upload_time)
-            VALUES ($1, $2, $3, $4, $5, $6, 1, 1, NOW())
+            (employee_code, device_serial, punch_time, punch_state, verification_mode, raw_data,
+             source, is_attendance, upload_time,
+             punch_source, latitude, longitude, is_geofence_verified, geofence_id, photo_path)
+            VALUES ($1, $2, $3, $4, $5, $6, 1, 1, NOW(),
+                    $7, $8, $9, $10, $11, $12)
             ON CONFLICT (employee_code, punch_time) DO UPDATE
             SET upload_time = NOW(), punch_state = EXCLUDED.punch_state
-        `, [employeeCode, deviceSerial, localTimestamp, state, verifyMode, raw || null]);
+        `, [
+            employeeCode, deviceSerial, localTimestamp, state, verifyMode, raw || null,
+            punchSource,
+            location?.latitude ?? null,
+            location?.longitude ?? null,
+            location ? true : null,
+            location?.geofenceId ?? null,
+            photoPath,
+        ]);
 
         if (io) {
             io.emit('new_punch', {

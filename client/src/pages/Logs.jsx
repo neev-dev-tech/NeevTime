@@ -12,6 +12,7 @@ export default function Logs() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [deviceMap, setDeviceMap] = useState({});
+    const [photo, setPhoto] = useState(null);   // the log whose photo is being reviewed
     const socketRef = useRef(null);
 
     const fetchLogs = async () => {
@@ -188,6 +189,11 @@ export default function Logs() {
                                     <th className="px-5 py-3 font-bold whitespace-nowrap">State</th>
                                     <th className="px-5 py-3 font-bold whitespace-nowrap">Device</th>
                                     <th className="px-5 py-3 font-bold whitespace-nowrap">Verification</th>
+                                    {/* The whole point of capturing a photo is that somebody can
+                                        look at it. Stored and served since this morning, and
+                                        displayed nowhere — which reduces buddy punching not at
+                                        all. */}
+                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Photo</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
@@ -233,10 +239,69 @@ export default function Logs() {
                                                 </span>
                                             </div>
                                         </td>
+                                        <td className="px-5 py-3 whitespace-nowrap">
+                                            {log.photo_path ? (
+                                                <button
+                                                    onClick={() => setPhoto(log)}
+                                                    className="block"
+                                                    title="Taken at the moment of this punch"
+                                                >
+                                                    <img
+                                                        src={`/api/mobile/punch-photo/${log.photo_path}`}
+                                                        alt={`Punch by ${log.emp_name || log.employee_code}`}
+                                                        loading="lazy"
+                                                        className="h-10 w-10 rounded-md object-cover border border-slate-200 dark:border-slate-700"
+                                                    />
+                                                </button>
+                                            ) : (
+                                                <span className="text-xs text-slate-400 dark:text-slate-500">—</span>
+                                            )}
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
+                    </div>
+                )}
+
+                {/* Full size, with who and when beside it — a thumbnail is enough to
+                    see that a photo exists and not enough to tell who it is, and
+                    telling who it is is the reason the photo was taken. */}
+                {photo && (
+                    <div
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+                        onClick={() => setPhoto(null)}
+                    >
+                        <div
+                            className="max-w-lg w-full rounded-2xl bg-white dark:bg-slate-800 overflow-hidden"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <img
+                                src={`/api/mobile/punch-photo/${photo.photo_path}`}
+                                alt={`Punch by ${photo.emp_name || photo.employee_code}`}
+                                className="w-full"
+                            />
+                            <div className="p-4 space-y-1">
+                                <p className="font-semibold text-slate-800 dark:text-slate-100">
+                                    {photo.emp_name || 'Unknown'}{' '}
+                                    <span className="font-mono text-xs text-slate-500">{photo.employee_code}</span>
+                                </p>
+                                <p className="text-sm text-slate-600 dark:text-slate-300 tabular-nums">
+                                    {formatTimestamp(photo.punch_time).datetime}
+                                </p>
+                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                    {photo.is_geofence_verified
+                                        ? 'Inside an approved work location'
+                                        : 'Location was not verified'}
+                                </p>
+                                <button
+                                    onClick={() => setPhoto(null)}
+                                    className="mt-2 text-sm underline text-slate-600 dark:text-slate-300"
+                                >
+                                    Close
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 )}
 
