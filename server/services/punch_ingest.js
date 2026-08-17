@@ -43,8 +43,12 @@ const normalizeState = (value, deviceDirection = null) => {
     if (value === null || value === undefined || value === '') return '0';
 
     const text = String(value).trim().toLowerCase();
-    if (['1', 'out', 'checkout', 'check-out', 'exit'].includes(text)) return '1';
-    if (['0', 'in', 'checkin', 'check-in', 'entry'].includes(text)) return '0';
+    // check_out with an underscore is what the mobile routes wrote before they
+    // shared this path, and rows carrying it are in the database. It was
+    // missing from this list, so it fell through to the default and came back
+    // as an ENTRY — a stored exit read as an arrival.
+    if (['1', 'out', 'checkout', 'check-out', 'check_out', 'exit'].includes(text)) return '1';
+    if (['0', 'in', 'checkin', 'check-in', 'check_in', 'entry'].includes(text)) return '0';
 
     // Numeric ZK states pass through untouched — reports already understand them
     return /^\d+$/.test(text) ? text : '0';
@@ -218,4 +222,18 @@ const recordPunch = async (punch, options = {}) => {
     }
 };
 
-module.exports = { recordPunch, normalizeState, normalizeVerifyMode, resolveTimezone };
+/**
+ * Was that punch an arrival?
+ *
+ * Callers deciding what to record next have to ask this of a value read back
+ * from the database, which may be '0'/'1' from a reader, 'check_in' from the
+ * mobile routes before they shared this path, or null on older rows. Comparing
+ * against one spelling is how a phone came to record check-in every time: the
+ * routes tested for 'check_in' while the ingest stored '0', so the test never
+ * matched and nobody could clock out.
+ */
+const isEntryState = (state) => normalizeState(state) === '0';
+
+module.exports = {
+    recordPunch, normalizeState, normalizeVerifyMode, resolveTimezone, isEntryState,
+};

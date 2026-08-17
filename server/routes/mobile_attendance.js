@@ -309,13 +309,29 @@ router.post('/punch', async (req, res) => {
         // into attendance: the daily summary, the live feed and the push to the
         // HR system.
         const ingest = require('../services/punch_ingest');
+
+        // In or out, read from the day's own record. This wrote check_in
+        // unconditionally, so nobody punching from a phone could ever clock
+        // out: a day of arrivals and no departures yields no worked hours, and
+        // the person who finds out is whoever runs payroll.
+        const last = await db.query(
+            `SELECT punch_state FROM attendance_logs
+              WHERE employee_code = $1
+                AND punch_time >= CURRENT_DATE
+                AND punch_time <  CURRENT_DATE + 1
+              ORDER BY punch_time DESC LIMIT 1`,
+            [employeeCode]
+        );
+        const state = ingest.isEntryState(last.rows[0]?.punch_state)
+            ? 'check_out' : 'check_in';
+
         let stored;
         try {
             stored = await ingest.recordPunch({
                 employeeCode,
                 deviceSerial: 'MOBILE_APP',
                 timestamp: logTime,
-                state: 'check_in',
+                state,
                 verifyMode: 'mobile',
                 punchSource: 'mobile',
                 photoPath: photoName,
@@ -335,14 +351,18 @@ router.post('/punch', async (req, res) => {
 
         res.json({
             success: true,
-            message: 'Attendance Marked Successfully',
+            // Which direction was recorded, not just that something was. The
+            // app decides nothing here — the server chose in or out from the
+            // day's record, and the person punching should be told which.
+            message: state === 'check_out' ? 'Checked out' : 'Checked in',
+            punch_state: state,
             location: matchedGeofence.name,
             photo_saved: Boolean(photoName),
             // Surfaced rather than swallowed: a punch that recorded no image is
             // still a punch, and whoever reviews it later should know why there
             // is nothing to look at.
             photo_warning: photoWarning,
-            punch_time: stored.punchDate,
+            punch_time: stored.timestamp,
         });
 
     } catch (err) {

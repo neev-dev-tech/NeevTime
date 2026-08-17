@@ -13,6 +13,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../db');
 const { rateLimit } = require('../utils/rateLimit');
+const ingest = require('../services/punch_ingest');
 
 // Employee portal login is public; throttle it like the admin login.
 const portalLoginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, message: 'Too many sign-in attempts from this address. Try again later.' });
@@ -176,14 +177,17 @@ router.post('/punch', async (req, res) => {
               ORDER BY punch_time DESC LIMIT 1`,
             [req.employee_code]
         );
-        const state = last.rows[0]?.punch_state === 'check_in' ? 'check_out' : 'check_in';
+        // Asked of the ingest, which knows every spelling a punch_state has
+        // ever been written in. Testing for one of them here matched nothing
+        // once punches started being normalised to '0', so every punch became
+        // a check-in and clocking out was impossible.
+        const state = ingest.isEntryState(last.rows[0]?.punch_state) ? 'check_out' : 'check_in';
 
         // The same path a biometric reader uses. Inserting directly stored the
         // punch and did nothing else — no daily summary, no live feed, no push
         // to the HR system — so attendance from a phone stayed a raw event
         // until the nightly recompute at 01:00. Nobody would have seen it as
         // attendance today, which is what "how do I mark it" meant.
-        const ingest = require('../services/punch_ingest');
         let stored;
         try {
             stored = await ingest.recordPunch({
@@ -249,7 +253,7 @@ router.get('/punch-status', async (req, res) => {
         ]);
 
         res.json({
-            next_state: last.rows[0]?.punch_state === 'check_in' ? 'check_out' : 'check_in',
+            next_state: ingest.isEntryState(last.rows[0]?.punch_state) ? 'check_out' : 'check_in',
             last_punch: last.rows[0] || null,
             geofences_configured: fences.rows[0].n > 0,
         });
