@@ -11,8 +11,21 @@ router.get('/', async (req, res) => {
             ORDER BY category, setting_key
         `);
 
+        // Settings the browser has no business receiving.
+        //
+        // backup_destination_config holds the credentials for the backup
+        // destination — encrypted, but it is still the credential material, and
+        // it was being rendered in an editable text box on the Settings screen.
+        // Anyone who could open that page could copy the ciphertext, and one
+        // stray keystroke would corrupt the destination silently.
+        //
+        // The dedicated panel at System > Database > Backup returns these
+        // properly: secrets as a mask, the rest as fields.
+        const WITHHELD = new Set(['backup_destination_config', 'backup_destination']);
+
         // Group by category
         const grouped = result.rows.reduce((acc, row) => {
+            if (WITHHELD.has(row.setting_key)) return acc;
             if (!acc[row.category]) {
                 acc[row.category] = {};
             }
