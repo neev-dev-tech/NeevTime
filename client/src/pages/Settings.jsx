@@ -257,6 +257,37 @@ export default function Settings() {
             );
         }
 
+        // Shown, but not editable here.
+        //
+        // The description has said "read-only here" since the destination
+        // picker was built, and the box stayed typeable — so a Windows path was
+        // pasted into it three times in a row, refused three times, with the
+        // real screen one click away. A field that rejects everything you type
+        // should not accept typing.
+        //
+        // It stays visible because someone looking for the backup path should
+        // find it where the other backup settings are, and see its value.
+        if (key === 'backup_external_path') {
+            return (
+                <div key={key} className="space-y-2">
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">{label}</label>
+                    <input
+                        type="text"
+                        value={value || ''}
+                        readOnly
+                        disabled
+                        placeholder="Not set — configure it in Database Tools"
+                        className="input-premium opacity-60 cursor-not-allowed"
+                    />
+                    <p className="text-xs text-slate-500 dark:text-slate-400 ml-1">
+                        Set this in <a href="/database/backup" className="underline font-medium">Database Tools &rarr; Second copy</a>,
+                        which can also send to a Windows share, S3, SFTP or SharePoint — and tests
+                        the destination before saving.
+                    </p>
+                </div>
+            );
+        }
+
         // Times get a real time control. Typed as free text, "2:00", "2 AM" or
         // "0200" all look reasonable and none of them parse — the scheduler
         // compares against HH:MM, so a near-miss means the backup silently
