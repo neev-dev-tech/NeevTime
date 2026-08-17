@@ -2,7 +2,7 @@
 
 **What to build, in what order, and why that order**
 
-Revised 16 August 2026 · companion to the Market Readiness assessment
+Revised 17 August 2026 · companion to the Market Readiness assessment
 
 ---
 
@@ -23,6 +23,27 @@ Phase 0 went from four items open to one and a half. It also gained an item that
 A routine deploy brought the database up on the wrong Docker volume — a stale copy five months old — and the application served it without complaint. Every reading taken from it was internally consistent and completely wrong, to the point that a five-month attendance outage was diagnosed, and reported to the owner as data loss, from data that had never been lost. In the same afternoon: nightly backups were found to be writing into a container filesystem that every rebuild deleted, and the single-container image was found to run Node in the background under nginx, so a dead backend was proxied to indefinitely while the container reported healthy.
 
 None of those were on this roadmap. All three had been true for months. They are now fixed, and **0.5** exists so the class of problem is named rather than rediscovered at a customer site.
+
+---
+
+## What changed on 17 August 2026
+
+Phase 1's first item is done, and the mobile punch behind it turned out to be three-quarters built rather than finished.
+
+**1.1 is complete.** A punch from a phone captures a selfie, checks a geofence, stores the coordinates, and the photograph is reviewable in the attendance log with the name, time and whether the location was verified. Retention deletes the image and keeps the record.
+
+Getting there uncovered four faults that were live in production, none of which announced itself:
+
+- Mobile punches bypassed the shared ingest entirely. They stored a row and did nothing else — no daily summary, no live feed, no push to the HR system — so attendance from a phone stayed a raw event until the 01:00 recompute. It looked exactly like nothing happening.
+- Lateness was measured against the wrong clock. `punch_time` holds local wall-clock and the driver returned it as a UTC `Date`, compared against a shift written in IST: an employee arriving 09:09 against a 09:00 shift scored **324 late minutes**. Late minutes drive deductions. The same misreading filed any punch after 18:30 under the following day.
+- Neither mobile route could record a check-out. One hardcoded `check_in`; the other compared against a spelling the ingest had stopped writing. A month of arrivals with no departures yields no worked hours at all, discovered at payroll.
+- The punch photo was stored and served from an authenticated route, and displayed with a plain `<img>` tag that cannot send a token. Every thumbnail was a 401.
+
+**Employee sign-in was rebuilt.** Portal passwords were set by an administrator and could not be changed, so one person permanently knew all 68 — and a punch recorded against somebody was not evidence they made it. Employees now sign in with a company account (Entra ID / OIDC or on-prem LDAP), or with an employee code and a password they choose themselves via a single-use activation code. An administrator-typed password reaches the change screen and nothing else.
+
+The portal also gained the employee's shift, the holiday list for their location, their own record, and a download of their month.
+
+None of the four production faults were on this roadmap, and all four had been true since the mobile module was written. The pattern from 0.5 held: each looked like a working feature from the outside.
 
 ---
 
@@ -92,11 +113,11 @@ Still open here: `checkNoPunches` has never actually fired. It is the alert writ
 
 *Ordered by how often each will be asked for.*
 
-### 1.1 · Photo at the point of punch — **S**
+### 1.1 · Photo at the point of punch — **DONE**
 
-Capture a still with the mobile punch and store it against the record. No face matching — a reviewable image removes most buddy punching on its own.
+Selfie captured at the punch, geofence checked, coordinates and image stored against the record, reviewable in the attendance log with name, time and whether the location was verified. Photos expire on a retention setting; the attendance record outlives the image.
 
-The permission flow and submit path already exist; GPS is captured today. This is the cheapest closure of the largest competitive gap.
+No face matching, deliberately — see the note at the end of this document.
 
 ### 1.2 · One installation procedure — **S**
 
@@ -165,7 +186,7 @@ The export renders templates defined as data, so a new payroll format is one ent
 | 0 | See the product | M | Deployment verified, UI not | Trusting the rest |
 | 0 | Tenancy decision | S / L | Open — needs a decision | Deployment model |
 | 0 | Deployment cannot lie | M | Alert delivery open | Operating any install |
-| 1 | Photo at punch | S | — | Competitive parity |
+| 1 | Photo at punch | S | **Done** | Competitive parity |
 | 1 | Installation procedure | S | — | Customer two onward |
 | 1 | Audit trail | S | — | — |
 | 1 | Register verification | S | — | Compliance claim |
@@ -176,6 +197,10 @@ The export renders templates defined as data, so a new payroll format is one ent
 | 2 | Accessibility | S | — | Procurement |
 | 2 | Remove MUI | M | — | — |
 | 2 | Payroll formats | S each | — | On request |
+| 1 | Employee sign-in (SSO / LDAP / self-set password) | M | **Done** | Attributable punches |
+| 1 | Manager or department approvals | M | Open — needs a decision | HR doing every approval |
+| 1 | Profile change requests | S | Open | HR doing every correction |
+| 1 | Reachable without a VPN | S | Open — needs a domain | Any phone off the LAN |
 
 ---
 
