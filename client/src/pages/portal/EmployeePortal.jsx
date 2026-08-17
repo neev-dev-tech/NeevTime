@@ -215,17 +215,20 @@ export default function EmployeePortal() {
                 {profile && (
                     <div className="bg-white/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 p-4 flex items-center gap-4">
                         <div className="w-12 h-12 rounded-full bg-orange-600 text-white flex items-center justify-center font-bold text-lg shrink-0">
-                            {(profileDetail.name || '?').charAt(0)}
+                            {/* Optional chaining throughout this card: it renders
+                                on every tab, so a null here takes the entire
+                                portal down rather than one panel. */}
+                            {(profile?.name || '?').charAt(0)}
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-slate-800 dark:text-slate-100 truncate">{profileDetail.name || '—'}</p>
+                            <p className="font-semibold text-slate-800 dark:text-slate-100 truncate">{profile?.name || '—'}</p>
                             <p className="text-xs flex items-center gap-2">
                                 <span className="font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold">
-                                    {profileDetail.employee_code || '—'}
+                                    {profile?.employee_code || '—'}
                                 </span>
-                                {profileDetail.department && (
+                                {profile?.department && (
                                     <span className="flex items-center gap-1 text-slate-600 dark:text-slate-300">
-                                        <Briefcase size={11} />{profileDetail.department}
+                                        <Briefcase size={11} />{profile?.department}
                                     </span>
                                 )}
                             </p>
