@@ -6,7 +6,7 @@
 
    Inter is gone. It is the default every generated interface reaches for, and
    an app that looks machine-made is the thing being fixed here. */
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Public+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+@import './fonts.css';
 
 @tailwind base;
 @tailwind components;
