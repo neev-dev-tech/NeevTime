@@ -5,6 +5,19 @@ const api = axios.create();
 // Add a request interceptor
 api.interceptors.request.use(
     (config) => {
+        // A caller that set its own Authorization header meant it.
+        //
+        // This used to overwrite unconditionally, which broke the two flows
+        // holding a token that is deliberately NOT in localStorage: the
+        // forced password change, where the session is not established until
+        // the employee picks a password, and the single sign-on callback. In
+        // both cases a stale admin token from an earlier session in the same
+        // browser was sent instead, and the server correctly refused an admin
+        // calling an employee route — reported on screen as "could not change
+        // the password", which named neither the cause nor the fix.
+        const explicit = config.headers?.['Authorization'] || config.headers?.authorization;
+        if (explicit) return config;
+
         const token = localStorage.getItem('token');
         if (token) {
             config.headers['Authorization'] = `Bearer ${token}`;

@@ -205,3 +205,22 @@ test('the activation alphabet avoids characters people misread', () => {
             `${f} uses an alphabet containing easily confused characters`);
     }
 });
+
+test('an explicitly supplied Authorization header is not overwritten', () => {
+    // Two flows hold a token that is deliberately not in localStorage: the
+    // forced password change, where no session exists until the employee picks
+    // a password, and the single sign-on callback. Overwriting their header
+    // with a stale admin token from an earlier session in the same browser sent
+    // the wrong identity and failed with a message that named nothing.
+    const src = fs.readFileSync(
+        path.join(__dirname, '../../client/src/api.js'), 'utf8');
+    assert.match(src, /const explicit = config\.headers\?\.\['Authorization'\]/,
+        'the request interceptor overwrites a caller-supplied Authorization header');
+    assert.match(src, /if \(explicit\) return config;/);
+});
+
+test('an employee route refuses a non-employee token with a reason', () => {
+    const src = fs.readFileSync(path.join(__dirname, '../routes/portal.js'), 'utf8');
+    assert.match(src, /This is an employee route and the token is not an employee token/,
+        'a bare 403 leaves the page with nothing to show');
+});

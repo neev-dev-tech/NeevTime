@@ -457,7 +457,15 @@ const requireEmployee = (req, res, next) => {
 
     jwt.verify(token, JWT_SECRET, (err, payload) => {
         if (err) return res.sendStatus(401);
-        if (payload.role !== 'employee' || !payload.employee_code) return res.sendStatus(403);
+        // Named, not a bare 403. An admin token reaching an employee route is a
+        // wiring mistake somewhere, and a status with no body left the page
+        // saying "could not change the password" — which describes neither the
+        // cause nor the fix.
+        if (payload.role !== 'employee' || !payload.employee_code) {
+            return res.status(403).json({
+                error: 'This is an employee route and the token is not an employee token',
+            });
+        }
         req.employee_code = payload.employee_code;
 
         // Enforced here rather than asked of the page. A client that skips the
