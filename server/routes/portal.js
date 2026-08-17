@@ -14,6 +14,8 @@ const jwt = require('jsonwebtoken');
 const db = require('../db');
 const { rateLimit } = require('../utils/rateLimit');
 const ingest = require('../services/punch_ingest');
+const directory = require('../services/directory_auth');
+const crypto = require('crypto');
 
 // Employee portal login is public; throttle it like the admin login.
 const portalLoginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, message: 'Too many sign-in attempts from this address. Try again later.' });
@@ -22,6 +24,12 @@ const JWT_SECRET = process.env.JWT_SECRET;
 
 // Ensure portal schema pieces exist (no migration framework in this repo;
 // fix_production_schema.js covers Docker installs, this covers bare restarts)
+db.query(`ALTER TABLE employees
+    ADD COLUMN IF NOT EXISTS directory_email TEXT,
+    ADD COLUMN IF NOT EXISTS directory_subject TEXT,
+    ADD COLUMN IF NOT EXISTS directory_auth_method TEXT`)
+    .catch(err => console.error('directory columns check failed:', err.message));
+
 db.query('ALTER TABLE employees ADD COLUMN IF NOT EXISTS portal_password_hash TEXT')
     .catch(err => console.error('portal_password_hash column check failed:', err.message));
 db.query(`
@@ -84,6 +92,201 @@ router.post('/login', portalLoginLimiter, async (req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 });
+
+/**
+ * One cookie, read from the raw header.
+ *
+ * cookie-parser is not installed and this is the only cookie the app uses —
+ * a dependency for a single value, on the sign-in path, is not worth it.
+ */
+const readCookie = (req, name) => {
+    const header = req.headers.cookie;
+    if (!header) return null;
+    for (const part of header.split(';')) {
+        const [k, ...v] = part.trim().split('=');
+        if (k === name) return decodeURIComponent(v.join('='));
+    }
+    return null;
+};
+
+/**
+ * Which sign-in methods this installation offers.
+ *
+ * The login page asks before drawing anything, so it never shows a button that
+ * cannot work. Configuration problems come back here too — an administrator who
+ * enabled single sign-on and forgot the client secret should be told on the
+ * login page, not left with a button that fails for everyone.
+ */
+router.get('/auth/modes', async (req, res) => {
+    try {
+        res.json(await directory.availableModes());
+    } catch (err) {
+        console.error('Auth modes failed:', err.message);
+        res.json({ local: true, oidc: false, ldap: false, problems: [] });
+    }
+});
+
+/**
+ * Sign in against the on-prem directory.
+ *
+ * The password goes straight to the domain controller and is never stored here
+ * — it is not hashed, kept, or logged, because this app has no business holding
+ * somebody's domain password even for the duration of a request.
+ */
+router.post('/auth/ldap', portalLoginLimiter, async (req, res) => {
+    const { login, password } = req.body || {};
+    if (!login || !password) {
+        return res.status(400).json({ error: 'Username and password required' });
+    }
+    try {
+        const modes = await directory.availableModes();
+        if (!modes.ldap) return res.status(403).json({ error: 'Directory sign-in is not enabled' });
+
+        const identity = await directory.ldapVerify(login, password);
+        const linked = await linkIdentity(identity, 'ldap');
+        if (linked.error) return res.status(linked.status).json({ error: linked.error });
+        res.json(linked.session);
+    } catch (err) {
+        // Bind failures and "no such user" both arrive here and both say the
+        // same thing: naming which one it was tells an attacker which accounts
+        // exist.
+        const message = /Invalid username or password/.test(err.message)
+            ? 'Invalid username or password' : err.message;
+        res.status(401).json({ error: message });
+    }
+});
+
+/**
+ * Begin single sign-on.
+ *
+ * state and nonce are signed into a short-lived cookie rather than held in
+ * memory, so the callback still works when it lands on a different worker or
+ * after a restart. Without state, a sign-in started by an attacker can be
+ * completed in somebody else's browser.
+ */
+router.get('/auth/oidc/start', async (req, res) => {
+    try {
+        const modes = await directory.availableModes();
+        if (!modes.oidc) return res.status(403).json({ error: 'Single sign-on is not enabled' });
+
+        const state = crypto.randomBytes(16).toString('hex');
+        const nonce = crypto.randomBytes(16).toString('hex');
+        const ticket = jwt.sign({ state, nonce }, JWT_SECRET, { expiresIn: '10m' });
+
+        res.cookie('portal_oidc', ticket, {
+            httpOnly: true, sameSite: 'lax', secure: req.secure, maxAge: 10 * 60 * 1000,
+        });
+        res.redirect(await directory.authorizationUrl(state, nonce));
+    } catch (err) {
+        console.error('OIDC start failed:', err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+/**
+ * Return from the identity provider.
+ *
+ * Ends in a redirect rather than JSON: a browser lands here, so the result has
+ * to be a page. The token goes in the fragment, which is never sent to a server
+ * and stays out of access logs and Referer headers.
+ */
+router.get('/auth/oidc/callback', async (req, res) => {
+    const fail = (message) =>
+        res.redirect(`/portal/login#error=${encodeURIComponent(message)}`);
+    try {
+        const { code, state } = req.query;
+        if (!code || !state) return fail('Sign-in was cancelled');
+
+        const ticket = readCookie(req, 'portal_oidc');
+        if (!ticket) return fail('Sign-in took too long — please try again');
+        res.clearCookie('portal_oidc');
+
+        let expected;
+        try {
+            expected = jwt.verify(ticket, JWT_SECRET);
+        } catch {
+            return fail('Sign-in took too long — please try again');
+        }
+        if (expected.state !== state) return fail('Sign-in could not be verified');
+
+        const identity = await directory.exchangeCode(code);
+        // A replayed id_token from an earlier sign-in carries the wrong nonce.
+        if (identity.nonce && identity.nonce !== expected.nonce) {
+            return fail('Sign-in could not be verified');
+        }
+
+        const linked = await linkIdentity(identity, 'oidc');
+        if (linked.error) return fail(linked.error);
+
+        res.redirect(`/portal/login#token=${encodeURIComponent(linked.session.token)}`);
+    } catch (err) {
+        console.error('OIDC callback failed:', err.message);
+        fail('Sign-in could not be completed');
+    }
+});
+
+/**
+ * Turn a directory identity into a session for one employee.
+ *
+ * Matches on the stored immutable id first and falls back to the email address,
+ * recording the id when it does. A UPN can change — someone marries, or a
+ * tenant migrates its domain, which is exactly what happened between innopay.in
+ * and innopayad.in — and after the first sign-in that no longer matters.
+ *
+ * An unmatched account is refused. Creating an employee record from whoever
+ * signs in would let anyone in the company generate themselves an attendance
+ * history, and the message names the address so HR can put it on the right
+ * person rather than guessing.
+ */
+const linkIdentity = async (identity, method) => {
+    if (!identity.subject) {
+        return { status: 401, error: 'The directory returned no identifier for this account' };
+    }
+
+    const found = await db.query(
+        `SELECT id, employee_code, name, app_login_enabled, directory_subject
+           FROM employees
+          WHERE (directory_subject = $1
+                 OR (directory_subject IS NULL AND $2 <> '' AND LOWER(directory_email) = $2))
+            AND (LOWER(status) IS DISTINCT FROM 'resigned')
+          ORDER BY (directory_subject = $1) DESC
+          LIMIT 1`,
+        [identity.subject, identity.email || '']
+    );
+    const emp = found.rows[0];
+
+    if (!emp) {
+        return {
+            status: 403,
+            error: `${identity.email || 'That account'} is not linked to an employee record. `
+                + 'Ask HR to add it to your profile.',
+        };
+    }
+    if (!emp.app_login_enabled) {
+        return { status: 403, error: 'Portal access not enabled. Contact HR.' };
+    }
+
+    // Bind to the immutable id on the first successful sign-in, so a later
+    // address change cannot lock this person out of their own record.
+    if (!emp.directory_subject) {
+        await db.query(
+            'UPDATE employees SET directory_subject = $1, directory_auth_method = $2 WHERE id = $3',
+            [identity.subject, method, emp.id]
+        );
+    }
+
+    const token = jwt.sign(
+        { employee_code: emp.employee_code, role: 'employee' },
+        JWT_SECRET,
+        { expiresIn: process.env.JWT_EXPIRES_IN || '12h' }
+    );
+    return {
+        session: {
+            token,
+            user: { username: emp.employee_code, name: emp.name, role: 'employee' },
+        },
+    };
+};
 
 // Employee-JWT guard for everything below
 const requireEmployee = (req, res, next) => {

@@ -692,6 +692,61 @@ app.get('/api/notifications/summary', authenticateToken, async (req, res) => {
 const regularizationsRouter = require('./routes/regularizations');
 app.use('/api/regularizations', authenticateToken, regularizationsRouter);
 
+/**
+ * Turn portal access on for many employees at once.
+ *
+ * Doing this one profile at a time is 68 visits to the same page for a company
+ * this size, which in practice means it does not get done and everybody keeps
+ * punching from an administrator's account.
+ *
+ * No password is set here. That is the point of directory sign-in: the employee
+ * proves who they are to the company directory, and this app never holds a
+ * credential for them. Employees with no directory address are reported back
+ * rather than silently enabled — enabling somebody who cannot then sign in
+ * looks like a working setup until they try.
+ */
+app.post('/api/employees/portal-access', authenticateToken, requireAdmin, async (req, res) => {
+    try {
+        const { employee_ids, enabled = true, require_directory_email = true } = req.body || {};
+        if (!Array.isArray(employee_ids) || employee_ids.length === 0) {
+            return res.status(400).json({ error: 'employee_ids is required' });
+        }
+
+        const ids = employee_ids.map(Number).filter(Number.isInteger);
+        if (ids.length === 0) return res.status(400).json({ error: 'No valid employee ids' });
+
+        let skipped = [];
+        let target = ids;
+        if (enabled && require_directory_email) {
+            const missing = await db.query(
+                `SELECT id, employee_code, name FROM employees
+                  WHERE id = ANY($1::int[])
+                    AND (directory_email IS NULL OR directory_email = '')`,
+                [ids]
+            );
+            skipped = missing.rows;
+            const skipIds = new Set(skipped.map(r => r.id));
+            target = ids.filter(id => !skipIds.has(id));
+        }
+
+        const updated = target.length === 0 ? { rows: [] } : await db.query(
+            `UPDATE employees SET app_login_enabled = $2
+              WHERE id = ANY($1::int[])
+              RETURNING id, employee_code, name`,
+            [target, Boolean(enabled)]
+        );
+
+        res.json({
+            success: true,
+            updated: updated.rows.length,
+            employees: updated.rows,
+            skipped,
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Admin sets/resets an employee's portal password
 const bcryptPortal = require('bcryptjs');
 app.put('/api/employees/:id/portal-password', authenticateToken, requireAdmin, async (req, res) => {
@@ -944,7 +999,7 @@ app.put('/api/employees/:id', async (req, res) => {
         const {
             employee_code, name, department_id, designation, card_number, password, area_id,
             gender, dob, joining_date, mobile, email, address, status, employment_type,
-            attendance_required, exclude_from_hrms
+            attendance_required, exclude_from_hrms, directory_email
         } = req.body;
 
         // Convert empty strings to null for integer and date fields
@@ -961,14 +1016,21 @@ app.put('/api/employees/:id', async (req, res) => {
             -- an unrelated edit would quietly switch a door-access employee
             -- back into the headcount.
             attendance_required = COALESCE($16, attendance_required),
-            exclude_from_hrms = COALESCE($17, exclude_from_hrms)
-            WHERE id = $18
+            exclude_from_hrms = COALESCE($17, exclude_from_hrms),
+            -- The address the company directory knows this person by, which is
+            -- what single sign-on matches against. Lower-cased on the way in:
+            -- directories are not case sensitive about it and a stored
+            -- Name@company.com would never match a returned name@company.com.
+            directory_email = COALESCE($18, directory_email)
+            WHERE id = $19
             RETURNING *
         `, [
             employee_code, name, safeInt(department_id), designation, card_number, password, safeInt(area_id),
             gender, safeDate(dob), safeDate(joining_date), mobile, email, address, status, employment_type,
             attendance_required === undefined ? null : Boolean(attendance_required),
             exclude_from_hrms === undefined ? null : Boolean(exclude_from_hrms),
+            directory_email === undefined || directory_email === null
+                ? null : String(directory_email).trim().toLowerCase() || null,
             id
         ]);
 
@@ -2570,6 +2632,30 @@ const ensureSchema = async () => {
             'Read-only here. Set the second copy under System > Database > Backup, in the '
             + '"Second copy" panel — it can also send to a Windows share, S3, SFTP or '
             + 'SharePoint, and tests the destination before saving.'],
+        // ── Employee sign-in ────────────────────────────────────────────
+        //
+        // Local only, until somebody deliberately turns a directory on. A
+        // comma-separated list, so a site can offer single sign-on to office
+        // staff and keep employee-code passwords for shop-floor workers who
+        // have no mailbox.
+        //
+        // The client secret and the LDAP bind password are NOT here — they come
+        // from OIDC_CLIENT_SECRET and LDAP_BIND_PASSWORD in the environment. A
+        // secret in a settings row is a secret in every backup and every
+        // screenshot of this page.
+        ['auth', 'employee_login_modes', 'local', 'string',
+            'How employees sign in: any of local, oidc, ldap — comma separated'],
+        ['auth', 'oidc_issuer', '', 'string',
+            'Identity provider URL, e.g. https://login.microsoftonline.com/<tenant-id>/v2.0'],
+        ['auth', 'oidc_client_id', '', 'string', 'Application (client) ID from the provider'],
+        ['auth', 'oidc_redirect_uri', '', 'string',
+            'Must match the provider exactly, e.g. https://attendance.example.com/api/portal/auth/oidc/callback'],
+        ['auth', 'ldap_url', '', 'string',
+            'ldaps://dc.example.local:636 — plain ldap:// is refused unless LDAP_ALLOW_INSECURE is set'],
+        ['auth', 'ldap_base_dn', '', 'string', 'Where to search for users, e.g. DC=example,DC=local'],
+        ['auth', 'ldap_bind_dn', '', 'string', 'Read-only service account that looks users up'],
+        ['auth', 'ldap_user_filter', '(userPrincipalName={login})', 'string',
+            'How a typed login becomes a search; {login} is substituted and escaped'],
         ['timezone', 'system_timezone', 'Asia/Kolkata', 'string',
             'Zone used to decide which day a punch belongs to and to measure shift start, lateness and overtime'],
         // Off by default so enabling it is a deliberate decision — turning it on
