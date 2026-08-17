@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, RefreshCw, Send, Loader2, AlertCircle, Building, Timer, CalendarDays, Mail, ShieldCheck, BarChart3, FileCheck, Database as DatabaseIcon, Globe, Settings as SettingsIcon, BellRing, Palette } from 'lucide-react';
+import { Save, RefreshCw, Send, Loader2, AlertCircle, Building, Timer, CalendarDays, Mail, ShieldCheck, BarChart3, FileCheck, Database as DatabaseIcon, Globe, Settings as SettingsIcon, BellRing, Palette, KeyRound } from 'lucide-react';
 import api from '../api';
 import { Button, PageHeader, useToast } from '../components';
 import LogoUpload from '../components/LogoUpload';
@@ -11,6 +11,15 @@ const CATEGORIES = [
     { id: 'weekend', label: 'Weekend Rules', icon: CalendarDays, iconClass: 'text-violet-500 dark:text-violet-400' },
     { id: 'notifications', label: 'Email/SMTP', icon: Mail, iconClass: 'text-emerald-500 dark:text-emerald-400' },
     { id: 'security', label: 'Security', icon: ShieldCheck, iconClass: 'text-rose-500 dark:text-rose-400' },
+    // Employee sign-in: single sign-on and directory settings. The rows were
+    // seeded into app_settings and rendered nowhere, so the whole feature was
+    // configurable only by editing the database — the same mistake as the
+    // backup path that lived on a page nobody would think to open.
+    //
+    // The client secret and LDAP bind password are deliberately NOT here. They
+    // come from the environment, so this tab shows what an administrator may
+    // safely see on a screen someone else might be standing behind.
+    { id: 'auth', label: 'Employee Sign-in', icon: KeyRound, iconClass: 'text-indigo-500 dark:text-indigo-400' },
     // Fields render generically from app_settings, so this tab needed only the
     // entry. Placed next to Email/SMTP because it depends on it: alerting is
     // email-only, and a broken SMTP means no alerts at all.

@@ -693,61 +693,6 @@ const regularizationsRouter = require('./routes/regularizations');
 app.use('/api/regularizations', authenticateToken, regularizationsRouter);
 
 /**
- * Turn portal access on for many employees at once.
- *
- * Doing this one profile at a time is 68 visits to the same page for a company
- * this size, which in practice means it does not get done and everybody keeps
- * punching from an administrator's account.
- *
- * No password is set here. That is the point of directory sign-in: the employee
- * proves who they are to the company directory, and this app never holds a
- * credential for them. Employees with no directory address are reported back
- * rather than silently enabled — enabling somebody who cannot then sign in
- * looks like a working setup until they try.
- */
-app.post('/api/employees/portal-access', authenticateToken, requireAdmin, async (req, res) => {
-    try {
-        const { employee_ids, enabled = true, require_directory_email = true } = req.body || {};
-        if (!Array.isArray(employee_ids) || employee_ids.length === 0) {
-            return res.status(400).json({ error: 'employee_ids is required' });
-        }
-
-        const ids = employee_ids.map(Number).filter(Number.isInteger);
-        if (ids.length === 0) return res.status(400).json({ error: 'No valid employee ids' });
-
-        let skipped = [];
-        let target = ids;
-        if (enabled && require_directory_email) {
-            const missing = await db.query(
-                `SELECT id, employee_code, name FROM employees
-                  WHERE id = ANY($1::int[])
-                    AND (directory_email IS NULL OR directory_email = '')`,
-                [ids]
-            );
-            skipped = missing.rows;
-            const skipIds = new Set(skipped.map(r => r.id));
-            target = ids.filter(id => !skipIds.has(id));
-        }
-
-        const updated = target.length === 0 ? { rows: [] } : await db.query(
-            `UPDATE employees SET app_login_enabled = $2
-              WHERE id = ANY($1::int[])
-              RETURNING id, employee_code, name`,
-            [target, Boolean(enabled)]
-        );
-
-        res.json({
-            success: true,
-            updated: updated.rows.length,
-            employees: updated.rows,
-            skipped,
-        });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-/**
  * Issue activation codes so employees can set their own passwords.
  *
  * Two delivery routes, because half a factory has no mailbox:

@@ -110,12 +110,16 @@ test('a resigned employee cannot sign in through a directory', () => {
         'someone who has left the company can still sign in with their directory account');
 });
 
-test('bulk enablement will not enable someone who cannot then sign in', () => {
+test('bulk portal access has exactly one endpoint', () => {
+    // A second bulk enable was added here before noticing PUT
+    // /api/employees/app-access already existed and was already wired to the
+    // Employees page. Two endpoints doing the same thing means one of them
+    // eventually stops matching the other.
     const src = read('server.js');
-    assert.match(src, /require_directory_email/,
-        'portal access can be switched on for employees with no directory address');
-    assert.match(src, /skipped/,
-        'employees that were skipped are not reported, so it looks like they were enabled');
+    assert.match(src, /app\.put\('\/api\/employees\/app-access'/,
+        'the bulk app-access endpoint the UI calls has gone');
+    assert.ok(!/app\.post\('\/api\/employees\/portal-access'/.test(src),
+        'a duplicate bulk portal-access endpoint is back');
 });
 
 test('directory_email is stored lower-cased', () => {

@@ -20,7 +20,7 @@ Three sign-in methods are now available, and more than one can be on at once:
 | `oidc` | anyone on Microsoft 365, Google Workspace, Okta | nothing |
 | `ldap` | on-prem Active Directory, no internet needed | nothing |
 
-`Settings → auth → employee_login_modes`, comma separated. Default `local`.
+**Settings → Employee Sign-in → employee_login_modes**, comma separated. Default `local`.
 
 ## Matching a directory account to an employee
 
@@ -53,7 +53,7 @@ shown once.
 Under **API permissions**, the delegated Microsoft Graph permissions `openid`,
 `profile`, `email` are enough. No admin consent is required for those.
 
-Set in `Settings → auth`:
+Set in **Settings → Employee Sign-in**:
 
 | Key | Value |
 |---|---|
@@ -165,16 +165,8 @@ be enough to lock its owner out of their own attendance record.
 ## Rolling it out to 68 people
 
 1. Put each person's work email in their profile (`directory_email`).
-2. Enable portal access in bulk:
-
-```
-POST /api/employees/portal-access
-{ "employee_ids": [1,2,3], "enabled": true }
-```
-
-It refuses to enable anyone with no `directory_email` and returns them in
-`skipped`. Enabling someone who then cannot sign in looks like a working setup
-until they try.
+2. Enable portal access in bulk: Employees page, tick the people, use the App
+   Access action. (`PUT /api/employees/app-access` behind it.)
 
 3. Employees go to `/portal` and press **Sign in with your company account**.
 
