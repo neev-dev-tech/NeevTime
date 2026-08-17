@@ -44,20 +44,40 @@ const PunchCard = () => {
             setLocationError('This browser cannot report a location, so punching is not possible here.');
             return;
         }
+        // Coarse first, then refine. A high-accuracy fix is a GPS lock: quick
+        // outdoors on a phone, slow or impossible indoors and on a laptop. A
+        // network fix arrives in under a second and is accurate to tens of
+        // metres, which decides a 100 m geofence perfectly well — and someone
+        // standing at the gate should not watch a spinner while the satellites
+        // are found.
         navigator.geolocation.getCurrentPosition(
             (pos) => { setPosition(pos.coords); setLocating(false); },
-            (err) => {
-                setLocating(false);
-                // Distinguish refused from unavailable: one is fixed by the
-                // person, the other by moving or waiting.
-                setLocationError(err.code === err.PERMISSION_DENIED
-                    ? 'Location permission was refused. Allow it and reload to punch.'
-                    : 'Your location could not be determined. Move somewhere with a clearer signal.');
-            },
-            { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 }
+            () => { /* the accurate attempt below may still succeed */ },
+            { enableHighAccuracy: false, maximumAge: 60000, timeout: 8000 }
         );
 
-        return closeCamera;
+        const watchId = navigator.geolocation.watchPosition(
+            (pos) => { setPosition(pos.coords); setLocating(false); setLocationError(''); },
+            (err) => {
+                setLocating(false);
+                // Only complain when there is nothing at all. Losing a refined
+                // fix is not worth discarding a usable one.
+                setPosition((current) => {
+                    if (!current) {
+                        setLocationError(err.code === err.PERMISSION_DENIED
+                            ? 'Location permission was refused. Allow it and reload to punch.'
+                            : 'Your location could not be determined. Move somewhere with a clearer view of the sky.');
+                    }
+                    return current;
+                });
+            },
+            { enableHighAccuracy: true, maximumAge: 30000, timeout: 20000 }
+        );
+
+        return () => {
+            navigator.geolocation.clearWatch(watchId);
+            closeCamera();
+        };
     }, []);
 
     const openCamera = async () => {

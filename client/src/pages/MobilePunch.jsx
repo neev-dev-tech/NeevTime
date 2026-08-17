@@ -118,7 +118,10 @@ const MobilePunch = () => {
 
     useEffect(() => {
         fetchData();
-        startLocationWatch();
+        // Returns a cleanup that clears the watch; without it the GPS stays
+        // awake after the page is closed.
+        const stopWatching = startLocationWatch();
+        return () => { if (typeof stopWatching === 'function') stopWatching(); };
     }, []);
 
     const fetchData = async () => {
@@ -148,23 +151,52 @@ const MobilePunch = () => {
             return;
         }
 
-        navigator.geolocation.watchPosition(
-            (position) => {
-                const { latitude, longitude } = position.coords;
-                setLocation({ latitude, longitude });
-                setError('');
+        const use = (position) => {
+            const { latitude, longitude, accuracy } = position.coords;
+            setLocation({ latitude, longitude, accuracy });
+            setError('');
+            if (geofences.length > 0) checkProximity(latitude, longitude, geofences);
+        };
 
-                // If we have geofences, find the nearest one
-                if (geofences.length > 0) {
-                    checkProximity(latitude, longitude, geofences);
-                }
-            },
-            (err) => {
-                setError(err.message);
-                setStatus('error');
-            },
-            { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
+        // Coarse first, then refine.
+        //
+        // This asked for a high-accuracy fix with a five-second timeout, which
+        // is a GPS lock — outdoors on a phone that is a few seconds, indoors or
+        // on a laptop it routinely takes longer than the timeout and then
+        // reported an error. The page sat on "locating" and then failed, which
+        // is what "GPS is taking too long" looked like.
+        //
+        // A network-based fix arrives in under a second and is accurate to tens
+        // of metres, which is enough to decide a 100 m geofence. The watch below
+        // then improves it in the background.
+        navigator.geolocation.getCurrentPosition(
+            use,
+            () => { /* the watch may still succeed; not fatal on its own */ },
+            { enableHighAccuracy: false, maximumAge: 60000, timeout: 8000 }
         );
+
+        const watchId = navigator.geolocation.watchPosition(
+            use,
+            (err) => {
+                // Only fatal if nothing has been found at all. A timeout while
+                // refining an existing fix is normal and must not throw away a
+                // position that is already good enough to punch with.
+                setLocation((current) => {
+                    if (!current) {
+                        setError(err.code === err.PERMISSION_DENIED
+                            ? 'Location permission was refused. Allow it and reload.'
+                            : 'Your location could not be determined yet. Move somewhere with a clearer view of the sky.');
+                        setStatus('error');
+                    }
+                    return current;
+                });
+            },
+            { enableHighAccuracy: true, maximumAge: 30000, timeout: 20000 }
+        );
+
+        // A watch left running keeps the GPS awake and drains the battery of a
+        // phone somebody carries all day.
+        return () => navigator.geolocation.clearWatch(watchId);
     };
 
     const checkProximity = (lat, lng, fences) => {

@@ -62,3 +62,8 @@ server/backups/
 
 # Editor/backup file copies
 *.bak
+
+# Punch photos are runtime data on a volume, never source. Test artifacts from
+# server/tests/punch_photo.test.js were committed and deployed to production
+# because this was missing.
+server/uploads/

@@ -33,9 +33,13 @@ const PNG = Buffer.from(
 const url = (mime, buf) => `data:image/${mime};base64,${buf.toString('base64')}`;
 
 test.after(async () => {
+    // Every file this suite wrote, including the traversal case whose name is
+    // sanitised to "etcZZTEST7-..." rather than starting with ZZTEST. Matching
+    // on the prefix alone left those behind, and they were committed and
+    // deployed before anyone noticed.
     try {
         for (const f of await fsp.readdir(PHOTO_DIR)) {
-            if (f.startsWith('ZZTEST')) await fsp.unlink(path.join(PHOTO_DIR, f));
+            if (f.includes('ZZTEST')) await fsp.unlink(path.join(PHOTO_DIR, f));
         }
     } catch { /* nothing was written */ }
 });
