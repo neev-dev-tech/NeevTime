@@ -14,6 +14,7 @@ const MobilePunch = () => {
     const [user, setUser] = useState(null); // Current user/employee
     const [employees, setEmployees] = useState([]); // For Admin simulation
     const [selectedEmployeeId, setSelectedEmployeeId] = useState(''); // For simulation
+    const [geofencesLoaded, setGeofencesLoaded] = useState(false);
     const [photo, setPhoto] = useState(null);       // data URL, sent with the punch
     const [photoNote, setPhotoNote] = useState(''); // why there is no photo, if there is none
     const [cameraOn, setCameraOn] = useState(false);
@@ -129,6 +130,7 @@ const MobilePunch = () => {
             // Fetch Geofences
             const geoRes = await api.get('/api/mobile/geofences');
             setGeofences(geoRes.data);
+            setGeofencesLoaded(true);
 
             // Fetch Current User (Mock/Real) - For now, if admin, we allow selecting employee
             // In a real app, we'd hit /api/auth/me or similar
@@ -151,11 +153,21 @@ const MobilePunch = () => {
             return;
         }
 
+        // Store the position and nothing else.
+        //
+        // This used to evaluate proximity here, which could never work: the
+        // callback is created when the effect runs, and geofences is still []
+        // at that moment because fetchData is asynchronous. The closure held
+        // that empty array forever, `geofences.length > 0` was false on every
+        // fix, and the page stayed on "locating" no matter how quickly the
+        // position arrived. It looked exactly like a slow GPS and was not.
+        //
+        // The evaluation now lives in an effect that watches both, so whichever
+        // arrives second triggers it.
         const use = (position) => {
             const { latitude, longitude, accuracy } = position.coords;
             setLocation({ latitude, longitude, accuracy });
             setError('');
-            if (geofences.length > 0) checkProximity(latitude, longitude, geofences);
         };
 
         // Coarse first, then refine.
@@ -198,6 +210,20 @@ const MobilePunch = () => {
         // phone somebody carries all day.
         return () => navigator.geolocation.clearWatch(watchId);
     };
+
+    // Whichever of the two arrives second decides the status.
+    useEffect(() => {
+        // No site configured is a different problem from no position, and it
+        // belongs to a different person. Without this the page waits on
+        // "Locating GPS…" for a fix that will never be usable, and the reader
+        // concludes their phone is at fault.
+        if (geofencesLoaded && geofences.length === 0) {
+            setStatus('no_geofence');
+            return;
+        }
+        if (!location || geofences.length === 0) return;
+        checkProximity(location.latitude, location.longitude, geofences);
+    }, [location, geofences, geofencesLoaded]);
 
     const checkProximity = (lat, lng, fences) => {
         let minInfo = null;
@@ -280,7 +306,17 @@ const MobilePunch = () => {
                     {/* Location panel */}
                     <div className="h-48 bg-slate-50/70 dark:bg-slate-900/50 relative flex items-center justify-center border-b border-slate-100 dark:border-slate-700">
                         <div className="absolute inset-0 bg-saffron-gradient opacity-10"></div>
-                        {status === 'locating' ? (
+                        {status === 'no_geofence' ? (
+                            <div className="flex flex-col items-center z-10 px-6 text-center">
+                                <MapPin className="text-amber-500 mb-2" size={32} />
+                                <span className="font-semibold text-sm text-amber-700 dark:text-amber-400">
+                                    No work location set up
+                                </span>
+                                <span className="mt-1 text-xs text-slate-600 dark:text-slate-300">
+                                    Add one under Attendance &rarr; Rule &rarr; Geofences before punching from a phone.
+                                </span>
+                            </div>
+                        ) : status === 'locating' ? (
                             <div className="flex flex-col items-center z-10">
                                 <Navigation className="text-orange-500 animate-spin mb-2" size={32} />
                                 <span className="text-orange-600 dark:text-orange-400 font-semibold text-sm">Locating GPS…</span>
