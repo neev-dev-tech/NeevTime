@@ -464,7 +464,10 @@ jobs:
 
       - name: Start a Samba server
         run: |
-          docker run -d --name samba -p 1445:445 \
+          # 445, not 1445: smbclient connects to the standard port and the
+          # destination does not expose a port field, because real shares do
+          # not move it.
+          docker run -d --name samba -p 445:445 \
             -e "USER=tester;testpass" \
             -e "SHARE=backups;/shared;yes;no;no;tester" \
             dperson/samba -u "tester;testpass" -s "backups;/shared;yes;no;no;tester;tester" -p

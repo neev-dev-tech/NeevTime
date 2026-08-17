@@ -408,9 +408,17 @@ const smb = {
                 timeout: 120000,
             }, (err, stdout, stderr) => {
                 const out = `${stdout || ''}${stderr || ''}`;
-                if (err) return reject(new Error(out.trim().split('\n')[0] || err.message));
                 const status = out.match(/NT_STATUS_[A-Z_]+/);
+
+                // Translate on BOTH paths. This used to explain the status only
+                // when smbclient exited zero, and a connection failure exits
+                // non-zero — so the one case a customer is most likely to hit,
+                // an unreachable file server, was the one that returned
+                // "do_connect: Connection to 10.81.20.100 failed (Error
+                // NT_STATUS_CONNECTION_REFUSED)" verbatim. Caught by the test
+                // written to assert exactly this.
                 if (status) return reject(new Error(smbExplain(status[0])));
+                if (err) return reject(new Error(out.trim().split('\n')[0] || err.message));
                 resolve(out);
             });
         });
