@@ -41,7 +41,7 @@ h2 {
 }
 h3 { font-size: 11.5pt; margin: 6mm 0 2mm; page-break-after: avoid; }
 p { margin: 0 0 3mm; }
-ul { margin: 0 0 3mm; padding-left: 5mm; }
+ul, ol { margin: 0 0 3mm; padding-left: 5mm; }
 li { margin-bottom: 1.5mm; }
 hr { border: 0; border-top: 0.5pt solid #d4d4d4; margin: 7mm 0; }
 code {
@@ -49,6 +49,15 @@ code {
     background: #f4f4f5; padding: 0.4mm 1.2mm; border-radius: 1mm;
 }
 em { color: #52525b; }
+pre {
+    background: #f8f8f9; border: 0.5pt solid #e4e4e7; border-radius: 1.5mm;
+    padding: 2.5mm 3mm; margin: 0 0 3.5mm; overflow-x: auto;
+    page-break-inside: avoid;
+}
+pre code {
+    background: none; padding: 0; font-size: 8.5pt; line-height: 1.45;
+    white-space: pre-wrap; word-break: break-all;
+}
 table {
     border-collapse: collapse; width: 100%; margin: 0 0 4mm;
     font-size: 9pt; page-break-inside: avoid;
@@ -64,7 +73,9 @@ td strong { font-weight: 700; }
 """
 
 INLINE = (
-    (re.compile(r"`([^`]+)`"), lambda m: f"<code>{html.escape(m.group(1))}</code>"),
+    # The text is already escaped by inline() before these run. Escaping again
+    # here turned <bucket> into the literal text &lt;bucket&gt; on the page.
+    (re.compile(r"`([^`]+)`"), lambda m: f"<code>{m.group(1)}</code>"),
     (re.compile(r"\*\*([^*]+)\*\*"), lambda m: f"<strong>{m.group(1)}</strong>"),
     (re.compile(r"(?<!\*)\*([^*]+)\*(?!\*)"), lambda m: f"<em>{m.group(1)}</em>"),
 )
@@ -86,7 +97,18 @@ def convert(md):
         line = lines[i]
         stripped = line.strip()
 
-        if not stripped:
+        if stripped.startswith("```"):
+            # Fenced block. Without this the fences printed literally and every
+            # multi-line command collapsed into one run-on paragraph — in a
+            # document that is mostly commands, which made it unusable.
+            i += 1
+            body = []
+            while i < len(lines) and not lines[i].strip().startswith("```"):
+                body.append(html.escape(lines[i]))
+                i += 1
+            i += 1        # closing fence
+            out.append("<pre><code>" + "\n".join(body) + "</code></pre>")
+        elif not stripped:
             i += 1
         elif stripped.startswith("---") and set(stripped) == {"-"}:
             out.append("<hr>")
@@ -115,10 +137,17 @@ def convert(md):
                 out.append(f"<li>{inline(lines[i].strip()[2:])}</li>")
                 i += 1
             out.append("</ul>")
+        elif re.match(r"^\d+\.\s", stripped):
+            out.append("<ol>")
+            while i < len(lines) and re.match(r"^\d+\.\s", lines[i].strip()):
+                text = re.sub(r"^\d+\.\s+", "", lines[i].strip())
+                out.append(f"<li>{inline(text)}</li>")
+                i += 1
+            out.append("</ol>")
         else:
             para = []
             while i < len(lines) and lines[i].strip() and not re.match(
-                    r"^\s*(#|\||- |---\s*$)", lines[i]):
+                    r"^\s*(#|\||- |\d+\.\s|---\s*$)", lines[i]):
                 para.append(lines[i].strip())
                 i += 1
             out.append(f"<p>{inline(' '.join(para))}</p>")
