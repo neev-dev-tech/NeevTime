@@ -747,8 +747,102 @@ app.post('/api/employees/portal-access', authenticateToken, requireAdmin, async 
     }
 });
 
+/**
+ * Issue activation codes so employees can set their own passwords.
+ *
+ * Two delivery routes, because half a factory has no mailbox:
+ *
+ *   - an employee with an address gets the code by email, and the code is not
+ *     returned to the administrator at all;
+ *   - an employee without one has the code returned ONCE, to be handed over on
+ *     paper.
+ *
+ * Only the hash is stored either way. An administrator who issues a code cannot
+ * read it back tomorrow, and a stolen database yields no working codes.
+ *
+ * This does not set a password. That is the difference between this and the
+ * route below it: after this, the only person who knows the password is the
+ * employee, which is what makes their punches evidence.
+ */
+app.post('/api/employees/portal-invite', authenticateToken, requireAdmin, async (req, res) => {
+    try {
+        const { employee_ids, send_email = true } = req.body || {};
+        if (!Array.isArray(employee_ids) || employee_ids.length === 0) {
+            return res.status(400).json({ error: 'employee_ids is required' });
+        }
+        const ids = employee_ids.map(Number).filter(Number.isInteger);
+        if (ids.length === 0) return res.status(400).json({ error: 'No valid employee ids' });
+
+        const people = await db.query(
+            `SELECT id, employee_code, name,
+                    COALESCE(NULLIF(directory_email, ''), NULLIF(email, '')) AS address
+               FROM employees
+              WHERE id = ANY($1::int[]) AND (LOWER(status) IS DISTINCT FROM 'resigned')`,
+            [ids]
+        );
+
+        const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';  // no O/0, no I/1
+        const emailed = [];
+        const handOut = [];
+        const failed = [];
+
+        for (const emp of people.rows) {
+            const code = Array.from(cryptoNode.randomBytes(8),
+                b => ALPHABET[b % ALPHABET.length]).join('');
+            const hash = await bcryptPortal.hash(code, 10);
+            const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+            await db.query(
+                `UPDATE employees
+                    SET portal_setup_hash = $1, portal_setup_expires = $2, app_login_enabled = true
+                  WHERE id = $3`,
+                [hash, expires, emp.id]
+            );
+
+            if (send_email && emp.address) {
+                try {
+                    await require('./services/email').sendEmail({
+                        to: emp.address,
+                        subject: 'NeevTime portal access',
+                        html: `<div style="font-family: Arial, sans-serif; padding: 20px;">
+                                <h2>Set your portal password</h2>
+                                <p>Hello ${emp.name || emp.employee_code},</p>
+                                <p>Your employee code is <b>${emp.employee_code}</b>. Use this
+                                   activation code to choose your own password:</p>
+                                <p style="font-size:24px;letter-spacing:4px;font-weight:bold;">${code}</p>
+                                <p style="color:#666;font-size:12px;">It expires in 24 hours and can be
+                                   used once. Nobody else, including HR, will know the password you set.</p>
+                               </div>`,
+                        text: `Your NeevTime activation code for ${emp.employee_code} is ${code}. Expires in 24 hours.`,
+                    });
+                    emailed.push({ employee_code: emp.employee_code, name: emp.name, sent_to: emp.address });
+                    continue;
+                } catch (err) {
+                    // The code is already stored, so it still works — it just
+                    // has to be handed over instead. Saying so beats a silent
+                    // half-success.
+                    failed.push({ employee_code: emp.employee_code, reason: err.message });
+                }
+            }
+            handOut.push({ employee_code: emp.employee_code, name: emp.name, code, expires });
+        }
+
+        res.json({
+            success: true,
+            emailed,
+            // Shown once. It is not stored in a readable form and cannot be
+            // listed again — reissue instead.
+            hand_out: handOut,
+            email_failures: failed,
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Admin sets/resets an employee's portal password
 const bcryptPortal = require('bcryptjs');
+const cryptoNode = require('crypto');
 app.put('/api/employees/:id/portal-password', authenticateToken, requireAdmin, async (req, res) => {
     try {
         const { password } = req.body;
@@ -756,8 +850,14 @@ app.put('/api/employees/:id/portal-password', authenticateToken, requireAdmin, a
             return res.status(400).json({ error: 'Password must be at least 6 characters' });
         }
         const hash = await bcryptPortal.hash(password, 10);
+        // Flagged as somebody else's password. It gets the employee to the
+        // change screen and no further — a punch made under a credential an
+        // administrator typed proves nothing about who made it.
         const result = await db.query(
-            'UPDATE employees SET portal_password_hash = $1, app_login_enabled = true WHERE id = $2 RETURNING id, employee_code',
+            `UPDATE employees
+                SET portal_password_hash = $1, app_login_enabled = true,
+                    portal_must_change = true, portal_password_set_at = NOW()
+              WHERE id = $2 RETURNING id, employee_code`,
             [hash, req.params.id]
         );
         if (result.rows.length === 0) return res.status(404).json({ error: 'Employee not found' });

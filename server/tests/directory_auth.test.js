@@ -124,3 +124,80 @@ test('directory_email is stored lower-cased', () => {
     const src = read('server.js');
     assert.match(src, /String\(directory_email\)\.trim\(\)\.toLowerCase\(\)/);
 });
+
+// ───────────────────────── setting a portal password ─────────────────────────
+//
+// The question this answers: if employees sign in with an employee code, who
+// sets the password? Previously an administrator typed it and knew it forever,
+// which means a punch recorded against somebody was not evidence they made it.
+
+test('an administrator never learns the password an employee ends up with', () => {
+    const portal = read('routes/portal.js');
+    const server = read('server.js');
+
+    // The invite stores a hash of the one-time code, not the code.
+    assert.match(server, /portal_setup_hash = \$1/,
+        'activation codes are not stored hashed — the database would hand out working codes');
+    assert.ok(!/SET portal_password_hash[^]{0,200}portal-invite/.test(server),
+        'the invite sets a password instead of letting the employee choose one');
+
+    // Activation is where the password is actually chosen.
+    assert.match(portal, /router\.post\('\/activate'/,
+        'there is no way for an employee to set their own password');
+});
+
+test('a password an administrator typed reaches the change screen and nothing else', () => {
+    const portal = read('routes/portal.js');
+    const server = read('server.js');
+
+    assert.match(server, /portal_must_change = true/,
+        'an admin-set password is not flagged, so it can be used indefinitely');
+    // Enforced in the guard, not merely suggested to the page: a client that
+    // skips the change screen would otherwise punch with a shared credential.
+    assert.match(portal, /payload\.must_change && req\.path !== '\/change-password'/,
+        'must_change is not enforced server-side');
+});
+
+test('changing a password requires the current one', () => {
+    // An unlocked phone on a bench must not be enough to lock its owner out of
+    // their own attendance record.
+    const portal = read('routes/portal.js');
+    const block = portal.slice(portal.indexOf("router.post('/change-password'"));
+    assert.match(block, /bcrypt\.compare\(current_password/,
+        'the current password is not verified before it is replaced');
+});
+
+test('activation and reset refuse to say whether an employee code exists', () => {
+    const portal = read('routes/portal.js');
+    // Employee codes are printed on badges; confirming which ones are real is
+    // a gift to anyone holding one.
+    assert.match(portal, /not valid, or it has expired/,
+        'activation distinguishes an unknown employee from a wrong code');
+    assert.match(portal, /If that employee has an email address on file/,
+        'the reset endpoint reveals whether an employee code is real');
+});
+
+test('activation codes expire and are single use', () => {
+    const portal = read('routes/portal.js');
+    assert.match(portal, /portal_setup_expires\) < new Date\(\)/, 'activation codes never expire');
+    assert.match(portal, /portal_setup_hash = NULL/,
+        'the code is not cleared after use, so it can be replayed');
+});
+
+test('a resigned employee cannot activate or reset', () => {
+    const portal = read('routes/portal.js');
+    const activate = portal.slice(portal.indexOf("router.post('/activate'"),
+        portal.indexOf("router.post('/forgot-password'"));
+    assert.match(activate, /IS DISTINCT FROM 'resigned'/,
+        'somebody who has left can still claim an account');
+});
+
+test('the activation alphabet avoids characters people misread', () => {
+    // These get read over a phone and written on paper. O/0 and I/1 turn into
+    // support calls and a code that "does not work".
+    for (const f of ['routes/portal.js', 'server.js']) {
+        const src = read(f);
+        assert.match(src, /ABCDEFGHJKLMNPQRSTUVWXYZ23456789/,
+            `${f} uses an alphabet containing easily confused characters`);
+    }
+});

@@ -15,6 +15,7 @@ const db = require('../db');
 const { rateLimit } = require('../utils/rateLimit');
 const ingest = require('../services/punch_ingest');
 const directory = require('../services/directory_auth');
+const { checkPasswordPolicy } = require('./auth');
 const crypto = require('crypto');
 
 // Employee portal login is public; throttle it like the admin login.
@@ -27,7 +28,18 @@ const JWT_SECRET = process.env.JWT_SECRET;
 db.query(`ALTER TABLE employees
     ADD COLUMN IF NOT EXISTS directory_email TEXT,
     ADD COLUMN IF NOT EXISTS directory_subject TEXT,
-    ADD COLUMN IF NOT EXISTS directory_auth_method TEXT`)
+    ADD COLUMN IF NOT EXISTS directory_auth_method TEXT,
+    -- Activation: the employee chooses their own password using a one-time
+    -- code. Only the hash is kept, so a leaked database does not hand out
+    -- working activation codes, and an administrator who issued one cannot read
+    -- it back later.
+    ADD COLUMN IF NOT EXISTS portal_setup_hash TEXT,
+    ADD COLUMN IF NOT EXISTS portal_setup_expires TIMESTAMP,
+    ADD COLUMN IF NOT EXISTS portal_password_set_at TIMESTAMP,
+    -- Set when an administrator typed the password. That password is known to
+    -- somebody else, so it gets the employee as far as the change screen and no
+    -- further.
+    ADD COLUMN IF NOT EXISTS portal_must_change BOOLEAN DEFAULT false`)
     .catch(err => console.error('directory columns check failed:', err.message));
 
 db.query('ALTER TABLE employees ADD COLUMN IF NOT EXISTS portal_password_hash TEXT')
@@ -60,7 +72,8 @@ router.post('/login', portalLoginLimiter, async (req, res) => {
 
     try {
         const result = await db.query(
-            `SELECT id, employee_code, name, portal_password_hash, app_login_enabled
+            `SELECT id, employee_code, name, portal_password_hash, app_login_enabled,
+                    portal_must_change
              FROM employees WHERE employee_code = $1 AND (LOWER(status) IS DISTINCT FROM 'resigned')`,
             [employee_code]
         );
@@ -78,13 +91,22 @@ router.post('/login', portalLoginLimiter, async (req, res) => {
         const ok = await bcrypt.compare(password, emp.portal_password_hash);
         if (!ok) return invalid();
 
+        // A password an administrator typed is a password somebody else knows.
+        // The token says so, and the guard below lets it reach the change
+        // screen and nothing else — a punch made under a shared credential is
+        // not evidence of anything.
         const token = jwt.sign(
-            { employee_code: emp.employee_code, role: 'employee' },
+            {
+                employee_code: emp.employee_code,
+                role: 'employee',
+                must_change: Boolean(emp.portal_must_change),
+            },
             JWT_SECRET,
             { expiresIn: process.env.JWT_EXPIRES_IN || '12h' }
         );
         res.json({
             token,
+            must_change: Boolean(emp.portal_must_change),
             user: { username: emp.employee_code, name: emp.name, role: 'employee' }
         });
     } catch (err) {
@@ -288,6 +310,145 @@ const linkIdentity = async (identity, method) => {
     };
 };
 
+/**
+ * Finish setting up portal access.
+ *
+ * The employee types the one-time code they were given — by email, or on a slip
+ * from HR for the many people here who have no mailbox — and chooses their own
+ * password. Nobody else ever knows it, which is the whole point: a punch has to
+ * be attributable to the person who made it, and it is not if an administrator
+ * could have signed in as them.
+ *
+ * The code is single-use and short-lived. It is stored hashed, so the database
+ * cannot be read for working codes and the administrator who issued one cannot
+ * look it up afterwards.
+ */
+router.post('/activate', portalLoginLimiter, async (req, res) => {
+    const { employee_code, code, password } = req.body || {};
+    if (!employee_code || !code || !password) {
+        return res.status(400).json({ error: 'Employee code, activation code and a new password are required' });
+    }
+
+    const policyError = await checkPasswordPolicy(password);
+    if (policyError) return res.status(400).json({ error: policyError });
+
+    try {
+        const found = await db.query(
+            `SELECT id, employee_code, name, portal_setup_hash, portal_setup_expires
+               FROM employees
+              WHERE employee_code = $1 AND (LOWER(status) IS DISTINCT FROM 'resigned')`,
+            [employee_code]
+        );
+        const emp = found.rows[0];
+
+        // One message for every failure. Distinguishing "no such employee" from
+        // "wrong code" tells anyone who asks which employee codes are real.
+        const invalid = () => res.status(400).json({
+            error: 'That activation code is not valid, or it has expired. Ask HR for a new one.',
+        });
+
+        if (!emp || !emp.portal_setup_hash) return invalid();
+        if (emp.portal_setup_expires && new Date(emp.portal_setup_expires) < new Date()) return invalid();
+        if (!await bcrypt.compare(String(code).trim().toUpperCase(), emp.portal_setup_hash)) return invalid();
+
+        const hash = await bcrypt.hash(password, 10);
+        await db.query(
+            `UPDATE employees
+                SET portal_password_hash = $1,
+                    app_login_enabled = true,
+                    portal_password_set_at = NOW(),
+                    portal_must_change = false,
+                    portal_setup_hash = NULL,
+                    portal_setup_expires = NULL
+              WHERE id = $2`,
+            [hash, emp.id]
+        );
+
+        res.json({ success: true, message: 'Password set. You can sign in now.' });
+    } catch (err) {
+        console.error('Portal activation error:', err.message);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+/**
+ * A forgotten password, for an employee who has an address on file.
+ *
+ * Answers the same way whether or not the employee exists — otherwise this
+ * endpoint is a way to find out which employee codes are real, and employee
+ * codes are printed on badges.
+ *
+ * Employees without an address are not served here on purpose: there is nowhere
+ * to send anything, and they go back to HR for a fresh activation code.
+ */
+router.post('/forgot-password', portalLoginLimiter, async (req, res) => {
+    const { employee_code } = req.body || {};
+    const genericOk = {
+        success: true,
+        message: 'If that employee has an email address on file, a reset link has been sent. '
+            + 'Otherwise ask HR for a new activation code.',
+    };
+    if (!employee_code) return res.status(400).json({ error: 'Employee code required' });
+
+    try {
+        const found = await db.query(
+            `SELECT id, employee_code, name,
+                    COALESCE(NULLIF(directory_email, ''), NULLIF(email, '')) AS address
+               FROM employees
+              WHERE employee_code = $1 AND (LOWER(status) IS DISTINCT FROM 'resigned')`,
+            [employee_code]
+        );
+        const emp = found.rows[0];
+        if (!emp || !emp.address) return res.json(genericOk);
+
+        const { code, hash, expires } = await newActivationCode();
+        await db.query(
+            'UPDATE employees SET portal_setup_hash = $1, portal_setup_expires = $2 WHERE id = $3',
+            [hash, expires, emp.id]
+        );
+
+        const emailService = require('../services/email');
+        await emailService.sendEmail({
+            to: emp.address,
+            subject: 'NeevTime portal access',
+            html: `<div style="font-family: Arial, sans-serif; padding: 20px;">
+                    <h2>Set your portal password</h2>
+                    <p>Hello ${emp.name || emp.employee_code},</p>
+                    <p>Use this code to set a new password for employee code
+                       <b>${emp.employee_code}</b>:</p>
+                    <p style="font-size:24px;letter-spacing:4px;font-weight:bold;">${code}</p>
+                    <p style="color:#666;font-size:12px;">It expires in 24 hours and can be used once.
+                       If you did not ask for this, ignore this email — nothing has changed yet.</p>
+                   </div>`,
+            text: `Your NeevTime activation code for ${emp.employee_code} is ${code}. It expires in 24 hours.`,
+        });
+
+        res.json(genericOk);
+    } catch (err) {
+        console.error('Portal forgot-password error:', err.message);
+        // The generic reply would hide a broken mail server from everyone,
+        // including the administrator who needs to fix it.
+        res.status(500).json({ error: 'Could not send the email. Ask your administrator to check SMTP settings.' });
+    }
+});
+
+/**
+ * A one-time activation code.
+ *
+ * Eight characters from an alphabet with no O/0 or I/1, because these get read
+ * over a phone and written on paper. Only the hash is stored.
+ */
+const newActivationCode = async () => {
+    const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    const bytes = crypto.randomBytes(8);
+    const code = Array.from(bytes, b => ALPHABET[b % ALPHABET.length]).join('');
+    return {
+        code,
+        hash: await bcrypt.hash(code, 10),
+        expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+    };
+};
+
 // Employee-JWT guard for everything below
 const requireEmployee = (req, res, next) => {
     const authHeader = req.headers['authorization'];
@@ -298,11 +459,73 @@ const requireEmployee = (req, res, next) => {
         if (err) return res.sendStatus(401);
         if (payload.role !== 'employee' || !payload.employee_code) return res.sendStatus(403);
         req.employee_code = payload.employee_code;
+
+        // Enforced here rather than asked of the page. A client that skips the
+        // change screen — or a script that never loads it — would otherwise
+        // punch happily with a credential the employee does not control.
+        if (payload.must_change && req.path !== '/change-password') {
+            return res.status(403).json({
+                error: 'Set your own password before using the portal',
+                must_change: true,
+            });
+        }
         next();
     });
 };
 
 router.use(requireEmployee);
+
+/**
+ * The employee changes their own password.
+ *
+ * The current password is required even though the session is already
+ * authenticated: an unlocked phone left on a bench should not be enough to lock
+ * its owner out of their own attendance record.
+ */
+router.post('/change-password', async (req, res) => {
+    const { current_password, new_password } = req.body || {};
+    if (!current_password || !new_password) {
+        return res.status(400).json({ error: 'Current and new password are required' });
+    }
+
+    const policyError = await checkPasswordPolicy(new_password);
+    if (policyError) return res.status(400).json({ error: policyError });
+
+    try {
+        const found = await db.query(
+            'SELECT id, portal_password_hash FROM employees WHERE employee_code = $1',
+            [req.employee_code]
+        );
+        const emp = found.rows[0];
+        if (!emp?.portal_password_hash) {
+            return res.status(400).json({ error: 'No portal password is set for this account' });
+        }
+        if (!await bcrypt.compare(current_password, emp.portal_password_hash)) {
+            return res.status(400).json({ error: 'Current password is incorrect' });
+        }
+        if (current_password === new_password) {
+            return res.status(400).json({ error: 'The new password must be different' });
+        }
+
+        await db.query(
+            `UPDATE employees
+                SET portal_password_hash = $1, portal_must_change = false, portal_password_set_at = NOW()
+              WHERE id = $2`,
+            [await bcrypt.hash(new_password, 10), emp.id]
+        );
+
+        // A fresh token, because the one in hand still carries must_change.
+        const token = jwt.sign(
+            { employee_code: req.employee_code, role: 'employee' },
+            JWT_SECRET,
+            { expiresIn: process.env.JWT_EXPIRES_IN || '12h' }
+        );
+        res.json({ success: true, token, message: 'Password updated' });
+    } catch (err) {
+        console.error('Portal change-password error:', err.message);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
 
 // ==========================================
 // PROFILE

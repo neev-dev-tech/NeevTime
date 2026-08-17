@@ -384,4 +384,7 @@ router.delete('/users/:id', authenticateToken, async (req, res) => {
     }
 });
 
-module.exports = { router, authenticateToken };
+// checkPasswordPolicy is shared with the employee portal: the rules an
+// administrator sets under Security apply to everyone who has a password in
+// this system, not only to admin accounts.
+module.exports = { router, authenticateToken, checkPasswordPolicy };

@@ -110,6 +110,58 @@ To match on `sAMAccountName` instead of UPN, use
 something the directory returns as `userPrincipalName` or `mail`, because that
 is what the first match uses.
 
+## Signing in with an employee code — who sets the password?
+
+The employee does. An administrator issues a one-time code; the password itself
+is chosen by the person who will use it, and nobody else ever sees it.
+
+```
+POST /api/employees/portal-invite
+{ "employee_ids": [12, 13, 14] }
+```
+
+Each employee gets an eight-character code, valid 24 hours, usable once. Only
+its hash is stored — an administrator cannot look one up tomorrow, and a stolen
+database yields no working codes.
+
+Delivery splits on whether the person has an address on file:
+
+- **With an email** (`directory_email`, or the ordinary `email` field) — the code
+  is emailed and is *not* returned to the administrator at all.
+- **Without one** — the code comes back in `hand_out`, shown once, to be given
+  on paper. Half a factory has no mailbox, and pretending otherwise means those
+  people never get access.
+
+The employee then opens `/portal`, presses **First time here?**, and enters
+their employee code (`INT089`), the activation code, and a password of their
+choosing. The alphabet excludes `O`/`0` and `I`/`1`, because these get read over
+a phone and written on paper.
+
+### If an administrator sets a password directly
+
+`PUT /api/employees/:id/portal-password` still exists for the case where someone
+is standing at the desk and needs access now. That password is flagged
+`portal_must_change`: it gets the employee to the change-password screen and
+nowhere else. The check is in the request guard, not the page, so a client that
+skips the screen — or a script that never loads it — still cannot punch.
+
+This matters more than it sounds. A punch made with a credential an
+administrator knows is not evidence about who made it, which defeats the purpose
+of collecting it.
+
+### Forgotten passwords
+
+`/portal` → **Forgot password** emails a fresh activation code, if the employee
+has an address. It answers identically whether or not the employee code exists —
+employee codes are printed on badges, and confirming which are real is a gift to
+anyone holding one. Employees with no address go back to HR for a new code.
+
+### Changing it later
+
+`POST /api/portal/change-password` requires the current password even though the
+session is already authenticated. An unlocked phone left on a bench should not
+be enough to lock its owner out of their own attendance record.
+
 ## Rolling it out to 68 people
 
 1. Put each person's work email in their profile (`directory_email`).
