@@ -159,6 +159,34 @@ export default function EmployeeProfile() {
         }
     };
 
+    // Activation code: the employee sets their own password, so nobody here
+    // ever knows it. Emailed when there is an address on file, handed over on
+    // paper when there is not — which is most of a factory floor.
+    const [invite, setInvite] = useState(null);
+    const [inviting, setInviting] = useState(false);
+
+    const handleInvite = async () => {
+        setInviting(true);
+        setInvite(null);
+        try {
+            const res = await api.post('/api/employees/portal-invite', {
+                employee_ids: [Number(id)],
+            });
+            setInvite(res.data);
+            if (res.data.emailed?.length) {
+                toast.success(`Activation code emailed to ${res.data.emailed[0].sent_to}`);
+            } else if (res.data.hand_out?.length) {
+                toast.success('Activation code created — give it to the employee now');
+            } else {
+                toast.warning('No code was issued; check the employee is active');
+            }
+        } catch (err) {
+            toast.error(err.response?.data?.error || 'Could not issue an activation code');
+        } finally {
+            setInviting(false);
+        }
+    };
+
     const handleEditSubmit = async (e) => {
         e.preventDefault();
         try {
@@ -330,7 +358,54 @@ export default function EmployeeProfile() {
                             {/* Self-service portal access */}
                             <div className="mt-6 p-4 bg-orange-50/60 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-800 rounded-xl">
                                 <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-100 mb-1">Employee Portal Access</h4>
-                                <p className="text-xs text-slate-600 dark:text-slate-300 mb-3">Set a password so this employee can view their attendance and apply for leave at <code className="font-mono text-xs bg-white dark:bg-slate-800 px-1 rounded border border-slate-200 dark:border-slate-700">/portal/login</code>.</p>
+                                <p className="text-xs text-slate-600 dark:text-slate-300 mb-3">So this employee can view their attendance and apply for leave at <code className="font-mono text-xs bg-white dark:bg-slate-800 px-1 rounded border border-slate-200 dark:border-slate-700">/portal/login</code>.</p>
+
+                                {/* The recommended route. A password nobody
+                                    else knows is what makes this person's
+                                    punches evidence about them. */}
+                                <div className="rounded-lg border border-slate-200 dark:border-slate-700 p-3 mb-4">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <div>
+                                            <p className="text-xs font-semibold text-slate-700 dark:text-slate-200">Send an activation code</p>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400">
+                                                They choose their own password. Emailed if an address is on file,
+                                                otherwise shown here once to hand over.
+                                            </p>
+                                        </div>
+                                        <Button variant="primary" onClick={handleInvite} disabled={inviting}>
+                                            {inviting ? 'Issuing...' : 'Issue code'}
+                                        </Button>
+                                    </div>
+
+                                    {invite?.hand_out?.length > 0 && (
+                                        <div className="mt-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 p-3">
+                                            <p className="text-xs text-amber-800 dark:text-amber-300 mb-1">
+                                                Give this to {invite.hand_out[0].employee_code} now — it is stored
+                                                hashed and cannot be shown again. Valid 24 hours, single use.
+                                            </p>
+                                            <p className="font-mono text-2xl tracking-[0.3em] font-bold text-slate-800 dark:text-slate-100">
+                                                {invite.hand_out[0].code}
+                                            </p>
+                                        </div>
+                                    )}
+                                    {invite?.emailed?.length > 0 && (
+                                        <p className="mt-3 text-xs text-emerald-700 dark:text-emerald-300">
+                                            Sent to {invite.emailed[0].sent_to}. The code is not shown here on purpose.
+                                        </p>
+                                    )}
+                                    {invite?.email_failures?.length > 0 && (
+                                        <p className="mt-3 text-xs text-rose-700 dark:text-rose-300">
+                                            Email failed: {invite.email_failures[0].reason}
+                                        </p>
+                                    )}
+                                </div>
+
+                                {/* Kept for the person standing at the desk who
+                                    needs access now. The employee is forced to
+                                    replace it before they can use the portal. */}
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
+                                    Or set a temporary password — the employee must change it at first sign-in.
+                                </p>
                                 <div className="flex gap-2">
                                     <input
                                         type="password"
