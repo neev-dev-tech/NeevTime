@@ -164,19 +164,34 @@ router.post('/punch', async (req, res) => {
             photoWarning = err.message;
         }
 
+        // In or out, decided from the day's own record rather than always
+        // writing check_in. A day of nothing but check_ins produces no worked
+        // hours at all, and the person who notices is whoever runs payroll at
+        // the end of the month.
+        const last = await db.query(
+            `SELECT punch_state FROM attendance_logs
+              WHERE employee_code = $1
+                AND punch_time >= CURRENT_DATE
+                AND punch_time <  CURRENT_DATE + 1
+              ORDER BY punch_time DESC LIMIT 1`,
+            [req.employee_code]
+        );
+        const state = last.rows[0]?.punch_state === 'check_in' ? 'check_out' : 'check_in';
+
         const result = await db.query(
             `INSERT INTO attendance_logs
              (employee_code, punch_time, punch_state, device_serial, verification_mode,
               punch_source, latitude, longitude, is_geofence_verified, geofence_id, photo_path)
-             VALUES ($1, NOW(), 'check_in', 'MOBILE_APP', 1, 'mobile', $2, $3, TRUE, $4, $5)
+             VALUES ($1, NOW(), $2, 'MOBILE_APP', 1, 'mobile', $3, $4, TRUE, $5, $6)
              ON CONFLICT (employee_code, punch_time) DO NOTHING
-             RETURNING punch_time`,
-            [req.employee_code, latitude, longitude, match.fence.id, photoName]
+             RETURNING punch_time, punch_state`,
+            [req.employee_code, state, latitude, longitude, match.fence.id, photoName]
         );
 
         res.json({
             success: true,
-            message: 'Attendance marked',
+            message: state === 'check_in' ? 'Checked in' : 'Checked out',
+            punch_state: state,
             location: match.fence.name,
             distance_m: Math.round(match.distance),
             punch_time: result.rows[0]?.punch_time || null,
@@ -186,6 +201,38 @@ router.post('/punch', async (req, res) => {
     } catch (err) {
         console.error('[Portal] punch failed:', err.message);
         res.status(500).json({ error: 'Could not record the punch' });
+    }
+});
+
+/**
+ * What the punch button should say, and whether punching is possible at all.
+ *
+ * Without this the page would guess. It would show "Check in" to someone who
+ * checked in an hour ago, and there would be no way to tell a site with no
+ * geofence configured from a site where the employee is simply standing outside
+ * one — the first is an administrator's job, the second is the employee's, and
+ * they need different words.
+ */
+router.get('/punch-status', async (req, res) => {
+    try {
+        const [last, fences] = await Promise.all([
+            db.query(
+                `SELECT punch_time, punch_state FROM attendance_logs
+                  WHERE employee_code = $1
+                    AND punch_time >= CURRENT_DATE AND punch_time < CURRENT_DATE + 1
+                  ORDER BY punch_time DESC LIMIT 1`,
+                [req.employee_code]
+            ),
+            db.query('SELECT count(*)::int AS n FROM geofences WHERE is_active IS TRUE'),
+        ]);
+
+        res.json({
+            next_state: last.rows[0]?.punch_state === 'check_in' ? 'check_out' : 'check_in',
+            last_punch: last.rows[0] || null,
+            geofences_configured: fences.rows[0].n > 0,
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
 });
 

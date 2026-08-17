@@ -5,6 +5,7 @@ import {
     Plus, Send, Fingerprint, AlertCircle, RefreshCw, Inbox
 } from 'lucide-react';
 import api from '../../api';
+import PunchCard from './PunchCard';
 import useStore from '../../store/useStore';
 import { Button } from '../../components';
 import { toLocalDateString } from '../../utils/dateFormat';
@@ -223,6 +224,16 @@ export default function EmployeePortal() {
                 )}
 
                 {tab === 'attendance' && (
+                    <div className="space-y-4">
+                    {/* Punching comes before the history. Someone opening this
+                        on a phone at the gate is here to clock in, not to read
+                        last week — and asking them to scroll past a month of
+                        records to reach the one button they came for is how a
+                        feature goes unused. */}
+                    <div className="bg-white/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 p-1">
+                        <PunchCard />
+                    </div>
+
                     <div className="bg-white/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
                         <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700 flex items-center gap-2 flex-wrap">
                             <input type="date" value={range.start} onChange={e => setRange(r => ({ ...r, start: e.target.value }))} className="field-sm tabular-nums" />
@@ -281,6 +292,7 @@ export default function EmployeePortal() {
                                 <RowCount n={attendance.length} noun="day" />
                             </>
                         )}
+                    </div>
                     </div>
                 )}
 
