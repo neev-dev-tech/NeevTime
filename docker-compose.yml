@@ -132,6 +132,35 @@ services:
     networks:
       - app-network
 
+  # Outbound-only access from the internet, off by default.
+  #
+  # Starts only with `--profile tunnel`, and only does anything once
+  # TUNNEL_TOKEN is set. Nothing is exposed by installing this file.
+  #
+  # cloudflared dials out to Cloudflare and holds the connection open, so no
+  # port is opened on the firewall and the VM keeps no inbound surface at all.
+  # That is the whole reason to prefer it over forwarding 443: an admin console
+  # holding biometric identifiers and payroll records should not be answering
+  # unsolicited connections from the internet.
+  #
+  # The token goes in the environment, not the command. A token on the command
+  # line is visible to every process on the host through `docker ps` and `ps`.
+  #
+  # Read docs/REMOTE_ACCESS.md before turning this on — the tunnel is the easy
+  # half; the access policy and the path restriction are what make it safe.
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: attendance_tunnel
+    restart: always
+    profiles: ["tunnel"]
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN:-}
+    depends_on:
+      - client
+    networks:
+      - app-network
+
 volumes:
   # PINNED, and external on purpose.
   #
