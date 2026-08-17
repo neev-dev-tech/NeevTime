@@ -16,6 +16,71 @@ const MobilePunch = () => {
     const [selectedEmployeeId, setSelectedEmployeeId] = useState(''); // For simulation
     const [photo, setPhoto] = useState(null);       // data URL, sent with the punch
     const [photoNote, setPhotoNote] = useState(''); // why there is no photo, if there is none
+    const [cameraOn, setCameraOn] = useState(false);
+    const videoRef = React.useRef(null);
+    const streamRef = React.useRef(null);
+
+    /**
+     * Open the front camera in the page.
+     *
+     * A file input with capture="user" was the first attempt. On a phone it
+     * hands off to the camera app; on a desktop it is simply a file picker
+     * asking someone to upload a photo — which is not a selfie at the moment of
+     * the punch, it is any image they happen to have. For an anti-buddy-punching
+     * feature that distinction is the entire point.
+     *
+     * getUserMedia needs a secure context. The self-signed certificate counts
+     * once accepted, but if it is refused — or there is no camera, or the
+     * permission is denied — the file input stays as the fallback, because a
+     * punch without a photo still has to be possible.
+     */
+    const openCamera = async () => {
+        setPhotoNote('');
+        if (!navigator.mediaDevices?.getUserMedia) {
+            setPhotoNote('This browser cannot open the camera here. Use the upload option below.');
+            return;
+        }
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'user', width: { ideal: 640 } },
+                audio: false,
+            });
+            streamRef.current = stream;
+            setCameraOn(true);
+            // The element only exists once cameraOn has rendered it.
+            setTimeout(() => { if (videoRef.current) videoRef.current.srcObject = stream; }, 0);
+        } catch (err) {
+            setPhotoNote(
+                err.name === 'NotAllowedError'
+                    ? 'Camera permission was refused. Allow it, or use the upload option below.'
+                    : 'The camera could not be opened. Use the upload option below.'
+            );
+        }
+    };
+
+    /** Always stop the tracks. A camera left running is a light left on in a room. */
+    const closeCamera = () => {
+        streamRef.current?.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+        setCameraOn(false);
+    };
+
+    useEffect(() => closeCamera, []);
+
+    /** Freeze the current frame at 640px — the size the server and the reviewer need. */
+    const capture = () => {
+        const video = videoRef.current;
+        if (!video) return;
+
+        const scale = Math.min(1, 640 / Math.max(video.videoWidth, video.videoHeight));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(video.videoWidth * scale);
+        canvas.height = Math.round(video.videoHeight * scale);
+        canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        setPhoto(canvas.toDataURL('image/jpeg', 0.75));
+        closeCamera();
+    };
 
     /**
      * Read the captured image, shrink it, and keep it as a data URL.
@@ -277,18 +342,52 @@ const MobilePunch = () => {
                                                 <X size={16} />
                                             </button>
                                         </div>
-                                    ) : (
-                                        <label className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-600 py-4 text-slate-600 dark:text-slate-300">
-                                            <Camera size={20} />
-                                            <span className="font-medium">Add a photo (optional)</span>
-                                            <input
-                                                type="file"
-                                                accept="image/*"
-                                                capture="user"
-                                                className="hidden"
-                                                onChange={(e) => handlePhoto(e.target.files?.[0])}
+                                    ) : cameraOn ? (
+                                        <div className="space-y-2">
+                                            <video
+                                                ref={videoRef}
+                                                autoPlay
+                                                playsInline
+                                                muted
+                                                /* Mirrored, so it behaves like a mirror rather
+                                                   than a stranger copying your movements. */
+                                                className="w-full rounded-2xl border border-slate-200 dark:border-slate-700 -scale-x-100"
                                             />
-                                        </label>
+                                            <div className="flex gap-2">
+                                                <Button variant="primary" onClick={capture} className="flex-1">
+                                                    Take photo
+                                                </Button>
+                                                <Button variant="secondary" onClick={closeCamera}>
+                                                    Cancel
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-2">
+                                            <button
+                                                onClick={openCamera}
+                                                className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-600 py-4 text-slate-600 dark:text-slate-300"
+                                            >
+                                                <Camera size={20} />
+                                                <span className="font-medium">Take a selfie (optional)</span>
+                                            </button>
+                                            {/* Fallback only. Kept because a punch must still be
+                                                possible where the camera cannot open — an older
+                                                browser, a refused permission, a machine without
+                                                one. Deliberately quieter than the camera button:
+                                                an uploaded file is any picture someone already
+                                                had, which is worth much less as evidence. */}
+                                            <label className="block cursor-pointer text-center text-xs text-slate-500 dark:text-slate-400 underline">
+                                                or upload a photo instead
+                                                <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    capture="user"
+                                                    className="hidden"
+                                                    onChange={(e) => handlePhoto(e.target.files?.[0])}
+                                                />
+                                            </label>
+                                        </div>
                                     )}
                                     {photoNote && (
                                         <p className="mt-2 text-xs text-amber-700 dark:text-amber-400">{photoNote}</p>

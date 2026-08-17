@@ -114,6 +114,40 @@ function deg2rad(deg) {
     return deg * (Math.PI / 180);
 }
 
+/**
+ * Decide whether a position is inside an allowed location.
+ *
+ * Shared, so the admin punch and the employee's own punch cannot drift apart.
+ * Two copies of a geofence rule is two places for someone to be marked present
+ * from the wrong side of town.
+ *
+ * An employee with an assigned fence is checked only against that one. Without
+ * one, any active fence counts — which is why no fence is ever seeded: an empty
+ * table refuses every punch, and a seeded one would let anyone near that
+ * address clock in.
+ */
+const findMatchingGeofence = async (employeeCode, latitude, longitude) => {
+    const assigned = await db.query(
+        `SELECT g.* FROM geofences g
+           JOIN employees e ON e.assigned_geofence_id = g.id
+          WHERE e.employee_code = $1 AND g.is_active IS TRUE`,
+        [employeeCode]
+    );
+
+    const candidates = assigned.rows.length
+        ? assigned.rows
+        : (await db.query('SELECT * FROM geofences WHERE is_active IS TRUE')).rows;
+
+    for (const fence of candidates) {
+        const distance = getDistanceFromLatLonInMeters(
+            parseFloat(latitude), parseFloat(longitude),
+            parseFloat(fence.latitude), parseFloat(fence.longitude)
+        );
+        if (distance <= fence.radius_meters) return { fence, distance };
+    }
+    return null;
+};
+
 // ================= GEOFENCE MANAGEMENT =================
 
 // Get all geofences
@@ -328,4 +362,5 @@ module.exports.startPhotoPurge = startPhotoPurge;
 // later served back to a browser, so it is worth exercising directly.
 module.exports.savePunchPhoto = savePunchPhoto;
 module.exports.PHOTO_DIR = PHOTO_DIR;
+module.exports.findMatchingGeofence = findMatchingGeofence;
 module.exports.purgePunchPhotos = purgePunchPhotos;

@@ -123,6 +123,73 @@ router.get('/me', async (req, res) => {
 });
 
 // ==========================================
+// PUNCH — for the employee themselves
+// ==========================================
+
+/**
+ * An employee clocks themselves in.
+ *
+ * The identity comes from the token and nowhere else. /api/mobile/punch takes an
+ * employee_id in the body and is mounted behind requireAdmin, which makes it an
+ * administrator's tool — useful for supervised punching, useless for staff, and
+ * dangerous if it were ever opened up, because a body field would let anyone
+ * punch as anyone.
+ *
+ * The geofence rule is imported rather than repeated. Two copies of it is two
+ * places for someone to be marked present from the wrong side of town.
+ */
+router.post('/punch', async (req, res) => {
+    const { latitude, longitude, photo } = req.body || {};
+    if (latitude === undefined || longitude === undefined) {
+        return res.status(400).json({ error: 'Location is required to punch' });
+    }
+
+    try {
+        const mobile = require('./mobile_attendance');
+
+        const match = await mobile.findMatchingGeofence(req.employee_code, latitude, longitude);
+        if (!match) {
+            return res.status(403).json({
+                error: 'You are outside the allowed location.',
+                details: 'No approved site matched your position.',
+            });
+        }
+
+        // A camera that failed is not a reason to refuse someone's clock-in.
+        let photoName = null;
+        let photoWarning = null;
+        try {
+            photoName = await mobile.savePunchPhoto(photo, req.employee_code);
+        } catch (err) {
+            photoWarning = err.message;
+        }
+
+        const result = await db.query(
+            `INSERT INTO attendance_logs
+             (employee_code, punch_time, punch_state, device_serial, verification_mode,
+              punch_source, latitude, longitude, is_geofence_verified, geofence_id, photo_path)
+             VALUES ($1, NOW(), 'check_in', 'MOBILE_APP', 1, 'mobile', $2, $3, TRUE, $4, $5)
+             ON CONFLICT (employee_code, punch_time) DO NOTHING
+             RETURNING punch_time`,
+            [req.employee_code, latitude, longitude, match.fence.id, photoName]
+        );
+
+        res.json({
+            success: true,
+            message: 'Attendance marked',
+            location: match.fence.name,
+            distance_m: Math.round(match.distance),
+            punch_time: result.rows[0]?.punch_time || null,
+            photo_saved: Boolean(photoName),
+            photo_warning: photoWarning,
+        });
+    } catch (err) {
+        console.error('[Portal] punch failed:', err.message);
+        res.status(500).json({ error: 'Could not record the punch' });
+    }
+});
+
+// ==========================================
 // MY ATTENDANCE
 // ==========================================
 
