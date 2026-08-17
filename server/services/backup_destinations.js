@@ -34,6 +34,35 @@ const fsp = require('node:fs/promises');
 const path = require('node:path');
 
 /**
+ * Refuse a Windows path before it silently becomes a filename.
+ *
+ * A UNC path like \\10.81.20.100\IT_Team\Backup means nothing to Linux. The
+ * container would take it as a single very oddly named directory, create it
+ * happily, copy every backup into it, report success, and lose the lot on the
+ * next deploy — indistinguishable from a working off-machine copy until the day
+ * it is needed.
+ *
+ * The share has to be mounted on the host and referenced by its mount point.
+ * That is a one-time act by someone with root on the VM, and no amount of code
+ * here can do it from a web form — so the message says exactly what to run.
+ */
+const assertLinuxPath = (dest) => {
+    if (/^\\\\/.test(dest) || /^[A-Za-z]:[\\/]/.test(dest)) {
+        throw new Error(
+            `"${dest}" is a Windows path. This server is Linux, and a path like that would be `
+            + 'treated as a filename — backups would appear to succeed and be lost on the next '
+            + 'deploy.\n\n'
+            + 'Mount the share on the server first, then use its mount point here:\n'
+            + '  sudo mkdir -p /mnt/it-backups\n'
+            + '  sudo mount -t cifs //10.81.20.100/IT_Team /mnt/it-backups '
+            + '-o username=YOURUSER,vers=3.0\n\n'
+            + 'Then set BACKUP_EXTERNAL_DIR to that path in .env, redeploy, and use '
+            + '/mnt/backup-external here. Add it to /etc/fstab so it survives a reboot.'
+        );
+    }
+};
+
+/**
  * A copy that lands on a filesystem the container can see.
  *
  * The plainest option and the safest, because it stores no credentials at all.
@@ -54,6 +83,7 @@ const filesystem = {
     async test(cfg) {
         const dest = String(cfg.path || '').trim();
         if (!dest) throw new Error('No path given');
+        assertLinuxPath(dest);
 
         const probe = path.join(dest, `.neevtime-write-check-${Date.now()}`);
         await fsp.mkdir(dest, { recursive: true });
@@ -85,6 +115,7 @@ const filesystem = {
 
     async send(cfg, filepath, filename) {
         const dest = String(cfg.path || '').trim();
+        assertLinuxPath(dest);
         await fsp.mkdir(dest, { recursive: true });
         const target = path.join(dest, filename);
         await fsp.copyFile(filepath, target);

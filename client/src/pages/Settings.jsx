@@ -252,6 +252,27 @@ export default function Settings() {
             );
         }
 
+        // Times get a real time control. Typed as free text, "2:00", "2 AM" or
+        // "0200" all look reasonable and none of them parse — the scheduler
+        // compares against HH:MM, so a near-miss means the backup silently
+        // never runs. The browser's own picker cannot produce an invalid value.
+        if (/(^|_)time$/.test(key) && config.data_type !== 'number') {
+            return (
+                <div key={key} className="space-y-2">
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">{label}</label>
+                    <input
+                        type="time"
+                        value={String(value ?? '').slice(0, 5)}
+                        onChange={(e) => handleChange(key, e.target.value)}
+                        className="input-premium transition-ui duration-200"
+                    />
+                    {config.description && (
+                        <p className="text-xs text-slate-500 dark:text-slate-400 ml-1">{config.description}</p>
+                    )}
+                </div>
+            );
+        }
+
         // A free-text timezone is easy to typo, and a typo silently falls back
         // to the default inside the attendance engine.
         if (key === 'system_timezone') {
