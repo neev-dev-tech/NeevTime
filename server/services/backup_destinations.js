@@ -424,11 +424,37 @@ const smb = {
         });
     },
 
+    /**
+     * Create the folder if it is not there, one level at a time.
+     *
+     * smbclient has no mkdir -p, and a folder that does not exist yet is the
+     * normal case the first time someone configures this — the filesystem and
+     * SFTP destinations both create it, and this one failed with "That folder
+     * does not exist inside the share." Found by the destination test on its
+     * first real run against Samba.
+     *
+     * Errors are swallowed: the common one is "already exists", and if the
+     * folder genuinely cannot be created the put that follows will say so with
+     * the reason.
+     */
+    async ensureFolder(cfg) {
+        const folder = String(cfg.folder || '').replace(/^[\\/]+|[\\/]+$/g, '');
+        if (!folder) return '';
+
+        const parts = folder.split(/[\\/]+/).filter(Boolean);
+        let sofar = '';
+        for (const part of parts) {
+            sofar = sofar ? `${sofar}\\${part}` : part;
+            await this.run(cfg, `mkdir "${sofar}"`).catch(() => {});
+        }
+        return folder;
+    },
+
     async test(cfg) {
         if (!cfg.host || !cfg.share) throw new Error('Server and share name are required');
         if (!cfg.username) throw new Error('A username is required');
 
-        const folder = String(cfg.folder || '').replace(/^[\\/]+|[\\/]+$/g, '');
+        const folder = await this.ensureFolder(cfg);
         const name = `.neevtime-write-check-${Date.now()}`;
         const local = path.join(require('node:os').tmpdir(), name);
         await fsp.writeFile(local, 'write check');
@@ -458,7 +484,7 @@ const smb = {
     },
 
     async send(cfg, filepath, filename) {
-        const folder = String(cfg.folder || '').replace(/^[\\/]+|[\\/]+$/g, '');
+        const folder = await this.ensureFolder(cfg);
         const cd = folder ? `cd "${folder}"; ` : '';
         await this.run(cfg, `${cd}put "${filepath}" "${filename}"`);
         return `\\\\${cfg.host}\\${cfg.share}${folder ? `\\${folder}` : ''}\\${filename}`;
