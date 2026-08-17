@@ -107,7 +107,12 @@ export default function Settings() {
             setSettings(updatedSettings);
             showToast('Settings saved successfully!', 'success');
         } catch (err) {
-            showToast('Failed to save settings', 'error');
+            // Show what the server said. A rejected value — a Windows path in
+            // the backup field, say — comes back with the reason and the exact
+            // commands to fix it, and "Failed to save settings" threw all of
+            // that away and left someone guessing at their own screen.
+            const d = err.response?.data || {};
+            showToast([d.error, d.hint].filter(Boolean).join('\n\n') || 'Failed to save settings', 'error');
         } finally {
             setSaving(false);
         }

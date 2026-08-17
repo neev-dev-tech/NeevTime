@@ -194,7 +194,19 @@ export default function DatabaseTools() {
         try {
             const response = await api.post('/api/database/backups');
             if (response.data.success) {
-                toast.success('Backup created successfully!');
+                // Say what happened to the second copy, not just the local dump.
+                // A backup that was written here and failed to reach the
+                // configured destination is the case worth hearing about, and
+                // it used to be visible only in the server log.
+                const ext = response.data.backup?.external;
+                if (!ext || ext.attempted === false) {
+                    toast.success('Backup created. No second copy is configured.');
+                } else if (ext.ok) {
+                    toast.success(`Backup created and copied to ${ext.path || ext.destination}`);
+                } else {
+                    toast.error(`Backup created, but the copy to ${ext.destination || 'the destination'} `
+                        + `failed: ${ext.error}`);
+                }
                 fetchData(); // Refresh the list to get the new backup
             }
         } catch (err) {

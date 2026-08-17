@@ -85,6 +85,34 @@ router.put('/:category', async (req, res) => {
         const { category } = req.params;
         const updates = req.body; // { key1: value1, key2: value2, ... }
 
+        // Reject a Windows path here, while someone is looking at the screen.
+        //
+        // On Linux a UNC path is not a path, it is a filename. Saved quietly, it
+        // would be created as one very oddly named directory inside the
+        // container, every backup would be copied into it, and the copies would
+        // vanish on the next deploy — announced by nothing. The owner of this
+        // system typed exactly that path into this field, which is how the check
+        // came to exist.
+        //
+        // Refused at save so the answer arrives now rather than at 02:00 in a
+        // log nobody reads.
+        if (category === 'database' && updates.backup_external_path) {
+            const p = String(updates.backup_external_path).trim();
+            if (/^\\\\/.test(p) || /^[A-Za-z]:[\\/]/.test(p)) {
+                await client.query('ROLLBACK');
+                client.release();
+                return res.status(400).json({
+                    error: `"${p}" is a Windows path, and this server is Linux — it would be `
+                        + 'treated as a filename and the backups would be lost on the next deploy.',
+                    hint: 'Mount the share on the server first:\n'
+                        + '  sudo mount -t cifs "//10.81.20.100/IT_Team" /mnt/it-backups '
+                        + '-o username=<your AD user>,vers=3.0\n'
+                        + 'then set BACKUP_EXTERNAL_DIR to that path, redeploy, and use '
+                        + '/mnt/backup-external here. Database Tools > Second copy can test it.',
+                });
+            }
+        }
+
         await client.query('BEGIN');
 
         for (const [key, value] of Object.entries(updates)) {
