@@ -280,7 +280,7 @@ export default function Settings() {
                         className="input-premium opacity-60 cursor-not-allowed"
                     />
                     <p className="text-xs text-slate-500 dark:text-slate-400 ml-1">
-                        Set this in <a href="/database/backup" className="underline font-medium">Database Tools &rarr; Second copy</a>,
+                        Set this in <a href="/database/backup" className="underline font-medium">System &rarr; Database &rarr; Backup</a>, under &ldquo;Second copy&rdquo; —
                         which can also send to a Windows share, S3, SFTP or SharePoint — and tests
                         the destination before saving.
                     </p>

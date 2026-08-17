@@ -326,8 +326,8 @@ export default function DatabaseTools() {
             {/* Header */}
             <PageHeader
                 icon={Server}
-                title="Database Tools"
-                subtitle="Backups, restores and attendance maintenance"
+                title="Backup"
+                subtitle="Backups, restores, where copies go, and attendance maintenance"
                 actions={(
                     <>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchData}>

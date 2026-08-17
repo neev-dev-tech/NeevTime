@@ -107,8 +107,10 @@ router.put('/:category', async (req, res) => {
                     hint: 'Mount the share on the server first:\n'
                         + '  sudo mount -t cifs "//10.81.20.100/IT_Team" /mnt/it-backups '
                         + '-o username=<your AD user>,vers=3.0\n'
-                        + 'then set BACKUP_EXTERNAL_DIR to that path, redeploy, and use '
-                        + '/mnt/backup-external here. Database Tools > Second copy can test it.',
+                        + '\n\nOr skip mounting entirely: System > Database > Backup, "Second copy", '
+                        + 'choose "Windows share (SMB)" and enter the server, share and folder '
+                        + 'separately with a username and password. That reaches this same share '
+                        + 'without any path at all.',
                 });
             }
         }

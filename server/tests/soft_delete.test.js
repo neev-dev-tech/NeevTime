@@ -141,7 +141,12 @@ test('a setting with no seeded row still saves', () => {
     // ignored. backup_external_path was exactly this case.
     const src = stripComments(read('routes/settings.js'));
     const i = src.indexOf("router.put('/:category'");
-    const body = src.slice(i, i + 1800);
+    // To the next route, not a fixed byte count. A 1800-character window broke
+    // when validation was added ahead of the write — the upsert was still
+    // there, just further down. A test that fails because code moved teaches
+    // people to widen the window rather than read the failure.
+    const next = src.indexOf('router.', i + 10);
+    const body = src.slice(i, next > i ? next : undefined);
 
     assert.ok(
         /INSERT INTO app_settings/.test(body) && /ON CONFLICT \(category, setting_key\)/.test(body),
