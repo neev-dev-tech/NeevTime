@@ -101,6 +101,7 @@ const main = async () => {
 
     const broken = [];
     const socketNoise = [];
+    const thirdParty = new Set();
 
     for (const route of ROUTES) {
         const problems = [];
@@ -156,6 +157,25 @@ const main = async () => {
             const url = res.url();
             if (/\/socket\.io/.test(url)) { socketNoise.push(`${route}: ${res.status()} ${url.slice(0, 70)}`); return; }
             if (/\/api\//.test(url)) return;
+
+            // Only same-origin failures are this application's problem. The
+            // pages request fonts from fonts.gstatic.com, which 404s from the
+            // CI runner, and 46 of 47 screens were reported broken because of
+            // a third party this check does not control and cannot fix.
+            //
+            // Those fonts are a real issue, but a different one: they are an
+            // external dependency on every page load, they tell Google who uses
+            // this system, and the Content-Security-Policy already declares
+            // font-src 'self' data: — so the day that policy stops being
+            // report-only, they stop loading. Self-hosting them is the fix, and
+            // it is not this check's job to fail the build until then.
+            try {
+                if (new URL(url).origin !== new URL(BASE).origin) {
+                    thirdParty.add(new URL(url).host);
+                    return;
+                }
+            } catch { /* unparseable URL: treat as this app's */ }
+
             problems.push(`${res.status()} for ${url.slice(0, 100)}`);
         };
 
@@ -195,6 +215,12 @@ const main = async () => {
     await browser.close();
 
     console.log();
+    if (thirdParty.size) {
+        console.log(`NOTE: resources failed to load from ${[...thirdParty].join(', ')}.`);
+        console.log('      Third-party, so not a build failure — but every page depends on');
+        console.log('      them loading, and the CSP already says font-src \'self\' data:.');
+        console.log();
+    }
     if (socketNoise.length) {
         console.log(`NOTE: ${socketNoise.length} socket.io upgrade failures across the run.`);
         console.log('      Known open defect — the live monitor falls back to polling.');
