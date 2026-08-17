@@ -773,14 +773,33 @@ app.get('/api/stats/database', async (req, res) => {
             db.query('SELECT COUNT(*) FROM holidays').catch(() => ({ rows: [{ count: 0 }] }))
         ]);
 
+        // Both of these were hardcoded — 'N/A' and null — so the Backup page
+        // read "DB SIZE N/A" and "LAST BACKUP Never" with eight backups listed
+        // directly beneath it. A panel that always says Never is worse than one
+        // that says nothing: it is the same failure as a punch count that was
+        // always 100.
+        const size = await db.query(
+            'SELECT pg_size_pretty(pg_database_size(current_database())) AS size'
+        ).catch(() => null);
+
+        let lastBackup = null;
+        try {
+            const dir = path.join(__dirname, 'backups');
+            const newest = fs.readdirSync(dir)
+                .filter(f => /\.(sql|dump)$/.test(f))
+                .map(f => fs.statSync(path.join(dir, f)).mtime)
+                .sort((a, b) => b - a)[0];
+            if (newest) lastBackup = newest.toISOString();
+        } catch { /* no directory yet on a fresh install */ }
+
         res.json({
             total_employees: Number.parseInt(employees.rows[0].count),
             total_departments: Number.parseInt(departments.rows[0].count),
             total_devices: Number.parseInt(devices.rows[0].count),
             total_attendance_logs: Number.parseInt(logs.rows[0].count),
             total_holidays: Number.parseInt(holidays.rows[0].count),
-            database_size: 'N/A',
-            last_backup: null
+            database_size: size?.rows[0]?.size || 'unknown',
+            last_backup: lastBackup
         });
     } catch (err) {
         console.error(err);

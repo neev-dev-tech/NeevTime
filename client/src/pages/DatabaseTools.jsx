@@ -167,7 +167,11 @@ export default function DatabaseTools() {
                 name: backup.name,
                 size: formatFileSize(backup.size),
                 created_at: backup.created_at,
-                type: backup.name.includes('_manual') ? 'manual' : 'auto'
+                // Prefix, not '_manual'. Files are named auto-…, manual-…,
+                // backup-… and verify-…, so the underscore matched nothing and
+                // every row in the history was labelled AUTOMATIC — including
+                // the ones somebody took by hand.
+                type: backup.name.startsWith('auto-') ? 'auto' : 'manual'
             }));
             setBackups(backupsData);
 
