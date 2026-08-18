@@ -261,7 +261,11 @@ const generateLateEarlyReport = async (startDate, endDate, shiftStartTime = '09:
             END as out_status,
             CASE
                 WHEN first_in > (shift_start + (grace_minutes || ' minutes')::interval)
-                THEN EXTRACT(EPOCH FROM (first_in - shift_start))/60
+                -- From the END of grace, exactly as the engine scores it. This
+                -- measured from shift start, so the same 09:45 arrival read 30
+                -- late on payroll and 45 here — two screens, two numbers, and
+                -- whoever noticed would rightly trust neither.
+                THEN EXTRACT(EPOCH FROM (first_in - (shift_start + (grace_minutes || ' minutes')::interval)))/60
                 ELSE 0
             END as late_minutes,
             CASE
@@ -440,76 +444,42 @@ const generateAbsentReport = async (startDate, endDate, departmentId = null) => 
  * Generate Overtime Report
  */
 const generateOvertimeReport = async (startDate, endDate, regularHours = 8) => {
+    // From attendance_daily_summary — the engine's shift-aware ot_minutes —
+    // not re-derived from raw punch spans. The old derivation measured
+    // first-to-last punch against its own regularHours parameter, giving this
+    // report a different overtime figure than payroll and both a different one
+    // than the engine. One definition; the engine owns it; regularHours is
+    // kept in the signature only so existing callers do not break, and is
+    // deliberately unused.
     const result = await db.query(`
-        WITH daily_hours AS (
-            SELECT 
-                e.employee_code,
-                e.name as employee_name,
-                d.name as department_name,
-                DATE(al.punch_time) as work_date,
-                -- Same correction as the daily report: 0 in, 1 out.
-                COALESCE(
-                    MIN(al.punch_time) FILTER (WHERE punch_state_int(al.punch_state) = 0),
-                    MIN(al.punch_time)
-                ) as first_in,
-                MAX(al.punch_time) FILTER (WHERE punch_state_int(al.punch_state) = 1) as last_out
-            FROM attendance_logs al
-            JOIN employees e ON al.employee_code = e.employee_code
-            LEFT JOIN departments d ON e.department_id = d.id
-            WHERE DATE(al.punch_time) BETWEEN $1 AND $2
-            GROUP BY e.employee_code, e.name, d.name, DATE(al.punch_time)
-        )
-        SELECT 
-            employee_code,
-            employee_name,
-            department_name,
-            work_date,
-            first_in,
-            last_out,
-            EXTRACT(EPOCH FROM (last_out - first_in))/3600 as total_hours,
-            GREATEST(0, EXTRACT(EPOCH FROM (last_out - first_in))/3600 - $3) as overtime_hours
-        FROM daily_hours
-        WHERE first_in IS NOT NULL AND last_out IS NOT NULL
-        AND EXTRACT(EPOCH FROM (last_out - first_in))/3600 > $3
-        ORDER BY overtime_hours DESC, work_date DESC
-    `, [startDate, endDate, regularHours]);
-
-    // Group by employee
-    const byEmployee = {};
-    result.rows.forEach(row => {
-        if (!byEmployee[row.employee_code]) {
-            byEmployee[row.employee_code] = {
-                employee_code: row.employee_code,
-                employee_name: row.employee_name,
-                department_name: row.department_name,
-                total_overtime_hours: 0,
-                overtime_days: 0
-            };
-        }
-        byEmployee[row.employee_code].total_overtime_hours += parseFloat(row.overtime_hours);
-        byEmployee[row.employee_code].overtime_days++;
-    });
-
-    const employeeSummary = Object.values(byEmployee)
-        .map(e => ({ ...e, total_overtime_hours: Math.round(e.total_overtime_hours * 100) / 100 }))
-        .sort((a, b) => b.total_overtime_hours - a.total_overtime_hours);
-
-    const summary = {
-        total_overtime_hours: Math.round(employeeSummary.reduce((sum, e) => sum + e.total_overtime_hours, 0) * 100) / 100,
-        employees_with_overtime: employeeSummary.length,
-        top_overtime_employees: employeeSummary.slice(0, 5)
-    };
+        SELECT e.employee_code,
+               e.name AS employee_name,
+               d.name AS department_name,
+               to_char(s.date, 'YYYY-MM-DD') AS work_date,
+               to_char(s.in_time,  'HH24:MI') AS first_in,
+               to_char(s.out_time, 'HH24:MI') AS last_out,
+               ROUND(s.duration_minutes / 60.0, 1) AS hours_worked,
+               ROUND(s.ot_minutes / 60.0, 1) AS overtime_hours
+          FROM attendance_daily_summary s
+          JOIN employees e ON e.employee_code = s.employee_code
+          LEFT JOIN departments d ON d.id = e.department_id
+         WHERE s.date BETWEEN $1 AND $2
+           AND s.ot_minutes > 0
+         ORDER BY s.date, e.name
+    `, [startDate, endDate]);
 
     return {
-        report_type: REPORT_TYPE.OVERTIME,
-        period: `${startDate} to ${endDate}`,
-        regular_hours: regularHours,
-        generated_at: new Date(),
-        summary,
+        title: `Overtime Report (${startDate} to ${endDate})`,
+        generated_at: new Date().toISOString(),
+        summary: {
+            total_overtime_hours: Math.round(
+                result.rows.reduce((sum, r) => sum + Number(r.overtime_hours), 0) * 10) / 10,
+            employees_with_overtime: new Set(result.rows.map(r => r.employee_code)).size,
+        },
         data: result.rows,
-        by_employee: employeeSummary
     };
 };
+
 
 /**
  * Generate Device Health Report
@@ -819,11 +789,21 @@ const generatePayrollReport = async (year, month, departmentId = null, regularHo
     const result = await db.query(`
         WITH summary AS (
             SELECT employee_code,
-                   COUNT(*) FILTER (WHERE status = 'Present') AS present_days,
+                   -- A Half Day pays half. Counting only 'Present' made a half
+                   -- day vanish entirely from the payroll sheet — worked four
+                   -- hours, paid for none. Short Day and Miss Punch stay out of
+                   -- the paid count on purpose but are surfaced as their own
+                   -- columns: they are the rows payroll has to decide about,
+                   -- and a decision needs to see them.
+                   COUNT(*) FILTER (WHERE status = 'Present')
+                     + 0.5 * COUNT(*) FILTER (WHERE status = 'Half Day') AS present_days,
+                   COUNT(*) FILTER (WHERE status = 'Half Day') AS half_days,
+                   COUNT(*) FILTER (WHERE status IN ('Miss Punch', 'Short Day')) AS needs_review_days,
                    COUNT(*) FILTER (WHERE status = 'Absent') AS absent_days,
                    COUNT(*) FILTER (WHERE COALESCE(late_minutes, 0) > 0) AS late_count,
                    COALESCE(SUM(late_minutes), 0) AS late_minutes_total,
-                   COALESCE(SUM(duration_minutes), 0) AS total_minutes
+                   COALESCE(SUM(duration_minutes), 0) AS total_minutes,
+                   COALESCE(SUM(ot_minutes), 0) AS ot_minutes_total
             FROM attendance_daily_summary
             WHERE date BETWEEN $1 AND $2
             GROUP BY employee_code
@@ -840,14 +820,19 @@ const generatePayrollReport = async (year, month, departmentId = null, regularHo
             e.name AS employee_name,
             d.name AS department_name,
             e.designation,
-            COALESCE(s.present_days, 0)::int AS present_days,
+            COALESCE(s.present_days, 0)::numeric AS present_days,
+            COALESCE(s.half_days, 0)::int AS half_days,
+            COALESCE(s.needs_review_days, 0)::int AS needs_review_days,
             COALESCE(s.absent_days, 0)::int AS absent_days,
             COALESCE(l.leave_days, 0)::numeric AS leave_days,
             COALESCE(s.late_count, 0)::int AS late_count,
             COALESCE(s.late_minutes_total, 0)::int AS late_minutes,
             ROUND(COALESCE(s.total_minutes, 0) / 60.0, 1) AS total_hours,
-            ROUND(GREATEST(0, COALESCE(s.total_minutes, 0) / 60.0
-                - COALESCE(s.present_days, 0) * ${Number(regularHours)}), 1) AS overtime_hours
+            -- The engine's own figure, shift-aware, not a second derivation
+            -- with a different threshold. Three definitions of overtime
+            -- existed across payroll, the OT report and the engine; the sheet
+            -- somebody is paid from must carry the engine's.
+            ROUND(COALESCE(s.ot_minutes_total, 0) / 60.0, 1) AS overtime_hours
         FROM employees e
         LEFT JOIN departments d ON e.department_id = d.id
         LEFT JOIN summary s ON s.employee_code = e.employee_code

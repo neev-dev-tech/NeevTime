@@ -348,3 +348,28 @@ test('no report casts punch_state to int raw, and none reads exits as arrivals',
     assert.ok(!/punch_state_int\([^)]*\) > 1/.test(src),
         'a report reads >1 as an exit again — nothing this system writes matches, last_out goes NULL');
 });
+
+test('late minutes and overtime mean the same thing on every screen', () => {
+    // The accuracy sweep found three definitions of overtime — the engine's
+    // shift-aware ot_minutes, payroll's own derivation against a different
+    // threshold, and the OT report's raw punch span — and two definitions of
+    // late: the engine measured from the grace end, late-early from shift
+    // start, so one 09:45 arrival read 30 on payroll and 45 on the report.
+    // Whoever compares two screens and gets two numbers rightly trusts neither.
+    const fs = require('fs');
+    const path = require('path');
+    const src = fs.readFileSync(path.join(__dirname, '..', 'services/reports.js'), 'utf8')
+        .split('\n').filter(l => !l.trim().startsWith('--') && !l.trim().startsWith('//')).join('\n');
+
+    // Late-early subtracts the grace interval, as the engine does.
+    assert.match(src, /first_in - \(shift_start \+ \(grace_minutes \|\| ' minutes'\)::interval\)/,
+        'late-early measures from shift start again — its minutes disagree with payroll');
+    // Payroll and the OT report carry the engine's ot_minutes, not their own.
+    assert.match(src, /SUM\(ot_minutes\), 0\) AS ot_minutes_total/,
+        'payroll re-derives overtime with its own threshold');
+    assert.match(src, /s\.ot_minutes > 0/,
+        'the OT report re-derives overtime from raw punch spans');
+    // A half day pays half and is visible, not vanished.
+    assert.match(src, /0\.5 \* COUNT\(\*\) FILTER \(WHERE status = 'Half Day'\)/,
+        'a half day counts as zero paid days on the payroll sheet');
+});

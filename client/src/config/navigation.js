@@ -145,6 +145,10 @@ export const attendanceSidebar = [
     items: [
       { label: 'Leave Type', path: '/leave-types', icon: FileText, iconColor: '#2563EB' },
       { label: 'Leave Balance', path: '/leave-balance', icon: PieChart, iconColor: '#DB2777' },
+      // The applications screen always existed — filed under Approvals, where
+      // nobody managing leave thought to look. It stays there too; a screen
+      // reachable from both places beats a debate about which is correct.
+      { label: 'Leave Applications', path: '/leaves', icon: Plane, iconColor: '#059669' },
     ]
   },
   {
