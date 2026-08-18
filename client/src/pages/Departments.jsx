@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import api from '../api';
 import Modal from '../components/Modal';
-import { Building2, Plus, Trash2, Edit2, Search, RefreshCw, Save, Download, Upload, AlertCircle, CheckCircle } from 'lucide-react';
+import { Building2, Plus, Trash2, Edit2, Search, RefreshCw, Save, Download, Upload, AlertCircle, CheckCircle, UserCheck } from 'lucide-react';
 import { useToast, Button, PageHeader, ExportMenu } from '../components';
 import { toLocalDateString } from '../utils/dateFormat';
 
@@ -20,6 +20,54 @@ export default function Departments() {
     const [deleteConfirm, setDeleteConfirm] = useState(null);
     const [importing, setImporting] = useState(false);
     const [importResult, setImportResult] = useState(null);
+
+    /**
+     * Who approves leave and corrections for a department.
+     *
+     * The approval chain has resolved department approvers since it shipped,
+     * and assigning one required curl: the API existed with no screen, which
+     * for an HR user means the feature did not exist.
+     */
+    const [approverDept, setApproverDept] = useState(null);
+    const [employees, setEmployees] = useState([]);
+    const [approverIds, setApproverIds] = useState([]);
+    const [savingApprovers, setSavingApprovers] = useState(false);
+
+    const openApprovers = async (dept) => {
+        setApproverDept(dept);
+        setApproverIds([]);
+        try {
+            const [emps, current] = await Promise.all([
+                employees.length ? { data: employees } : api.get('/api/employees'),
+                api.get(`/api/departments/${dept.id}/approvers`),
+            ]);
+            if (!employees.length) setEmployees(emps.data || []);
+            setApproverIds((current.data || []).map(a => a.employee_id));
+        } catch {
+            toast.error('Could not load the current approvers');
+        }
+    };
+
+    const saveApprovers = async () => {
+        setSavingApprovers(true);
+        try {
+            const current = await api.get(`/api/departments/${approverDept.id}/approvers`);
+            const existing = new Set((current.data || []).map(a => a.employee_id));
+            const wanted = new Set(approverIds);
+            for (const id of wanted) {
+                if (!existing.has(id)) await api.post(`/api/departments/${approverDept.id}/approvers`, { employee_id: id });
+            }
+            for (const id of existing) {
+                if (!wanted.has(id)) await api.delete(`/api/departments/${approverDept.id}/approvers/${id}`);
+            }
+            toast.success(`${wanted.size} approver(s) set for ${approverDept.name}`);
+            setApproverDept(null);
+        } catch (err) {
+            toast.error(err.response?.data?.error || 'Could not save approvers');
+        } finally {
+            setSavingApprovers(false);
+        }
+    };
     const fileInputRef = useRef(null);
 
     const fetchDepartments = async () => {
@@ -303,6 +351,14 @@ export default function Departments() {
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
+                                                        icon={UserCheck}
+                                                        aria-label="Set approvers"
+                                                        title="Who approves this department's leave"
+                                                        onClick={() => openApprovers(dept)}
+                                                    />
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
                                                         icon={Edit2}
                                                         aria-label="Edit department"
                                                         onClick={() => handleEdit(dept)}
@@ -467,6 +523,39 @@ export default function Departments() {
                     </div>
                 </div>
             </Modal>
+
+            {/* Department approvers */}
+            {approverDept && (
+                <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50" onClick={() => setApproverDept(null)}>
+                    <div onClick={e => e.stopPropagation()}
+                         className="w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl p-6 space-y-4">
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100">
+                            Approvers for {approverDept.name}
+                        </h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                            These people can approve leave and attendance corrections for anyone in
+                            this department — alongside reporting managers and HR, per the approval
+                            chain in Settings. More than one is normal: a deputy covers absences.
+                        </p>
+                        <select multiple size={8} className="field w-full"
+                                value={approverIds.map(String)}
+                                onChange={e => setApproverIds([...e.target.selectedOptions].map(o => Number(o.value)))}>
+                            {employees
+                                .filter(e => (e.status || '').toLowerCase() !== 'resigned')
+                                .map(e => (
+                                    <option key={e.id} value={e.id}>{e.employee_code} — {e.name}</option>
+                                ))}
+                        </select>
+                        <p className="text-xs text-slate-400">Hold Ctrl/Cmd to pick several. Empty means requests fall through to HR.</p>
+                        <div className="flex justify-end gap-2">
+                            <Button variant="secondary" onClick={() => setApproverDept(null)}>Cancel</Button>
+                            <Button variant="primary" onClick={saveApprovers} disabled={savingApprovers}>
+                                {savingApprovers ? 'Saving…' : 'Save'}
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

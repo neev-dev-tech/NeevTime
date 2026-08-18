@@ -58,7 +58,7 @@ export default function MainLayout({ children }) {
     // active module to Personnel, the sidebar changed under the reader, and the
     // page they had just clicked was no longer anywhere in the menu. The link
     // worked; finding it a second time did not.
-    } else if (['/logs', '/shifts', '/timetables', '/break-times', '/schedule', '/rules', '/holidays', '/leaves', '/leave-types', '/leave-balance', '/attendance', '/reports', '/export', '/import', '/geofences', '/holiday-locations', '/mobile', '/regularizations'].some(p => path.startsWith(p))) {
+    } else if (['/logs', '/shifts', '/shift-rotations', '/timetables', '/break-times', '/schedule', '/rules', '/holidays', '/leaves', '/leave-types', '/leave-balance', '/attendance', '/reports', '/export', '/import', '/geofences', '/holiday-locations', '/mobile', '/regularizations'].some(p => path.startsWith(p))) {
       setActiveModule('Attendance');
     } else if (['/settings', '/users', '/database', '/system-logs', '/integrations', '/advanced-reports', '/audit'].some(p => path.startsWith(p))) {
       setActiveModule('System');

@@ -271,9 +271,23 @@ const pendingFor = async (approverCode) => {
         return out;
     };
 
+    // Swaps join the queue only once the counterpart has agreed — an approver
+    // countersigns an agreement, not a proposal one side has not seen.
+    const swaps = await db.query(`
+        SELECT s.id, s.requester_code AS employee_code, e.name AS employee_name,
+               s.counterpart_code, c.name AS counterpart_name,
+               s.requester_date, s.counterpart_date, s.reason, s.created_at,
+               NULL::int AS flow_id, NULL::int AS current_step
+          FROM shift_swaps s
+          JOIN employees e ON e.employee_code = s.requester_code
+          JOIN employees c ON c.employee_code = s.counterpart_code
+         WHERE LOWER(s.status) = 'pending' AND s.counterpart_accepted IS TRUE
+         ORDER BY s.created_at`);
+
     return {
         leaves: await mine(leaves.rows, 'leave'),
         regularizations: await mine(regs.rows, 'regularization'),
+        swaps: await mine(swaps.rows, 'swap'),
     };
 };
 

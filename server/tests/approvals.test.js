@@ -133,6 +133,8 @@ test('the approvals service reads the table applications actually live in', () =
     assert.match(src, /FROM leave_applications l/, 'pending approvals read the dead leaves table again');
     assert.ok(!/FROM leaves l JOIN/.test(src), 'the dead table is back in the pending query');
     const portal = read('routes/portal.js');
-    assert.match(portal, /'leave_applications' : 'attendance_regularizations'/,
+    assert.match(portal, /'leave_applications'[\s\S]{0,80}'attendance_regularizations'/,
         'decisions write the dead table again');
+    assert.ok(!/table = type === 'leave' \? 'leaves'/.test(portal),
+        'the dead leaves table is back in the decision route');
 });

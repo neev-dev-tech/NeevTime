@@ -106,6 +106,7 @@ export const attendanceSidebar = [
       { label: 'Break Time', path: '/break-times', icon: Clock, iconColor: '#EA580C' },
       { label: 'Timetable', path: '/timetables', icon: CalendarDays, iconColor: '#7C3AED' },
       { label: 'Shift', path: '/shifts', icon: Timer, iconColor: '#D97706' },
+      { label: 'Rotations', path: '/shift-rotations', icon: RefreshCw, iconColor: '#7C3AED' },
     ]
   },
   {

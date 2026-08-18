@@ -872,18 +872,24 @@ router.post('/approvals/:type/:id', async (req, res) => {
     const { type, id } = req.params;
     const { decision, comment } = req.body || {};
 
-    if (!['leave', 'regularization'].includes(type)) {
+    if (!['leave', 'regularization', 'swap'].includes(type)) {
         return res.status(400).json({ error: 'Unknown request type' });
     }
     if (!['approved', 'rejected'].includes(decision)) {
         return res.status(400).json({ error: 'decision must be approved or rejected' });
     }
 
-    const table = type === 'leave' ? 'leave_applications' : 'attendance_regularizations';
+    const table = type === 'leave' ? 'leave_applications'
+        : type === 'swap' ? 'shift_swaps' : 'attendance_regularizations';
 
     try {
-        const existing = await db.query(
-            `SELECT employee_code, status, flow_id, current_step FROM ${table} WHERE id = $1`, [id]);
+        const existing = await db.query(type === 'swap'
+            ? `SELECT requester_code AS employee_code, status, NULL::int AS flow_id,
+                      NULL::int AS current_step, counterpart_accepted FROM shift_swaps WHERE id = $1`
+            : `SELECT employee_code, status, flow_id, current_step FROM ${table} WHERE id = $1`, [id]);
+        if (type === 'swap' && existing.rows[0] && existing.rows[0].counterpart_accepted !== true) {
+            return res.status(409).json({ error: 'The other person has not accepted this swap yet' });
+        }
         if (!existing.rows[0]) return res.status(404).json({ error: 'Request not found' });
 
         // Already decided is a conflict, not a silent overwrite. Two approvers
@@ -930,12 +936,23 @@ router.post('/approvals/:type/:id', async (req, res) => {
             }
         }
 
-        if (type === 'leave') {
+        if (type === 'swap') {
+            await db.query(
+                `UPDATE shift_swaps SET status = $1, approved_at = NOW(),
+                        approved_via = $2, approver_employee_code = $3 WHERE id = $4`,
+                [decision, via, req.employee_code, id]);
+            // The approved agreement takes effect: each works the other's
+            // shift on their own date, as one-day schedule overrides.
+            if (decision === 'approved') {
+                await require('../services/rotations').applySwap(Number(id));
+            }
+        } else if (type === 'leave') {
             await db.query(
                 `UPDATE leave_applications SET status = $1, approved_at = NOW(),
-                        approved_via = $2, approver_employee_code = $3
+                        approved_via = $2, approver_employee_code = $3,
+                        rejection_reason = CASE WHEN $1 = 'rejected' THEN $5 ELSE rejection_reason END
                   WHERE id = $4`,
-                [decision, via, req.employee_code, id]);
+                [decision, via, req.employee_code, id, comment || null]);
         } else {
             await db.query(
                 `UPDATE attendance_regularizations
@@ -949,6 +966,69 @@ router.post('/approvals/:type/:id', async (req, res) => {
     } catch (err) {
         console.error('Portal approval decision error:', err.message);
         res.status(500).json({ error: 'Server error' });
+    }
+});
+
+/**
+ * Shift swaps. Two people agree to work each other's shift; management
+ * countersigns through the same approval machinery leave uses. The
+ * counterpart accepts before any approver sees it.
+ */
+router.post('/swaps', async (req, res) => {
+    const { counterpart_code, requester_date, counterpart_date, reason } = req.body || {};
+    if (!counterpart_code || !requester_date || !counterpart_date) {
+        return res.status(400).json({ error: 'Counterpart and both dates are required' });
+    }
+    if (counterpart_code === req.employee_code) {
+        return res.status(400).json({ error: 'You cannot swap with yourself' });
+    }
+    try {
+        const other = await db.query(
+            `SELECT 1 FROM employees WHERE employee_code = $1
+              AND LOWER(status) IS DISTINCT FROM 'resigned'`, [counterpart_code]);
+        if (!other.rows.length) return res.status(400).json({ error: 'No such employee' });
+
+        const r = await db.query(`
+            INSERT INTO shift_swaps (requester_code, counterpart_code, requester_date, counterpart_date, reason)
+            VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+            [req.employee_code, counterpart_code, requester_date, counterpart_date, reason || null]);
+        res.status(201).json(r.rows[0]);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.get('/swaps', async (req, res) => {
+    try {
+        const r = await db.query(`
+            SELECT s.*, e.name AS requester_name, c.name AS counterpart_name
+              FROM shift_swaps s
+              JOIN employees e ON e.employee_code = s.requester_code
+              JOIN employees c ON c.employee_code = s.counterpart_code
+             WHERE s.requester_code = $1 OR s.counterpart_code = $1
+             ORDER BY s.created_at DESC LIMIT 50`, [req.employee_code]);
+        res.json(r.rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+/** Only the named counterpart answers, and only while it is still pending. */
+router.post('/swaps/:id/respond', async (req, res) => {
+    const accept = req.body?.accept === true;
+    try {
+        const r = await db.query(`
+            UPDATE shift_swaps
+               SET counterpart_accepted = $1,
+                   status = CASE WHEN $1 THEN status ELSE 'declined' END
+             WHERE id = $2 AND counterpart_code = $3 AND LOWER(status) = 'pending'
+             RETURNING id`, [accept, req.params.id, req.employee_code]);
+        if (!r.rows.length) {
+            return res.status(403).json({ error: 'Not yours to answer, or already settled' });
+        }
+        res.json({ success: true, accepted: accept });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
 });
 

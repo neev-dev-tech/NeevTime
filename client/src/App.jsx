@@ -15,6 +15,7 @@ import Logs from './pages/Logs';
 import Employees from './pages/Employees';
 import Contractors from './pages/Contractors';
 import ReportsInsights from './pages/ReportsInsights';
+import ShiftRotations from './pages/ShiftRotations';
 import Devices from './pages/Devices';
 import Departments from './pages/Departments';
 import Positions from './pages/Positions';

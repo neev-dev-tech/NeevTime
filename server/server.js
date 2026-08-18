@@ -569,6 +569,9 @@ app.use('/api', authenticateToken, require('./routes/contractors'));
 // `app.use('/api', authenticateToken, ...)` guards every /api request that
 // reaches it, so anything above /api/health takes the healthcheck down with it.
 app.use('/api', authenticateToken, require('./routes/approvers'));
+// Rotations: repeating shift patterns that generate the schedule ahead.
+// Mounted below /api/health like everything else authenticated.
+app.use('/api', authenticateToken, require('./routes/rotations'));
 app.use('/api', authenticateToken, orgRouter);
 app.use('/api', authenticateToken, personnelRouter);
 app.use('/api', authenticateToken, schedulingRouter);
@@ -2963,6 +2966,14 @@ server.listen(PORT, '0.0.0.0', async () => {
         console.log('Scheduled Reports: scheduler started (checks every minute)');
     } catch (err) {
         console.log('Scheduled Reports: Not available -', err.message);
+    }
+
+    // Rotation generator: keeps five weeks of schedule ahead of today.
+    try {
+        require('./services/rotations').startRotationJob();
+        console.log('Rotations: generator started (nightly)');
+    } catch (err) {
+        console.log('Rotations: not available -', err.message);
     }
 
     // Monthly leave accrual — quota/12 credited on the 1st, year-end

@@ -92,10 +92,38 @@ export default function EmployeePortal() {
     // exists to say "nothing here" teaches people to stop opening it.
     useEffect(() => { loadApprovals(); }, []);
 
-    const decide = async (item, decision) => {
+    // Rejection asks why. The reason lands on the request where the employee
+    // reads it — a refusal with no reason generates exactly the HR conversation
+    // the portal exists to avoid. Approval stays one tap.
+    const [rejecting, setRejecting] = useState(null);   // { key, comment }
+
+    const [swaps, setSwaps] = useState([]);
+    const [swapForm, setSwapForm] = useState({ counterpart_code: '', requester_date: '', counterpart_date: '', reason: '' });
+    const [swapBusy, setSwapBusy] = useState(false);
+    const loadSwaps = () => api.get('/api/portal/swaps').then(r => setSwaps(r.data)).catch(() => {});
+    useEffect(() => { if (tab === 'requests') loadSwaps(); }, [tab]);
+    const submitSwap = async () => {
+        setSwapBusy(true);
+        try {
+            await api.post('/api/portal/swaps', swapForm);
+            setSwapForm({ counterpart_code: '', requester_date: '', counterpart_date: '', reason: '' });
+            loadSwaps();
+        } catch (err) {
+            alert(err.response?.data?.error || 'Could not request the swap');
+        } finally { setSwapBusy(false); }
+    };
+    const respondSwap = async (id, accept) => {
+        try {
+            await api.post(`/api/portal/swaps/${id}/respond`, { accept });
+            loadSwaps();
+        } catch (err) { alert(err.response?.data?.error || 'Could not respond'); }
+    };
+
+    const decide = async (item, decision, comment = null) => {
         setDeciding(item.type + item.id);
         try {
-            await api.post(`/api/portal/approvals/${item.type}/${item.id}`, { decision });
+            await api.post(`/api/portal/approvals/${item.type}/${item.id}`, { decision, comment });
+            setRejecting(null);
             await loadApprovals();
         } catch (err) {
             // 409 means somebody else got there first, which is normal when two
@@ -456,6 +484,12 @@ export default function EmployeePortal() {
                                                     <p className="text-xs text-slate-600 dark:text-slate-300 tabular-nums">
                                                         {String(app.from_date).split('T')[0]} → {String(app.to_date).split('T')[0]} · {app.total_days} day{app.total_days > 1 ? 's' : ''}
                                                     </p>
+                                                    {/* The why, not just the no. */}
+                                                    {app.rejection_reason && (
+                                                        <p className="text-xs text-rose-600 dark:text-rose-400 mt-0.5">
+                                                            Rejected: {app.rejection_reason}
+                                                        </p>
+                                                    )}
                                                 </div>
                                                 <span className={`text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded-full border ${statusBadge(app.status)}`}>
                                                     {app.status || 'pending'}
@@ -550,6 +584,50 @@ export default function EmployeePortal() {
                                 </>
                             )}
                         </div>
+
+                        {/* Shift swaps: agree with a colleague, management
+                            countersigns. The counterpart must accept before any
+                            approver sees it. */}
+                        <div className="bg-white/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 p-4 space-y-3">
+                            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">Shift swap</h3>
+                            <div className="grid grid-cols-2 gap-2">
+                                <input className="field col-span-2" placeholder="Colleague's employee code"
+                                       value={swapForm.counterpart_code}
+                                       onChange={e => setSwapForm(f => ({ ...f, counterpart_code: e.target.value.trim() }))} />
+                                <label className="text-xs text-slate-500">My date
+                                    <input type="date" className="field mt-1" value={swapForm.requester_date}
+                                           onChange={e => setSwapForm(f => ({ ...f, requester_date: e.target.value }))} /></label>
+                                <label className="text-xs text-slate-500">Their date
+                                    <input type="date" className="field mt-1" value={swapForm.counterpart_date}
+                                           onChange={e => setSwapForm(f => ({ ...f, counterpart_date: e.target.value }))} /></label>
+                                <input className="field col-span-2" placeholder="Reason (optional)"
+                                       value={swapForm.reason}
+                                       onChange={e => setSwapForm(f => ({ ...f, reason: e.target.value }))} />
+                            </div>
+                            <Button variant="primary" className="w-full" disabled={swapBusy}
+                                    onClick={submitSwap}>{swapBusy ? 'Sending…' : 'Request swap'}</Button>
+
+                            {swaps.map(sw => (
+                                <div key={sw.id} className="border-t border-slate-100 dark:border-slate-700 pt-2 text-sm">
+                                    <p className="text-slate-700 dark:text-slate-200">
+                                        {sw.requester_code === auth?.username
+                                            ? `You ↔ ${sw.counterpart_name}`
+                                            : `${sw.requester_name} ↔ you`}
+                                        {' · '}{formatDate(sw.requester_date)} / {formatDate(sw.counterpart_date)}
+                                        <span className="ml-2 text-xs uppercase font-bold text-slate-500">{sw.status}
+                                            {sw.status === 'pending' && sw.counterpart_accepted === null && ' — awaiting colleague'}
+                                            {sw.status === 'pending' && sw.counterpart_accepted === true && ' — awaiting approval'}
+                                        </span>
+                                    </p>
+                                    {sw.counterpart_code === auth?.username && sw.status === 'pending' && sw.counterpart_accepted === null && (
+                                        <div className="flex gap-2 mt-1">
+                                            <Button size="sm" variant="primary" onClick={() => respondSwap(sw.id, true)}>Accept</Button>
+                                            <Button size="sm" variant="secondary" onClick={() => respondSwap(sw.id, false)}>Decline</Button>
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 )}
 
@@ -557,13 +635,13 @@ export default function EmployeePortal() {
                     <div className="space-y-4">
                         {!approvals ? (
                             <ListSkeleton rows={3} />
-                        ) : (approvals.leaves.length + approvals.regularizations.length) === 0 ? (
+                        ) : (approvals.leaves.length + approvals.regularizations.length + (approvals.swaps?.length || 0)) === 0 ? (
                             <div className="bg-white/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700">
                                 <EmptyRow icon={CheckSquare} title="Nothing waiting on you"
                                           hint="Leave and correction requests from your team appear here." />
                             </div>
                         ) : (
-                            [...approvals.leaves, ...approvals.regularizations].map(item => (
+                            [...approvals.leaves, ...approvals.regularizations, ...(approvals.swaps || [])].map(item => (
                                 <div key={`${item.type}-${item.id}`}
                                      className="bg-white/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
                                     <div className="flex items-start justify-between gap-3">
@@ -572,7 +650,12 @@ export default function EmployeePortal() {
                                                 {item.employee_name}
                                                 <span className="ml-2 font-mono text-xs text-slate-500">{item.employee_code}</span>
                                             </p>
-                                            {item.type === 'leave' ? (
+                                            {item.type === 'swap' ? (
+                                                <p className="text-sm text-slate-600 dark:text-slate-300">
+                                                    Swap: works {item.counterpart_name}'s shift on {formatDate(item.requester_date)},
+                                                    {' '}{item.counterpart_name} works theirs on {formatDate(item.counterpart_date)}
+                                                </p>
+                                            ) : item.type === 'leave' ? (
                                                 <p className="text-sm text-slate-600 dark:text-slate-300">
                                                     {item.leave_type} · {formatDate(item.start_date)} – {formatDate(item.end_date)}
                                                     {item.days ? ` · ${item.days} day(s)` : ''}
@@ -593,7 +676,8 @@ export default function EmployeePortal() {
                                             </span>
                                         </div>
                                         <div className="flex gap-2 shrink-0">
-                                            <Button variant="secondary" onClick={() => decide(item, 'rejected')}
+                                            <Button variant="secondary"
+                                                    onClick={() => setRejecting({ key: item.type + item.id, comment: '' })}
                                                     disabled={deciding === item.type + item.id}>
                                                 Reject
                                             </Button>
@@ -603,6 +687,19 @@ export default function EmployeePortal() {
                                             </Button>
                                         </div>
                                     </div>
+                                    {rejecting?.key === item.type + item.id && (
+                                        <div className="mt-3 flex gap-2">
+                                            <input autoFocus className="field flex-1" placeholder="Why? The employee sees this."
+                                                   value={rejecting.comment}
+                                                   onChange={e => setRejecting({ ...rejecting, comment: e.target.value })} />
+                                            <Button variant="danger"
+                                                    onClick={() => decide(item, 'rejected', rejecting.comment || null)}
+                                                    disabled={deciding === item.type + item.id}>
+                                                Confirm reject
+                                            </Button>
+                                            <Button variant="secondary" onClick={() => setRejecting(null)}>Back</Button>
+                                        </div>
+                                    )}
                                 </div>
                             ))
                         )}
