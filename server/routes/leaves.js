@@ -220,4 +220,43 @@ router.put('/leave-applications/:id/status', async (req, res) => {
     }
 });
 
+
+/**
+ * Accrual, run by a person as well as by the monthly job.
+ *
+ * Preview first is the house pattern: the dry run returns exactly what would
+ * change and why — including targets it refuses to lower — so HR reads the
+ * list before any balance moves. The job that runs on the 1st applies the
+ * same code; these endpoints exist for the first backfill and for catch-up
+ * after policy changes.
+ */
+router.get('/leave-accrual/preview', async (req, res) => {
+    try {
+        res.json(await require('../services/leave_accrual').runAccrual({ dryRun: true }));
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.post('/leave-accrual/run', async (req, res) => {
+    try {
+        res.json(await require('../services/leave_accrual').runAccrual());
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.post('/leave-accrual/year-end', async (req, res) => {
+    const fromYear = Number(req.body?.from_year);
+    if (!Number.isInteger(fromYear) || fromYear < 2020 || fromYear > 2100) {
+        return res.status(400).json({ error: 'from_year is required, e.g. 2026' });
+    }
+    try {
+        const dryRun = req.body?.dry_run !== false;   // destructive half opt-in
+        res.json(await require('../services/leave_accrual').runYearEnd(fromYear, { dryRun }));
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 module.exports = router;

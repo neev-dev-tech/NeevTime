@@ -2965,6 +2965,16 @@ server.listen(PORT, '0.0.0.0', async () => {
         console.log('Scheduled Reports: Not available -', err.message);
     }
 
+    // Monthly leave accrual — quota/12 credited on the 1st, year-end
+    // carry-forward on January 1st. The fields it reads sat decorative for
+    // months; see services/leave_accrual.js.
+    try {
+        require('./services/leave_accrual').startAccrualJob();
+        console.log('Leave Accrual: scheduler started (monthly, on the 1st)');
+    } catch (err) {
+        console.log('Leave Accrual: not available -', err.message);
+    }
+
     // Unattended database backups, driven by Settings → Database
     try {
         require('./routes/database').startAutoBackup();
