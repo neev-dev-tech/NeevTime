@@ -13,6 +13,7 @@ import ConfirmDialog from './components/ConfirmDialog';
 import Dashboard from './pages/Dashboard';
 import Logs from './pages/Logs';
 import Employees from './pages/Employees';
+import Contractors from './pages/Contractors';
 import Devices from './pages/Devices';
 import Departments from './pages/Departments';
 import Positions from './pages/Positions';
@@ -160,6 +161,7 @@ export default function App() {
                       <Routes>
                         <Route path="/" element={<Dashboard />} />
                         <Route path="/employees" element={<Employees />} />
+                        <Route path="/contractors" element={<Contractors />} />
                         <Route path="/employees/:id" element={<EmployeeProfile />} />
                         <Route path="/departments" element={<Departments />} />
                         <Route path="/positions" element={<Positions />} />

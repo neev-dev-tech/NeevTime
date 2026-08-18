@@ -141,11 +141,11 @@ The content is right. The layout each state's Factories Rules require has not be
 
 Employee self-service is a web page; eSSL and Truein both ship iOS and Android. Large, and worth deferring until a customer asks — but expect them to ask.
 
-### 1.6 · Contractor as an entity — **M**
+### 1.6 · Contractor as an entity — **DONE**
 
-Today it is a single flag. Competitors sell contractor-wise reporting and multi-vendor management as a category.
+A contractor is a company you bill against: name, contact, GST number, optional hourly rate, and every employee belongs to one or to nobody. Hours per agency per month come from `attendance_daily_summary` — the same rows the register and payroll read, so an invoice cannot disagree with the attendance the client is shown.
 
-The pilot site is already running this case: staff of a co-located company, plus drivers, security and housekeeping. Design against that rather than guessing.
+Deleting an agency that still has people is refused, with the count: the alternatives are orphaning their attendance from whoever is owed for it, or deleting people whose attendance is payroll evidence. An amount is shown only when a rate has actually been agreed; many agencies bill a fixed monthly sum per head, and a rate invented to fill the column would end up quoted at them.
 
 ---
 
@@ -187,11 +187,11 @@ The export renders templates defined as data, so a new payroll format is one ent
 | 0 | Tenancy decision | S / L | Open — needs a decision | Deployment model |
 | 0 | Deployment cannot lie | M | Alert delivery open | Operating any install |
 | 1 | Photo at punch | S | **Done** | Competitive parity |
-| 1 | Installation procedure | S | — | Customer two onward |
-| 1 | Audit trail | S | — | — |
+| 1 | Installation procedure | S | **Done** | Customer two onward |
+| 1 | Audit trail | S | **Done** | Payroll disputes |
 | 1 | Register verification | S | — | Compliance claim |
 | 1 | Mobile app | L | — | — |
-| 1 | Contractor entity | M | — | — |
+| 1 | Contractor entity | M | **Done** | Multi-vendor sites |
 | 2 | Offline | M | — | Low-connectivity sites |
 | 2 | Odoo / Horilla parity | M | — | Non-ERPNext customers |
 | 2 | Accessibility | S | — | Procurement |

@@ -26,6 +26,7 @@ export const personnelSidebar = [
     iconColor: '#EA580C',
     items: [
       { label: 'Employee', path: '/employees', icon: UserCircle, iconColor: '#EA580C' },
+      { label: 'Contractors', path: '/contractors', icon: Building2, iconColor: '#7C3AED' },
       { label: 'Resign', path: '/resign', icon: UserX, iconColor: '#DC2626' },
       { label: 'Deleted', path: '/employees/deleted', icon: Trash2, iconColor: '#64748B' },
     ]

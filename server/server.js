@@ -506,6 +506,10 @@ const schedulingExtRouter = require('./routes/scheduling_extended');
 
 app.use('/api', authRouter);
 app.use('/api', require('./routes/audit'));
+// Contractors: the companies whose people work here and who invoice for it.
+// Behind the same guards as everything else — headcount and hours per agency is
+// commercial information.
+app.use('/api', authenticateToken, require('./routes/contractors'));
 
 // Liveness probe for the container healthcheck and load balancer. Must stay
 // above the authenticateToken-wrapped routers below — their middleware runs
@@ -1058,7 +1062,7 @@ app.put('/api/employees/:id', async (req, res) => {
         const {
             employee_code, name, department_id, designation, card_number, password, area_id,
             gender, dob, joining_date, mobile, email, address, status, employment_type,
-            attendance_required, exclude_from_hrms, directory_email
+            attendance_required, exclude_from_hrms, directory_email, contractor_id
         } = req.body;
 
         // Convert empty strings to null for integer and date fields
@@ -1080,8 +1084,13 @@ app.put('/api/employees/:id', async (req, res) => {
             -- what single sign-on matches against. Lower-cased on the way in:
             -- directories are not case sensitive about it and a stored
             -- Name@company.com would never match a returned name@company.com.
-            directory_email = COALESCE($18, directory_email)
-            WHERE id = $19
+            directory_email = COALESCE($18, directory_email),
+            -- Which agency is billed for this person's hours. COALESCE, like
+            -- the two above: this route writes every column it names, and a
+            -- caller that does not send it would otherwise unbill somebody by
+            -- saving an unrelated edit.
+            contractor_id = COALESCE($19, contractor_id)
+            WHERE id = $20
             RETURNING *
         `, [
             employee_code, name, safeInt(department_id), designation, card_number, password, safeInt(area_id),
@@ -1090,6 +1099,7 @@ app.put('/api/employees/:id', async (req, res) => {
             exclude_from_hrms === undefined ? null : Boolean(exclude_from_hrms),
             directory_email === undefined || directory_email === null
                 ? null : String(directory_email).trim().toLowerCase() || null,
+            contractor_id === undefined || contractor_id === '' ? null : Number(contractor_id) || null,
             id
         ]);
 
@@ -1398,10 +1408,12 @@ app.get('/api/employees', async (req, res) => {
                 e.*,
                 d.name as department_name,
                 a.name as area_name,
+                c.name as contractor_name,
                 e.designation as position_code -- Using designation as code for now
             FROM employees e
             LEFT JOIN departments d ON e.department_id = d.id
             LEFT JOIN areas a ON e.area_id = a.id
+            LEFT JOIN contractors c ON c.id = e.contractor_id
             ${where}
             ORDER BY e.name
         `);
@@ -1422,10 +1434,12 @@ app.get('/api/employees/:id', async (req, res) => {
         let result;
         if (!isNaN(id)) {
             result = await db.query(`
-                SELECT e.*, d.name as department_name, a.name as area_name
+                SELECT e.*, d.name as department_name, a.name as area_name,
+                       c.name as contractor_name
                 FROM employees e
                 LEFT JOIN departments d ON e.department_id = d.id
                 LEFT JOIN areas a ON e.area_id = a.id
+                LEFT JOIN contractors c ON c.id = e.contractor_id
                 WHERE e.id = $1
             `, [id]);
         }

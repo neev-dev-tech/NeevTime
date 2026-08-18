@@ -18,6 +18,7 @@ export default function EmployeeProfile() {
     const [showEditModal, setShowEditModal] = useState(false);
     const [departments, setDepartments] = useState([]);
     const [areas, setAreas] = useState([]);
+    const [contractors, setContractors] = useState([]);
     const [docs, setDocs] = useState([]);
     const [docsLoading, setDocsLoading] = useState(false);
     const [uploadingDoc, setUploadingDoc] = useState(false);
@@ -119,6 +120,7 @@ export default function EmployeeProfile() {
         try {
             const d = await api.get('/api/departments');
             const a = await api.get('/api/areas');
+api.get('/api/contractors').then(r => setContractors(r.data.filter(c => c.is_active))).catch(() => {});
             setDepartments(d.data);
             setAreas(a.data);
         } catch (err) { }
@@ -352,6 +354,7 @@ export default function EmployeeProfile() {
                                 <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-500 dark:text-slate-400">Area</dt><dd className="col-span-2 text-slate-600 dark:text-slate-300">{employee.area_name || '—'}</dd></div>
                                 <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-500 dark:text-slate-400">Joining Date</dt><dd className="col-span-2 text-slate-600 dark:text-slate-300">{formatDate(employee.joining_date)}</dd></div>
                                 <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-500 dark:text-slate-400">Employment Type</dt><dd className="col-span-2 text-slate-600 dark:text-slate-300">{employee.employment_type || 'Permanent'}</dd></div>
+                                <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-500 dark:text-slate-400">Contractor</dt><dd className="col-span-2 text-slate-600 dark:text-slate-300">{employee.contractor_name || '—'}</dd></div>
                                 <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-500 dark:text-slate-400">App Access</dt><dd className="col-span-2 text-slate-600 dark:text-slate-300">{employee.app_login_enabled ? 'Enabled' : 'Disabled'}</dd></div>
                             </dl>
 
@@ -579,6 +582,14 @@ export default function EmployeeProfile() {
                         <select className="field-sm" value={editForm.area_id} onChange={e => setEditForm({ ...editForm, area_id: e.target.value })}>
                             <option value="">Select</option>
                             {areas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                        </select>
+                    </div>
+                    <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Contractor</label>
+                        <select className="field-sm" value={editForm.contractor_id || ''} onChange={e => setEditForm({ ...editForm, contractor_id: e.target.value })}>
+                            {/* Blank means own staff, which is most people. An
+                                agency is the exception and has to be chosen. */}
+                            <option value="">Own employee</option>
+                            {contractors.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                         </select>
                     </div>
                     <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Joining Date</label><input type="date" className="field-sm" value={editForm.joining_date ? editForm.joining_date.split('T')[0] : ''} onChange={e => setEditForm({ ...editForm, joining_date: e.target.value })} /></div>
