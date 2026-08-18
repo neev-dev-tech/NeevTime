@@ -58,8 +58,14 @@ const generateDailyAttendance = async (date, departmentId = null, areaId = null)
                 e.name as employee_name,
                 d.name as department_name,
                 DATE(al.punch_time) as attendance_date,
-                MIN(CASE WHEN al.punch_state::int <= 1 THEN al.punch_time END) as first_in,
-                MAX(CASE WHEN al.punch_state::int > 1 THEN al.punch_time END) as last_out,
+                -- 0 in, 1 out. The old <=1/>1 reading counted exits as
+                -- arrivals and matched nothing as an exit, so last_out was
+                -- NULL for everyone this system's own ingest recorded.
+                COALESCE(
+                    MIN(al.punch_time) FILTER (WHERE punch_state_int(al.punch_state) = 0),
+                    MIN(al.punch_time)
+                ) as first_in,
+                MAX(al.punch_time) FILTER (WHERE punch_state_int(al.punch_state) = 1) as last_out,
                 COUNT(*) as punch_count,
                 dev.device_name as in_device,
                 al.verification_mode
@@ -132,18 +138,20 @@ const generateMonthlySummary = async (year, month, departmentId = null) => {
             e.name as employee_name,
             d.name as department_name,
             COUNT(DISTINCT DATE(al.punch_time)) as days_present,
-            SUM(CASE WHEN al.punch_state::int <= 1 THEN 1 ELSE 0 END) as total_check_ins,
-            SUM(CASE WHEN al.punch_state::int > 1 THEN 1 ELSE 0 END) as total_check_outs,
+            -- 0 in, 1 out; the old <=1/>1 reading counted exits as arrivals
+            -- and reported zero check-outs for everything the ingest wrote.
+            SUM(CASE WHEN punch_state_int(al.punch_state) = 0 THEN 1 ELSE 0 END) as total_check_ins,
+            SUM(CASE WHEN punch_state_int(al.punch_state) = 1 THEN 1 ELSE 0 END) as total_check_outs,
             AVG(
-                CASE 
-                    WHEN al.punch_state::int <= 1 
-                    THEN EXTRACT(HOUR FROM al.punch_time) + EXTRACT(MINUTE FROM al.punch_time)/60 
+                CASE
+                    WHEN punch_state_int(al.punch_state) = 0
+                    THEN EXTRACT(HOUR FROM al.punch_time) + EXTRACT(MINUTE FROM al.punch_time)/60
                 END
             ) as avg_check_in_time,
             AVG(
-                CASE 
-                    WHEN al.punch_state::int > 1 
-                    THEN EXTRACT(HOUR FROM al.punch_time) + EXTRACT(MINUTE FROM al.punch_time)/60 
+                CASE
+                    WHEN punch_state_int(al.punch_state) = 1
+                    THEN EXTRACT(HOUR FROM al.punch_time) + EXTRACT(MINUTE FROM al.punch_time)/60
                 END
             ) as avg_check_out_time
         FROM employees e
@@ -190,7 +198,7 @@ const generateMonthlySummary = async (year, month, departmentId = null) => {
 const generateLateEarlyReport = async (startDate, endDate, shiftStartTime = '09:00', shiftEndTime = '18:00', graceMinutes = 15) => {
     // Two things were wrong here and both inflated "late".
     //
-    // The direction test read `punch_state::int <= 1` for an entry and `> 1`
+    // The direction test read `punch_state_int(punch_state) <= 1` for an entry and `> 1`
     // for an exit. This system writes '0' for in and '1' for out, so the entry
     // test matched *both* directions and the exit test matched nothing at all:
     // last_out was always NULL, so early-outs could never be reported, and
@@ -439,8 +447,12 @@ const generateOvertimeReport = async (startDate, endDate, regularHours = 8) => {
                 e.name as employee_name,
                 d.name as department_name,
                 DATE(al.punch_time) as work_date,
-                MIN(CASE WHEN al.punch_state::int <= 1 THEN al.punch_time END) as first_in,
-                MAX(CASE WHEN al.punch_state::int > 1 THEN al.punch_time END) as last_out
+                -- Same correction as the daily report: 0 in, 1 out.
+                COALESCE(
+                    MIN(al.punch_time) FILTER (WHERE punch_state_int(al.punch_state) = 0),
+                    MIN(al.punch_time)
+                ) as first_in,
+                MAX(al.punch_time) FILTER (WHERE punch_state_int(al.punch_state) = 1) as last_out
             FROM attendance_logs al
             JOIN employees e ON al.employee_code = e.employee_code
             LEFT JOIN departments d ON e.department_id = d.id

@@ -324,3 +324,27 @@ test('the insight reports read the stored summary, not their own arithmetic', ()
             `${fn} recomputes from raw punches — it will disagree with the register`);
     }
 });
+
+test('no report casts punch_state to int raw, and none reads exits as arrivals', () => {
+    // Two faults, one line apart, found from a user's screenshot. The raw
+    // ::int cast died on the legacy 'check_in' rows kept from the old mobile
+    // path — one such row inside the range took the whole report down. And the
+    // <=1/>1 direction reading counted exits as arrivals and matched nothing
+    // as an exit, so last_out was NULL and check-outs were zero for everything
+    // this system's own ingest ever wrote. The late-early report was fixed for
+    // the second fault months ago; its three siblings were not.
+    const fs = require('fs');
+    const path = require('path');
+    // Comments stripped before matching — the notes explaining these bugs
+    // quote the broken patterns, and this guard has to test code, not history.
+    const src = fs.readFileSync(path.join(__dirname, '..', 'services/reports.js'), 'utf8')
+        .split('\n').filter(l => !l.trim().startsWith('//') && !l.trim().startsWith('--')).join('\n');
+
+    assert.ok(!/punch_state::int/.test(src),
+        'a raw punch_state::int cast is back — one legacy row will crash the report');
+    assert.match(src, /punch_state_int\(/, 'the tolerant cast is gone');
+    assert.ok(!/punch_state_int\([^)]*\) <= 1/.test(src),
+        'a report reads <=1 as an arrival again — exits are counted as check-ins');
+    assert.ok(!/punch_state_int\([^)]*\) > 1/.test(src),
+        'a report reads >1 as an exit again — nothing this system writes matches, last_out goes NULL');
+});
