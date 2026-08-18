@@ -10,6 +10,40 @@ export default function LeaveBalances() {
     const [balances, setBalances] = useState([]);
     const [employees, setEmployees] = useState([]);
     const [year, setYear] = useState(new Date().getFullYear());
+    const [accrualPreview, setAccrualPreview] = useState(null);
+    const [accruing, setAccruing] = useState(false);
+
+    /**
+     * Preview first, always. The accrual writes paid days off for the whole
+     * company, so the button shows exactly what would change — including
+     * targets it refuses to lower — before a second, separate click applies.
+     */
+    const previewAccrual = async () => {
+        setAccruing(true);
+        try {
+            const res = await api.get('/api/leave-accrual/preview');
+            setAccrualPreview(res.data);
+        } catch (err) {
+            toast.error(err.response?.data?.error || 'Could not preview the accrual');
+        } finally {
+            setAccruing(false);
+        }
+    };
+
+    const applyAccrual = async () => {
+        setAccruing(true);
+        try {
+            const res = await api.post('/api/leave-accrual/run');
+            const applied = res.data.changes.filter(c => c.applied).length;
+            toast.success(`Accrued ${applied} balance(s) for ${res.data.year}-${String(res.data.month).padStart(2, '0')}`);
+            setAccrualPreview(null);
+            fetchData();
+        } catch (err) {
+            toast.error(err.response?.data?.error || 'Accrual failed');
+        } finally {
+            setAccruing(false);
+        }
+    };
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [initializing, setInitializing] = useState(false);
@@ -97,7 +131,56 @@ export default function LeaveBalances() {
                             filename={`leave_balances_${year}`}
                             title="Leave Balances"
                         />
+
+            {/* What the accrual would do, before it does it. */}
+            {accrualPreview && (
+                <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50" onClick={() => setAccrualPreview(null)}>
+                    <div onClick={e => e.stopPropagation()}
+                         className="w-full max-w-xl bg-white dark:bg-slate-800 rounded-2xl p-6 space-y-4 max-h-[85vh] overflow-y-auto">
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100">
+                            Monthly accrual — {accrualPreview.year}-{String(accrualPreview.month).padStart(2, '0')}
+                        </h3>
+                        {accrualPreview.changes.length === 0 ? (
+                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                                Nothing to accrue. Either every balance is already current, or no leave
+                                type has an annual quota — set quotas under Leave Type first.
+                            </p>
+                        ) : (
+                            <>
+                                <p className="text-sm text-slate-600 dark:text-slate-300">
+                                    {accrualPreview.changes.length} balance(s) would change — quota/12 per
+                                    month since January or joining, whichever is later.
+                                </p>
+                                <div className="divide-y divide-slate-100 dark:divide-slate-700 text-sm max-h-72 overflow-y-auto">
+                                    {accrualPreview.changes.slice(0, 100).map((c, i) => (
+                                        <div key={i} className="py-2 flex items-center justify-between gap-3">
+                                            <span className="font-mono text-xs">{c.employee_code}</span>
+                                            <span className="flex-1 text-slate-600 dark:text-slate-300">{c.type}</span>
+                                            <span className="tabular-nums">{c.from ?? '—'} → {c.to}</span>
+                                            {c.reason && <span className="text-xs text-amber-600">{c.reason}</span>}
+                                        </div>
+                                    ))}
+                                    {accrualPreview.changes.length > 100 && (
+                                        <p className="py-2 text-xs text-slate-500">…and {accrualPreview.changes.length - 100} more</p>
+                                    )}
+                                </div>
+                            </>
+                        )}
+                        <div className="flex gap-2 justify-end">
+                            <Button variant="secondary" onClick={() => setAccrualPreview(null)}>Cancel</Button>
+                            {accrualPreview.changes.some(c => !c.reason) && (
+                                <Button variant="primary" onClick={applyAccrual} disabled={accruing}>
+                                    {accruing ? 'Applying…' : 'Apply'}
+                                </Button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchData} disabled={loading}>Refresh</Button>
+                        <Button variant="primary" onClick={previewAccrual} disabled={accruing}>
+                            {accruing ? 'Working…' : 'Run accrual'}
+                        </Button>
                         <Button variant="successSolid" icon={PlayCircle} onClick={initializeAll} disabled={initializing}>
                             {initializing ? 'Initializing...' : 'Initialize Year'}
                         </Button>

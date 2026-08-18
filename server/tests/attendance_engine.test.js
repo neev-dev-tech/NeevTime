@@ -427,8 +427,15 @@ test('no assignment means exactly the old behaviour', () => {
 test('the engine reads assignments and attributes night punches to the shift day', () => {
     const src = fs.readFileSync(
         path.join(__dirname, '../services/attendance_engine.js'), 'utf8');
-    assert.match(src, /FROM employee_shifts es/,
-        'processDateRange no longer reads assignments — the shift module is decorative again');
+    // employee_schedules, because that is what the Schedule screens write.
+    // The first version read employee_shifts — a table no screen writes — and
+    // shipped exactly as decorative as the module it replaced.
+    assert.match(src, /FROM employee_schedules es/,
+        'processDateRange no longer reads the table the Schedule UI writes');
+    assert.ok(!/FROM employee_shifts es/.test(src),
+        'the engine is back on employee_shifts, which no screen writes');
+    assert.match(src, /effective_to/,
+        'temporary schedules never expire — effective_to is ignored');
     assert.match(src, /local\.hour\(\) < 12/,
         'night punches before noon are no longer attributed to the previous shift day');
     // The range query must reach past endDate midnight or the last night of

@@ -133,22 +133,28 @@ class AttendanceEngine {
         // An employee with no assignment behaves exactly as before — the
         // global rules — which also means deploying this changes nobody's
         // numbers until a shift is actually assigned.
-        // Tolerating a missing table is load-bearing here, not defensive
-        // habit: the shift tables come from schema files an older database has
-        // never seen, and this query runs inside EVERY recompute. Throwing on
-        // 42P01 would stop attendance scoring entirely on such an install —
-        // punches stored, nothing ever summarised — which is a worse failure
-        // than shifts not applying. Migration 010 creates the tables; until it
-        // runs, no assignments exist and the global rules apply, same as ever.
+        // employee_schedules, NOT employee_shifts — the table the Schedule
+        // screens actually write. The first version of this read
+        // employee_shifts, which no screen has ever written: shift-aware
+        // scoring shipped exactly as decorative as the module it was meant to
+        // fix, and the user found it by looking for the feature and not
+        // finding it. Two parallel assignment tables exist in this schema;
+        // the one the UI writes is the one that means anything.
+        //
+        // Tolerating a missing table is load-bearing, not defensive habit:
+        // this runs inside EVERY recompute, and throwing 42P01 on an older
+        // database would stop attendance summarisation entirely — a worse
+        // failure than shifts not applying.
         let assignmentRows = [];
         try {
             const assignments = await db.query(`
-                SELECT es.employee_code, es.effective_date,
+                SELECT e.employee_code, es.effective_from, es.effective_to,
                        s.start_time, s.grace_in_minutes, s.is_night_shift,
                        s.half_day_threshold_hours
-                  FROM employee_shifts es
+                  FROM employee_schedules es
+                  JOIN employees e ON e.id = es.employee_id
                   JOIN shifts s ON s.id = es.shift_id AND s.is_active IS NOT FALSE
-                 ORDER BY es.employee_code, es.effective_date`);
+                 ORDER BY e.employee_code, es.effective_from`);
             assignmentRows = assignments.rows;
         } catch (err) {
             if (err.code !== '42P01') throw err;
@@ -157,14 +163,18 @@ class AttendanceEngine {
         for (const a of assignmentRows) {
             (shiftHistory[a.employee_code] ||= []).push(a);
         }
-        // Latest assignment on or before the date, or null for the defaults.
+        // The assignment covering the date: started on or before it, and not
+        // yet ended — temporary schedules carry an effective_to. Later rows
+        // win ties, matching what the Schedule screen shows topmost.
         const shiftFor = (employeeCode, dateStr) => {
             const list = shiftHistory[employeeCode];
             if (!list) return null;
             let found = null;
             for (const a of list) {
-                const eff = moment(a.effective_date).format('YYYY-MM-DD');
-                if (eff <= dateStr) found = a; else break;
+                const from = moment(a.effective_from).format('YYYY-MM-DD');
+                if (from > dateStr) break;
+                const to = a.effective_to ? moment(a.effective_to).format('YYYY-MM-DD') : null;
+                if (!to || to >= dateStr) found = a;
             }
             return found;
         };
