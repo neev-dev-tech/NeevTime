@@ -105,7 +105,7 @@ New. Every item below was a real production state on 16 August, and none of them
 
 Alert delivery works — status mails have been arriving all along. The six "Email not configured" alerts that suggested otherwise were read from the stale database volume, along with the five-month outage and the backup scheduler that had supposedly stopped. Worth stating plainly: three separate conclusions on 16 August came from a database the service was mounted on by accident, and each was confidently wrong.
 
-Still open here: `checkNoPunches` has never actually fired. It is the alert written to catch a dead ingest on a working day, and until it triggers once — deliberately or otherwise — its delivery is assumed rather than observed. **Detection without delivery is not monitoring, and delivery nobody has seen is not delivery.**
+`checkNoPunches` now has a fire drill (18 August): Settings → Alerts → Run Fire Drill executes the real check — same query, same timezone gates, same body — with only the verdict forced, and sends the alert and its recovery labelled [DRILL]. The response also reports what every gate evaluated to at that moment. One press on the pilot closes this item; until someone presses it, delivery of this specific alert remains observed-by-nobody.
 
 *The unifying fault: a signal that cannot change carries no information. A count that was always 100, a zero printed as a pass, a healthcheck asking nginx about Node, boot errors that fired every restart. Each looked like monitoring and none could ever report a problem.*
 

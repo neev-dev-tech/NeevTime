@@ -158,6 +158,20 @@ export default function Settings() {
         }
     };
 
+    const [drilling, setDrilling] = useState(false);
+    const handleNoPunchDrill = async () => {
+        setDrilling(true);
+        try {
+            const res = await api.post('/api/settings/test-alert/no-punches');
+            showToast(res.data.message || 'Drill sent', 'success');
+        } catch (err) {
+            const d = err.response?.data || {};
+            showToast(d.error || 'Drill failed', 'error');
+        } finally {
+            setDrilling(false);
+        }
+    };
+
     const handleTestEmail = async () => {
         if (!testEmail) {
             showToast('Enter a recipient address first', 'warning');
@@ -491,6 +505,25 @@ export default function Settings() {
                             </p>
                             <Button variant="dark" icon={BellRing} onClick={handleTestAlert} disabled={testingAlert}>
                                 {testingAlert ? 'Sending...' : 'Send Test Alert'}
+                            </Button>
+
+                            {/* The test above proves the pipeline with a synthetic
+                                alert. This one fires the real no-punches check —
+                                the one written to catch a dead ingest — with only
+                                its verdict forced, so its query and gates run
+                                against this installation rather than being assumed.
+                                An alert that has never fired is monitoring nobody
+                                has ever seen work. */}
+                            <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 mb-1 mt-5">
+                                Fire drill: the no-attendance alert
+                            </p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
+                                Runs the real "no punches recorded today" check with the verdict forced,
+                                so the exact alert a collection outage would send is seen once on purpose.
+                                The subject is prefixed [DRILL].
+                            </p>
+                            <Button variant="secondary" icon={BellRing} onClick={handleNoPunchDrill} disabled={drilling}>
+                                {drilling ? 'Firing...' : 'Run Fire Drill'}
                             </Button>
                         </div>
                     )}

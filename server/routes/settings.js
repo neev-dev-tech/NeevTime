@@ -227,6 +227,39 @@ router.post('/test-email', async (req, res) => {
  * the resolve half is wired, the half that is easy to leave broken because
  * nothing complains when it is.
  */
+/**
+ * Fire drill for the one alert that matters most.
+ *
+ * /test-alert above proves SMTP and the raise/resolve pipeline with a synthetic
+ * alert. It proves nothing about checkNoPunches itself — the check written to
+ * catch a dead ingest, the 145-day failure — whose query, timezone gates and
+ * body had never once executed in production because collection has never been
+ * down on a working morning since the check was written. This runs the real
+ * check with only the verdict forced.
+ */
+router.post('/test-alert/no-punches', async (req, res) => {
+    try {
+        const { drillNoPunches } = require('../services/alert_checks');
+        const result = await drillNoPunches();
+        if (!result.sent) {
+            return res.status(400).json({
+                success: false,
+                error: `Drill not delivered: ${result.reason}`,
+                gates: result.gates,
+            });
+        }
+        res.json({
+            success: true,
+            message: 'Drill sent — expect two mails, the alert and its recovery. '
+                + 'The subject is prefixed [DRILL].',
+            recovery_sent: result.recovery_sent,
+            gates: result.gates,
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 router.post('/test-alert', async (req, res) => {
     try {
         const alerts = require('../services/alerts');

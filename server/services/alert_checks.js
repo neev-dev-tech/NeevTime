@@ -242,7 +242,12 @@ const checkDevicesOffline = async () => {
  * question with an unambiguous answer: it is a working day, the morning is over,
  * and the attendance table is empty.
  */
-const checkNoPunches = async () => {
+/**
+ * Everything checkNoPunches reasons about, in one query — shared with the fire
+ * drill below so the drill exercises the identical SQL, timezone conversion
+ * and gates rather than a copy that drifts.
+ */
+const noPunchesStatus = async () => {
     const cfg = await alerts.alertConfig();
     // Late enough that a genuinely quiet morning has ended. First shift starts
     // well before this; if nothing is recorded by now, something is wrong.
@@ -272,18 +277,14 @@ const checkNoPunches = async () => {
 
     const r = res.rows[0];
     const weekend = r.dow === 0 || r.dow === 6;
-
-    // Only ask on a working day, once the morning has passed. Outside that the
-    // check is silent rather than guessing — and critically, it does not resolve
-    // an open alert either, so an outage raised on Friday stays open over the
-    // weekend instead of appearing to fix itself.
-    if (weekend || r.is_holiday > 0 || r.hour_now < afterHour) return;
-
     const silentDays = r.last_punch
         ? Math.floor((Date.now() - new Date(r.last_punch).getTime()) / 86400000)
         : null;
+    return { ...r, weekend, silentDays, afterHour,
+             gated: weekend || r.is_holiday > 0 || r.hour_now < afterHour };
+};
 
-    await alerts.track('no_punches_today', r.punches_today === 0, {
+const noPunchesPayload = (r) => ({
         severity: 'critical',
         subject: 'No attendance recorded today — collection may be broken',
         body: 'Not one punch from any reader has been stored today.\n\n'
@@ -292,7 +293,7 @@ const checkNoPunches = async () => {
                 // which in IST is the previous day for everything before 05:30.
                 // An alert about attendance dates must not name the wrong day.
                 ? `The most recent punch in the database is ${localDate(new Date(r.last_punch))}`
-                  + `${silentDays ? `, ${silentDays} day(s) ago` : ''}.\n\n`
+                  + `${r.silentDays ? `, ${r.silentDays} day(s) ago` : ''}.\n\n`
                 : 'There are no punches in the database at all.\n\n')
             + 'This is the outcome check: it does not care which part of the chain '
             + 'failed. Readers can be powered on and polling and still have every '
@@ -303,8 +304,58 @@ const checkNoPunches = async () => {
             + 'the readers use (not just directly against the API port), that the '
             + 'server process is actually running, and only then the readers '
             + 'themselves.',
-        details: { punches_today: 0, last_punch: r.last_punch, silent_days: silentDays }
+        details: { punches_today: 0, last_punch: r.last_punch, silent_days: r.silentDays }
+});
+
+const checkNoPunches = async () => {
+    const r = await noPunchesStatus();
+    // Only ask on a working day, once the morning has passed. Outside that the
+    // check is silent rather than guessing — and critically, it does not resolve
+    // an open alert either, so an outage raised on Friday stays open over the
+    // weekend instead of appearing to fix itself.
+    if (r.gated) return;
+    await alerts.track('no_punches_today', r.punches_today === 0, noPunchesPayload(r));
+};
+
+/**
+ * Fire drill: make checkNoPunches actually fire, once, on purpose.
+ *
+ * This check is the one written to catch a dead ingest — the 145-day failure —
+ * and it had never fired even once, so its query, its timezone gates and its
+ * delivery were all assumed rather than observed. Detection without delivery is
+ * not monitoring, and delivery nobody has seen is not delivery.
+ *
+ * The drill runs the real query and composes the real body from real data; the
+ * only thing forced is the verdict. The mail is labelled a drill in the
+ * subject, because an operator who cannot tell a drill from an outage will
+ * ignore the one that matters.
+ */
+const drillNoPunches = async () => {
+    const r = await noPunchesStatus();
+    const payload = noPunchesPayload(r);
+
+    const key = 'no_punches_today_drill';
+    await db.query('DELETE FROM alert_state WHERE alert_key = $1', [key]);
+    const raised = await alerts.raise(key, {
+        ...payload,
+        subject: `[DRILL] ${payload.subject}`,
+        body: 'THIS IS A DRILL. Punches are arriving normally; the verdict below is '
+            + 'forced so the alert path is proven end to end.\n\n' + payload.body,
     });
+    const resolved = await alerts.resolve(key);
+
+    return {
+        sent: raised.sent === true,
+        reason: raised.reason || null,
+        recovery_sent: resolved.sent === true,
+        // What the real check would decide this minute, so the response also
+        // documents that the gates evaluate sensibly on this installation.
+        gates: {
+            local_hour: r.hour_now, weekend: r.weekend,
+            holiday: r.is_holiday > 0, fires_after_hour: r.afterHour,
+            gated_right_now: r.gated, punches_today: r.punches_today,
+        },
+    };
 };
 
 /** Commands the readers refused for good — someone has to look at these. */
@@ -503,5 +554,5 @@ module.exports = {
     runChecks, sendDigest, startAlertChecks, notifyConfigChange,
     localDate, digestTimeReached,
     checkAttendancePush, checkSyncBacklog, checkSyncAging, checkAccountLockouts,
-    checkDevicesOffline, checkDeadLetters, checkNoPunches
+    checkDevicesOffline, checkDeadLetters, checkNoPunches, drillNoPunches
 };

@@ -93,11 +93,13 @@ test('every check pairs a raise with a resolve', () => {
     const raises = (src.match(/alerts\.track\(/g) || []).length;
     assert.ok(raises >= 4, `expected the health checks to use track(); found ${raises}`);
 
-    // Config changes are the one deliberate exception: each is its own event
-    // with nothing to resolve.
+    // Two deliberate exceptions. Config changes are each their own event with
+    // nothing to resolve. The no-punches fire drill raises and resolves in the
+    // same breath — the pairing is explicit two lines apart rather than
+    // structural, because the whole point of a drill is both mails arriving.
     const rawRaise = (src.match(/alerts\.raise\(/g) || []).length;
-    assert.strictEqual(rawRaise, 1,
-        'only the config-change notice should call raise() directly; everything else needs a resolve half');
+    assert.strictEqual(rawRaise, 2,
+        'a new direct raise() appeared — either give it a resolve half via track(), or name it here as a third exception');
 });
 
 test('the digest cannot send twice after a restart', () => {
@@ -226,4 +228,23 @@ test('repeated saves of the same form do not send repeated mail', () => {
     const quiet = /CONFIG_ALERT_QUIET_MS = (\d+) \* 60 \* 1000/.exec(src);
     assert.ok(quiet && Number(quiet[1]) >= 1 && Number(quiet[1]) <= 30,
         'the quiet period should be minutes, not seconds or hours');
+});
+
+test('the no-punches drill runs the real check, not a copy', () => {
+    // checkNoPunches is the alert written to catch a dead ingest — the 145-day
+    // failure — and it had never fired even once, so its query, timezone gates
+    // and delivery were all assumed. The drill exists to see it fire on
+    // purpose, and it is only evidence if it shares the check's actual code.
+    const fs = require('node:fs');
+    const path = require('node:path');
+    const src = fs.readFileSync(path.join(__dirname, '../services/alert_checks.js'), 'utf8');
+
+    assert.match(src, /const drillNoPunches = async/, 'the fire drill is gone');
+    // Both the check and the drill must go through the shared status + payload
+    // helpers; a drill with its own query proves nothing about the check.
+    const checkUses = /const checkNoPunches = async \(\) => \{\s*\n\s*const r = await noPunchesStatus\(\)/.test(src);
+    const drillUses = src.indexOf('noPunchesStatus()', src.indexOf('drillNoPunches')) > -1;
+    assert.ok(checkUses, 'checkNoPunches no longer uses the shared status query');
+    assert.ok(drillUses, 'the drill has its own query — it can pass while the real check is broken');
+    assert.match(src, /\[DRILL\]/, 'a drill mail is indistinguishable from a real outage');
 });
