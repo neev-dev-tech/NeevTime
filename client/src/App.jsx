@@ -20,6 +20,7 @@ import Login from './pages/Login';
 import GenericCrud from './components/GenericCrud';
 import Area from './pages/Area';
 import Resign from './pages/Resign';
+import AuditTrail from './pages/AuditTrail';
 import DeletedEmployees from './pages/DeletedEmployees';
 import StatutoryRegisters from './pages/StatutoryRegisters';
 import PayrollExport from './pages/PayrollExport';
@@ -235,6 +236,7 @@ export default function App() {
                         <Route path="/attendance-calendar" element={<AttendanceCalendar />} />
                         <Route path="/import" element={<ImportWizard />} />
                         <Route path="/users" element={<AdminRoute><UsersPage /></AdminRoute>} />
+                        <Route path="/audit" element={<AdminRoute><AuditTrail /></AdminRoute>} />
                         <Route path="/database/backup" element={<AdminRoute><DatabaseTools /></AdminRoute>} />
                         <Route path="/system-logs" element={<AdminRoute><SystemLogs /></AdminRoute>} />
                         <Route path="/settings" element={<AdminRoute><Settings /></AdminRoute>} />

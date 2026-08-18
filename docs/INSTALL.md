@@ -139,10 +139,25 @@ checks; it fails rather than warns when the product has stopped doing its job.
 ## Updating
 
 ```bash
-git pull && docker compose up -d --build client server && ./verify-deploy.sh
+git pull && docker compose up -d --build client server
+docker compose exec server node migrations/runner.js up
+./verify-deploy.sh
 ```
 
-The database is untouched by this. Schema changes apply themselves at boot.
+Additive schema changes — a new nullable column — apply themselves at boot.
+Anything that could empty a table or change who may read one lives in a
+migration, and migrations are applied by a person, deliberately, which is the
+line above. An unrelated deploy should not be able to carry that into
+production on its own.
+
+`./verify-deploy.sh` reports anything still pending. It warns rather than fails,
+because a pending migration is not a broken deploy — but the audit trail lives
+in one, so until it is applied the trail records nothing while looking present
+in the interface.
+
+```bash
+docker compose exec server node migrations/runner.js status   # what is applied, what is pending
+```
 
 ## Remote access
 

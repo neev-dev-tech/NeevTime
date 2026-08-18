@@ -81,6 +81,9 @@ const roleFromRequest = (req) => {
     try {
         const jwt = require('jsonwebtoken');
         const payload = jwt.verify(header.slice(7).trim(), process.env.JWT_SECRET);
+        // Kept so the audit middleware can attribute the change without
+        // verifying the same token again a few lines later.
+        req.tokenPayload = payload;
         return payload?.role ? normaliseRole(payload.role) : null;
     } catch {
         return null; // invalid or expired — authenticateToken will reject it

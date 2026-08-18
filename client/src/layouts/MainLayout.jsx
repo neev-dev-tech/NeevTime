@@ -60,7 +60,7 @@ export default function MainLayout({ children }) {
     // worked; finding it a second time did not.
     } else if (['/logs', '/shifts', '/timetables', '/break-times', '/schedule', '/rules', '/holidays', '/leaves', '/leave-types', '/leave-balance', '/attendance', '/reports', '/export', '/import', '/geofences', '/holiday-locations', '/mobile', '/regularizations'].some(p => path.startsWith(p))) {
       setActiveModule('Attendance');
-    } else if (['/settings', '/users', '/database', '/system-logs', '/integrations', '/advanced-reports'].some(p => path.startsWith(p))) {
+    } else if (['/settings', '/users', '/database', '/system-logs', '/integrations', '/advanced-reports', '/audit'].some(p => path.startsWith(p))) {
       setActiveModule('System');
     } else {
       setActiveModule('Personnel');

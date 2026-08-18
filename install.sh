@@ -119,7 +119,24 @@ done
 }
 ok "the application is answering"
 
-# ── 6. The first administrator ───────────────────────────────────────────────
+# ── 6. Migrations ────────────────────────────────────────────────────────────
+say "6. Migrations"
+
+# Applied here, not at boot.
+#
+# migrations/runner.js is deliberately not wired into startup: a migration can
+# empty a table or change who may read one, and an unrelated deploy should never
+# carry that into production on its own. So it is applied by the person doing
+# the install or the update, which is this script, and ./verify-deploy.sh
+# reports anything still pending.
+if docker compose exec -T server node migrations/runner.js up; then
+    ok "migrations applied"
+else
+    warn "migrations did not apply — run: docker compose exec server node migrations/runner.js status"
+    warn "until they do, the audit trail records nothing"
+fi
+
+# ── 7. The first administrator ───────────────────────────────────────────────
 say "6. First administrator"
 
 # Printed once, to the container log, and never stored anywhere readable.

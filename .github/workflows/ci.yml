@@ -192,6 +192,42 @@ jobs:
           fi
           echo "ensureSchema built every column the registers read"
 
+      - name: Apply migrations, then prove the audit trail records
+        working-directory: server
+        env:
+          DB_HOST: localhost
+          DB_PORT: '5433'
+          DB_NAME: neevtime_ci
+          DB_USER: postgres
+          DB_PASSWORD: ci
+          # The audit tests connect on their own so they can be pointed at any
+          # database; without these they default to localhost:5432 and fail on a
+          # missing table, which reads as a broken trigger rather than a
+          # misdirected test.
+          AUDIT_TEST_DB: neevtime_ci
+          AUDIT_TEST_HOST: localhost
+          AUDIT_TEST_PORT: '5433'
+          AUDIT_TEST_USER: postgres
+          AUDIT_TEST_PASSWORD: ci
+        run: |
+          set -o pipefail
+          # Migrations are applied by a person on a real install, deliberately —
+          # see migrations/runner.js. Here that person is this step, and running
+          # it proves the migration applies to a database built the way a fresh
+          # install builds one.
+          node migrations/runner.js up
+
+          # Triggers are a database behaviour. Reading the migration proves only
+          # that it was written; this proves it fires, attributes the right
+          # actor, keeps the previous value, and keeps secrets out.
+          node --test tests/audit_trail.test.js 2>&1 | tee /tmp/audit-tests.log
+          status=$?
+          if grep -qE '^# skipped [1-9]' /tmp/audit-tests.log; then
+            echo "::error::the audit tests skipped — they were not pointed at the database"
+            exit 1
+          fi
+          exit $status
+
       - name: Run the registers against it
         working-directory: server
         env:

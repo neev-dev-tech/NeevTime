@@ -215,6 +215,19 @@ case "$iclock_code" in
         ok "/iclock reachable through $APP_URL (HTTP $iclock_code)" ;;
 esac
 
+# ── 3c. Are there migrations this deploy has not applied? ────────────────
+head_ "3c. Migrations"
+# A pending migration is not a broken deploy, which is why this warns rather
+# than fails. It is still worth saying loudly: the audit trail lives in one, and
+# an un-applied migration means the trail records nothing while looking present
+# in the interface.
+pending=$(d exec "$API_CONTAINER" node migrations/runner.js status 2>/dev/null | grep -ci '^ *pending' || echo 0)
+if [ "${pending:-0}" -gt 0 ]; then
+    note "$pending migration(s) pending — apply with: docker compose exec server node migrations/runner.js up"
+else
+    ok "no pending migrations"
+fi
+
 # ── 4. Is attendance still being collected? ───────────────────────────────
 # The checks above can all pass on an app that has quietly stopped doing the
 # one thing it exists for.
