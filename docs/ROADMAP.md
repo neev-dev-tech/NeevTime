@@ -81,7 +81,7 @@ Still open: the **dialogs** — roughly forty of them — are only reached by cl
 
 What is established about the websocket fault, so the next person does not repeat it: node answers a raw handshake with 101, and through nginx the same handshake returns 400 over HTTP/2 and 101 over HTTP/1.1. HTTP/2 cannot carry a websocket by the Connection: Upgrade mechanism at all, and nginx does not implement RFC 8441, so h2 is now disabled — necessary but not sufficient. Chrome's upgrade carries a session id from a prior polling request, and those polling requests are themselves failing. It needs a local reproduction rather than more CI rounds. Reported by the browser check and not treated as fatal, so it stays visible without blocking every merge.
 
-### 0.4 · Decide the tenancy model — **UNCHANGED**
+### 0.4 · Decide the tenancy model — **DECIDED: one deployment per customer** (18 August)
 
 Two honest answers:
 
@@ -89,7 +89,7 @@ Two honest answers:
 
 **Shared, properly.** Requires: the application stops connecting to Postgres as a superuser (a superuser bypasses row-level security, so isolation is currently defeated), `/iclock` device ingest made tenant-aware or it stops collecting attendance entirely, and the four timer-driven jobs likewise.
 
-*Choosing the first closes this today. Do not enable the tenancy branch without the second.*
+**Decided 18 August: one deployment per customer.** Sellable immediately; every customer is a machine to update, and install.sh plus verify-deploy.sh exist to make that cheap. The tenancy branch stays unmerged. Revisit only if operating N single-tenant installs actually becomes the bottleneck — not before.
 
 *The only Phase 0 item untouched, and the only one that needs a decision rather than work.*
 
@@ -184,9 +184,9 @@ The export renders templates defined as data, so a new payroll format is one ent
 | Phase | Item | Size | Status | Blocks |
 |---|---|---|---|---|
 | 0 | TLS | S | Done | Any sale |
-| 0 | Backup and restore | S | Off-machine copy open | Any sale |
+| 0 | Backup and restore | S | **Off-machine copy verified in SharePoint** | Any sale |
 | 0 | See the product | M | Deployment verified, UI not | Trusting the rest |
-| 0 | Tenancy decision | S / L | Open — needs a decision | Deployment model |
+| 0 | Tenancy decision | S / L | **Decided: per-customer** | Deployment model |
 | 0 | Deployment cannot lie | M | **Done** | Operating any install |
 | 1 | Photo at punch | S | **Done** | Competitive parity |
 | 1 | Installation procedure | S | **Done** | Customer two onward |
