@@ -157,6 +157,51 @@ if (!DBNAME) {
         assert.strictEqual(row.old_data.punch_type, 'IN');
     });
 
+    test('a reader heartbeat is not a change', async () => {
+        // Within a minute of the trail going live, the pilot's audit_logs held
+        // nothing but these: every reader posts a heartbeat every few seconds
+        // and adms.js answers with UPDATE devices SET status, last_activity.
+        // Five readers make roughly ten thousand rows a day, none recording a
+        // decision anybody took — and a log of machine noise is how an audit
+        // trail stops being read, which is worse than not having one because it
+        // is still there to be pointed at.
+        const serial = `ZZ${Date.now()}`.slice(0, 20);
+        await db.query(
+            "INSERT INTO devices (serial_number, device_name, status) VALUES ($1, 'probe', 'online')",
+            [serial]);
+
+        const before = await db.query('SELECT count(*)::int AS n FROM audit_logs WHERE table_name = $1', ['devices']);
+        for (let i = 0; i < 5; i++) {
+            await db.query("UPDATE devices SET status = 'online', last_activity = now() WHERE serial_number = $1", [serial]);
+        }
+        const after = await db.query('SELECT count(*)::int AS n FROM audit_logs WHERE table_name = $1', ['devices']);
+        assert.strictEqual(after.rows[0].n, before.rows[0].n,
+            'repeated heartbeats are filling the audit trail');
+    });
+
+    test('a real edit to a device is recorded, heartbeat column and all', async () => {
+        // The risk of ignoring housekeeping columns is ignoring the change that
+        // arrives alongside one. A rename writes last_activity too.
+        const serial = `ZZ${Date.now() + 1}`.slice(0, 20);
+        await db.query(
+            "INSERT INTO devices (serial_number, device_name, status) VALUES ($1, 'before', 'online')",
+            [serial]);
+
+        const before = await db.query('SELECT count(*)::int AS n FROM audit_logs WHERE table_name = $1', ['devices']);
+        await db.withActor(7, () => db.query(
+            "UPDATE devices SET device_name = 'after', last_activity = now() WHERE serial_number = $1", [serial]));
+        const rows = await db.query(
+            `SELECT user_id, old_data, new_data FROM audit_logs
+              WHERE table_name = 'devices' ORDER BY id DESC LIMIT 1`);
+
+        const count = await db.query('SELECT count(*)::int AS n FROM audit_logs WHERE table_name = $1', ['devices']);
+        assert.strictEqual(count.rows[0].n, before.rows[0].n + 1, 'a device rename was not recorded');
+        assert.strictEqual(rows.rows[0].user_id, 7);
+        assert.strictEqual(rows.rows[0].old_data.device_name, 'before');
+        assert.ok('last_activity' in rows.rows[0].new_data,
+            'the housekeeping column was stripped from a row worth keeping');
+    });
+
     test.after(async () => { await db.pool.end(); });
 }
 
