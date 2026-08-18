@@ -111,3 +111,21 @@ test('formatLocal disagrees with toISOString — which is the whole point', () =
         'if these match, the process is running in UTC and the test proves nothing');
     assert.strictEqual(formatLocal(d).time, '13:11:52');
 });
+
+test('socket.io has one origin gate, not two', () => {
+    // The cors block carried its own allowlist with none of allowRequest's
+    // same-origin logic, and engine.io consults CORS on the websocket
+    // upgrade's HTTP phase FIRST — so the same-origin fix never ran and every
+    // browser upgrade died as a 400 with nothing logged. Five rounds of nginx
+    // debugging, and it was two doors with one unlocked.
+    const fs = require('node:fs');
+    const path = require('node:path');
+    const src = fs.readFileSync(path.join(__dirname, '../server.js'), 'utf8');
+
+    assert.match(src, /cors: \{ origin: true/,
+        'the socket.io cors block has its own origin list again — it runs before allowRequest and will refuse browser upgrades');
+    assert.match(src, /allowRequest: \(req, callback\)/,
+        'allowRequest is gone — with reflective CORS it is the only gate');
+    assert.match(src, /\[socket\.io\] refused: Origin/,
+        'refusals no longer name both sides — the next debugging round starts blind again');
+});

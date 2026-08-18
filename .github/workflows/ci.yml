@@ -366,6 +366,62 @@ jobs:
             exit 1
           }
 
+      - name: A browser can hold a websocket, through nginx, with an Origin header
+        run: |
+          # The request shape that was never tested anywhere. A raw handshake
+          # with no Origin always answered 101, which is why five rounds of
+          # nginx debugging found nothing — browsers ALWAYS send Origin on the
+          # upgrade, and engine.io consulted a CORS allowlist on the upgrade's
+          # HTTP phase before the same-origin check ever ran. Two gates; only
+          # one had been fixed. Every live screen silently fell back to
+          # polling, forever, on every deployment.
+          node - <<'PROBE'
+          const https = require('https');
+          const req = https.request({
+            host: 'localhost', port: 443,
+            path: '/socket.io/?EIO=4&transport=websocket',
+            rejectUnauthorized: false,
+            headers: {
+              Connection: 'Upgrade', Upgrade: 'websocket',
+              'Sec-WebSocket-Key': 'dGhlIHNhbXBsZSBub25jZQ==',
+              'Sec-WebSocket-Version': '13',
+              // The header a browser sends and a curl probe does not.
+              Origin: 'https://localhost',
+            },
+          });
+          req.on('upgrade', () => { console.log('websocket upgraded: 101'); process.exit(0); });
+          req.on('response', (r) => {
+            console.error(`::error::the websocket upgrade returned ${r.statusCode} to a browser-shaped request — live screens are on polling fallback again`);
+            process.exit(1);
+          });
+          req.on('error', (e) => { console.error('::error::' + e.message); process.exit(1); });
+          req.end();
+          PROBE
+
+      - name: A foreign origin cannot open a socket
+        run: |
+          # The reflective CORS config is safe only because allowRequest still
+          # refuses handshakes that are neither same-origin nor allowlisted.
+          # This proves that gate holds where the last one silently did not.
+          node - <<'PROBE'
+          const https = require('https');
+          const req = https.request({
+            host: 'localhost', port: 443,
+            path: '/socket.io/?EIO=4&transport=websocket',
+            rejectUnauthorized: false,
+            headers: {
+              Connection: 'Upgrade', Upgrade: 'websocket',
+              'Sec-WebSocket-Key': 'dGhlIHNhbXBsZSBub25jZQ==',
+              'Sec-WebSocket-Version': '13',
+              Origin: 'https://evil.example',
+            },
+          });
+          req.on('upgrade', () => { console.error('::error::a foreign origin was allowed to open a websocket'); process.exit(1); });
+          req.on('response', (r) => { console.log(`foreign origin refused with ${r.statusCode}`); process.exit(0); });
+          req.on('error', (e) => { console.error('::error::' + e.message); process.exit(1); });
+          req.end();
+          PROBE
+
       - name: The readers must be able to reach /iclock
         run: |
           code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 http://localhost/iclock/cdata || true)

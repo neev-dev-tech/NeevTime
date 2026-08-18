@@ -75,7 +75,9 @@ Done: CI now boots the entire compose stack and asserts that `/api/health` answe
 
 Done: all 47 authenticated screens are now loaded in a real browser on every push and fail the build on an uncaught exception, a console error, a failed script or stylesheet, or a page that renders nothing. It found a live defect on its first run.
 
-Still open, two things. The **dialogs** — roughly forty of them — are only reached by clicking, and the check currently stops at the page. And **socket.io cannot establish a websocket**: the upgrade returns 400 and the client falls back to polling, so live screens update on a timer rather than instantly.
+Still open: the **dialogs** — roughly forty of them — are only reached by clicking, and the check currently stops at the page.
+
+**The websocket is fixed** (18 August). The upgrade died in engine.io's CORS pass, which runs on the upgrade's HTTP phase BEFORE the allowRequest gate where the same-origin fix lived — two doors, one unlocked. A raw handshake sends no Origin header and always answered 101, which is why five rounds of proxy debugging found nothing: browsers always send one. Found in one sitting once a local reproduction existed, exactly as predicted below. CI now probes the upgrade through nginx with a browser-shaped request, and proves a foreign origin is still refused.
 
 What is established about the websocket fault, so the next person does not repeat it: node answers a raw handshake with 101, and through nginx the same handshake returns 400 over HTTP/2 and 101 over HTTP/1.1. HTTP/2 cannot carry a websocket by the Connection: Upgrade mechanism at all, and nginx does not implement RFC 8441, so h2 is now disabled — necessary but not sufficient. Chrome's upgrade carries a session id from a prior polling request, and those polling requests are themselves failing. It needs a local reproduction rather than more CI rounds. Reported by the browser check and not treated as fatal, so it stays visible without blocking every merge.
 

@@ -30,19 +30,22 @@ const app = express();
 const server = http.createServer(app);
 const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim()).filter(Boolean) : ['http://localhost:5173', 'http://localhost:3000'];
 const io = new Server(server, {
-    cors: {
-        origin: (origin, callback) => {
-            // Allow requests with no origin (like mobile apps or curl)
-            if (!origin) return callback(null, true);
-            if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
-                callback(null, true);
-            } else {
-                callback(new Error('Not allowed by CORS'));
-            }
-        },
-        methods: ["GET", "POST"],
-        credentials: true
-    },
+    // Reflective on purpose — allowRequest below is the gate.
+    //
+    // This block used to carry its own allowlist, with none of the same-origin
+    // logic allowRequest has. engine.io consults CORS on the HTTP phase of the
+    // websocket upgrade BEFORE allowRequest is ever called, so the fix below
+    // never ran: the browser's upgrade carries an Origin header, the allowlist
+    // refused it, and every upgrade died as a 400 with nothing logged. That is
+    // the "websocket falls back to polling" fault that survived five rounds of
+    // nginx debugging — it was never nginx, and it was not allowRequest either.
+    // Two doors, and only one of them had been unlocked.
+    //
+    // Reflecting the Origin in CORS headers admits nothing by itself: the
+    // handshake is still refused by allowRequest unless the request is
+    // same-origin or allowlisted, and without a handshake there is no session
+    // id to speak with.
+    cors: { origin: true, methods: ["GET", "POST"], credentials: true },
     transports: ['websocket', 'polling'],
     allowEIO3: true,
 
@@ -80,6 +83,13 @@ const io = new Server(server, {
             if (new URL(origin).host === req.headers.host) return callback(null, true);
         } catch { /* an unparseable Origin is not same-origin */ }
 
+        // Refusals name both sides of the comparison. Three separate rounds of
+        // debugging this check have started from "the websocket returns 400"
+        // with nothing in any log saying why; each round rediscovered the same
+        // two headers by instrumenting a production container. The reason is
+        // one line when it is written down.
+        console.warn(`[socket.io] refused: Origin ${origin} vs Host ${req.headers.host}`
+            + ' — not same-origin and not in ALLOWED_ORIGINS');
         return callback('origin not allowed', false);
     }
 });
