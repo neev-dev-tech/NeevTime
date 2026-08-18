@@ -202,6 +202,52 @@ if (!DBNAME) {
             'the housekeeping column was stripped from a row worth keeping');
     });
 
+    test('a recalculation is not an edit, but a hand edit is', async () => {
+        // With heartbeats excluded, the trail filled with one
+        // attendance_daily_summary row per punch: every punch rebuilds that
+        // employee's day, so ~900 a day recorded that the machine recalculated
+        // a total derived from punches already recorded. The rows that matter
+        // in that table — Manual Entry, an approved regularization, an
+        // adjustment before payroll — are a dozen a month, and were buried.
+        //
+        // last_calculated_at is the discriminator: attendance_engine stamps it
+        // on every write and nothing else in this codebase does.
+        await db.query('ALTER TABLE attendance_daily_summary ADD COLUMN IF NOT EXISTS last_calculated_at TIMESTAMP');
+        const c = code();
+        await db.query('INSERT INTO employees (employee_code, name) VALUES ($1, $2)', [c, 'Summary']);
+        await db.query(
+            `INSERT INTO attendance_daily_summary (employee_code, date, status, last_calculated_at)
+             VALUES ($1, CURRENT_DATE, 'Present', now())`, [c]);
+
+        const count = async () => (await db.query(
+            "SELECT count(*)::int AS n FROM audit_logs WHERE table_name = 'attendance_daily_summary'"
+        )).rows[0].n;
+
+        // The engine: nobody triggered it, and its own stamp moves.
+        const start = await count();
+        await db.query(
+            `UPDATE attendance_daily_summary
+                SET duration_minutes = 480, last_calculated_at = now() + interval '1 second'
+              WHERE employee_code = $1`, [c]);
+        assert.strictEqual(await count(), start, 'a recompute was recorded as an edit');
+
+        // Somebody at a psql prompt: no actor, and the stamp stays put. This is
+        // the case the trail exists for and it must survive the exclusion.
+        await db.query("UPDATE attendance_daily_summary SET status = 'Half Day' WHERE employee_code = $1", [c]);
+        assert.strictEqual(await count(), start + 1,
+            'a hand edit was swallowed by the recompute exclusion');
+
+        // Through the application, with an actor.
+        await db.withActor(42, () => db.query(
+            "UPDATE attendance_daily_summary SET status = 'Present' WHERE employee_code = $1", [c]));
+        assert.strictEqual(await count(), start + 2, 'an edit made in the app was not recorded');
+
+        const row = await db.query(
+            `SELECT user_id FROM audit_logs
+              WHERE table_name = 'attendance_daily_summary' ORDER BY id DESC LIMIT 1`);
+        assert.strictEqual(row.rows[0].user_id, 42);
+    });
+
     test.after(async () => { await db.pool.end(); });
 }
 
