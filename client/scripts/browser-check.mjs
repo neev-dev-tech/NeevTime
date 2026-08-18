@@ -49,7 +49,20 @@ const ROUTES = [
     '/', '/employees', '/departments', '/positions', '/areas', '/resign',
     '/employees/deleted', '/employee-docs',
     '/reports/registers', '/reports/payroll', '/reports', '/reports/legacy',
-    '/reports/first-last', '/advanced-reports', '/export', '/import',
+    '/reports/first-last', '/reports/insights', '/advanced-reports', '/export', '/import',
+    // The whole report tail. Two of the first three report screens a user
+    // opened were broken while this list skipped them — every dashboard card
+    // path is a screen, and every screen gets loaded.
+    '/reports/transactions', '/reports/mobile-transactions', '/reports/total-punches',
+    '/reports/scheduled-log', '/reports/time-card', '/reports/missed-punch',
+    '/reports/late-coming', '/reports/early-leaving', '/reports/birthday',
+    '/reports/overtime', '/reports/absent', '/reports/half-day',
+    '/reports/daily-attendance', '/reports/daily-details', '/reports/daily-summary',
+    '/reports/daily-status', '/reports/basic-status', '/reports/status-summary',
+    '/reports/ot-summary', '/reports/work-duration', '/reports/work-detailed',
+    '/reports/att-sheet', '/reports/att-status', '/reports/att-summary',
+    '/reports/device-health', '/reports/biometric-summary',
+    '/contractors', '/audit',
     '/devices', '/devices/data', '/device-commands', '/device-sync', '/device-messages',
     '/attendance-rules', '/attendance/manual', '/attendance-register', '/attendance-calendar',
     '/holidays', '/holiday-locations', '/geofences', '/break-times', '/timetables', '/shifts',
@@ -115,29 +128,11 @@ const main = async () => {
             // event — which does carry the URL. Classified there instead.
             if (/Failed to load resource/i.test(text)) return;
 
-            // KNOWN OPEN DEFECT — reported, not fatal.
-            //
-            // socket.io cannot establish a websocket on this deployment. The
-            // upgrade returns 400 and the client falls back to polling, so the
-            // live monitor works but updates on a timer instead of instantly.
-            //
-            // What is established: node answers a raw handshake with 101, and
-            // through nginx the same handshake gives 400 over HTTP/2 and 101
-            // over HTTP/1.1 — so h2 cannot carry websockets at all here (nginx
-            // does not implement RFC 8441) and h2 is now off. That did not
-            // clear it, because Chrome's upgrade carries a session id from a
-            // prior polling request and those polling requests are themselves
-            // failing. Finding out why needs a local reproduction, not more CI
-            // rounds.
-            //
-            // Kept visible rather than filtered silently: this is a real
-            // degradation, and the day this check was written was spent finding
-            // things that had been failing quietly for months. Blocking every
-            // merge on it would be the other mistake.
-            if (/socket\.io|websocket|socket connection/i.test(text)) {
-                socketNoise.push(`${route}: ${text.slice(0, 100)}`);
-                return;
-            }
+            // The websocket fault this block used to tolerate was fixed on
+            // 18 August (two origin gates; engine.io's CORS pass ran before
+            // the same-origin check). Socket errors are ordinary failures
+            // again — a tolerance that outlives its defect is how the next
+            // regression ships silently.
             problems.push(`console: ${text.slice(0, 160)}`);
         };
         const onPageError = (err) => problems.push(`uncaught: ${String(err).slice(0, 160)}`);
@@ -194,6 +189,50 @@ const main = async () => {
                 return (root.innerText || '').trim().length;
             });
             if (rendered < 20) problems.push(`rendered ${rendered} characters — blank page`);
+
+            // A page that CAUGHT its error renders politely and passes every
+            // console check — which is exactly how two broken report screens
+            // sat in production while this sweep reported all green. The error
+            // panels this app draws carry known phrases; a screen showing one
+            // is a failing screen, however tidy it looks.
+            const shownError = await page.evaluate(() => {
+                const text = document.body.innerText || '';
+                const m = text.match(/Could not generate the report[^\n]*|invalid input syntax[^\n]*|Something went wrong[^\n]*|column "[^"]+" does not exist[^\n]*/);
+                return m ? m[0].slice(0, 140) : null;
+            });
+            if (shownError) problems.push(`page shows an error: ${shownError}`);
+
+            // Open what a person would open. Roughly forty dialogs live behind
+            // Add/New/Create buttons, and this check used to stop at the page:
+            // a modal that crashed on open passed CI for months. Each opener is
+            // clicked, the dialog given a moment to render and misbehave under
+            // the same console/pageerror listeners, then closed with Escape.
+            // Generic on purpose — per-dialog assertions rot; "opening it does
+            // not break" is the invariant every dialog owes.
+            try {
+                const openers = await page.$$eval('button', (btns) =>
+                    btns.map((b, i) => ({ i, t: (b.innerText || '').trim() }))
+                        .filter(b => /^(\+?\s*)?(add|new|create|issue|run accrual)\b/i.test(b.t))
+                        .slice(0, 3).map(b => b.i));
+                for (const idx of openers) {
+                    const before = problems.length;
+                    await page.evaluate((i) => document.querySelectorAll('button')[i]?.click(), idx);
+                    await new Promise(r => setTimeout(r, 500));
+                    const dialogError = await page.evaluate(() => {
+                        const text = document.body.innerText || '';
+                        const m = text.match(/Something went wrong[^\n]*|invalid input[^\n]*/);
+                        return m ? m[0].slice(0, 120) : null;
+                    });
+                    if (dialogError) problems.push(`dialog error: ${dialogError}`);
+                    if (problems.length > before) {
+                        const label = await page.evaluate((i) =>
+                            (document.querySelectorAll('button')[i]?.innerText || '').trim(), idx);
+                        problems[problems.length - 1] += ` (after clicking "${label}")`;
+                    }
+                    await page.keyboard.press('Escape');
+                    await new Promise(r => setTimeout(r, 150));
+                }
+            } catch { /* a page with no buttons is fine */ }
         } catch (err) {
             problems.push(`navigation: ${err.message.split('\n')[0]}`);
         }

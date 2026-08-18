@@ -239,8 +239,12 @@ export default function AttendanceRegister() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                                {/* Keyed by code+date, not row.id: absentees have
+                                    no summary row, so id was null for every one of
+                                    them — dozens of identical keys, and React
+                                    recycling the wrong rows on filter changes. */}
                                 {data.map((row, idx) => (
-                                    <tr key={row.id} className="hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                    <tr key={`${row.employee_code}-${row.date}`} className="hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors">
                                         <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{idx + 1}</td>
                                         <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">
                                             {row.name || '—'}
