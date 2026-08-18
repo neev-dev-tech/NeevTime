@@ -92,3 +92,19 @@ test('the dashboard is its own module and not caught by a prefix', () => {
         'the dashboard case has moved — check it still runs before the prefix lists');
     assert.strictEqual(resolve(rules, '/dashboard-extra'), 'Personnel');
 });
+
+test('the portal tab bar scrolls itself, never the page', () => {
+    // Six tabs no longer fit a 375px phone. The bar used to widen the page, so
+    // the entire portal scrolled sideways and two tabs hung outside the card —
+    // on the surface whose primary device is a phone. Found by looking at the
+    // rendered page, not by any unit test, which is why this pins the source.
+    const fs = require('node:fs');
+    const path = require('node:path');
+    const src = fs.readFileSync(
+        path.join(__dirname, '../../client/src/pages/portal/EmployeePortal.jsx'), 'utf8');
+
+    assert.match(src, /className="flex overflow-x-auto[^"]*rounded-xl/,
+        'the portal tab bar lost its own overflow — six tabs will widen the page again');
+    assert.match(src, /shrink-0 sm:flex-1[^`]*whitespace-nowrap/,
+        'tab pills wrap or shrink again instead of scrolling');
+});

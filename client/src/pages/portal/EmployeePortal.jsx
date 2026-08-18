@@ -279,14 +279,19 @@ export default function EmployeePortal() {
                 )}
 
                 {/* Tabs — pill segmented control */}
-                <div className="flex bg-white/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 p-1 gap-1">
+                {/* Scrolls within itself on a phone. Six tabs no longer fit
+                    375px — the bar used to widen the PAGE, so the whole portal
+                    scrolled sideways and two tabs hung outside the card. The
+                    portal's primary device is a phone; the punch card cannot
+                    depend on nobody noticing a horizontal scrollbar. */}
+                <div className="flex overflow-x-auto bg-white/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 p-1 gap-1">
                     {TABS.filter(t => t.id !== 'approvals' || approvals?.is_approver)
                           .map(({ id, label, icon: Icon }) => (
                         <button
                             key={id}
                             onClick={() => setTab(id)}
                             aria-pressed={tab === id}
-                            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-semibold transition-colors ${tab === id
+                            className={`shrink-0 sm:flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-sm font-semibold whitespace-nowrap transition-colors ${tab === id
                                 ? 'bg-orange-600 text-white shadow-sm'
                                 : 'text-slate-600 dark:text-slate-300 hover:bg-orange-50/60 dark:hover:bg-slate-700/40 hover:text-orange-600 dark:hover:text-orange-400'
                                 }`}

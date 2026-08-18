@@ -209,7 +209,15 @@ export default function Settings() {
 
     const renderInput = (key, config) => {
         const value = formData[key];
-        const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        // Title-casing a key mangles initialisms: ldap_base_dn became
+        // "Ldap Base Dn" on a screen where the administrator is copying values
+        // from Azure and Active Directory documentation that write them as
+        // LDAP, DN and OIDC. Getting them wrong reads as not knowing what they
+        // are.
+        const INITIALISMS = { ldap: 'LDAP', oidc: 'OIDC', dn: 'DN', url: 'URL',
+            id: 'ID', uri: 'URI', smtp: 'SMTP', gst: 'GST', hr: 'HR', pdf: 'PDF' };
+        const label = key.replace(/_/g, ' ')
+            .replace(/\b\w+/g, w => INITIALISMS[w.toLowerCase()] || w[0].toUpperCase() + w.slice(1));
 
         // The logo is a picture, not a string. It was rendered as a text input
         // because the generic renderer keys off data_type, and the setting is

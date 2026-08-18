@@ -247,6 +247,14 @@ export default function Contractors() {
                                     </p>
                                 )}
 
+                                {/* Headers with no rows read as a rendering
+                                    fault, not as an empty month. Say which it is. */}
+                                {summary.employees.length === 0 ? (
+                                    <p className="text-sm text-slate-500 dark:text-slate-400 py-4 text-center">
+                                        Nobody is billed to this contractor yet. Set an employee's
+                                        contractor on their profile and they appear here.
+                                    </p>
+                                ) : (
                                 <table className="w-full text-left text-sm">
                                     <thead className="text-[10px] uppercase tracking-[0.09em] font-bold text-slate-500">
                                         <tr>
@@ -270,6 +278,7 @@ export default function Contractors() {
                                         ))}
                                     </tbody>
                                 </table>
+                                )}
 
                                 <p className="text-xs text-slate-500 dark:text-slate-400">
                                     Hours come from the same daily attendance the registers and payroll use.
