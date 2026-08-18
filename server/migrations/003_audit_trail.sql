@@ -22,6 +22,41 @@
 -- with no actor — a device posting a punch, a scheduled sync — records NULL,
 -- which is true and more useful than a guess.
 
+-- The table itself, because it cannot be assumed.
+--
+-- This migration was written believing audit_logs had existed since the first
+-- schema. It has — in database/000_schema.sql, which is loaded only into an
+-- EMPTY data directory. The pilot deployment's database predates every schema
+-- file in this repository, so it has never seen that file and has no such
+-- table: the migration got as far as CREATE INDEX and rolled back.
+--
+-- Same lesson as the trigger loop below, which already skips tables that are
+-- not present. An install is not defined by the schema file; it is defined by
+-- what is actually in it.
+CREATE TABLE IF NOT EXISTS audit_logs (
+    id          SERIAL PRIMARY KEY,
+    table_name  VARCHAR(100),
+    record_id   INTEGER,
+    action      VARCHAR(20),
+    old_data    JSONB,
+    new_data    JSONB,
+    user_id     INTEGER,
+    created_at  TIMESTAMP DEFAULT now()
+);
+
+-- Older databases may hold an audit_logs of a different shape — the column set
+-- has drifted across this codebase's history. Add what the trigger writes, and
+-- leave anything else alone.
+ALTER TABLE audit_logs
+    ADD COLUMN IF NOT EXISTS table_name VARCHAR(100),
+    ADD COLUMN IF NOT EXISTS record_id  INTEGER,
+    ADD COLUMN IF NOT EXISTS action     VARCHAR(20),
+    ADD COLUMN IF NOT EXISTS old_data   JSONB,
+    ADD COLUMN IF NOT EXISTS new_data   JSONB,
+    ADD COLUMN IF NOT EXISTS user_id    INTEGER,
+    ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT now();
+
+
 CREATE OR REPLACE FUNCTION audit_row_change() RETURNS trigger AS $audit$
 DECLARE
     actor        integer := NULLIF(current_setting('app.user_id', true), '')::integer;

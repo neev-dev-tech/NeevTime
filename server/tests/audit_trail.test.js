@@ -159,3 +159,33 @@ if (!DBNAME) {
 
     test.after(async () => { await db.pool.end(); });
 }
+
+// Runs everywhere, database or not.
+test('the migration creates the table it writes to', () => {
+    // It was written believing audit_logs had existed since the first schema.
+    // It has — in database/000_schema.sql, which Postgres loads only into an
+    // EMPTY data directory. The pilot deployment's database predates every
+    // schema file here, so the migration reached CREATE INDEX on a table that
+    // did not exist and rolled back. An install is defined by what is in the
+    // database, not by what the schema file says should be.
+    const fs = require('node:fs');
+    const path = require('node:path');
+    const sql = fs.readFileSync(
+        path.join(__dirname, '../migrations/003_audit_trail.sql'), 'utf8');
+
+    assert.match(sql, /CREATE TABLE IF NOT EXISTS audit_logs/,
+        'the migration assumes audit_logs exists — it does not on older databases');
+
+    // Comments stripped first: the prose above explains what CREATE INDEX did
+    // on a missing table, and matching that sentence made this fail on a file
+    // that was correct.
+    const statements = sql.split('\n').filter(l => !l.trim().startsWith('--')).join('\n');
+    assert.ok(statements.indexOf('CREATE TABLE IF NOT EXISTS audit_logs')
+        < statements.indexOf('CREATE INDEX'),
+        'the table is created after the indexes that need it');
+    // Skipping a missing table is how the trigger loop already behaves; the
+    // table this writes to gets created instead, because there is no useful
+    // audit trail without it.
+    assert.match(sql, /ADD COLUMN IF NOT EXISTS new_data/,
+        'an older audit_logs of a different shape is not brought up to date');
+});
