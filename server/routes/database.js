@@ -155,13 +155,16 @@ const copyToExternal = async (filepath, filename) => {
     }
 };
 
-const createBackup = (prefix = 'backup') => new Promise((resolve, reject) => {
-    // Local time in the filename. The daily check looks for `auto-<local date>`,
-    // and a UTC-stamped name would not match it between midnight and 05:30 IST —
-    // which includes the default 02:00 schedule.
+const createBackup = (prefix = 'backup', stampOverride = null) => new Promise((resolve, reject) => {
+    // The scheduler passes its own stamp, in the configured timezone, because
+    // the daily dedupe looks for `auto-<local date>` and this default is the
+    // CONTAINER clock — UTC. A 02:00 IST run stamped here names its file with
+    // yesterday's date, the dedupe never matches, and every restart after the
+    // scheduled time takes another dump. Manual backups keep the default; their
+    // names are for humans and nothing matches on them.
     const n = new Date();
     const p2 = (v) => String(v).padStart(2, '0');
-    const timestamp = `${n.getFullYear()}-${p2(n.getMonth() + 1)}-${p2(n.getDate())}` +
+    const timestamp = stampOverride || `${n.getFullYear()}-${p2(n.getMonth() + 1)}-${p2(n.getDate())}` +
         `T${p2(n.getHours())}-${p2(n.getMinutes())}-${p2(n.getSeconds())}`;
     // .dump, not .sql. These are pg_dump's custom format (-F c) — a binary
     // archive that only pg_restore can read. Naming it .sql invites someone
@@ -316,10 +319,19 @@ router.put('/destinations', async (req, res) => {
         const secretKeys = new Set(destinations.secretFields(key));
         const toStore = {};
         for (const [k, v] of Object.entries(submitted)) {
-            if (!secretKeys.has(k)) { toStore[k] = v; continue; }
+            // Whitespace is stripped from every string on the way in. These
+            // values are pasted out of the Azure portal and admin consoles, and
+            // one arrived carrying a leading TAB inside its drive id. It worked
+            // anyway — the WHATWG URL parser silently deletes tabs and newlines
+            // — which is worse than failing, because the stored value was wrong
+            // and nothing would ever say so until some other code path touched
+            // it. IDs, hosts and paths never legitimately begin or end with
+            // whitespace.
+            const clean = typeof v === 'string' ? v.trim() : v;
+            if (!secretKeys.has(k)) { toStore[k] = clean; continue; }
             // Unchanged mask keeps the existing ciphertext; anything else is a
             // new secret and gets encrypted now.
-            toStore[k] = secrets.isMask(v) ? (stored[k] || '') : secrets.encrypt(v);
+            toStore[k] = secrets.isMask(clean) ? (stored[k] || '') : secrets.encrypt(clean);
         }
 
         await settingsStore.set('database', 'backup_destination', key, 'string');
@@ -496,13 +508,27 @@ const startAutoBackup = () => {
             const time = await settingsStore.get('database', 'backup_time', '02:00');
             const retention = await settingsStore.get('database', 'backup_retention_count', 7);
 
-            const now = new Date();
+            // The configured zone's clock, not the container's.
+            //
+            // Every previous version of this comparison ran on new Date() —
+            // the container clock, which is UTC. Whoever types 11:45 into
+            // Settings means 11:45 on their own wall, so the check silently
+            // became "17:15 IST", and the scheduler never once fired: the
+            // pilot's backups directory has never contained a single auto-*
+            // file. The dump that looked scheduled was somebody pressing
+            // Backup Now.
+            //
+            // This is at least the fourth place this codebase has had to learn
+            // the same conversion — lateness scoring, punch dating, the
+            // no-punches alert, and now the backup clock.
+            const moment = require('moment-timezone');
+            const tz = await settingsStore.get('timezone', 'system_timezone', 'Asia/Kolkata');
+            const local = moment.tz(moment.tz.zone(tz) ? tz : 'Asia/Kolkata');
+            // Same shape shouldRunToday expects, carrying the LOCAL calendar.
+            const now = new Date(local.year(), local.month(), local.date(),
+                local.hour(), local.minute(), local.second());
 
-            // Local date, not toISOString(). The schedule is read in local time
-            // (getHours), and IST is UTC+5:30, so a 02:00 run stamps itself with
-            // the previous UTC day. Mixing the two is how a scheduled job
-            // silently skips.
-            const stamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+            const stamp = local.format('YYYY-MM-DD');
 
             if (!shouldRunToday(frequency, now, day)) return;
 
@@ -516,7 +542,7 @@ const startAutoBackup = () => {
             // old, because nobody was told.
             const [schedH, schedM] = String(time).slice(0, 5).split(':').map(Number);
             const dueMinutes = (schedH || 0) * 60 + (schedM || 0);
-            if (now.getHours() * 60 + now.getMinutes() < dueMinutes) return;
+            if (local.hour() * 60 + local.minute() < dueMinutes) return;
 
             // Has today's already been taken? Asked of the directory, not of a
             // variable — lastAutoBackupDate lives in memory and resets on every
@@ -528,7 +554,7 @@ const startAutoBackup = () => {
             if (alreadyToday || lastAutoBackupDate === stamp) return;
 
             lastAutoBackupDate = stamp;
-            const backup = await createBackup('auto');
+            const backup = await createBackup('auto', local.format('YYYY-MM-DDTHH-mm-ss'));
             pruneAutoBackups(Number(retention));
             console.log(`[AutoBackup] Created ${backup.name}`);
         } catch (err) {

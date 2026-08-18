@@ -358,6 +358,59 @@ const drillNoPunches = async () => {
     };
 };
 
+/**
+ * A backup schedule that is quietly doing nothing.
+ *
+ * This check exists because it has now happened twice. Once for five months —
+ * pg_dump missing, wrong host, no volume, wrong extension, four independent
+ * faults with one symptom. And again this week: the scheduler compared an IST
+ * schedule against the container's UTC clock and never fired once, which was
+ * only noticed because somebody went looking for a file. Both times every
+ * light was green.
+ *
+ * The check is about outcomes, like the no-punches one: it does not care WHY
+ * there is no recent dump, only that backups are switched on and the newest
+ * auto dump is older than a day and a half. 36 hours, not 24, so one slow or
+ * skipped run does not page anyone at 02:05.
+ */
+const checkBackupAge = async () => {
+    const enabled = await settings.get('database', 'backup_enabled', false);
+    if (!enabled || enabled === 'false') return;
+
+    const fs = require('node:fs');
+    const path = require('node:path');
+    const dir = path.join(__dirname, '../backups');
+
+    let newest = null;
+    try {
+        for (const f of fs.readdirSync(dir)) {
+            if (!f.startsWith('auto-')) continue;
+            const m = fs.statSync(path.join(dir, f)).mtimeMs;
+            if (!newest || m > newest) newest = m;
+        }
+    } catch { /* directory missing counts as "no backup", which is the point */ }
+
+    const ageHours = newest ? (Date.now() - newest) / 3600000 : null;
+    const stale = newest === null || ageHours > 36;
+
+    await alerts.track('backup_stale', stale, {
+        severity: 'high',
+        subject: newest === null
+            ? 'Scheduled backups have never run'
+            : `No backup for ${Math.floor(ageHours)} hours`,
+        body: (newest === null
+            ? 'Backups are enabled in Settings, and not one automatic dump exists.\n\n'
+            : `Backups are enabled, and the newest automatic dump is ${Math.floor(ageHours)} hours old.\n\n`)
+            + 'This has failed silently twice — once for five months. Check, in order: '
+            + 'the server container log for [AutoBackup] lines, that the scheduled time '
+            + 'and the timezone in Settings agree with the wall clock, and that the '
+            + 'second-copy destination still accepts a test from Database Tools.\n\n'
+            + 'Manual dumps do not clear this alert on purpose: a person pressing '
+            + 'Backup Now is not a schedule working.',
+        details: { newest_auto_backup: newest ? new Date(newest).toISOString() : null },
+    });
+};
+
 /** Commands the readers refused for good — someone has to look at these. */
 const checkDeadLetters = async () => {
     const res = await db.query(
@@ -480,6 +533,7 @@ const runChecks = async () => {
         ['account lockouts', checkAccountLockouts],
         ['devices offline', checkDevicesOffline],
         ['no punches today', checkNoPunches],
+        ['backup stale', checkBackupAge],
         ['dead letters', checkDeadLetters]
     ]) {
         try {
@@ -554,5 +608,5 @@ module.exports = {
     runChecks, sendDigest, startAlertChecks, notifyConfigChange,
     localDate, digestTimeReached,
     checkAttendancePush, checkSyncBacklog, checkSyncAging, checkAccountLockouts,
-    checkDevicesOffline, checkDeadLetters, checkNoPunches, drillNoPunches
+    checkDevicesOffline, checkDeadLetters, checkNoPunches, drillNoPunches, checkBackupAge
 };

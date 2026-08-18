@@ -191,3 +191,16 @@ test('secrets are declared as secret so they are encrypted and masked', () => {
             `${key} does not mark the right fields as secret`);
     }
 });
+
+test('destination config is trimmed on the way in', () => {
+    // A drive id arrived from the Azure portal carrying a leading TAB, and
+    // uploads worked anyway because the WHATWG URL parser silently deletes
+    // tabs and newlines — worse than failing, because the stored value was
+    // wrong and nothing would ever say so until a different code path touched
+    // it. IDs, hosts and paths never legitimately begin or end with whitespace.
+    const fs = require('node:fs');
+    const path = require('node:path');
+    const src = fs.readFileSync(path.join(__dirname, '../routes/database.js'), 'utf8');
+    assert.match(src, /typeof v === 'string' \? v\.trim\(\) : v/,
+        'pasted whitespace is stored verbatim in destination config again');
+});

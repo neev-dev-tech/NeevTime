@@ -248,3 +248,27 @@ test('the no-punches drill runs the real check, not a copy', () => {
     assert.ok(drillUses, 'the drill has its own query — it can pass while the real check is broken');
     assert.match(src, /\[DRILL\]/, 'a drill mail is indistinguishable from a real outage');
 });
+
+test('a backup schedule doing nothing raises an alert', () => {
+    // It has happened twice: five months of no dumps behind four independent
+    // faults, then a scheduler comparing an IST schedule against the
+    // container's UTC clock that never fired once. Both times every light was
+    // green, and both times a person found out by going looking for a file.
+    const src = read('services/alert_checks.js');
+    assert.match(src, /const checkBackupAge = async/, 'nothing watches whether backups happen');
+    assert.match(src, /\['backup stale', checkBackupAge\]/, 'the backup check is not scheduled');
+    assert.match(src, /startsWith\('auto-'\)/,
+        'the check counts manual dumps — a person pressing Backup Now is not a schedule working');
+});
+
+test('the backup scheduler reads the clock in the configured zone', () => {
+    // new Date() in the container is UTC. Whoever types 11:45 into Settings
+    // means 11:45 on their own wall. Fourth place this codebase has had to
+    // learn this conversion.
+    const src = read('routes/database.js');
+    assert.match(src, /moment\.tz\(/, 'the scheduler is back on the container clock');
+    assert.ok(!/if \(now\.getHours\(\) \* 60 \+ now\.getMinutes\(\) < dueMinutes\)/.test(src),
+        'the due-time comparison uses the container clock again');
+    assert.match(src, /createBackup\('auto', local\.format/,
+        'auto dumps are stamped with the container clock — the daily dedupe will not match them');
+});
