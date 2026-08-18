@@ -158,7 +158,15 @@ const recordPunch = async (punch, options = {}) => {
 
         if (recompute) {
             const attendanceEngine = require('./attendance_engine');
-            await attendanceEngine.processDateRange(punchDate, punchDate, null, employeeCode);
+            // The day before as well, always. A night worker's 06:00 exit
+            // arrives with today's date but belongs to yesterday's shift day;
+            // recomputing only today would mark yesterday a Miss Punch forever
+            // and file this punch under a day with no entry. One extra day for
+            // one employee costs nothing, and doing it unconditionally means
+            // this code needs no knowledge of who works nights.
+            const dayBefore = moment.tz(punchDate, timezone)
+                .subtract(1, 'day').format('YYYY-MM-DD');
+            await attendanceEngine.processDateRange(dayBefore, punchDate, null, employeeCode);
         }
 
         // HRMS push must never hold up or fail the punch

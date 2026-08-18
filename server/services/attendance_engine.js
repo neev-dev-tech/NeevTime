@@ -100,7 +100,12 @@ class AttendanceEngine {
         `;
         const logsParams = [
           moment.tz(startDate, rules.timezone).startOf('day').format('YYYY-MM-DD HH:mm:ss'),
-          moment.tz(endDate, rules.timezone).endOf('day').format('YYYY-MM-DD HH:mm:ss')
+          // Noon of the day AFTER the range, not midnight of its last day: a
+          // night shift ending 06:00 puts its exit punch past endDate's
+          // midnight, and cutting there re-created the split-night bug for the
+          // final day of every range. Day workers' punches in that overhang
+          // group to endDate+1 and fall out of the loop below untouched.
+          moment.tz(endDate, rules.timezone).add(1, 'day').hour(12).minute(0).second(0).format('YYYY-MM-DD HH:mm:ss')
         ];
         
         // Filter by numeric DB id (API callers) or employee_code (ADMS punches)
@@ -116,11 +121,73 @@ class AttendanceEngine {
         }
 
         const allLogs = await db.query(logsQuery, logsParams);
+
+        // Shift assignments, so scoring honours them.
+        //
+        // These tables have existed since the schedules module was built, and
+        // this function never read them: every employee was scored against the
+        // single global shift_start in Settings, so assigning somebody the
+        // 14:00 shift marked them five hours late every day they worked it.
+        // The whole shift module was decorative.
+        //
+        // An employee with no assignment behaves exactly as before — the
+        // global rules — which also means deploying this changes nobody's
+        // numbers until a shift is actually assigned.
+        // Tolerating a missing table is load-bearing here, not defensive
+        // habit: the shift tables come from schema files an older database has
+        // never seen, and this query runs inside EVERY recompute. Throwing on
+        // 42P01 would stop attendance scoring entirely on such an install —
+        // punches stored, nothing ever summarised — which is a worse failure
+        // than shifts not applying. Migration 010 creates the tables; until it
+        // runs, no assignments exist and the global rules apply, same as ever.
+        let assignmentRows = [];
+        try {
+            const assignments = await db.query(`
+                SELECT es.employee_code, es.effective_date,
+                       s.start_time, s.grace_in_minutes, s.is_night_shift,
+                       s.half_day_threshold_hours
+                  FROM employee_shifts es
+                  JOIN shifts s ON s.id = es.shift_id AND s.is_active IS NOT FALSE
+                 ORDER BY es.employee_code, es.effective_date`);
+            assignmentRows = assignments.rows;
+        } catch (err) {
+            if (err.code !== '42P01') throw err;
+        }
+        const shiftHistory = {};
+        for (const a of assignmentRows) {
+            (shiftHistory[a.employee_code] ||= []).push(a);
+        }
+        // Latest assignment on or before the date, or null for the defaults.
+        const shiftFor = (employeeCode, dateStr) => {
+            const list = shiftHistory[employeeCode];
+            if (!list) return null;
+            let found = null;
+            for (const a of list) {
+                const eff = moment(a.effective_date).format('YYYY-MM-DD');
+                if (eff <= dateStr) found = a; else break;
+            }
+            return found;
+        };
         
-        // 2. Group logs by employee and date (IST)
+        // 2. Group logs by employee and SHIFT day.
+        //
+        // For a day worker the shift day is the calendar day. For a night
+        // shift it cannot be: a 22:00–06:00 shift's punches land on two
+        // calendar dates, and grouping by date split one worked night into an
+        // evening with no exit and a dawn with no entry — two broken days.
+        //
+        // The boundary moves to noon for night workers: a punch before 12:00
+        // belongs to the previous day's shift. Noon because no night shift
+        // starts before it and none ends after it, so the rule needs no
+        // knowledge of the particular shift's hours.
         const logsMap = {};
         allLogs.rows.forEach(log => {
-            const dateStr = moment.tz(log.punch_time, rules.timezone).format('YYYY-MM-DD');
+            const local = moment.tz(log.punch_time, rules.timezone);
+            const nominal = local.format('YYYY-MM-DD');
+            const shift = shiftFor(log.employee_code, nominal);
+            const dateStr = (shift?.is_night_shift && local.hour() < 12)
+                ? local.clone().subtract(1, 'day').format('YYYY-MM-DD')
+                : nominal;
             const key = `${log.employee_code}_${dateStr}`;
             if (!logsMap[key]) logsMap[key] = [];
             logsMap[key].push({ time: log.punch_time, state: log.punch_state });
@@ -160,7 +227,8 @@ class AttendanceEngine {
                 // worth seeing, not hiding.
                 if (HAS_LEFT.test(emp.status || '') && logs.length === 0) continue;
                 
-                const stats = this.calculateDayStats(emp.employee_code, dateStr, logs, rules);
+                const stats = this.calculateDayStats(
+                    emp.employee_code, dateStr, logs, rules, shiftFor(emp.employee_code, dateStr));
                 results.push(stats);
                 summaryData.push(stats);
             }
@@ -175,8 +243,8 @@ class AttendanceEngine {
         return results;
     }
 
-    calculateDayStats(employeeCode, date, logs, rules = null) {
-        const r = rules || {
+    calculateDayStats(employeeCode, date, logs, rules = null, shift = null) {
+        let r = rules || {
             timezone: DEFAULTS.timezone,
             shiftStart: DEFAULTS.shift_start,
             graceMinutes: DEFAULTS.grace_period_minutes,
@@ -186,6 +254,20 @@ class AttendanceEngine {
             allSundaysOff: DEFAULTS.all_sundays_off,
             saturdaysOff: DEFAULTS.saturdays_off
         };
+
+        // The assigned shift overrides the parts of the rules it defines.
+        // Everything it does not define — OT threshold, weekly offs, timezone —
+        // stays global, and an employee with no assignment is scored exactly as
+        // before this parameter existed.
+        if (shift) {
+            r = {
+                ...r,
+                shiftStart: String(shift.start_time).slice(0, 5),
+                graceMinutes: Number(shift.grace_in_minutes ?? r.graceMinutes),
+                halfDayMinutes: shift.half_day_threshold_hours
+                    ? Number(shift.half_day_threshold_hours) * 60 : r.halfDayMinutes,
+            };
+        }
 
         let inTime = null;
         let outTime = null;
@@ -198,7 +280,17 @@ class AttendanceEngine {
         // threshold. At 13:00 everyone who arrived at 09:00 is four hours in, and
         // scoring them now labels the whole workforce Short Day, or Miss Punch if
         // they simply have not left yet. Verdicts wait until the day is over.
-        const dayInProgress = date === moment().tz(r.timezone).format('YYYY-MM-DD');
+        let dayInProgress = date === moment().tz(r.timezone).format('YYYY-MM-DD');
+        // At 03:00 a night worker is mid-shift on YESTERDAY'S shift day. Without
+        // this, the guard sees a different calendar date, judges the day over,
+        // and scores someone still standing at their machine a Miss Punch.
+        if (shift?.is_night_shift) {
+            const localNow = moment().tz(r.timezone);
+            const shiftToday = localNow.hour() < 12
+                ? localNow.clone().subtract(1, 'day').format('YYYY-MM-DD')
+                : localNow.format('YYYY-MM-DD');
+            dayInProgress = date === shiftToday;
+        }
 
         if (logs.length > 0) {
             // Accepts either shape: {time, state} from the query above, or a

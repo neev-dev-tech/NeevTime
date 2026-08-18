@@ -364,3 +364,75 @@ test('punches are fetched as text so the driver cannot reinterpret them', () => 
     assert.match(src, /to_char\(punch_time, 'YYYY-MM-DD HH24:MI:SS'\) AS punch_time/,
         'punch_time is being read as a Date again — lateness and day grouping both break');
 });
+
+// ─────────────────────────── shift-aware scoring ─────────────────────────────
+//
+// The shift module — shifts, assignments, rosters, night flags — existed for
+// months as tables and screens while this engine scored every employee against
+// the single global shift_start. Assigning somebody the 14:00 shift marked
+// them five hours late every day they worked it. These pin the engine to the
+// assignment.
+
+const AFTERNOON = { start_time: '14:00:00', grace_in_minutes: 10, is_night_shift: false, half_day_threshold_hours: null };
+const NIGHT = { start_time: '22:00:00', grace_in_minutes: 15, is_night_shift: true, half_day_threshold_hours: null };
+
+test('an afternoon-shift worker is not late at their own start time', () => {
+    const s = engine.calculateDayStats('T1', WEDNESDAY,
+        [`${WEDNESDAY} 14:05:00`, `${WEDNESDAY} 22:30:00`], RULES, AFTERNOON);
+    assert.strictEqual(s.lateMinutes, 0,
+        'scored against the global 09:00 instead of the assigned 14:00 — five hours late for being on time');
+    assert.strictEqual(s.status, 'Present');
+});
+
+test('an afternoon-shift worker late is late by their own grace', () => {
+    const s = engine.calculateDayStats('T1', WEDNESDAY,
+        [`${WEDNESDAY} 14:25:00`, `${WEDNESDAY} 22:30:00`], RULES, AFTERNOON);
+    // 14:00 start, 10 min grace: 14:25 is 15 minutes past the grace end.
+    assert.strictEqual(s.lateMinutes, 15);
+});
+
+test('a night shift spanning midnight is one worked day, not two broken ones', () => {
+    // Entry 22:00, exit 06:10 next morning — the case that used to split into
+    // an evening with no exit and a dawn with no entry.
+    const nextDay = '2026-07-16';
+    const s = engine.calculateDayStats('T1', WEDNESDAY,
+        [{ time: `${WEDNESDAY} 22:00:00`, state: '0' }, { time: `${nextDay} 06:10:00`, state: '1' }],
+        RULES, NIGHT);
+    assert.strictEqual(s.status, 'Present');
+    assert.strictEqual(s.durationMinutes, 490, 'the worked night is 8h10, not split');
+    assert.strictEqual(s.lateMinutes, 0);
+});
+
+test('arriving after midnight is late against the evening start', () => {
+    const nextDay = '2026-07-16';
+    const s = engine.calculateDayStats('T1', WEDNESDAY,
+        [{ time: `${nextDay} 00:30:00`, state: '0' }, { time: `${nextDay} 06:10:00`, state: '1' }],
+        RULES, NIGHT);
+    // 22:00 start + 15 grace = 22:15; 00:30 is 135 minutes past it.
+    assert.strictEqual(s.lateMinutes, 135,
+        'a post-midnight arrival must be measured from the previous evening, not treated as early');
+});
+
+test('no assignment means exactly the old behaviour', () => {
+    // The invariant that makes this deployable: until a shift is assigned,
+    // nobody's numbers move.
+    const withNull = engine.calculateDayStats('T1', WEDNESDAY,
+        [at(WEDNESDAY, '09:45'), at(WEDNESDAY, '18:00')], RULES, null);
+    const without = engine.calculateDayStats('T1', WEDNESDAY,
+        [at(WEDNESDAY, '09:45'), at(WEDNESDAY, '18:00')], RULES);
+    assert.deepStrictEqual(withNull, without);
+    assert.strictEqual(withNull.lateMinutes, 30);
+});
+
+test('the engine reads assignments and attributes night punches to the shift day', () => {
+    const src = fs.readFileSync(
+        path.join(__dirname, '../services/attendance_engine.js'), 'utf8');
+    assert.match(src, /FROM employee_shifts es/,
+        'processDateRange no longer reads assignments — the shift module is decorative again');
+    assert.match(src, /local\.hour\(\) < 12/,
+        'night punches before noon are no longer attributed to the previous shift day');
+    // The range query must reach past endDate midnight or the last night of
+    // every range loses its exit punch.
+    assert.match(src, /add\(1, 'day'\)\.hour\(12\)/,
+        'the logs query cuts at endDate midnight — the final night of a range splits again');
+});
