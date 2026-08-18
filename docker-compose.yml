@@ -8,7 +8,13 @@ services:
     restart: always
     environment:
       POSTGRES_USER: ${DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-admin}
+      # No default, deliberately.
+      #
+      # This used to fall back to `admin`, published in this repository. An
+      # install that never wrote a .env ran with a password anyone could read,
+      # on a port this file publishes to the host. `?` makes compose refuse to
+      # start rather than start weak — install.sh generates the value.
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env — run ./install.sh}
       POSTGRES_DB: ${DB_NAME:-attendance_db}
     volumes:
       - pgdata:/var/lib/postgresql/data
@@ -60,10 +66,17 @@ services:
       - PORT=3001
       - DB_SERVER=db
       - DB_USER=${DB_USER:-postgres}
-      - DB_PASSWORD=${DB_PASSWORD:-admin}
+      - DB_PASSWORD=${DB_PASSWORD:?set DB_PASSWORD in .env — run ./install.sh}
       - DB_NAME=${DB_NAME:-attendance_db}
       - DB_PORT=5432
-      - JWT_SECRET=${JWT_SECRET:-super_secret_key_123}
+      # No default, deliberately.
+      #
+      # This fell back to a fixed string published in this repository. Sessions
+      # are signed with it, so any install that skipped .env could have an
+      # administrator token minted by anyone holding the source — no password
+      # required. Refusing to start is the correct behaviour; install.sh
+      # generates one.
+      - JWT_SECRET=${JWT_SECRET:?set JWT_SECRET in .env — run ./install.sh}
       # Only read on first boot, and only when no user exists. Leave it unset
       # and the first administrator's password is generated and printed once to
       # this container's log.

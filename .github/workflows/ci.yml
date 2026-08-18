@@ -273,16 +273,46 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build and start the stack
+      - name: Install exactly as a customer does
         run: |
-          # The db volume is declared external so that a missing volume fails
-          # the deploy instead of silently starting an empty database. CI has no
-          # such volume, so it makes one deliberately — which is exactly the
-          # step a genuinely new install performs.
-          docker volume create neevtime_postgres_data
-          docker compose build client server
-          docker compose up -d
+          # ./install.sh IS the documented procedure — docs/INSTALL.md describes
+          # it rather than repeating it. Running the script here means the
+          # instructions a customer follows are executed on a clean machine on
+          # every push, so they cannot drift from what actually works. A runner
+          # is a better test of "fresh install" than any laptop: no volumes, no
+          # .env, no images, nothing left over from a previous attempt.
+          #
+          # ADMIN_PASSWORD is set in this job's env, so install.sh uses it
+          # instead of generating one and the smoke test below has a credential.
+          ./install.sh
           docker compose ps
+
+      - name: The install leaves nothing weak behind
+        run: |
+          # Secrets used to default to values published in this repository, so
+          # an install that skipped .env signed its sessions with a string
+          # anyone could read. These assert the generated file is real.
+          test -f .env || { echo "::error::install.sh did not create .env"; exit 1; }
+          perms=$(stat -c '%a' .env)
+          [ "$perms" = "600" ] || { echo "::error::.env is mode $perms, expected 600"; exit 1; }
+          for key in JWT_SECRET DB_PASSWORD; do
+            value=$(grep "^${key}=" .env | cut -d= -f2-)
+            [ ${#value} -ge 24 ] || { echo "::error::${key} is ${#value} chars — too short to be generated"; exit 1; }
+          done
+          grep -q 'super_secret_key_123' .env && { echo "::error::the published default secret is back"; exit 1; }
+          echo "secrets generated, .env is 600"
+
+      - name: A missing secret stops the stack rather than weakening it
+        run: |
+          # The whole point of removing the defaults. If compose still starts
+          # without JWT_SECRET, an install can silently run with no signing key
+          # of its own.
+          if env -u JWT_SECRET docker compose --env-file /dev/null config >/dev/null 2>&1; then
+            echo "::error::compose accepted a configuration with no JWT_SECRET"
+            exit 1
+          fi
+          echo "compose refuses to start without secrets"
+
 
       - name: Wait for the app to answer
         run: |
