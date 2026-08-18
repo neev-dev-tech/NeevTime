@@ -506,10 +506,6 @@ const schedulingExtRouter = require('./routes/scheduling_extended');
 
 app.use('/api', authRouter);
 app.use('/api', require('./routes/audit'));
-// Contractors: the companies whose people work here and who invoice for it.
-// Behind the same guards as everything else — headcount and hours per agency is
-// commercial information.
-app.use('/api', authenticateToken, require('./routes/contractors'));
 
 // Liveness probe for the container healthcheck and load balancer. Must stay
 // above the authenticateToken-wrapped routers below — their middleware runs
@@ -549,6 +545,16 @@ app.use('/api/ingest', require('./routes/vendor_ingest'));
 // every /api/* path, which would 401 the public portal login).
 const portalRouter = require('./routes/portal');
 app.use('/api/portal', portalRouter);
+// Contractors: the companies whose people work here and who invoice for it.
+// Headcount and hours per agency is commercial information, so it sits behind
+// the same guard as the rest.
+//
+// Mounted HERE, with the other authenticated routers, and not beside the audit
+// route above. `app.use('/api', authenticateToken, ...)` applies that middleware
+// to EVERY /api request that reaches it — not only this router's paths — so
+// higher up it made /api/health return 401 and every container healthcheck
+// failed. The CI stack job caught it; nothing in the unit tests could.
+app.use('/api', authenticateToken, require('./routes/contractors'));
 app.use('/api', authenticateToken, orgRouter);
 app.use('/api', authenticateToken, personnelRouter);
 app.use('/api', authenticateToken, schedulingRouter);

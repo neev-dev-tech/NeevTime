@@ -76,3 +76,14 @@ test('the foreign key has no ON DELETE that would take employees with it', () =>
     assert.ok(!/ON DELETE CASCADE/.test(fk),
         'deleting a contractor would delete employees, and their attendance is payroll evidence');
 });
+
+test('the health endpoint is not behind the contractors guard', () => {
+    // app.use('/api', authenticateToken, router) applies that middleware to
+    // EVERY /api request that reaches it, not only the router's own paths.
+    // Mounting contractors above /api/health made the healthcheck return 401,
+    // so every container reported unhealthy — caught by the CI stack job, and
+    // invisible to every unit test.
+    const src = read('server.js');
+    assert.ok(src.indexOf("app.get('/api/health'") < src.indexOf("require('./routes/contractors')"),
+        'contractors is mounted above /api/health — the healthcheck will 401');
+});
