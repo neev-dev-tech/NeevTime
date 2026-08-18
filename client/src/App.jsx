@@ -14,6 +14,7 @@ import Dashboard from './pages/Dashboard';
 import Logs from './pages/Logs';
 import Employees from './pages/Employees';
 import Contractors from './pages/Contractors';
+import ReportsInsights from './pages/ReportsInsights';
 import Devices from './pages/Devices';
 import Departments from './pages/Departments';
 import Positions from './pages/Positions';
@@ -169,6 +170,7 @@ export default function App() {
                         <Route path="/resign" element={<Resign />} />
                         <Route path="/employees/deleted" element={<DeletedEmployees />} />
                         <Route path="/reports/registers" element={<StatutoryRegisters />} />
+                        <Route path="/reports/insights" element={<ReportsInsights />} />
                         <Route path="/reports/payroll" element={<PayrollExport />} />
                         <Route path="/employee-docs" element={<EmployeeDocs />} />
                         <Route path="/workflow/roles" element={<ApprovalRole />} />

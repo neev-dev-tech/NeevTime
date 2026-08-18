@@ -304,3 +304,23 @@ test('date columns arrive as Date objects, not strings', () => withFixture(
             'every day came back as outside employment, which is the Date-coercion bug');
     }
 ));
+
+test('the insight reports read the stored summary, not their own arithmetic', () => {
+    // Both new reports exist to be compared against payroll. A cross-tab
+    // computed from raw punches would drift from the register the first time
+    // the engine and the report disagreed about a rule, and the sheet in
+    // somebody's hands is the version that gets argued.
+    const fs = require('fs');
+    const path = require('path');
+    const src = fs.readFileSync(path.join(__dirname, '..', 'services/reports.js'), 'utf8');
+
+    for (const fn of ['generateDepartmentMonthly', 'generateTrends']) {
+        const at = src.indexOf(`const ${fn}`);
+        assert.ok(at > -1, `${fn} has gone`);
+        const body = src.slice(at, src.indexOf('};', at));
+        assert.match(body, /FROM (employees e|attendance_daily_summary s)/,
+            `${fn} no longer reads the stored summary`);
+        assert.ok(!/FROM attendance_logs/.test(body),
+            `${fn} recomputes from raw punches — it will disagree with the register`);
+    }
+});

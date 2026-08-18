@@ -153,6 +153,7 @@ export const attendanceSidebar = [
     iconColor: '#059669',
     items: [
       { label: 'Statutory Registers', path: '/reports/registers', icon: FileText, iconColor: '#0F766E' },
+      { label: 'Insights', path: '/reports/insights', icon: TrendingUp, iconColor: '#DB2777' },
       { label: 'Payroll Export', path: '/reports/payroll', icon: Calculator, iconColor: '#B45309' },
       { label: 'All Reports', path: '/reports', icon: BarChart3, iconColor: '#059669' },
       { label: 'Export Center', path: '/export', icon: Download, iconColor: '#2563EB' },

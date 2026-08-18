@@ -192,6 +192,31 @@ router.get('/biometric-summary', async (req, res) => {
 // ==========================================
 
 // Export Daily Attendance as CSV
+/**
+ * Department × month cross-tab. The contractor summary answers "what does this
+ * agency owe"; this answers "which department worked what" — previously done by
+ * exporting the register and pivoting in Excel by hand every month.
+ */
+router.get('/department-monthly', async (req, res) => {
+    try {
+        const now = new Date();
+        const year = parseInt(req.query.year) || now.getFullYear();
+        const month = parseInt(req.query.month) || now.getMonth() + 1;
+        res.json(await reports.generateDepartmentMonthly(year, month));
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+/** Month-by-month lateness/OT/absence lines, shaped for a chart as-is. */
+router.get('/trends', async (req, res) => {
+    try {
+        res.json(await reports.generateTrends(req.query.months));
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 router.get('/daily-attendance/export/csv', async (req, res) => {
     try {
         const { date, department_id, area_id } = req.query;

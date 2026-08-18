@@ -638,6 +638,75 @@ function getFrequentOffenders(data, statusField, statusValue, minCount) {
 /**
  * Convert report data to CSV with proper escaping
  */
+/**
+ * Department × month cross-tab — "which department worked what this month".
+ *
+ * The contractor summary answers this for agencies; departments had no
+ * equivalent, so the question was answered by exporting the register and
+ * pivoting in Excel by hand, monthly, by whoever ran payroll.
+ *
+ * Reads attendance_daily_summary — the same rows the register and payroll use —
+ * so this sheet can never disagree with the figures people are paid on.
+ */
+const generateDepartmentMonthly = async (year, month) => {
+    const ym = `${year}-${String(month).padStart(2, '0')}`;
+    const result = await db.query(`
+        SELECT COALESCE(d.name, 'No department') AS department,
+               count(DISTINCT e.employee_code)   AS employees,
+               count(s.date) FILTER (WHERE s.status IN ('Present','Half Day','Short Day','Miss Punch'))
+                                                 AS days_present,
+               ROUND(COALESCE(SUM(s.duration_minutes), 0) / 60.0, 1) AS hours_worked,
+               COALESCE(SUM(s.ot_minutes), 0)    AS overtime_minutes,
+               COALESCE(SUM(s.late_minutes), 0)  AS late_minutes,
+               count(s.date) FILTER (WHERE s.status = 'Absent') AS days_absent
+          FROM employees e
+          LEFT JOIN departments d ON d.id = e.department_id
+          LEFT JOIN attendance_daily_summary s
+                 ON s.employee_code = e.employee_code
+                AND to_char(s.date, 'YYYY-MM') = $1
+         WHERE LOWER(e.status) IS DISTINCT FROM 'resigned'
+           AND e.attendance_required IS NOT FALSE
+         GROUP BY d.name
+         ORDER BY d.name NULLS LAST
+    `, [ym]);
+
+    return {
+        title: `Department summary — ${ym}`,
+        generated_at: new Date().toISOString(),
+        data: result.rows,
+    };
+};
+
+/**
+ * Month-by-month trends: is lateness growing, is overtime creeping.
+ *
+ * Answerable for as long as attendance_daily_summary reaches back; one row per
+ * month, so the dashboard can draw it as lines without further shaping.
+ */
+const generateTrends = async (months = 6) => {
+    const n = Math.min(Math.max(Number(months) || 6, 1), 24);
+    const result = await db.query(`
+        SELECT to_char(s.date, 'YYYY-MM')                 AS month,
+               count(*) FILTER (WHERE s.status IN ('Present','Half Day','Short Day','Miss Punch'))
+                                                          AS days_present,
+               count(*) FILTER (WHERE s.status = 'Absent') AS days_absent,
+               count(*) FILTER (WHERE s.late_minutes > 0)  AS late_arrivals,
+               COALESCE(SUM(s.late_minutes), 0)            AS late_minutes,
+               ROUND(COALESCE(SUM(s.ot_minutes), 0) / 60.0, 1) AS overtime_hours,
+               ROUND(COALESCE(SUM(s.duration_minutes), 0) / 60.0, 0) AS hours_worked
+          FROM attendance_daily_summary s
+         WHERE s.date >= date_trunc('month', CURRENT_DATE) - ($1 || ' months')::interval
+         GROUP BY 1
+         ORDER BY 1
+    `, [String(n - 1)]);
+
+    return {
+        title: `Attendance trends — last ${n} months`,
+        generated_at: new Date().toISOString(),
+        data: result.rows,
+    };
+};
+
 const toCSV = (reportData) => {
     if (!reportData.data || reportData.data.length === 0) {
         return '';
@@ -797,6 +866,8 @@ module.exports = {
     generateLateEarlyReport,
     generateAbsentReport,
     generateOvertimeReport,
+    generateDepartmentMonthly,
+    generateTrends,
     generateDeviceHealthReport,
     generateBiometricSummary,
     generatePayrollReport,
