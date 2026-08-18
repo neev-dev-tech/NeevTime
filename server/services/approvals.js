@@ -114,17 +114,115 @@ const primaryApprover = async (employeeCode) => {
  * convenience and this is the check. Nobody approves their own request at any
  * level, including an HR user who is also an employee.
  */
-const canApprove = async (approverCode, targetCode) => {
+const canApprove = async (approverCode, targetCode, request = null) => {
     if (!approverCode || !targetCode) return { allowed: false, via: null };
     if (approverCode === targetCode) {
         return { allowed: false, via: null, reason: 'You cannot approve your own request' };
     }
 
+    // A request travelling a flow answers to its current step, nobody else —
+    // except HR, which can always act: a flow whose approver has left must not
+    // trap a request forever, and the override is recorded as what it is.
+    if (request?.flow_id && request?.current_step) {
+        const step = await stepApprovers(request.flow_id, request.current_step, targetCode);
+        const inStep = step.find(a => a.employee_code === approverCode);
+        if (inStep) return { allowed: true, via: `flow-step-${request.current_step}` };
+        const hr = await isHr(approverCode);
+        if (hr) return { allowed: true, via: 'hr-override' };
+        return { allowed: false, via: null,
+            reason: `Waiting on step ${request.current_step} of its approval flow` };
+    }
+
     const approvers = await approversFor(targetCode);
     const match = approvers.find(a => a.employee_code === approverCode);
     if (match) return { allowed: true, via: match.via };
+    // The chain's hr level admits admin users; resolve it for named employees
+    // too so an HR person with an employee record can act from the portal.
+    if (await isHr(approverCode)) return { allowed: true, via: 'hr' };
 
     return { allowed: false, via: null, reason: 'This request is not yours to approve' };
+};
+
+/** Is this employee linked to an admin/HR user account? */
+const isHr = async (employeeCode) => {
+    const r = await db.query(
+        `SELECT 1 FROM users u JOIN employees e ON LOWER(u.username) = LOWER(e.employee_code)
+              OR LOWER(u.email) = LOWER(e.email)
+          WHERE e.employee_code = $1 AND LOWER(u.role) IN ('admin', 'hr') LIMIT 1`,
+        [employeeCode]);
+    return r.rows.length > 0;
+};
+
+/**
+ * Who may act at one step of a flow, resolved from the node's approver type.
+ * Person and Role are the builder's own vocabulary; Manager, Department and HR
+ * borrow the chain's resolvers, so a node can say "their manager" without
+ * naming anyone.
+ */
+const stepApprovers = async (flowId, stepNo, requesterCode) => {
+    const node = await db.query(
+        `SELECT n.approver_type, n.approver_id
+           FROM flow_nodes fs JOIN approval_nodes n ON n.id = fs.node_id
+          WHERE fs.flow_id = $1 AND fs.node_order = $2`, [flowId, stepNo]);
+    if (!node.rows[0]) return [];
+    const { approver_type, approver_id } = node.rows[0];
+    const type = String(approver_type || '').toLowerCase();
+
+    if (type === 'person' && approver_id) {
+        const r = await db.query(
+            `SELECT employee_code, name FROM employees
+              WHERE id = $1 AND LOWER(status) IS DISTINCT FROM 'resigned'`, [approver_id]);
+        return r.rows;
+    }
+    if (type === 'role' && approver_id) {
+        const r = await db.query(
+            `SELECT e.employee_code, e.name FROM approval_role_members m
+               JOIN employees e ON e.id = m.employee_id
+              WHERE m.role_id = $1 AND LOWER(e.status) IS DISTINCT FROM 'resigned'`, [approver_id]);
+        return r.rows;
+    }
+    if (type === 'manager') {
+        const r = await db.query(
+            `SELECT m.employee_code, m.name FROM employees e
+               JOIN employees m ON m.id = e.reporting_manager_id
+              WHERE e.employee_code = $1 AND LOWER(m.status) IS DISTINCT FROM 'resigned'`,
+            [requesterCode]);
+        return r.rows;
+    }
+    if (type === 'department') {
+        const r = await db.query(
+            `SELECT a.employee_code, a.name FROM employees e
+               JOIN department_approvers da ON da.department_id = e.department_id
+               JOIN employees a ON a.id = da.employee_id
+              WHERE e.employee_code = $1 AND LOWER(a.status) IS DISTINCT FROM 'resigned'
+                AND a.employee_code <> e.employee_code`, [requesterCode]);
+        return r.rows;
+    }
+    // 'hr' nodes and anything unresolvable (Position has no mapping to people)
+    // return empty: the hr-override in canApprove is what can act, so the
+    // request is never trapped, and the misconfiguration is visible instead of
+    // silently skipped.
+    return [];
+};
+
+/**
+ * The flow that claims a new request, if any: active today, matching the
+ * request type, scoped to the requester's department when the flow names one.
+ * Department-specific beats company-wide. A flow with no steps claims nothing.
+ */
+const flowFor = async (requesterCode, requestType) => {
+    const r = await db.query(
+        `SELECT f.id, f.department_id,
+                (SELECT count(*) FROM flow_nodes fs WHERE fs.flow_id = f.id)::int AS steps
+           FROM approval_flows f
+           JOIN employees e ON e.employee_code = $1
+          WHERE LOWER(f.request_type) LIKE $2 || '%'
+            AND CURRENT_DATE BETWEEN f.start_date AND f.end_date
+            AND (f.department_id IS NULL OR f.department_id = e.department_id)
+          ORDER BY f.department_id NULLS LAST
+          LIMIT 1`, [requesterCode, String(requestType).toLowerCase().slice(0, 5)]);
+    const flow = r.rows[0];
+    return flow && flow.steps > 0 ? { id: flow.id, steps: flow.steps } : null;
 };
 
 /**
@@ -138,14 +236,26 @@ const canApprove = async (approverCode, targetCode) => {
 const pendingFor = async (approverCode) => {
     const [leaves, regs] = await Promise.all([
         db.query(
-            `SELECT l.id, l.employee_code, e.name AS employee_name, l.leave_type,
-                    l.start_date, l.end_date, l.days, l.reason, l.created_at
-               FROM leaves l JOIN employees e ON e.employee_code = l.employee_code
+            // leave_applications, NOT `leaves`. Both the portal and the admin
+            // screens write leave_applications; the first version of this read
+            // the parallel dead table, so a real application never appeared in
+            // anyone's Approvals tab — and its test passed because the fixture
+            // wrote the dead table directly. Fixtures must go through the same
+            // door the product uses.
+            `SELECT l.id, l.employee_code, e.name AS employee_name,
+                    lt.name AS leave_type,
+                    l.from_date AS start_date, l.to_date AS end_date,
+                    l.total_days AS days, l.reason, l.created_at,
+                    l.flow_id, l.current_step
+               FROM leave_applications l
+               JOIN employees e ON e.employee_code = l.employee_code
+               LEFT JOIN leave_types lt ON lt.id = l.leave_type_id
               WHERE LOWER(l.status) = 'pending'
               ORDER BY l.created_at`),
         db.query(
             `SELECT r.id, r.employee_code, e.name AS employee_name, r.date,
-                    r.requested_in_time, r.requested_out_time, r.reason, r.created_at
+                    r.requested_in_time, r.requested_out_time, r.reason, r.created_at,
+                    r.flow_id, r.current_step
                FROM attendance_regularizations r
                JOIN employees e ON e.employee_code = r.employee_code
               WHERE LOWER(r.status) = 'pending'
@@ -155,8 +265,8 @@ const pendingFor = async (approverCode) => {
     const mine = async (rows, type) => {
         const out = [];
         for (const row of rows) {
-            const { allowed, via } = await canApprove(approverCode, row.employee_code);
-            if (allowed) out.push({ ...row, type, via });
+            const { allowed, via } = await canApprove(approverCode, row.employee_code, row);
+            if (allowed) out.push({ ...row, type, via, step: row.current_step || null });
         }
         return out;
     };
@@ -183,5 +293,6 @@ const isApprover = async (employeeCode) => {
 };
 
 module.exports = {
-    chain, approversFor, primaryApprover, canApprove, pendingFor, isApprover, DEFAULT_CHAIN,
+    chain, approversFor, primaryApprover, canApprove, pendingFor, isApprover,
+    flowFor, stepApprovers, isHr, DEFAULT_CHAIN,
 };

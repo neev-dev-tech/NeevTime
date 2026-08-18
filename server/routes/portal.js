@@ -852,7 +852,10 @@ router.get('/approvals', async (req, res) => {
             approvals.pendingFor(req.employee_code),
             approvals.isApprover(req.employee_code),
         ]);
-        res.json({ ...pending, is_approver: approver });
+        // A Person- or Role-node approver may be neither a manager nor a
+        // department approver; if anything waits on them, the tab must show.
+        const hasWork = pending.leaves.length + pending.regularizations.length > 0;
+        res.json({ ...pending, is_approver: approver || hasWork });
     } catch (err) {
         console.error('Portal approvals error:', err.message);
         res.status(500).json({ error: 'Server error' });
@@ -876,11 +879,11 @@ router.post('/approvals/:type/:id', async (req, res) => {
         return res.status(400).json({ error: 'decision must be approved or rejected' });
     }
 
-    const table = type === 'leave' ? 'leaves' : 'attendance_regularizations';
+    const table = type === 'leave' ? 'leave_applications' : 'attendance_regularizations';
 
     try {
         const existing = await db.query(
-            `SELECT employee_code, status FROM ${table} WHERE id = $1`, [id]);
+            `SELECT employee_code, status, flow_id, current_step FROM ${table} WHERE id = $1`, [id]);
         if (!existing.rows[0]) return res.status(404).json({ error: 'Request not found' });
 
         // Already decided is a conflict, not a silent overwrite. Two approvers
@@ -894,16 +897,42 @@ router.post('/approvals/:type/:id', async (req, res) => {
 
         const approvals = require('../services/approvals');
         const { allowed, via, reason } = await approvals.canApprove(
-            req.employee_code, existing.rows[0].employee_code);
+            req.employee_code, existing.rows[0].employee_code, existing.rows[0]);
         if (!allowed) return res.status(403).json({ error: reason || 'Not yours to approve' });
 
         // approved_via records the level that authorised it. Chains change, and
         // six months on "were they allowed to approve this" cannot be answered
         // by re-running today's chain against a decision made under a different
         // one.
+        // Every step's decision is recorded, not only the final one — "who
+        // signed off at level 1" is exactly what a dispute asks of a two-step
+        // flow.
+        const row = existing.rows[0];
+        await db.query(
+            `INSERT INTO approval_actions (request_type, request_id, step_no, decided_by, decision, comment)
+             VALUES ($1, $2, $3, $4, $5, $6)`,
+            [type, id, row.current_step || 1, req.employee_code, decision, comment || null]);
+
+        // An approval mid-flow advances the request rather than settling it.
+        // A rejection settles it at any step: two more levels of yes cannot
+        // outvote one considered no.
+        if (decision === 'approved' && row.flow_id && row.current_step) {
+            const steps = await db.query(
+                'SELECT count(*)::int AS n FROM flow_nodes WHERE flow_id = $1',
+                [row.flow_id]);
+            if (row.current_step < steps.rows[0].n) {
+                await db.query(
+                    `UPDATE ${table} SET current_step = current_step + 1 WHERE id = $1`, [id]);
+                return res.json({
+                    success: true, decision: 'advanced',
+                    step: row.current_step + 1, of: steps.rows[0].n, via,
+                });
+            }
+        }
+
         if (type === 'leave') {
             await db.query(
-                `UPDATE leaves SET status = $1, approved_at = NOW(),
+                `UPDATE leave_applications SET status = $1, approved_at = NOW(),
                         approved_via = $2, approver_employee_code = $3
                   WHERE id = $4`,
                 [decision, via, req.employee_code, id]);
@@ -999,11 +1028,17 @@ router.post('/leave', async (req, res) => {
             return res.status(400).json({ error: 'Unknown leave type' });
         }
 
+        // If an approval flow claims this request, it starts at step 1 and
+        // is answerable to that flow's nodes; otherwise the single-level chain
+        // applies, as before flows existed.
+        const flow = await require('../services/approvals').flowFor(req.employee_code, 'leave');
+
         const result = await db.query(
             `INSERT INTO leave_applications
-                (employee_code, leave_type_id, from_date, to_date, is_half_day, half_day_type, total_days, reason)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
-            [req.employee_code, leave_type_id, from_date, to_date, is_half_day || false, half_day_type || null, days, reason || null]
+                (employee_code, leave_type_id, from_date, to_date, is_half_day, half_day_type, total_days, reason, flow_id, current_step)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+            [req.employee_code, leave_type_id, from_date, to_date, is_half_day || false, half_day_type || null, days, reason || null,
+             flow?.id ?? null, flow ? 1 : null]
         );
         res.json(result.rows[0]);
     } catch (err) {
@@ -1052,11 +1087,13 @@ router.post('/regularizations', async (req, res) => {
             return res.status(400).json({ error: 'A pending request already exists for this date' });
         }
 
+        const flow = await require('../services/approvals').flowFor(req.employee_code, 'regularization');
         const result = await db.query(
             `INSERT INTO attendance_regularizations
-                (employee_code, date, requested_in_time, requested_out_time, reason)
-             VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-            [req.employee_code, date, requested_in_time || null, requested_out_time || null, reason]
+                (employee_code, date, requested_in_time, requested_out_time, reason, flow_id, current_step)
+             VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+            [req.employee_code, date, requested_in_time || null, requested_out_time || null, reason,
+             flow?.id ?? null, flow ? 1 : null]
         );
         res.json(result.rows[0]);
     } catch (err) {

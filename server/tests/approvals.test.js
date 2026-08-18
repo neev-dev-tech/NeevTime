@@ -98,3 +98,41 @@ test('HR stays available so a request always reaches someone', () => {
     assert.match(src, /DEFAULT_CHAIN = 'manager,department,hr'/,
         'the default chain does not end with hr — requests can reach nobody');
 });
+
+// ───────────────────────── the workflow builder, enabled ─────────────────────
+
+test('the flow runtime reads the tables the builder writes', () => {
+    // The builder was more complete than it looked: flow_nodes stored ordered
+    // steps and the Flow page edited them — the server had been persisting
+    // them all along. What never existed was a runtime reading any of it. The
+    // first draft added a duplicate steps table before finding flow_nodes;
+    // this pins the runtime to the builder's own storage.
+    const src = read('services/approvals.js');
+    assert.match(src, /FROM flow_nodes fs/, 'the runtime reads a table the Flow page does not write');
+    assert.ok(!/approval_flow_steps/.test(src), 'the duplicate steps table is back');
+    assert.match(src, /const flowFor = async/, 'nothing attaches a flow to new requests');
+});
+
+test('a request in a flow answers to its current step, and cannot be trapped', () => {
+    const src = read('services/approvals.js');
+    assert.match(src, /Waiting on step/, 'off-step approvers are refused silently instead of being told why');
+    assert.match(src, /hr-override/,
+        'a flow whose approver has left traps the request forever — HR must be able to act, visibly');
+    const portal = read('routes/portal.js');
+    assert.match(portal, /current_step = current_step \+ 1/, 'approval mid-flow settles instead of advancing');
+    assert.match(portal, /INSERT INTO approval_actions/,
+        'per-step decisions are not recorded — a two-step flow loses its first signature');
+});
+
+test('the approvals service reads the table applications actually live in', () => {
+    // The first version read `leaves`, a parallel dead table, so a real portal
+    // application never appeared in anyone's Approvals tab — and its own test
+    // passed because the fixture wrote the dead table directly. Fixtures must
+    // use the door the product uses.
+    const src = read('services/approvals.js');
+    assert.match(src, /FROM leave_applications l/, 'pending approvals read the dead leaves table again');
+    assert.ok(!/FROM leaves l JOIN/.test(src), 'the dead table is back in the pending query');
+    const portal = read('routes/portal.js');
+    assert.match(portal, /'leave_applications' : 'attendance_regularizations'/,
+        'decisions write the dead table again');
+});

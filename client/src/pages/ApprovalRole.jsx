@@ -16,6 +16,10 @@ export default function ApprovalRole() {
     const [showModal, setShowModal] = useState(null); // 'add' | 'edit' | 'assign'
     const [editItem, setEditItem] = useState(null);
     const [formData, setFormData] = useState({ role_code: '', role_name: '', description: '' });
+    // A role IS its members; a role with none approves nothing. The employee
+    // list is already loaded above for other selects; only the chosen ids are
+    // new state, loaded when an edit opens and saved with the form.
+    const [memberIds, setMemberIds] = useState([]);
     const [selectedIds, setSelectedIds] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
@@ -62,8 +66,10 @@ export default function ApprovalRole() {
         try {
             if (editItem) {
                 await api.put(`/api/approval/roles/${editItem.id}`, formData);
+                await api.put(`/api/approval/roles/${editItem.id}/members`, { employee_ids: memberIds });
             } else {
-                await api.post('/api/approval/roles', formData);
+                const created = await api.post('/api/approval/roles', formData);
+                if (created.data?.id) await api.put(`/api/approval/roles/${created.data.id}/members`, { employee_ids: memberIds });
             }
             setFormData({ role_code: '', role_name: '', description: '' });
             setShowModal(null);
@@ -76,6 +82,10 @@ export default function ApprovalRole() {
 
     const handleEdit = (role) => {
         setEditItem(role);
+        setMemberIds([]);
+        api.get(`/api/approval/roles/${role.id}/members`)
+            .then(r => setMemberIds(r.data.map(m => m.employee_id)))
+            .catch(() => {});
         setFormData({
             role_code: role.role_code || '',
             role_name: role.role_name || role.name || '',
@@ -285,6 +295,15 @@ export default function ApprovalRole() {
                             </div>
                             <div className="flex items-start gap-3">
                                 <label className="w-28 text-right text-slate-grey dark:text-slate-400 text-sm font-medium pt-2">Description:</label>
+                                <label className="text-slate-grey dark:text-slate-400 text-sm font-medium">Members</label>
+                                <select multiple size={6} className="input-base"
+                                        value={memberIds.map(String)}
+                                        onChange={e => setMemberIds([...e.target.selectedOptions].map(o => Number(o.value)))}>
+                                    {employees.map(emp => (
+                                        <option key={emp.id} value={emp.id}>{emp.employee_code} — {emp.name}</option>
+                                    ))}
+                                </select>
+                                <p className="text-xs text-slate-400">Hold Ctrl/Cmd to pick several. These people approve wherever a flow step names this role.</p>
                                 <textarea value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })}
                                     className="flex-1 input-base py-2 text-sm resize-none" rows={3} />
                             </div>

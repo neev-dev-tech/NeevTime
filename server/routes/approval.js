@@ -72,7 +72,17 @@ router.delete('/approval/roles/:id', async (req, res) => {
 router.get('/approval/flows', async (req, res) => {
     try {
         const result = await db.query(`
-                SELECT f.*, d.name as department_name
+                SELECT f.*, d.name as department_name,
+                       COALESCE((
+                           SELECT json_agg(json_build_object(
+                                      'node_id', fn.node_id,
+                                      'node_name', n.node_name,
+                                      'node_order', fn.node_order)
+                                  ORDER BY fn.node_order)
+                             FROM flow_nodes fn
+                             JOIN approval_nodes n ON n.id = fn.node_id
+                            WHERE fn.flow_id = f.id
+                       ), '[]'::json) AS nodes
                 FROM approval_flows f
                 LEFT JOIN departments d ON f.department_id = d.id
                 ORDER BY f.id
@@ -210,6 +220,36 @@ router.delete('/approval/nodes/:id', async (req, res) => {
         console.error(err);
         res.status(500).json({ error: err.message });
     }
+});
+
+/**
+ * The people in a role. A role with no members resolves to nobody, which the
+ * hr-override rescues at decision time — but the point of a role is its
+ * members, and until now there was no way to have any.
+ */
+router.get('/approval/roles/:id/members', async (req, res) => {
+    try {
+        const r = await db.query(
+            `SELECT m.employee_id, e.employee_code, e.name FROM approval_role_members m
+               JOIN employees e ON e.id = m.employee_id WHERE m.role_id = $1 ORDER BY e.name`,
+            [req.params.id]);
+        res.json(r.rows);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.put('/approval/roles/:id/members', async (req, res) => {
+    const ids = Array.isArray(req.body?.employee_ids)
+        ? req.body.employee_ids.map(Number).filter(Number.isInteger) : null;
+    if (!ids) return res.status(400).json({ error: 'employee_ids is required' });
+    try {
+        await db.query('DELETE FROM approval_role_members WHERE role_id = $1', [req.params.id]);
+        for (const id of ids) {
+            await db.query(
+                `INSERT INTO approval_role_members (role_id, employee_id)
+                 VALUES ($1, $2) ON CONFLICT DO NOTHING`, [req.params.id, id]);
+        }
+        res.json({ success: true, members: ids.length });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 module.exports = router;

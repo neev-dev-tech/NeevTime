@@ -126,7 +126,11 @@ export default function ApprovalNode() {
         }
     };
 
-    const approverTypes = ['Person', 'Role', 'Position'];
+    // Manager, Department and HR resolve from the request itself — the
+    // requester's own manager, their department's approvers, any HR user — so
+    // they need no id here. Position remains listed for old data but resolves
+    // to nobody at decision time; the hr-override is what can act on it.
+    const approverTypes = ['Person', 'Role', 'Manager', 'Department', 'HR', 'Position'];
     const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
     const paginatedItems = filteredItems.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
@@ -304,7 +308,9 @@ export default function ApprovalNode() {
                                     {approverTypes.map(t => <option key={t} value={t}>{t}</option>)}
                                 </select>
                             </div>
-                            {formData.approver_type && (
+                            {/* Manager / Department / HR name nobody: they
+                                resolve from whoever the request is about. */}
+                            {['Person', 'Role', 'Position'].includes(formData.approver_type) && (
                                 <div className="flex flex-col gap-1.5">
                                     <label className="text-slate-grey dark:text-slate-400 text-sm font-medium">Approver<span className="text-red-500">*</span></label>
                                     <select value={formData.approver_id} onChange={e => setFormData({ ...formData, approver_id: e.target.value })}

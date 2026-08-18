@@ -51,6 +51,15 @@ const declaredColumns = () => {
         }
     }
 
+    // A single ALTER can chain several ADD COLUMNs — the migrations do — and
+    // matching only the first hid every later column, flagging real ones as
+    // missing. Parse the whole statement, then every ADD COLUMN inside it.
+    for (const stmt of all.matchAll(/ALTER TABLE\s+([a-z_][a-z0-9_]*)([^;]*);/gi)) {
+        const t = stmt[1].toLowerCase();
+        for (const col of stmt[2].matchAll(/ADD COLUMN(?:\s+IF NOT EXISTS)?\s+([a-z_][a-z0-9_]*)/gi)) {
+            (tables[t] ||= new Set()).add(col[1].toLowerCase());
+        }
+    }
     for (const m of all.matchAll(/ALTER TABLE\s+([a-z_][a-z0-9_]*)\s+ADD COLUMN(?:\s+IF NOT EXISTS)?\s+([a-z_][a-z0-9_]*)/gi)) {
         const table = m[1].toLowerCase();
         tables[table] = tables[table] || new Set();
