@@ -275,6 +275,36 @@ if (!DBNAME) {
             'an edit to a punch was swallowed with the sync bookkeeping');
     });
 
+    test('changing a setting is recorded, with who changed it', async () => {
+        // 003 attached a trigger to `settings`. No such table exists in this
+        // codebase — it is app_settings — and the attach loop skips tables that
+        // are not present, so the migration reported success and every settings
+        // change went unrecorded.
+        //
+        // The worst table to miss. Shift start, grace period, overtime
+        // threshold and the timezone all live there, and moving shift start by
+        // fifteen minutes re-scores every day the engine recomputes. That is a
+        // change to what a workforce is paid.
+        const existing = await db.query('SELECT category, setting_key FROM app_settings LIMIT 1');
+        if (!existing.rows[0]) return;   // nothing seeded on this database
+
+        const { category, setting_key } = existing.rows[0];
+        const count = async () => (await db.query(
+            "SELECT count(*)::int AS n FROM audit_logs WHERE table_name = 'app_settings'")).rows[0].n;
+
+        const start = await count();
+        await db.withActor(11, () => db.query(
+            'UPDATE app_settings SET setting_value = $1 WHERE category = $2 AND setting_key = $3',
+            ['ZZ-probe', category, setting_key]));
+
+        assert.strictEqual(await count(), start + 1, 'a settings change was not recorded');
+        const row = await db.query(
+            `SELECT user_id, new_data->>'setting_value' AS value FROM audit_logs
+              WHERE table_name = 'app_settings' ORDER BY id DESC LIMIT 1`);
+        assert.strictEqual(row.rows[0].user_id, 11, 'the settings change has no actor');
+        assert.strictEqual(row.rows[0].value, 'ZZ-probe');
+    });
+
     test.after(async () => { await db.pool.end(); });
 }
 
@@ -306,4 +336,20 @@ test('the migration creates the table it writes to', () => {
     // audit trail without it.
     assert.match(sql, /ADD COLUMN IF NOT EXISTS new_data/,
         'an older audit_logs of a different shape is not brought up to date');
+});
+
+test('the audited tables are tables that exist', () => {
+    // A trigger was attached to `settings`, which has never existed here — the
+    // real table is app_settings. The attach loop skips what is not present,
+    // correctly, so the mistake reported success and hid for a day.
+    const fs = require('node:fs');
+    const path = require('node:path');
+    const dir = path.join(__dirname, '../migrations');
+    const sql = fs.readdirSync(dir).filter(f => f.endsWith('.sql'))
+        .map(f => fs.readFileSync(path.join(dir, f), 'utf8')).join('\n');
+
+    assert.match(sql, /\('app_settings',/,
+        'nothing audits app_settings — settings changes re-score payroll silently');
+    assert.match(sql, /\('geofences',/,
+        'nothing audits geofences — widening one is how a punch comes from home');
 });
