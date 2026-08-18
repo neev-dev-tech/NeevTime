@@ -4,6 +4,7 @@ import { Fingerprint, LogIn, Building2, KeyRound, ArrowLeft } from 'lucide-react
 import api from '../../api';
 import useStore from '../../store/useStore';
 import { Button } from '../../components';
+import useTilt from '../../hooks/useTilt';
 
 /**
  * Employee sign-in.
@@ -28,6 +29,7 @@ export default function PortalLogin() {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
     const { setAuth } = useStore();
+    const tilt = useTilt(2);
 
     const finish = (token, user) => {
         localStorage.setItem('token', token);
@@ -152,7 +154,10 @@ export default function PortalLogin() {
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 via-white to-amber-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 p-4">
-            <div className="w-full max-w-sm bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-orange-100 dark:border-slate-700 p-8">
+            {/* Arrives from depth and leans gently toward the cursor — the
+                one place a flourish earns its keep, since sign-in is the first
+                thing anyone sees. Touch and reduced-motion get a plain card. */}
+            <div {...tilt} className="tilt-3d depth-in w-full max-w-sm bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-orange-100 dark:border-slate-700 p-8">
                 <div className="flex flex-col items-center mb-6">
                     <div className="p-3 bg-orange-100 dark:bg-orange-900/30 rounded-2xl text-orange-600 dark:text-orange-300 mb-3">
                         <Fingerprint size={28} />

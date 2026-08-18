@@ -86,7 +86,7 @@ export default function Login({ setAuth }) {
 
             {/* Right Panel - Login Form */}
             <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-white dark:bg-slate-800">
-                <div className="w-full max-w-md">
+                <div className="w-full max-w-md depth-in">
                     {/* Logo */}
                     <div className="text-center mb-8">
                         <div className="mb-4 flex justify-center">

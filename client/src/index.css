@@ -3700,3 +3700,48 @@ code, kbd, samp, .font-mono, .employee-code, .device-serial {
     color: #64748B;
   }
 }
+
+/* ── Depth: the 3D layer ─────────────────────────────────────────────────────
+   Perspective tilt (via useTilt) plus entrance depth. Deliberately shallow:
+   a payroll tool earns trust through restraint, and the portal runs on
+   low-end phones — so everything here is transform-only (compositor work,
+   no layout), capped in angle, and absent under reduced motion. */
+
+.tilt-3d {
+    will-change: transform;
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+                box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    transform-style: preserve-3d;
+}
+.tilt-3d:hover {
+    box-shadow:
+        0 2px 4px rgba(0, 0, 0, 0.06),
+        0 16px 40px rgba(0, 0, 0, 0.12);
+}
+/* Children float slightly above the tilting plane, which is what sells it. */
+.tilt-3d .tilt-raise {
+    transform: translateZ(18px);
+}
+
+/* Cards arrive from depth rather than appearing. Once, subtly. */
+@keyframes depth-in {
+    from { opacity: 0; transform: perspective(900px) rotateX(5deg) translateY(10px); }
+    to   { opacity: 1; transform: perspective(900px) rotateX(0deg) translateY(0); }
+}
+.depth-in {
+    animation: depth-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Pressed state with real displacement — buttons sink, not just recolor. */
+.press-3d:active {
+    transform: translateY(1px) scale(0.985);
+    transition-duration: 0.06s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tilt-3d, .depth-in, .press-3d:active {
+        animation: none;
+        transition: none;
+        transform: none !important;
+    }
+}

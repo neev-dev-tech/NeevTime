@@ -13,6 +13,7 @@ import { formatTimeShort, toLocalDateString } from '../utils/dateFormat';
 import { useTheme } from '../components/Theme';
 import HeroStat from '../components/HeroStat';
 import useReveal from '../hooks/useReveal';
+import useTilt from '../hooks/useTilt';
 import DonutCard from '../components/DonutCard';
 import { categoricalPalette } from '../utils/chartPalette';
 
@@ -466,11 +467,15 @@ export default function Dashboard() {
     const StatCard = ({ icon: Icon, label, value, subtitle, tooltip, trend, tone = 'neutral' }) => {
         const t = TONES[tone] || TONES.neutral;
         const revealRef = useReveal();
+        // Pointer-tracked tilt replaces the old flat hover-lift: the card
+        // leans toward the cursor. The hook refuses touch and reduced-motion,
+        // so phones and accessibility settings see a plain card.
+        const tilt = useTilt(3);
         return (
-            <div ref={revealRef} className="group relative overflow-hidden rounded-xl !p-3 flex items-center gap-3
+            <div ref={revealRef} {...tilt} className="tilt-3d group relative overflow-hidden rounded-xl !p-3 flex items-center gap-3
                             bg-white/70 dark:bg-slate-800/60 backdrop-blur-xl
                             shadow-sm ring-1 ring-slate-900/[0.06] dark:ring-white/[0.07]
-                            hover:-translate-y-0.5 hover:shadow-lg transition-ui duration-300">
+                            transition-ui duration-300">
                 {/* A hairline that lights up on hover, so the row still has
                     motion without every tile carrying a permanent colour. */}
                 <span
