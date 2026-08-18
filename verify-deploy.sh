@@ -233,6 +233,31 @@ else
     ok "no pending migrations"
 fi
 
+# ── 3d. Is the audit trail recording decisions, or machine noise? ────────
+head_ "3d. Audit trail"
+# Three separate machine writers filled this table before anyone looked: reader
+# heartbeats, the recompute after every punch, and the HRMS sync marking punches
+# delivered. Each was found by eye, days apart. A trail nobody reads because it
+# is thirty thousand recalculations is worse than no trail, since it is still
+# there to be pointed at — so the fourth source should announce itself here
+# rather than wait to be spotted.
+#
+# The signal is unattributed rows: a person's change carries a user_id, a
+# machine's does not. A handful is normal (a device coming online, a genuine
+# scripted correction). Hundreds in an hour is a writer nobody has excluded yet.
+if psql_q "SELECT 1 FROM information_schema.tables WHERE table_name = 'audit_logs'" | grep -q 1; then
+    noise=$(psql_q "SELECT count(*) FROM audit_logs WHERE user_id IS NULL AND created_at > NOW() - INTERVAL '1 hour'")
+    total=$(psql_q "SELECT count(*) FROM audit_logs WHERE created_at > NOW() - INTERVAL '1 hour'")
+    if [ "${noise:-0}" -gt 200 ]; then
+        note "$noise of $total audit rows in the last hour have no actor — something automatic is writing to the trail.
+        Find it:  docker exec $DB_CONTAINER psql -U $DB_USER -d $DB_NAME -c \"SELECT table_name, count(*) FROM audit_logs WHERE user_id IS NULL AND created_at > NOW() - INTERVAL '1 hour' GROUP BY 1 ORDER BY 2 DESC\""
+    else
+        ok "audit trail recording (${total:-0} rows in the last hour, ${noise:-0} unattributed)"
+    fi
+else
+    note "audit_logs does not exist — run: docker compose exec server node migrations/runner.js up"
+fi
+
 # ── 4. Is attendance still being collected? ───────────────────────────────
 # The checks above can all pass on an app that has quietly stopped doing the
 # one thing it exists for.

@@ -248,6 +248,33 @@ if (!DBNAME) {
         assert.strictEqual(row.rows[0].user_id, 42);
     });
 
+    test('delivering a punch to the HR system is not an edit to it', async () => {
+        // Third machine writer found the same way as the other two: by looking
+        // at the table. The ERPNext sync marks each punch sync_status='synced'
+        // one row at a time — ~900 a day, none of them a decision.
+        const c = code();
+        await db.query('INSERT INTO employees (employee_code, name) VALUES ($1, $2)', [c, 'Synced']);
+        const punch = await db.query(
+            `INSERT INTO attendance_logs (employee_code, punch_time, punch_type)
+             VALUES ($1, now(), 'IN') RETURNING id`, [c]);
+        const id = punch.rows[0].id;
+
+        const count = async () => (await db.query(
+            'SELECT count(*)::int AS n FROM audit_logs WHERE table_name = $1 AND record_id = $2',
+            ['attendance_logs', id])).rows[0].n;
+
+        const start = await count();
+        await db.query("UPDATE attendance_logs SET sync_status = 'synced' WHERE id = $1", [id]);
+        assert.strictEqual(await count(), start, 'marking a punch as synced was recorded as an edit');
+
+        // The columns a dispute turns on are untouched by the sync, so a real
+        // edit still differs somewhere off the housekeeping list.
+        await db.withActor(5, () => db.query(
+            "UPDATE attendance_logs SET punch_type = 'OUT', sync_status = 'pending' WHERE id = $1", [id]));
+        assert.strictEqual(await count(), start + 1,
+            'an edit to a punch was swallowed with the sync bookkeeping');
+    });
+
     test.after(async () => { await db.pool.end(); });
 }
 
