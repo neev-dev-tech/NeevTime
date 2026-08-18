@@ -555,6 +555,10 @@ app.use('/api/portal', portalRouter);
 // higher up it made /api/health return 401 and every container healthcheck
 // failed. The CI stack job caught it; nothing in the unit tests could.
 app.use('/api', authenticateToken, require('./routes/contractors'));
+// Department approvers. Mounted here for the same reason as contractors above:
+// `app.use('/api', authenticateToken, ...)` guards every /api request that
+// reaches it, so anything above /api/health takes the healthcheck down with it.
+app.use('/api', authenticateToken, require('./routes/approvers'));
 app.use('/api', authenticateToken, orgRouter);
 app.use('/api', authenticateToken, personnelRouter);
 app.use('/api', authenticateToken, schedulingRouter);
@@ -1068,7 +1072,8 @@ app.put('/api/employees/:id', async (req, res) => {
         const {
             employee_code, name, department_id, designation, card_number, password, area_id,
             gender, dob, joining_date, mobile, email, address, status, employment_type,
-            attendance_required, exclude_from_hrms, directory_email, contractor_id
+            attendance_required, exclude_from_hrms, directory_email, contractor_id,
+            reporting_manager_id
         } = req.body;
 
         // Convert empty strings to null for integer and date fields
@@ -1095,8 +1100,12 @@ app.put('/api/employees/:id', async (req, res) => {
             -- the two above: this route writes every column it names, and a
             -- caller that does not send it would otherwise unbill somebody by
             -- saving an unrelated edit.
-            contractor_id = COALESCE($19, contractor_id)
-            WHERE id = $20
+            contractor_id = COALESCE($19, contractor_id),
+            -- Who approves this person's leave. COALESCE for the same reason as
+            -- the columns above: an unrelated save must not quietly detach
+            -- somebody from their manager and reroute their requests.
+            reporting_manager_id = COALESCE($20, reporting_manager_id)
+            WHERE id = $21
             RETURNING *
         `, [
             employee_code, name, safeInt(department_id), designation, card_number, password, safeInt(area_id),
@@ -1106,6 +1115,8 @@ app.put('/api/employees/:id', async (req, res) => {
             directory_email === undefined || directory_email === null
                 ? null : String(directory_email).trim().toLowerCase() || null,
             contractor_id === undefined || contractor_id === '' ? null : Number(contractor_id) || null,
+            reporting_manager_id === undefined || reporting_manager_id === ''
+                ? null : Number(reporting_manager_id) || null,
             id
         ]);
 

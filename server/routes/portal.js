@@ -838,6 +838,91 @@ router.get('/attendance/export', async (req, res) => {
     }
 });
 
+/**
+ * What is waiting on me to approve.
+ *
+ * An employee who approves for nobody gets an empty list and the portal hides
+ * the tab — rather than a screen that exists to say "nothing here", which
+ * teaches people to stop opening it.
+ */
+router.get('/approvals', async (req, res) => {
+    try {
+        const approvals = require('../services/approvals');
+        const [pending, approver] = await Promise.all([
+            approvals.pendingFor(req.employee_code),
+            approvals.isApprover(req.employee_code),
+        ]);
+        res.json({ ...pending, is_approver: approver });
+    } catch (err) {
+        console.error('Portal approvals error:', err.message);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+/**
+ * Approve or reject one request.
+ *
+ * The permission is checked here, on this request, not inherited from the fact
+ * that the list showed it. A list is a convenience; anyone can post an id.
+ */
+router.post('/approvals/:type/:id', async (req, res) => {
+    const { type, id } = req.params;
+    const { decision, comment } = req.body || {};
+
+    if (!['leave', 'regularization'].includes(type)) {
+        return res.status(400).json({ error: 'Unknown request type' });
+    }
+    if (!['approved', 'rejected'].includes(decision)) {
+        return res.status(400).json({ error: 'decision must be approved or rejected' });
+    }
+
+    const table = type === 'leave' ? 'leaves' : 'attendance_regularizations';
+
+    try {
+        const existing = await db.query(
+            `SELECT employee_code, status FROM ${table} WHERE id = $1`, [id]);
+        if (!existing.rows[0]) return res.status(404).json({ error: 'Request not found' });
+
+        // Already decided is a conflict, not a silent overwrite. Two approvers
+        // opening the same queue is normal, and the second one should be told
+        // rather than quietly reversing the first.
+        if (String(existing.rows[0].status).toLowerCase() !== 'pending') {
+            return res.status(409).json({
+                error: `That request has already been ${existing.rows[0].status}`,
+            });
+        }
+
+        const approvals = require('../services/approvals');
+        const { allowed, via, reason } = await approvals.canApprove(
+            req.employee_code, existing.rows[0].employee_code);
+        if (!allowed) return res.status(403).json({ error: reason || 'Not yours to approve' });
+
+        // approved_via records the level that authorised it. Chains change, and
+        // six months on "were they allowed to approve this" cannot be answered
+        // by re-running today's chain against a decision made under a different
+        // one.
+        if (type === 'leave') {
+            await db.query(
+                `UPDATE leaves SET status = $1, approved_at = NOW(),
+                        approved_via = $2, approver_employee_code = $3
+                  WHERE id = $4`,
+                [decision, via, req.employee_code, id]);
+        } else {
+            await db.query(
+                `UPDATE attendance_regularizations
+                    SET status = $1, reviewed_at = NOW(), review_comment = $2,
+                        approved_via = $3, approver_employee_code = $4, reviewed_by = $4
+                  WHERE id = $5`,
+                [decision, comment || null, via, req.employee_code, id]);
+        }
+
+        res.json({ success: true, decision, via });
+    } catch (err) {
+        console.error('Portal approval decision error:', err.message);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 // ==========================================
 // MY ATTENDANCE
 // ==========================================

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Calendar, Clock, LogOut, User, Briefcase, CheckCircle, XCircle,
-    Plus, Send, Fingerprint, AlertCircle, RefreshCw, Inbox, Download, CalendarDays
+    Plus, Send, Fingerprint, AlertCircle, RefreshCw, Inbox, Download, CalendarDays, CheckSquare
 } from 'lucide-react';
 import api from '../../api';
 import PunchCard from './PunchCard';
@@ -22,6 +22,8 @@ const TABS = [
     { id: 'requests', label: 'Requests', icon: Send },
     // The two questions HR is asked most often, and the system already knows
     // both answers.
+    // Shown only to people who approve for somebody — see the filter below.
+    { id: 'approvals', label: 'Approvals', icon: CheckSquare },
     { id: 'schedule', label: 'Shift & Holidays', icon: CalendarDays },
     { id: 'profile', label: 'My Profile', icon: User }
 ];
@@ -62,6 +64,8 @@ export default function EmployeePortal() {
     const { auth, logout } = useStore();
     const [tab, setTab] = useState('attendance');
     const [schedule, setSchedule] = useState(null);
+    const [approvals, setApprovals] = useState(null);
+    const [deciding, setDeciding] = useState(null);
     // Distinct from `profile` above, which holds the small /me payload used by
     // the header. This is the full record for the My Profile tab.
     const [profileDetail, setProfileDetail] = useState(null);
@@ -74,6 +78,35 @@ export default function EmployeePortal() {
      * anchor sends no Authorization header, and this route is authenticated
      * because it is somebody's attendance record.
      */
+    const loadApprovals = async () => {
+        try {
+            const res = await api.get('/api/portal/approvals');
+            setApprovals(res.data);
+        } catch {
+            setApprovals({ leaves: [], regularizations: [], is_approver: false });
+        }
+    };
+
+    // Fetched once on load, not only when the tab opens: the tab itself is
+    // hidden for the many employees who approve for nobody, and a tab that
+    // exists to say "nothing here" teaches people to stop opening it.
+    useEffect(() => { loadApprovals(); }, []);
+
+    const decide = async (item, decision) => {
+        setDeciding(item.type + item.id);
+        try {
+            await api.post(`/api/portal/approvals/${item.type}/${item.id}`, { decision });
+            await loadApprovals();
+        } catch (err) {
+            // 409 means somebody else got there first, which is normal when two
+            // approvers share a queue and worth saying rather than swallowing.
+            alert(err.response?.data?.error || 'Could not record that decision');
+            await loadApprovals();
+        } finally {
+            setDeciding(null);
+        }
+    };
+
     const downloadMonth = async () => {
         setDownloading(true);
         try {
@@ -141,6 +174,7 @@ export default function EmployeePortal() {
 
     useEffect(() => {
         if (tab === 'requests') fetchRegularizations();
+        if (tab === 'approvals') loadApprovals();
         if (tab === 'schedule' && !schedule) {
             api.get('/api/portal/schedule').then(r => setSchedule(r.data)).catch(() => setSchedule({ shift: null, holidays: [] }));
         }
@@ -246,7 +280,8 @@ export default function EmployeePortal() {
 
                 {/* Tabs — pill segmented control */}
                 <div className="flex bg-white/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 p-1 gap-1">
-                    {TABS.map(({ id, label, icon: Icon }) => (
+                    {TABS.filter(t => t.id !== 'approvals' || approvals?.is_approver)
+                          .map(({ id, label, icon: Icon }) => (
                         <button
                             key={id}
                             onClick={() => setTab(id)}
@@ -510,6 +545,62 @@ export default function EmployeePortal() {
                                 </>
                             )}
                         </div>
+                    </div>
+                )}
+
+                {tab === 'approvals' && (
+                    <div className="space-y-4">
+                        {!approvals ? (
+                            <ListSkeleton rows={3} />
+                        ) : (approvals.leaves.length + approvals.regularizations.length) === 0 ? (
+                            <div className="bg-white/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700">
+                                <EmptyRow icon={CheckSquare} title="Nothing waiting on you"
+                                          hint="Leave and correction requests from your team appear here." />
+                            </div>
+                        ) : (
+                            [...approvals.leaves, ...approvals.regularizations].map(item => (
+                                <div key={`${item.type}-${item.id}`}
+                                     className="bg-white/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div className="min-w-0">
+                                            <p className="font-semibold text-slate-800 dark:text-slate-100">
+                                                {item.employee_name}
+                                                <span className="ml-2 font-mono text-xs text-slate-500">{item.employee_code}</span>
+                                            </p>
+                                            {item.type === 'leave' ? (
+                                                <p className="text-sm text-slate-600 dark:text-slate-300">
+                                                    {item.leave_type} · {formatDate(item.start_date)} – {formatDate(item.end_date)}
+                                                    {item.days ? ` · ${item.days} day(s)` : ''}
+                                                </p>
+                                            ) : (
+                                                <p className="text-sm text-slate-600 dark:text-slate-300">
+                                                    Correction for {formatDate(item.date)}
+                                                    {item.requested_in_time && ` · in ${String(item.requested_in_time).slice(0, 5)}`}
+                                                    {item.requested_out_time && ` · out ${String(item.requested_out_time).slice(0, 5)}`}
+                                                </p>
+                                            )}
+                                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{item.reason || 'No reason given'}</p>
+                                            {/* Which hat they are wearing. Somebody who
+                                                is both a manager and a department
+                                                approver should know which one this is. */}
+                                            <span className="mt-2 inline-block text-[10px] uppercase tracking-wide font-bold px-2 py-0.5 rounded-full border border-slate-300 dark:border-slate-600 text-slate-500">
+                                                as {item.via}
+                                            </span>
+                                        </div>
+                                        <div className="flex gap-2 shrink-0">
+                                            <Button variant="secondary" onClick={() => decide(item, 'rejected')}
+                                                    disabled={deciding === item.type + item.id}>
+                                                Reject
+                                            </Button>
+                                            <Button variant="primary" onClick={() => decide(item, 'approved')}
+                                                    disabled={deciding === item.type + item.id}>
+                                                Approve
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))
+                        )}
                     </div>
                 )}
 
