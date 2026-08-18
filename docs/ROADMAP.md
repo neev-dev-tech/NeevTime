@@ -93,7 +93,7 @@ Two honest answers:
 
 *The only Phase 0 item untouched, and the only one that needs a decision rather than work.*
 
-### 0.5 · A deployment that cannot lie — **MOSTLY DONE**
+### 0.5 · A deployment that cannot lie — **DONE**
 
 New. Every item below was a real production state on 16 August, and none of them announced itself:
 
@@ -105,7 +105,7 @@ New. Every item below was a real production state on 16 August, and none of them
 
 Alert delivery works — status mails have been arriving all along. The six "Email not configured" alerts that suggested otherwise were read from the stale database volume, along with the five-month outage and the backup scheduler that had supposedly stopped. Worth stating plainly: three separate conclusions on 16 August came from a database the service was mounted on by accident, and each was confidently wrong.
 
-`checkNoPunches` now has a fire drill (18 August): Settings → Alerts → Run Fire Drill executes the real check — same query, same timezone gates, same body — with only the verdict forced, and sends the alert and its recovery labelled [DRILL]. The response also reports what every gate evaluated to at that moment. One press on the pilot closes this item; until someone presses it, delivery of this specific alert remains observed-by-nobody.
+`checkNoPunches` fired its drill on the pilot on 18 August at 13:36 IST and the [DRILL] mail arrived at it@innopay.in — same query, same timezone gates, same body as a real outage, verdict forced. Delivery of this alert is now observed, not assumed. **0.5 is closed.**
 
 *The unifying fault: a signal that cannot change carries no information. A count that was always 100, a zero printed as a pass, a healthcheck asking nginx about Node, boot errors that fired every restart. Each looked like monitoring and none could ever report a problem.*
 
@@ -187,7 +187,7 @@ The export renders templates defined as data, so a new payroll format is one ent
 | 0 | Backup and restore | S | Off-machine copy open | Any sale |
 | 0 | See the product | M | Deployment verified, UI not | Trusting the rest |
 | 0 | Tenancy decision | S / L | Open — needs a decision | Deployment model |
-| 0 | Deployment cannot lie | M | Alert delivery open | Operating any install |
+| 0 | Deployment cannot lie | M | **Done** | Operating any install |
 | 1 | Photo at punch | S | **Done** | Competitive parity |
 | 1 | Installation procedure | S | **Done** | Customer two onward |
 | 1 | Audit trail | S | **Done** | Payroll disputes |
