@@ -221,7 +221,12 @@ head_ "3c. Migrations"
 # than fails. It is still worth saying loudly: the audit trail lives in one, and
 # an un-applied migration means the trail records nothing while looking present
 # in the interface.
-pending=$(d exec "$API_CONTAINER" node migrations/runner.js status 2>/dev/null | grep -ci '^ *pending' || echo 0)
+# grep -c prints 0 AND exits non-zero when it matches nothing, so `|| echo 0`
+# appended a second zero and the test below was handed "0\n0". Count lines
+# instead; an empty result is an empty string, which the arithmetic default
+# handles.
+pending=$(d exec "$API_CONTAINER" node migrations/runner.js status 2>/dev/null \
+    | grep -i '^ *pending' | wc -l | tr -d ' ')
 if [ "${pending:-0}" -gt 0 ]; then
     note "$pending migration(s) pending — apply with: docker compose exec server node migrations/runner.js up"
 else
