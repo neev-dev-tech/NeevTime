@@ -82,3 +82,18 @@ test('the destructive half of year-end is opt-in over the API', () => {
     assert.match(src, /dry_run !== false/,
         'POST year-end applies by default — it should preview unless explicitly told');
 });
+
+test('a leave type can actually be edited, and carry-forward must name a cap', () => {
+    // The CRUD was create and delete only: changing a quota meant deleting the
+    // type, which the balances foreign key rightly refuses — so an existing
+    // type's quota was unreachable from any screen and the accrual engine had
+    // nothing to accrue. And carry_forward=true with max_carry_forward=0
+    // carries min(remaining, 0) = nothing while the screen shows Yes.
+    const src = fs.readFileSync(path.join(__dirname, '../routes/leaves.js'), 'utf8');
+    assert.match(src, /router\.put\('\/leave-types\/:id'/,
+        'leave types cannot be edited — quotas are unreachable again');
+    assert.match(src, /Carry forward needs a maximum/,
+        'a ticked carry-forward with a zero cap is accepted and silently carries nothing');
+    assert.match(src, /Deactivate it instead/,
+        'deleting an in-use type surfaces raw SQL instead of naming the alternative');
+});

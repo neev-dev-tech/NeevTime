@@ -10,19 +10,88 @@ router.get('/leave-types', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+/**
+ * A carry-forward policy has to say how much. carry_forward=true with
+ * max_carry_forward=0 means year-end carries min(remaining, 0) — nothing —
+ * while the screen shows the box ticked. Refusing the combination beats
+ * inventing a cap silently: the cap is policy, and policy is typed in, not
+ * defaulted.
+ */
+const validateLeaveType = (body) => {
+    if (body.carry_forward && !(Number(body.max_carry_forward) > 0)) {
+        return 'Carry forward needs a maximum number of days — otherwise nothing carries.';
+    }
+    return null;
+};
+
 router.post('/leave-types', async (req, res) => {
     try {
-        const { code, name, annual_quota, carry_forward, color, requires_approval } = req.body;
+        const { code, name, annual_quota, carry_forward, max_carry_forward,
+                is_paid, encashable, color, requires_approval } = req.body;
+        const invalid = validateLeaveType(req.body);
+        if (invalid) return res.status(400).json({ error: invalid });
+
         const result = await db.query(`
-            INSERT INTO leave_types (code, name, annual_quota, carry_forward, color, requires_approval)
-            VALUES ($1, $2, $3, $4, $5, $6) RETURNING *
-        `, [code, name, annual_quota || 0, carry_forward || false, color || '#3b82f6', requires_approval !== false]);
+            INSERT INTO leave_types
+                (code, name, annual_quota, carry_forward, max_carry_forward,
+                 is_paid, encashable, color, requires_approval)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *
+        `, [code, name, annual_quota || 0, carry_forward || false,
+            Number(max_carry_forward) || 0, is_paid !== false, encashable || false,
+            color || '#3b82f6', requires_approval !== false]);
+        res.json(result.rows[0]);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+/**
+ * Editing did not exist: create and delete only. Changing a quota meant
+ * deleting the type — which the balances foreign key rightly refuses — so an
+ * existing type's quota was unreachable from any screen, and the accrual
+ * engine had nothing to accrue.
+ */
+router.put('/leave-types/:id', async (req, res) => {
+    try {
+        const { code, name, annual_quota, carry_forward, max_carry_forward,
+                is_paid, encashable, color, requires_approval, is_active } = req.body;
+        const invalid = validateLeaveType(req.body);
+        if (invalid) return res.status(400).json({ error: invalid });
+
+        const result = await db.query(`
+            UPDATE leave_types SET
+                code = COALESCE($1, code), name = COALESCE($2, name),
+                annual_quota = COALESCE($3, annual_quota),
+                carry_forward = COALESCE($4, carry_forward),
+                max_carry_forward = COALESCE($5, max_carry_forward),
+                is_paid = COALESCE($6, is_paid),
+                encashable = COALESCE($7, encashable),
+                color = COALESCE($8, color),
+                requires_approval = COALESCE($9, requires_approval),
+                is_active = COALESCE($10, is_active)
+            WHERE id = $11 RETURNING *
+        `, [code, name, annual_quota, carry_forward,
+            max_carry_forward === undefined ? null : Number(max_carry_forward),
+            is_paid, encashable, color, requires_approval, is_active, req.params.id]);
+        if (!result.rows[0]) return res.status(404).json({ error: 'Leave type not found' });
         res.json(result.rows[0]);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 router.delete('/leave-types/:id', async (req, res) => {
     try {
+        // Balances and applications reference types by id. Deleting a type in
+        // use would orphan somebody's leave history; the constraint refuses,
+        // and the error should say what to do instead of surfacing SQL.
+        const inUse = await db.query(
+            `SELECT (SELECT count(*) FROM leave_balances WHERE leave_type_id = $1)::int AS balances,
+                    (SELECT count(*) FROM leave_applications WHERE leave_type_id = $1)::int AS applications`,
+            [req.params.id]);
+        const { balances, applications } = inUse.rows[0];
+        if (balances > 0 || applications > 0) {
+            return res.status(409).json({
+                error: `This type has ${balances} balance(s) and ${applications} application(s). `
+                    + 'Deactivate it instead — deleting would orphan that history.',
+            });
+        }
         await db.query('DELETE FROM leave_types WHERE id=$1', [req.params.id]);
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }

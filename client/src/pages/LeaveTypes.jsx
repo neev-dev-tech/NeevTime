@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { FileText, Plus, Trash2, X, AlertCircle, RefreshCw } from 'lucide-react';
+import { FileText, Plus, Trash2, X, AlertCircle, RefreshCw, Edit2 } from 'lucide-react';
 import api from '../api';
 import { Button, PageHeader, useToast } from '../components';
 import { TableToolbar, SortableTh, TablePager } from '../components/TableControls';
 import useTableControls from '../hooks/useTableControls';
 import Modal from '../components/Modal';
 
-const DEFAULT_FORM = { code: '', name: '', annual_quota: 12, carry_forward: false, color: '#3b82f6' };
+const DEFAULT_FORM = { code: '', name: '', annual_quota: 12, carry_forward: false, max_carry_forward: 0, is_paid: true, encashable: false, color: '#3b82f6' };
 const BADGE_BASE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide';
 
 export default function LeaveTypes() {
@@ -16,6 +16,21 @@ export default function LeaveTypes() {
     const [error, setError] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [form, setForm] = useState(DEFAULT_FORM);
+    const [editingId, setEditingId] = useState(null);
+
+    const openEdit = (t) => {
+        setEditingId(t.id);
+        setForm({
+            code: t.code || '', name: t.name || '',
+            annual_quota: t.annual_quota ?? 0,
+            carry_forward: !!t.carry_forward,
+            max_carry_forward: t.max_carry_forward ?? 0,
+            is_paid: t.is_paid !== false,
+            encashable: !!t.encashable,
+            color: t.color || '#3b82f6',
+        });
+        setShowModal(true);
+    };
 
     const fetchTypes = async () => {
         setLoading(true);
@@ -45,10 +60,12 @@ export default function LeaveTypes() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await api.post('/api/leave-types', form);
+            if (editingId) await api.put(`/api/leave-types/${editingId}`, form);
+            else await api.post('/api/leave-types', form);
             setShowModal(false);
             setForm(DEFAULT_FORM);
-            toast.success('Leave type added');
+            setEditingId(null);
+            toast.success(editingId ? 'Leave type updated' : 'Leave type added');
             fetchTypes();
         } catch (err) {
             toast.error(err.response?.data?.error || 'Failed to save leave type');
@@ -62,7 +79,9 @@ export default function LeaveTypes() {
             toast.success('Deleted');
             fetchTypes();
         } catch (err) {
-            toast.error('Delete failed');
+            // The 409 names the balances and applications in the way and says
+            // to deactivate instead — the message is the fix.
+            toast.error(err.response?.data?.error || 'Delete failed');
         }
     };
 
@@ -132,7 +151,7 @@ export default function LeaveTypes() {
                                             <span className={`${BADGE_BASE} ${t.carry_forward
                                                 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
                                                 : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'}`}>
-                                                {t.carry_forward ? 'Yes' : 'No'}
+                                                {t.carry_forward ? `Yes, max ${t.max_carry_forward ?? 0}` : 'No'}
                                             </span>
                                         </td>
                                         <td className="px-5 py-3 whitespace-nowrap">
@@ -148,7 +167,8 @@ export default function LeaveTypes() {
                                         </td>
                                         <td className="px-5 py-3">
                                             <div className="flex items-center justify-end">
-                                                <div className="dv-quiet">
+                                                <Button variant="secondary" size="sm" icon={Edit2} aria-label="Edit leave type" onClick={() => openEdit(t)} />
+                                                <div className="dv-quiet ml-1">
                                                     <Button variant="danger" size="sm" icon={Trash2} aria-label="Delete leave type" onClick={() => handleDelete(t.id)} />
                                                 </div>
                                             </div>
@@ -165,8 +185,8 @@ export default function LeaveTypes() {
 
             <Modal
                 open={showModal}
-                onClose={() => setShowModal(false)}
-                title="Add Leave Type"
+                onClose={() => { setShowModal(false); setEditingId(null); setForm(DEFAULT_FORM); }}
+                title={editingId ? "Edit Leave Type" : "Add Leave Type"}
                 size="sm"
             >
                         <form onSubmit={handleSubmit} className="space-y-4">
@@ -194,6 +214,28 @@ export default function LeaveTypes() {
                                 <input type="checkbox" checked={form.carry_forward} onChange={e => setForm(f => ({ ...f, carry_forward: e.target.checked }))} />
                                 Unused days carry forward to next year
                             </label>
+                            {form.carry_forward && (
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">Maximum days carried</label>
+                                    {/* Required with the box ticked: a cap of
+                                        zero means year-end carries nothing
+                                        while the screen says Yes. The server
+                                        refuses that combination too. */}
+                                    <input type="number" min="1" value={form.max_carry_forward}
+                                           onChange={e => setForm(f => ({ ...f, max_carry_forward: parseInt(e.target.value) || 0 }))}
+                                           className="input-base tabular-nums dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100" required />
+                                </div>
+                            )}
+                            <div className="flex gap-6">
+                                <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+                                    <input type="checkbox" checked={form.is_paid} onChange={e => setForm(f => ({ ...f, is_paid: e.target.checked }))} />
+                                    Paid leave
+                                </label>
+                                <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+                                    <input type="checkbox" checked={form.encashable} onChange={e => setForm(f => ({ ...f, encashable: e.target.checked }))} />
+                                    Encashable
+                                </label>
+                            </div>
                             {/* Kept inside the form so Enter still submits and
                                 the buttons stay wired to it, rather than moved
                                 into Modal's footer slot which sits outside. */}
