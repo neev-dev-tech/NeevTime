@@ -145,7 +145,7 @@ const checkSyncAging = async () => {
             + `${oldest_stranded}.\n\nThey are recorded in NeevTime but will never reach the HR system on `
             + 'their own — the scheduled sync no longer looks at them.\n\n'
             + 'Recovering them needs the backfill run by hand:\n'
-            + '  docker exec attendance_app node scripts/sync_all_pending.js\n\n'
+            + '  docker exec attendance_server node scripts/sync_all_pending.js\n\n'
             + 'Check the HR system is accepting records first, or the run will fail through the whole backlog.',
         details: { count: stranded }
     });

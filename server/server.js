@@ -1092,7 +1092,13 @@ app.post('/api/employees', async (req, res) => {
 
         // Sync to Devices
         try {
-            const devices = await db.query('SELECT serial_number FROM devices');
+            // Real readers only. MOBILE_APP is a virtual device that never
+            // polls for commands, so an enrolment push queued to it can never
+            // deliver — 344 of them had piled up on the pilot, ahead of real
+            // commands in the per-device queue. A virtual device receives
+            // nothing.
+            const devices = await db.query(
+                "SELECT serial_number FROM devices WHERE is_virtual IS NOT TRUE");
             for (const dev of devices.rows) {
                 const cmd = `DATA UPDATE USERINFO PIN=${employee_code}\tName=${name}\tPri=${req.body.privilege || 0}\tPasswd=${password || ''}\tCard=${card_number || ''}\tGrp=1\tTZ=1\tVerify=0\tFace=1\tFPCount=1`;
                 await db.query(`INSERT INTO device_commands (device_serial, command, status, sequence) VALUES ($1, $2, 'pending', 1)`, [dev.serial_number, cmd]);
@@ -1184,7 +1190,13 @@ app.put('/api/employees/:id', async (req, res) => {
 
         // Sync to Devices
         try {
-            const devices = await db.query('SELECT serial_number FROM devices');
+            // Real readers only. MOBILE_APP is a virtual device that never
+            // polls for commands, so an enrolment push queued to it can never
+            // deliver — 344 of them had piled up on the pilot, ahead of real
+            // commands in the per-device queue. A virtual device receives
+            // nothing.
+            const devices = await db.query(
+                "SELECT serial_number FROM devices WHERE is_virtual IS NOT TRUE");
             for (const dev of devices.rows) {
                 const cmd = `DATA UPDATE USERINFO PIN=${employee_code}\tName=${name}\tPri=${req.body.privilege || 0}\tPasswd=${password || ''}\tCard=${card_number || ''}\tGrp=1\tTZ=1\tVerify=0\tFace=1\tFPCount=1`;
                 await db.query(`INSERT INTO device_commands (device_serial, command, status, sequence) VALUES ($1, $2, 'pending', 1)`, [dev.serial_number, cmd]);
@@ -1380,7 +1392,7 @@ app.post('/api/employees/restore', async (req, res) => {
 const queueTemplateRemoval = async (conn, employeeCodes) => {
     if (!employeeCodes || employeeCodes.length === 0) return;
     const devices = await conn.query(
-        "SELECT serial_number FROM devices WHERE serial_number IS NOT NULL AND serial_number != ''"
+        "SELECT serial_number FROM devices WHERE serial_number IS NOT NULL AND serial_number != '' AND is_virtual IS NOT TRUE"
     );
     for (const code of employeeCodes) {
         const cmds = [
