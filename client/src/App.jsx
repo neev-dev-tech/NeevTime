@@ -245,6 +245,7 @@ export default function App() {
                         <Route path="/database/backup" element={<AdminRoute><DatabaseTools /></AdminRoute>} />
                         <Route path="/system-logs" element={<AdminRoute><SystemLogs /></AdminRoute>} />
                         <Route path="/settings" element={<AdminRoute><Settings /></AdminRoute>} />
+                        <Route path="/settings/:tab" element={<AdminRoute><Settings /></AdminRoute>} />
                         <Route path="/integrations" element={<AdminRoute><Integrations /></AdminRoute>} />
                         {/* Legacy MUI report generator merged into /reports */}
                         <Route path="/advanced-reports" element={<Navigate to="/reports" replace />} />

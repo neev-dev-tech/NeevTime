@@ -1,5 +1,5 @@
 import {
-  RefreshCw, LayoutDashboard, Users, Clock, TabletSmartphone, Settings2, Grid, MapPin, Plane, UserCheck, GitBranch, GitCommit, Calendar, Database, Activity, ClipboardList, UserX, Briefcase, Building2, Timer, CalendarDays, CalendarCheck, Upload, Download, Shield, ShieldCheck, UserCircle, FolderOpen, FileCheck, TrendingUp, Server, FileText, PieChart, Globe, Network, MessageSquare, Workflow, BarChart3, Zap, Fingerprint, Camera, FileQuestion, AlertCircle, Building, Trash2, Calculator } from 'lucide-react';
+  RefreshCw, LayoutDashboard, Users, Clock, TabletSmartphone, Settings2, Grid, MapPin, Plane, UserCheck, GitBranch, GitCommit, Calendar, Database, Activity, ClipboardList, UserX, Briefcase, Building2, Timer, CalendarDays, CalendarCheck, Upload, Download, Shield, ShieldCheck, UserCircle, FolderOpen, FileCheck, TrendingUp, Server, FileText, PieChart, Globe, Network, MessageSquare, Workflow, BarChart3, Zap, Fingerprint, Camera, FileQuestion, AlertCircle, Building, Trash2, Calculator, Mail, BellRing } from 'lucide-react';
 
 export const modules = [
   { name: 'Dashboard', icon: LayoutDashboard, path: '/', iconColor: '#F97316' },
@@ -209,7 +209,21 @@ export const systemSidebar = [
     icon: Settings2,
     iconColor: '#475569',
     items: [
-      { label: 'Settings', path: '/settings', icon: Settings2, iconColor: '#EA580C' },
+      // Each settings component is its own sidebar entry and its own URL, so a
+      // customer reaches "SMTP" or "Employee Sign-in" directly instead of
+      // hunting a pill bar. All resolve to the Settings page, which opens the
+      // named tab in read-only view.
+      { label: 'Company', path: '/settings/company', icon: Building, iconColor: '#2563EB' },
+      { label: 'Attendance Rules', path: '/settings/attendance', icon: Timer, iconColor: '#EA580C' },
+      { label: 'Weekend Rules', path: '/settings/weekend', icon: CalendarDays, iconColor: '#7C3AED' },
+      { label: 'Email / SMTP', path: '/settings/notifications', icon: Mail, iconColor: '#059669' },
+      { label: 'Security', path: '/settings/security', icon: Shield, iconColor: '#DC2626' },
+      { label: 'Employee Sign-in', path: '/settings/auth', icon: UserCheck, iconColor: '#4F46E5' },
+      { label: 'Alerts', path: '/settings/alerts', icon: BellRing, iconColor: '#D97706' },
+      { label: 'Auto Reports', path: '/settings/reports', icon: BarChart3, iconColor: '#059669' },
+      { label: 'PDF Settings', path: '/settings/pdf', icon: FileCheck, iconColor: '#D97706' },
+      { label: 'Timezone', path: '/settings/timezone', icon: Globe, iconColor: '#0EA5E9' },
+      { label: 'Appearance', path: '/settings/appearance', icon: Settings2, iconColor: '#7C3AED' },
     ]
   },
 ];

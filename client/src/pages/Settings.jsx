@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Save, RefreshCw, Send, Loader2, AlertCircle, Building, Timer, CalendarDays, Mail, ShieldCheck, BarChart3, FileCheck, Database as DatabaseIcon, Globe, Settings as SettingsIcon, BellRing, Palette, KeyRound } from 'lucide-react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Save, RefreshCw, Send, Loader2, AlertCircle, Building, Timer, CalendarDays, Mail, ShieldCheck, BarChart3, FileCheck, Database as DatabaseIcon, Globe, Settings as SettingsIcon, BellRing, Palette, KeyRound, Edit2 } from 'lucide-react';
 import api from '../api';
 import { Button, PageHeader, useToast } from '../components';
 import LogoUpload from '../components/LogoUpload';
@@ -50,7 +51,26 @@ const TIMEZONES = [
 
 export default function Settings() {
     const globalToast = useToast();
-    const [activeTab, setActiveTab] = useState('company');
+    // The URL owns the tab: /settings/security opens Security directly, so
+    // each component can live in the sidebar as its own entry. The pill bar
+    // stays as a secondary switcher; both write the URL.
+    const { tab: tabParam } = useParams();
+    const navigate = useNavigate();
+    const [activeTab, setActiveTabState] = useState(tabParam || 'company');
+    const setActiveTab = (id) => { setActiveTabState(id); navigate(`/settings/${id}`, { replace: true }); };
+    useEffect(() => {
+        if (tabParam && tabParam !== activeTab) setActiveTabState(tabParam);
+    }, [tabParam]);
+
+    /**
+     * View after save. A settings component opens as a read-only summary of
+     * what is currently configured; Edit switches to the form; Save returns to
+     * the summary showing exactly what was written. Configuration should read
+     * like a statement of fact, and a form left open reads like an unfinished
+     * action.
+     */
+    const [viewMode, setViewMode] = useState(true);
+    useEffect(() => { setViewMode(true); }, [activeTab]);
 
     /**
      * Live usability of the sign-in modes — the answer to "did what I typed
@@ -119,6 +139,7 @@ export default function Settings() {
         try {
             await api.put(`/api/settings/${activeTab}`, formData);
             if (activeTab === 'auth') loadAuthStatus();
+            setViewMode(true);
             // Update local state
             const updatedSettings = { ...settings };
             Object.keys(formData).forEach(key => {
@@ -232,6 +253,39 @@ export default function Settings() {
         }
 
         return entries;
+    };
+
+    // Shared with the read-only view so a field's label reads identically in
+    // both modes.
+    const labelFor = (key) => {
+        const INITIALISMS = { ldap: 'LDAP', oidc: 'OIDC', dn: 'DN', url: 'URL',
+            id: 'ID', uri: 'URI', smtp: 'SMTP', gst: 'GST', hr: 'HR', pdf: 'PDF' };
+        return key.replace(/_/g, ' ')
+            .replace(/\b\w+/g, w => INITIALISMS[w.toLowerCase()] || w[0].toUpperCase() + w.slice(1));
+    };
+
+    /** One field, read-only: label and the value as it stands, secrets masked. */
+    const renderReadonly = (key, config) => {
+        const value = formData[key];
+        const isSecret = key.toLowerCase().includes('password') || key.toLowerCase().includes('api_key');
+        let shown;
+        if (key === 'company_logo') {
+            shown = value ? <img src={value} alt="logo" className="h-10 rounded" /> : <span className="text-slate-400">Not set</span>;
+        } else if (config?.data_type === 'boolean' || value === 'true' || value === 'false') {
+            shown = <span className={`text-xs font-bold uppercase px-2 py-0.5 rounded-full ${String(value) === 'true' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400'}`}>{String(value) === 'true' ? 'On' : 'Off'}</span>;
+        } else if (isSecret && value) {
+            shown = <span className="font-mono text-slate-500">••••••••</span>;
+        } else if (value === '' || value === null || value === undefined) {
+            shown = <span className="text-slate-400 dark:text-slate-500 italic">Not set</span>;
+        } else {
+            shown = <span className="text-slate-800 dark:text-slate-100 break-words">{String(value)}</span>;
+        }
+        return (
+            <div key={key} className="py-2.5 border-b border-slate-100 dark:border-slate-700/60 grid grid-cols-3 gap-3">
+                <dt className="text-sm text-slate-500 dark:text-slate-400">{labelFor(key)}</dt>
+                <dd className="col-span-2 text-sm">{shown}</dd>
+            </div>
+        );
     };
 
     const renderInput = (key, config) => {
@@ -550,19 +604,29 @@ export default function Settings() {
                                         <div key={section.title}>
                                             <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">{section.title}</h3>
                                             <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">{section.hint}</p>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                {fields.map(([key, config]) => renderInput(key, config))}
-                                            </div>
+                                            {viewMode ? (
+                                                <dl>{fields.map(([key, config]) => renderReadonly(key, config))}</dl>
+                                            ) : (
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                    {fields.map(([key, config]) => renderInput(key, config))}
+                                                </div>
+                                            )}
                                         </div>
                                     );
                                 })}
                             </div>
                         ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {sortedSettings.map(([key, config]) =>
-                                renderInput(key, config)
-                            )}
-                        </div>
+                        viewMode ? (
+                            <dl>
+                                {sortedSettings.map(([key, config]) => renderReadonly(key, config))}
+                            </dl>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {sortedSettings.map(([key, config]) =>
+                                    renderInput(key, config)
+                                )}
+                            </div>
+                        )
                         )
                     )}
 
@@ -626,10 +690,16 @@ export default function Settings() {
                         category that does not exist. */}
                     {activeTab !== 'appearance' && (
                         <div className="flex items-center gap-3 mt-8 pt-6 border-t border-slate-100 dark:border-slate-700">
-                            <Button icon={saving ? Loader2 : Save} onClick={handleSave} disabled={saving}>
-                                {saving ? 'Saving...' : 'Save Changes'}
-                            </Button>
-                            <Button variant="secondary" icon={RefreshCw} onClick={handleReset}>Reset</Button>
+                            {viewMode ? (
+                                <Button icon={Edit2} onClick={() => setViewMode(false)}>Edit</Button>
+                            ) : (
+                                <>
+                                    <Button icon={saving ? Loader2 : Save} onClick={handleSave} disabled={saving}>
+                                        {saving ? 'Saving...' : 'Save Changes'}
+                                    </Button>
+                                    <Button variant="secondary" onClick={() => { handleReset(); setViewMode(true); }}>Cancel</Button>
+                                </>
+                            )}
                         </div>
                     )}
                 </div>
