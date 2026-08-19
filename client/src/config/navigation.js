@@ -223,6 +223,10 @@ export const systemSidebar = [
       { label: 'Auto Reports', path: '/settings/reports', icon: BarChart3, iconColor: '#059669' },
       { label: 'PDF Settings', path: '/settings/pdf', icon: FileCheck, iconColor: '#D97706' },
       { label: 'Timezone', path: '/settings/timezone', icon: Globe, iconColor: '#0EA5E9' },
+      // The Database settings tab: backup schedule, retention, off-machine
+      // destination. Distinct from the Backup entry above, which is the
+      // full backup-and-restore tools page.
+      { label: 'Database', path: '/settings/database', icon: Database, iconColor: '#7C3AED' },
       { label: 'Appearance', path: '/settings/appearance', icon: Settings2, iconColor: '#7C3AED' },
     ]
   },
