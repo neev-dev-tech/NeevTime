@@ -51,6 +51,18 @@ const TIMEZONES = [
 export default function Settings() {
     const globalToast = useToast();
     const [activeTab, setActiveTab] = useState('company');
+
+    /**
+     * Live usability of the sign-in modes — the answer to "did what I typed
+     * actually work". The server's own modes endpoint reports what is usable
+     * and, crucially, WHY something is not (including a missing environment
+     * secret, which no field on this page can show). Refreshed on save, so
+     * the status reflects what was just written.
+     */
+    const [authStatus, setAuthStatus] = useState(null);
+    const loadAuthStatus = () =>
+        api.get('/api/portal/auth/modes').then(r => setAuthStatus(r.data)).catch(() => setAuthStatus(null));
+    useEffect(() => { if (activeTab === 'auth') loadAuthStatus(); }, [activeTab]);
     const [settings, setSettings] = useState({});
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -106,6 +118,7 @@ export default function Settings() {
         setSaving(true);
         try {
             await api.put(`/api/settings/${activeTab}`, formData);
+            if (activeTab === 'auth') loadAuthStatus();
             // Update local state
             const updatedSettings = { ...settings };
             Object.keys(formData).forEach(key => {
@@ -487,11 +500,70 @@ export default function Settings() {
                             </p>
                         </div>
                     ) : (
+                        activeTab === 'auth' ? (
+                            /* Grouped, because the generic grid interleaved
+                               LDAP and OIDC fields alphabetically and gave no
+                               sign of whether any of it worked. Each method is
+                               its own section, and the status panel above them
+                               is the server's own verdict. */
+                            <div className="space-y-8">
+                                {authStatus && (
+                                    <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+                                        <p className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-3">Sign-in methods — live status</p>
+                                        <div className="flex flex-wrap gap-2">
+                                            {[['local', 'Employee code + password'], ['oidc', 'Single sign-on (SSO)'], ['ldap', 'Active Directory (LDAP)']].map(([mode, label]) => (
+                                                <span key={mode} className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${authStatus[mode]
+                                                    ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
+                                                    : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400'}`}>
+                                                    <span className={`w-1.5 h-1.5 rounded-full ${authStatus[mode] ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+                                                    {label}: {authStatus[mode] ? 'working' : 'off'}
+                                                </span>
+                                            ))}
+                                        </div>
+                                        {authStatus.problems?.length > 0 && (
+                                            <div className="mt-3 space-y-1">
+                                                {authStatus.problems.map((prob, i) => (
+                                                    <p key={i} className="text-xs text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 rounded-lg px-3 py-2">{prob}</p>
+                                                ))}
+                                            </div>
+                                        )}
+                                        <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">
+                                            The portal login page offers exactly the methods shown green here.
+                                            Client secrets live in <code className="font-mono">.env</code>
+                                            {' '}(<code className="font-mono">OIDC_CLIENT_SECRET</code>, <code className="font-mono">LDAP_BIND_PASSWORD</code>) —
+                                            after changing them, restart the server container; this panel updates on save.
+                                        </p>
+                                    </div>
+                                )}
+
+                                {[
+                                    { title: 'General', hint: 'Which methods the portal offers. Comma-separated: local, oidc, ldap.',
+                                      match: (k) => !k.startsWith('oidc_') && !k.startsWith('ldap_') },
+                                    { title: 'Single sign-on (Microsoft 365 / Google / Okta)', hint: 'Register an app with your identity provider, then fill these. The client secret goes in .env, never here.',
+                                      match: (k) => k.startsWith('oidc_') },
+                                    { title: 'Active Directory (LDAP)', hint: 'Needs a read-only service account and LDAPS. The bind password goes in .env, never here.',
+                                      match: (k) => k.startsWith('ldap_') },
+                                ].map(section => {
+                                    const fields = sortedSettings.filter(([k]) => section.match(k));
+                                    if (!fields.length) return null;
+                                    return (
+                                        <div key={section.title}>
+                                            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">{section.title}</h3>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">{section.hint}</p>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                {fields.map(([key, config]) => renderInput(key, config))}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {sortedSettings.map(([key, config]) =>
                                 renderInput(key, config)
                             )}
                         </div>
+                        )
                     )}
 
                     {/* Alert test — only on the Alerts tab */}
