@@ -129,3 +129,45 @@ test('socket.io has one origin gate, not two', () => {
     assert.match(src, /\[socket\.io\] refused: Origin/,
         'refusals no longer name both sides — the next debugging round starts blind again');
 });
+
+test('the /api direct handlers are behind an explicit auth gate', () => {
+    // ~40 app.get/app.post('/api/...') handlers carry no inline authenticateToken
+    // and were gated only as a side effect of the first authenticateToken router
+    // mount running before them — authentication by source order, one reorder
+    // from an open door. An explicit gate now sits above them, below the public
+    // routes.
+    const fs = require('node:fs');
+    const path = require('node:path');
+    const src = fs.readFileSync(path.join(__dirname, '../server.js'), 'utf8');
+    const gate = src.indexOf("app.use('/api', authenticateToken);");
+    assert.ok(gate > -1, 'the explicit /api auth gate is gone');
+    // The gate must sit below the public routes and above the direct handlers.
+    assert.ok(gate > src.indexOf("app.get('/api/health'"), 'the gate is above /api/health — the healthcheck would 401');
+    assert.ok(gate > src.indexOf("app.use('/api/portal'"), 'the gate is above the portal mount — employee login would 401');
+    assert.ok(gate < src.indexOf("app.get('/api/stats'"), 'the gate is below the direct handlers — they are ungated again');
+});
+
+test('internal error text is not returned to clients', () => {
+    // 249 handlers answer failures with res.status(500).json({ error: err.message }).
+    // The raw message names tables and columns — how "column check_in does not
+    // exist" reached a screen. A wrapper redacts 5xx bodies and logs the real one.
+    const fs = require('node:fs');
+    const path = require('node:path');
+    const src = fs.readFileSync(path.join(__dirname, '../server.js'), 'utf8');
+    assert.match(src, /res\.statusCode >= 500 && body && typeof body === 'object' && 'error' in body/,
+        'nothing redacts raw error messages on 5xx');
+    assert.match(src, /A server error occurred/, 'no generic client-facing message');
+    assert.match(src, /NEEV_LEAK_ERRORS/, 'no escape hatch for local debugging');
+});
+
+test('device commands are an allowlist, admin-only, not a free-form string', () => {
+    // The endpoint used to insert `command` verbatim: any write role could queue
+    // a factory reset to any reader, gated only by a browser confirm().
+    const fs = require('node:fs');
+    const path = require('node:path');
+    const src = fs.readFileSync(path.join(__dirname, '../server.js'), 'utf8');
+    assert.match(src, /app\.post\('\/api\/device-commands', authenticateToken, requireAdmin/,
+        'device commands are not admin-gated');
+    assert.match(src, /const READER_COMMANDS = \{/, 'there is no command allowlist');
+    assert.match(src, /Unknown or disallowed device command/, 'unknown commands are not refused');
+});

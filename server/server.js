@@ -157,6 +157,33 @@ app.use(express.json());
 // lower down it silently missed the attendance routes declared above it, which
 // is exactly the class of bug it exists to prevent. Reads pass through; writes
 // are denied unless the role allows them. See utils/rbac.js.
+// ── Do not leak internal error text to clients ───────────────────────────────
+//
+// 249 handlers answer failures with `res.status(500).json({ error: err.message })`.
+// err.message is the raw database or runtime string — "column \"check_in\" does
+// not exist", "relation \"employee_docs\" does not exist" — which is how those
+// exact strings reached the screen. That hands any authenticated user a map of
+// the schema and the internals.
+//
+// Rather than edit 249 call sites (and miss the next one), res.json is wrapped
+// once here: on a 5xx with an { error } body, the real message is logged
+// server-side and the client gets a generic line plus a correlation id to quote
+// to support. Validation 4xx are left alone — their messages are meant to be
+// read. NEEV_LEAK_ERRORS=true restores raw messages for local debugging.
+app.use('/api', (req, res, next) => {
+    const leak = String(process.env.NEEV_LEAK_ERRORS || '').toLowerCase() === 'true';
+    const original = res.json.bind(res);
+    res.json = (body) => {
+        if (!leak && res.statusCode >= 500 && body && typeof body === 'object' && 'error' in body) {
+            const ref = `ERR-${Date.now().toString(36)}`;
+            logger.error(`[API 500] ${req.method} ${req.originalUrl} ${ref}: ${body.error}`);
+            return original({ error: 'A server error occurred. Quote this to support if it persists.', ref });
+        }
+        return original(body);
+    };
+    next();
+});
+
 app.use('/api', require('./utils/rbac').enforceRole);
 
 // Attribute everything below to whoever is signed in, so the audit triggers can
@@ -555,6 +582,25 @@ app.use('/api/ingest', require('./routes/vendor_ingest'));
 // every /api/* path, which would 401 the public portal login).
 const portalRouter = require('./routes/portal');
 app.use('/api/portal', portalRouter);
+
+// ── Explicit authentication gate ─────────────────────────────────────────────
+//
+// Everything below this line requires a valid token. It used to be implicit:
+// the ~40 direct app.get/app.post('/api/...') handlers further down carry no
+// inline authenticateToken and were gated only as a SIDE EFFECT of the first
+// `app.use('/api', authenticateToken, router)` mount running before them. That
+// worked, but it made authentication an accident of source order — one reorder
+// from an open door, and it is the same mechanism that once 401'd /api/health.
+//
+// Placement is deliberate and load-bearing:
+//   - the public routes (login, /api/branding, /api/health, /api/portal/*)
+//     are all mounted ABOVE this line and respond before a request reaches it;
+//   - every protected router and direct handler is BELOW it.
+// The inline authenticateToken on the routers below is now redundant but
+// harmless (it re-verifies a token already verified) and is kept so each router
+// still states its own requirement.
+app.use('/api', authenticateToken);
+
 // Contractors: the companies whose people work here and who invoice for it.
 // Headcount and hours per agency is commercial information, so it sits behind
 // the same guard as the rest.
@@ -2073,13 +2119,55 @@ app.get('/api/device-commands', async (req, res) => {
 });
 
 // Add Device Command
-app.post('/api/device-commands', async (req, res) => {
+// The commands a reader may be sent, and who may send the destructive ones.
+//
+// This endpoint used to insert `command` verbatim: any authenticated write role
+// could queue an arbitrary ADMS string — DATA DELETE USERINFO, a factory reset —
+// to any serial, gated only by a browser confirm() the server never saw. The
+// eight UI buttons are now the whole vocabulary. Data-pull and info commands are
+// allowed for any admin; the irreversible three (reboot, wipe logs, factory
+// reset) additionally require the admin role explicitly and are recorded.
+const READER_COMMANDS = {
+    'INFO': { destructive: false },
+    'CHECK': { destructive: false },
+    'DATA QUERY USERINFO': { destructive: false },
+    'DATA QUERY FINGERTMP': { destructive: false },
+    'DATA QUERY ATTLOG': { destructive: false },
+    'REBOOT': { destructive: true },
+    'CLEAR LOG': { destructive: true },
+    'CLEAR DATA': { destructive: true },
+    // Enrolment sync writes USERINFO — allowed, it is how the app pushes people
+    // to a reader, but it is not free-form: the prefix is checked below.
+};
+
+app.post('/api/device-commands', authenticateToken, requireAdmin, async (req, res) => {
     const { device_serial, command, status } = req.body;
+    if (!device_serial || !command) {
+        return res.status(400).json({ error: 'device_serial and command are required' });
+    }
+
+    // Exact match against the vocabulary, or the one legitimate parameterised
+    // family (DATA UPDATE USERINFO — enrolment push). Anything else is refused:
+    // an allowlist is only an allowlist if it says no.
+    const base = String(command).trim();
+    const known = READER_COMMANDS[base];
+    const isEnrolment = /^DATA (UPDATE|DELETE) USERINFO\b/.test(base);
+    if (!known && !isEnrolment) {
+        return res.status(400).json({ error: 'Unknown or disallowed device command' });
+    }
+
+    // The irreversible commands leave a record naming who queued them. This is
+    // in addition to the mutation log; a factory reset of a reader holding
+    // biometric enrolments deserves an explicit trail.
+    if (known?.destructive) {
+        logger.info(`[DEVICE CMD] ${req.user?.username || 'unknown'} queued "${base}" to ${device_serial}`);
+    }
+
     try {
         const result = await db.query(
             `INSERT INTO device_commands (device_serial, command, status)
              VALUES ($1, $2, $3) RETURNING *`,
-            [device_serial, command, status || 'pending']
+            [device_serial, base, status || 'pending']
         );
         res.json(result.rows[0]);
     } catch (err) {
