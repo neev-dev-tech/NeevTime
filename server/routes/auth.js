@@ -126,9 +126,12 @@ router.post('/login', loginLimiter, async (req, res) => {
         }
 
         // username travels in the token so audit entries can name the actor
-        // without a database lookup on every mutating request
+        // without a database lookup on every mutating request. must_change rides
+        // along too, so authenticateToken can refuse every admin API until the
+        // bootstrap password is replaced — the page cannot opt out of it.
+        const mustChange = user.must_change_password === true;
         const token = jwt.sign(
-            { id: user.id, role: user.role, username: user.username },
+            { id: user.id, role: user.role, username: user.username, must_change: mustChange },
             JWT_SECRET,
             await tokenOptions()
         );
@@ -140,7 +143,11 @@ router.post('/login', loginLimiter, async (req, res) => {
             console.error('Failed to log login:', err);
         });
 
-        res.json({ token, user: { username: user.username, role: user.role } });
+        res.json({
+            token,
+            user: { username: user.username, role: user.role },
+            must_change: mustChange,
+        });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Server error' });
@@ -230,6 +237,19 @@ const authenticateToken = (req, res, next) => {
         if (err) return res.sendStatus(401);
         // Employee portal tokens are a separate realm — not valid for admin APIs
         if (user.role === 'employee') return res.sendStatus(403);
+
+        // A first-boot admin still carrying the bootstrap password can do exactly
+        // one thing: change it. Every other admin API is refused here — enforced
+        // server-side, so a client that never renders the change screen (or a
+        // script hitting the API directly) cannot operate on the old credential.
+        // req.path is relative to this router's mount (/api/auth), so the allowed
+        // route is '/change-password'.
+        if (user.must_change && req.path !== '/change-password') {
+            return res.status(403).json({
+                error: 'Set a new administrator password before continuing',
+                must_change: true,
+            });
+        }
         req.user = user;
         next();
     });
@@ -250,6 +270,58 @@ router.post('/logout', authenticateToken, async (req, res) => {
 router.get('/me', authenticateToken, async (req, res) => {
     const result = await db.query('SELECT id, username, role FROM users WHERE id = $1', [req.user.id]);
     res.json(result.rows[0]);
+});
+
+/**
+ * The signed-in admin changes their own password.
+ *
+ * This is the ONE route authenticateToken still allows while must_change is set,
+ * so it must stand on its own: the current password is verified here even though
+ * the caller is already authenticated. That is what makes the bootstrap password
+ * a real gate — knowing the token is not enough; the old password must be proven
+ * and then retired. Clearing must_change_password is what lets every other admin
+ * API answer again, and a fresh token is issued because the one in hand still
+ * carries must_change.
+ */
+router.post('/change-password', authenticateToken, async (req, res) => {
+    const { current_password, new_password } = req.body || {};
+    if (!current_password || !new_password) {
+        return res.status(400).json({ error: 'Current and new password are required' });
+    }
+    if (current_password === new_password) {
+        return res.status(400).json({ error: 'The new password must be different' });
+    }
+
+    const policyError = await checkPasswordPolicy(new_password);
+    if (policyError) return res.status(400).json({ error: policyError });
+
+    try {
+        const found = await db.query('SELECT id, username, password_hash FROM users WHERE id = $1', [req.user.id]);
+        const user = found.rows[0];
+        if (!user) return res.status(404).json({ error: 'Account not found' });
+
+        if (!await bcrypt.compare(current_password, user.password_hash)) {
+            return res.status(400).json({ error: 'Current password is incorrect' });
+        }
+
+        await db.query(
+            `UPDATE users
+                SET password_hash = $1, must_change_password = false,
+                    failed_login_attempts = 0, locked_until = NULL
+              WHERE id = $2`,
+            [await bcrypt.hash(new_password, 10), user.id]
+        );
+
+        const token = jwt.sign(
+            { id: user.id, role: req.user.role, username: user.username, must_change: false },
+            JWT_SECRET,
+            await tokenOptions()
+        );
+        res.json({ success: true, token, user: { username: user.username, role: req.user.role } });
+    } catch (err) {
+        console.error('change-password failed:', err.message);
+        res.status(500).json({ error: 'Server error' });
+    }
 });
 
 // ================= USER MANAGEMENT =================

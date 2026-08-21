@@ -11,22 +11,68 @@ export default function Login({ setAuth }) {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    // The first-boot admin is signed in with a password it did not choose. When
+    // the server flags must_change, the form flips to a set-new-password step
+    // instead of entering the app. The password just typed becomes the "current"
+    // one, so the operator does not type the bootstrap secret twice.
+    const [mustChange, setMustChange] = useState(false);
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [busy, setBusy] = useState(false);
     const navigate = useNavigate();
+
+    const enter = (token, user) => {
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
+        setAuth(user);
+        // Company + PDF settings for report exports; failure is non-fatal
+        loadReportSettings();
+        navigate('/');
+    };
 
     const handleLogin = async (e) => {
         e.preventDefault();
+        setError('');
         try {
             const res = await axios.post('/api/login', { username, password });
-            const { token, user } = res.data;
-
-            localStorage.setItem('token', token);
-            localStorage.setItem('user', JSON.stringify(user));
-            setAuth(user);
-            // Company + PDF settings for report exports; failure is non-fatal
-            loadReportSettings();
-            navigate('/');
+            const { token, user, must_change } = res.data;
+            if (must_change) {
+                // Hold the token so the change-password call is authenticated,
+                // but do NOT enter the app — that token is refused everywhere
+                // except /change-password until the password is replaced.
+                localStorage.setItem('token', token);
+                setMustChange(true);
+                return;
+            }
+            enter(token, user);
         } catch (err) {
             setError(err.response?.data?.error || 'Login failed');
+        }
+    };
+
+    const handleChangePassword = async (e) => {
+        e.preventDefault();
+        setError('');
+        if (newPassword !== confirmPassword) {
+            setError('The two passwords do not match');
+            return;
+        }
+        if (newPassword === password) {
+            setError('The new password must be different from the temporary one');
+            return;
+        }
+        setBusy(true);
+        try {
+            const res = await axios.post(
+                '/api/change-password',
+                { current_password: password, new_password: newPassword },
+                { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+            );
+            enter(res.data.token, res.data.user);
+        } catch (err) {
+            setError(err.response?.data?.error || 'Could not set the new password');
+        } finally {
+            setBusy(false);
         }
     };
 
@@ -114,17 +160,20 @@ export default function Login({ setAuth }) {
                                 }}
                             />
                         </div>
-                        <p className="text-slate-grey dark:text-slate-300 text-sm font-medium">Sign in to your account</p>
+                        <p className="text-slate-grey dark:text-slate-300 text-sm font-medium">
+                            {mustChange ? 'Set a new administrator password' : 'Sign in to your account'}
+                        </p>
                     </div>
 
-                    {/* Login Form */}
-                    <form onSubmit={handleLogin} className="space-y-6">
-                        {error && (
-                            <div className="p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm rounded-xl text-center">
-                                {error}
-                            </div>
-                        )}
+                    {error && (
+                        <div className="mb-6 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm rounded-xl text-center">
+                            {error}
+                        </div>
+                    )}
 
+                    {!mustChange ? (
+                    /* Login Form */
+                    <form onSubmit={handleLogin} className="space-y-6">
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-charcoal dark:text-slate-100">Username</label>
                             <div className="relative">
@@ -163,6 +212,50 @@ export default function Login({ setAuth }) {
                             Sign In
                         </button>
                     </form>
+                    ) : (
+                    /* First-sign-in: replace the bootstrap password */
+                    <form onSubmit={handleChangePassword} className="space-y-6">
+                        <p className="text-sm text-slate-grey dark:text-slate-400 -mt-2">
+                            This account was created with a temporary password. Choose your own to continue.
+                        </p>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-charcoal dark:text-slate-100">New password</label>
+                            <div className="relative">
+                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                                <input
+                                    type="password"
+                                    value={newPassword}
+                                    onChange={(e) => setNewPassword(e.target.value)}
+                                    className="field pl-12 pr-4"
+                                    placeholder="Enter a new password"
+                                    autoFocus
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-charcoal dark:text-slate-100">Confirm new password</label>
+                            <div className="relative">
+                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                                <input
+                                    type="password"
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    className="field pl-12 pr-4"
+                                    placeholder="Re-enter the new password"
+                                />
+                            </div>
+                        </div>
+
+                        <button
+                            disabled={busy}
+                            className="w-full btn-primary py-3.5 rounded-xl shadow-lg shadow-orange-200 transition-ui hover:scale-[1.02] hover:shadow-xl text-base font-semibold disabled:opacity-60 disabled:hover:scale-100"
+                        >
+                            {busy ? 'Saving…' : 'Set password & continue'}
+                        </button>
+                    </form>
+                    )}
 
                 </div>
             </div>

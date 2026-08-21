@@ -162,10 +162,11 @@ say "7. First administrator"
 # existing database the admin already exists and ADMIN_PASSWORD does nothing.
 ADMIN_PW=$(grep '^ADMIN_PASSWORD=' .env 2>/dev/null | cut -d= -f2-)
 if [ -n "$ADMIN_PW" ]; then
-    printf '  \033[1m%s\033[0m\n' "Sign in with:"
+    printf '  \033[1m%s\033[0m\n' "Sign in with this temporary password:"
     echo "    username: admin"
     echo "    password: $ADMIN_PW"
-    echo "  (also stored in .env; change it after signing in, then remove that line)"
+    echo "  You are asked to set your own password at first sign-in."
+    echo "  (also stored in .env; remove that line once you have signed in)"
 else
     ok "an administrator already exists — sign in with the password from your first install"
 fi

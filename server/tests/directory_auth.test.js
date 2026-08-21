@@ -171,6 +171,40 @@ test('changing a password requires the current one', () => {
         'the current password is not verified before it is replaced');
 });
 
+test('the first admin is created with a temporary password it must replace at first sign-in', () => {
+    const server = read('server.js');
+    const auth = read('routes/auth.js');
+
+    // The bootstrap admin — generated password or one typed into .env — is
+    // flagged so it cannot survive the first sign-in.
+    assert.match(server, /INSERT INTO users[^]{0,160}must_change_password\)\s*\n\s*VALUES[^]{0,120}true\)/,
+        'the first administrator is not flagged must_change_password, so a bootstrap secret can live forever');
+
+    // The flag rides in the token AND the login response, so the page knows to
+    // divert to the change screen and the server can enforce it.
+    assert.match(auth, /must_change:\s*mustChange/,
+        'must_change is not carried in the admin token');
+    assert.match(auth, /must_change:\s*mustChange,?\s*\n\s*\}\);/,
+        'the login response does not tell the client a change is required');
+});
+
+test('a must_change admin token is refused everywhere but the change-password route', () => {
+    const auth = read('routes/auth.js');
+    // Enforced inside authenticateToken, not merely suggested to the page: a
+    // script hitting the API directly cannot operate on the old credential.
+    assert.match(auth, /user\.must_change && req\.path !== '\/change-password'/,
+        'must_change is not enforced server-side for admin APIs');
+});
+
+test('an admin changing their password must prove the current one and clears the flag', () => {
+    const auth = read('routes/auth.js');
+    const block = auth.slice(auth.indexOf("router.post('/change-password'"));
+    assert.match(block, /bcrypt\.compare\(current_password/,
+        'the current password is not verified before it is replaced');
+    assert.match(block, /must_change_password = false/,
+        'the change does not clear the flag, so the admin would be trapped on the change screen');
+});
+
 test('activation and reset refuse to say whether an employee code exists', () => {
     const portal = read('routes/portal.js');
     // Employee codes are printed on badges; confirming which ones are real is
