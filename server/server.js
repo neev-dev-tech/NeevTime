@@ -1730,35 +1730,21 @@ app.get('/api/devices/:serial/info', async (req, res) => {
 // Add Device
 app.post('/api/devices', async (req, res) => {
     const {
-        device_name, ip_address, port, area_id,
+        serial_number, device_name, ip_address, port, area_id,
         transfer_mode, timezone, is_registration_device, is_attendance_device,
-        connection_interval, device_direction, enable_access_control, vendor
+        connection_interval, device_direction, enable_access_control
     } = req.body;
-    // The serial is the device's identity in ADMS: a reader checks in as
-    // SN=NYU7254000077, and every command is routed by exact serial match. A
-    // stray space from a copy-paste (observed: "NYU7254000077 ") stores a serial
-    // that no check-in will ever equal, so the device shows but never connects
-    // and its commands misroute silently. Trim it at the door.
-    const serial_number = typeof req.body.serial_number === 'string'
-        ? req.body.serial_number.trim()
-        : req.body.serial_number;
     try {
+        // When adding a device, set it to 'online' initially with current timestamp
+        // The device will be marked offline by heartbeat checker if it doesn't communicate
+        // This gives devices a chance to connect and avoids the "offline with 0m ago" issue
         const result = await db.query(
-            // status/last_activity are NOT set here. They are owned by real device
-            // contact: the ADMS handlers set status='online' and stamp
-            // last_activity the moment the device actually polls /iclock. Faking
-            // 'online' on a manual add (or an edit) made a device that has never
-            // contacted the server show green and read "online" — which is exactly
-            // what makes a queued command look like it should run when the device
-            // is not even talking to this server. A new manual device starts
-            // 'offline' with last_activity NULL, so the card reads "Never" until it
-            // genuinely checks in; an edit leaves the real values untouched.
             `INSERT INTO devices (
                 serial_number, device_name, ip_address, port, status, last_activity, area_id,
                 transfer_mode, timezone, is_registration_device, is_attendance_device,
-                connection_interval, device_direction, enable_access_control, vendor
-            ) VALUES ($1, $2, $3, $4, 'offline', NULL, $5, $6, $7, $8, $9, $10, $11, $12, COALESCE($13, 'ZKTeco'))
-             ON CONFLICT (serial_number) DO UPDATE SET
+                connection_interval, device_direction, enable_access_control
+            ) VALUES ($1, $2, $3, $4, 'online', NOW(), $5, $6, $7, $8, $9, $10, $11, $12)
+             ON CONFLICT (serial_number) DO UPDATE SET 
                 device_name = COALESCE($2, devices.device_name),
                 ip_address = COALESCE($3, devices.ip_address),
                 port = COALESCE($4, devices.port),
@@ -1770,43 +1756,38 @@ app.post('/api/devices', async (req, res) => {
                 connection_interval = COALESCE($10, devices.connection_interval),
                 device_direction = COALESCE($11, devices.device_direction),
                 enable_access_control = COALESCE($12, devices.enable_access_control),
-                vendor = COALESCE($13, devices.vendor)
+                status = 'online',
+                last_activity = NOW()
              RETURNING *`,
             [serial_number, device_name, ip_address, port || 4370, area_id || null,
                 transfer_mode || 'realtime', timezone || 'Etc/GMT+5:30',
                 is_registration_device ?? true, is_attendance_device ?? true,
-                connection_interval || 10, device_direction || 'both', enable_access_control ?? false,
-                vendor || null]
+                connection_interval || 10, device_direction || 'both', enable_access_control ?? false]
         );
 
-        // Reflect the real status (offline for a new manual add; whatever it
-        // already was for an edit) — not a fabricated 'online'.
-        io.emit('device_status', { serial: serial_number, status: result.rows[0].status });
+        // Emit socket event to notify frontend that device is online
+        io.emit('device_status', { serial: serial_number, status: 'online' });
 
-        // Auto-sync users to newly added device — but only if its driver can
-        // actually push users. A receive-only or non-ADMS device would just
-        // accumulate command rows it never drains, which is the stuck-command
-        // trap. Enrolment for those vendors happens through their own channel.
+        // Auto-sync users to newly added device
         try {
-            const { getDriver } = require('./services/drivers');
-            const driver = getDriver(result.rows[0]);
-            if (!driver.capabilities.canEnrollUsers) {
-                console.log(`[AUTO-SYNC] Skipped for ${serial_number}: ${driver.vendor} is ${driver.transport} (no enrol channel)`);
-            } else {
-                const employees = await db.query("SELECT * FROM employees WHERE LOWER(status) = 'active'");
-                let syncCount = 0;
-                for (const emp of employees.rows) {
-                    await driver.enrollUser(serial_number, {
-                        pin: emp.employee_code,
-                        name: (emp.name || '').replace(/\t/g, ' '),
-                        pri: emp.privilege || 0,
-                        passwd: emp.password || '',
-                        card: emp.card_number || '',
-                    });
-                    syncCount++;
-                }
-                console.log(`[AUTO-SYNC] Queued ${syncCount} users for newly added device ${serial_number}`);
+            const employees = await db.query("SELECT * FROM employees WHERE LOWER(status) = 'active'");
+            let syncCount = 0;
+            for (const emp of employees.rows) {
+                const pin = emp.employee_code;
+                const name = (emp.name || '').replace(/\t/g, ' ');
+                const pri = emp.privilege || 0;
+                const passwd = emp.password || '';
+                const card = emp.card_number || '';
+
+                // Include Face=1 and FPCount=1 to enable biometric recognition
+                const cmd = `DATA UPDATE USERINFO PIN=${pin}\tName=${name}\tPri=${pri}\tPasswd=${passwd}\tCard=${card}\tGrp=1\tTZ=1\tVerify=0\tFace=1\tFPCount=1`;
+                await db.query(
+                    `INSERT INTO device_commands (device_serial, command, status, sequence) VALUES ($1, $2, 'pending', 1)`,
+                    [serial_number, cmd]
+                );
+                syncCount++;
             }
+            console.log(`[AUTO-SYNC] Queued ${syncCount} users for newly added device ${serial_number}`);
         } catch (syncErr) {
             console.error('[AUTO-SYNC] Failed to sync users to new device:', syncErr);
             // Don't fail the request, just log it
@@ -1947,85 +1928,6 @@ app.post('/api/devices/:serial/test-connection', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
-
-/**
- * LAN discovery — the "Search Device" the admin clicks instead of typing a
- * serial by hand. Sweeps the local segment (see services/discovery) and returns
- * candidates, each flagged as already-known or new. Admin-only: it runs a ping
- * sweep and opens a broadcast socket, so it is not something a read-only role or
- * an unauthenticated caller should be able to trigger.
- *
- * Discovery only SURFACES devices; it never registers one. Turning a candidate
- * into a device is still the existing POST /api/devices, so nothing joins the
- * fleet without an explicit admin action.
- */
-app.post('/api/devices/discover', authenticateToken, requireAdmin, async (req, res) => {
-    try {
-        // When a host-network discovery agent is configured, delegate the scan to
-        // it — the main server sits on the docker bridge and cannot see the office
-        // LAN, but the agent shares the host's network stack and can. Without the
-        // agent we still run in-process, which works when the server is NOT
-        // containerised (e.g. dev), and otherwise returns an empty, honest result
-        // plus a note explaining why.
-        const agentUrl = process.env.DISCOVERY_AGENT_URL;
-        if (agentUrl) {
-            const out = await runAgentScan(agentUrl, process.env.DISCOVERY_AGENT_TOKEN);
-            return res.json(out);
-        }
-
-        const discovery = require('./services/discovery');
-        const result = await discovery.discover({
-            skipPing: req.body?.skip_ping === true,
-            timeoutMs: 3000,
-            log: (m) => console.log(m),
-        });
-        // Containerised main server on the bridge: warn rather than imply the LAN
-        // is empty.
-        if (result.candidates.length === 0) {
-            result.note = 'No hosts found. If the server runs in Docker, LAN discovery needs the host-network discovery agent (see docker-compose.discovery.yml); a bridged container cannot see the LAN.';
-        }
-        res.json(result);
-    } catch (err) {
-        console.error('device discovery failed:', err.message);
-        res.status(500).json({ error: 'Discovery failed', detail: err.message });
-    }
-});
-
-// POST to the host-network discovery agent and return its JSON. Kept local to
-// this endpoint; uses the http module rather than fetch for runtime portability.
-function runAgentScan(agentUrl, token) {
-    return new Promise((resolve, reject) => {
-        let mod, u;
-        try {
-            u = new URL('/scan', agentUrl);
-            mod = u.protocol === 'https:' ? require('https') : require('http');
-        } catch (e) {
-            return reject(new Error(`bad DISCOVERY_AGENT_URL: ${e.message}`));
-        }
-        const reqAgent = mod.request(
-            u,
-            {
-                method: 'POST',
-                headers: { 'X-Discovery-Token': token || '', 'Content-Length': 0 },
-                timeout: 15000,
-            },
-            (r) => {
-                let body = '';
-                r.on('data', (c) => (body += c));
-                r.on('end', () => {
-                    if (r.statusCode !== 200) {
-                        return reject(new Error(`discovery agent responded ${r.statusCode}: ${body.slice(0, 200)}`));
-                    }
-                    try { resolve(JSON.parse(body)); }
-                    catch { reject(new Error('discovery agent returned invalid JSON')); }
-                });
-            }
-        );
-        reqAgent.on('timeout', () => reqAgent.destroy(new Error('discovery agent timed out')));
-        reqAgent.on('error', (e) => reject(new Error(`discovery agent unreachable: ${e.message}`)));
-        reqAgent.end();
-    });
-}
 
 // Helper for Generic CRUD
 // Column names come from the request body, so they must be strictly validated
@@ -2274,29 +2176,12 @@ app.post('/api/device-commands', authenticateToken, requireAdmin, async (req, re
     }
 
     try {
-        // Dispatch through the vendor driver rather than inserting directly. For a
-        // ZKTeco/eSSL device this is the same queue insert as before; for a
-        // receive-only or virtual device the driver refuses (422) instead of
-        // creating a command row that will never be drained.
-        const devRow = await db.query(
-            'SELECT vendor, is_virtual FROM devices WHERE serial_number = $1',
-            [device_serial]
+        const result = await db.query(
+            `INSERT INTO device_commands (device_serial, command, status)
+             VALUES ($1, $2, $3) RETURNING *`,
+            [device_serial, base, status || 'pending']
         );
-        if (devRow.rows.length === 0) {
-            return res.status(404).json({ error: 'Device not found' });
-        }
-
-        const { getDriver } = require('./services/drivers');
-        const driver = getDriver(devRow.rows[0]);
-        try {
-            const row = await driver.queueRaw(device_serial, base);
-            res.json(row);
-        } catch (e) {
-            if (e.code === 'NOT_SUPPORTED') {
-                return res.status(e.status || 422).json({ error: e.message });
-            }
-            throw e;
-        }
+        res.json(result.rows[0]);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

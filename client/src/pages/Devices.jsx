@@ -6,8 +6,7 @@ import {
     TabletSmartphone, RefreshCw, Power, Plus, Edit2, Trash2, Save,
     Wifi, WifiOff, Users, Fingerprint, Clock, Activity, Settings, Check,
     Upload, Download, ChevronDown, AlertTriangle, Briefcase, Camera, FileText,
-    FileQuestion, Database, AlertCircle, FileSpreadsheet, Table2, Inbox, ShieldAlert,
-    Search
+    FileQuestion, Database, AlertCircle, FileSpreadsheet, Table2, Inbox, ShieldAlert
 } from 'lucide-react';
 import { TableSkeleton } from '../components/SkeletonLoader';
 import { useToast, Button, PageHeader } from '../components';
@@ -286,12 +285,6 @@ export default function Devices() {
     const [syncingAll, setSyncingAll] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
     const [confirmation, setConfirmation] = useState({ show: false, action: null, title: '', message: '', target: null });
-
-    // LAN discovery ("Search Device") state
-    const [showDiscover, setShowDiscover] = useState(false);
-    const [discovering, setDiscovering] = useState(false);
-    const [discovered, setDiscovered] = useState(null); // { scanned_at, candidates } | { error }
-
     const socketRef = useRef(null);
     const syncAllMenuRef = useRef(null);
     const transferMenuRef = useRef(null);
@@ -506,40 +499,6 @@ export default function Devices() {
     };
 
     const closeModal = () => { setShowModal(false); setEditingDevice(null); setForm(defaultForm); };
-
-    // --- LAN discovery -----------------------------------------------------
-    const runDiscover = async () => {
-        setDiscovering(true);
-        try {
-            const res = await api.post('/api/devices/discover', {});
-            setDiscovered(res.data);
-        } catch (e) {
-            setDiscovered({ candidates: [], error: e.response?.data?.error || 'Scan failed' });
-        } finally {
-            setDiscovering(false);
-        }
-    };
-
-    const openDiscover = () => { setShowDiscover(true); setDiscovered(null); runDiscover(); };
-
-    // Turn a discovered candidate into a real device by prefilling the Add form.
-    // Discovery never registers on its own — the admin confirms in the same
-    // modal used for a manual add, so nothing joins the fleet silently.
-    const registerCandidate = (c) => {
-        const label = c.serial || (c.vendor ? `${c.vendor} device` : c.ip);
-        setEditingDevice(null);
-        setForm({
-            ...defaultForm,
-            serial_number: c.serial || '',
-            ip_address: c.ip || '',
-            device_name: label,
-            // Carried through to POST /api/devices so the device registers under
-            // the right vendor driver; null/unknown falls back to ZKTeco server-side.
-            vendor: c.vendor || undefined,
-        });
-        setShowDiscover(false);
-        setShowModal(true);
-    };
     const syncDevice = async (sn, cmd) => {
         setSyncing(prev => ({ ...prev, [sn]: cmd }));
         try { await api.post('/api/device-commands', { device_serial: sn, command: cmd }); setTimeout(() => { fetchDevices(); setSyncing(p => ({ ...p, [sn]: null })); }, 2000); } catch (e) { console.error(e); setSyncing(p => ({ ...p, [sn]: null })); }
@@ -731,9 +690,6 @@ export default function Devices() {
                                         </>
                                     )}
                                 </div>
-                                <Button variant="secondary" icon={Search} onClick={openDiscover}>
-                                    Search LAN
-                                </Button>
                                 <Button variant="successSolid" icon={Plus} onClick={() => setShowModal(true)}>
                                     Add Device
                                 </Button>
@@ -1018,99 +974,6 @@ export default function Devices() {
                         <Button variant="secondary" onClick={() => setConfirmation({ show: false, action: null })}>Cancel</Button>
                         <Button variant={confirmation.action === 'delete' ? 'dangerSolid' : 'primary'} onClick={processDataTransfer}>Confirm</Button>
                     </div>
-                </div>
-            </Modal>
-
-            <Modal
-                open={showDiscover}
-                onClose={() => setShowDiscover(false)}
-                title="Search LAN for devices"
-                size="lg"
-            >
-                <div className="space-y-4">
-                    <div className="flex items-center justify-between gap-3">
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
-                            Scans this network segment for attendance devices. ZKTeco/eSSL readers
-                            report their serial; other brands are identified by MAC. Registering is
-                            still your choice — nothing is added automatically.
-                        </p>
-                        <Button variant="secondary" icon={RefreshCw} onClick={runDiscover} disabled={discovering}>
-                            {discovering ? 'Scanning…' : 'Rescan'}
-                        </Button>
-                    </div>
-
-                    {discovering && (
-                        <div className="flex items-center gap-3 p-6 justify-center text-slate-500 dark:text-slate-400">
-                            <Search className="w-5 h-5 animate-spin" />
-                            <span>Sweeping the network… this takes a few seconds.</span>
-                        </div>
-                    )}
-
-                    {!discovering && discovered?.error && (
-                        <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm">
-                            {discovered?.error}
-                        </div>
-                    )}
-
-                    {!discovering && discovered && !discovered.error && (
-                        <>
-                            {discovered?.candidates?.length === 0 ? (
-                                <div className="p-6 text-center text-slate-500 dark:text-slate-400 text-sm">
-                                    {discovered?.note
-                                        || 'No hosts found on the segment. Confirm the server and the devices share the same LAN (discovery cannot cross a router or VLAN).'}
-                                </div>
-                            ) : (
-                                <div className="overflow-x-auto max-h-[52vh] overflow-y-auto rounded-lg border border-slate-200 dark:border-slate-700">
-                                    <table className="w-full text-sm">
-                                        <thead className="bg-slate-50 dark:bg-slate-800 sticky top-0">
-                                            <tr className="text-left text-slate-500 dark:text-slate-400">
-                                                <th className="px-3 py-2 font-medium">IP</th>
-                                                <th className="px-3 py-2 font-medium">Vendor</th>
-                                                <th className="px-3 py-2 font-medium">Serial</th>
-                                                <th className="px-3 py-2 font-medium">MAC</th>
-                                                <th className="px-3 py-2 font-medium">Status</th>
-                                                <th className="px-3 py-2 font-medium text-right">Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {discovered?.candidates?.map((c) => (
-                                                <tr key={c.ip} className="border-t border-slate-100 dark:border-slate-800">
-                                                    <td className="px-3 py-2 font-mono text-slate-700 dark:text-slate-200">{c.ip}</td>
-                                                    <td className="px-3 py-2">
-                                                        {c.vendor
-                                                            ? <span className="text-slate-700 dark:text-slate-200">{c.vendor}</span>
-                                                            : <span className="text-slate-400">unknown</span>}
-                                                    </td>
-                                                    <td className="px-3 py-2 font-mono text-xs">
-                                                        {c.serial || <span className="text-slate-400">—</span>}
-                                                    </td>
-                                                    <td className="px-3 py-2 font-mono text-xs text-slate-500 dark:text-slate-400">{c.mac || '—'}</td>
-                                                    <td className="px-3 py-2">
-                                                        {c.known
-                                                            ? <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400"><Check className="w-3.5 h-3.5" />Registered{c.registered_as ? ` (${c.registered_as})` : ''}</span>
-                                                            : <span className="text-amber-600 dark:text-amber-400">New</span>}
-                                                    </td>
-                                                    <td className="px-3 py-2 text-right">
-                                                        {c.known ? (
-                                                            <span className="text-slate-400 text-xs">—</span>
-                                                        ) : (
-                                                            <Button variant="successSolid" size="sm" icon={Plus} onClick={() => registerCandidate(c)}>
-                                                                Register
-                                                            </Button>
-                                                        )}
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            )}
-                            <p className="text-xs text-slate-400">
-                                A reader shows no serial when it did not answer the vendor probe. You
-                                can still register it by IP, then point it at this server so it checks in.
-                            </p>
-                        </>
-                    )}
                 </div>
             </Modal>
 

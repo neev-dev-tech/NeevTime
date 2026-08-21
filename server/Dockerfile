@@ -9,11 +9,8 @@ WORKDIR /app
 # installed in any image of this application, so every scheduled backup has
 # failed since the feature was written. Version 15 to match the server: pg_dump
 # refuses to dump a server newer than itself, and Debian bullseye ships 13.
-# iputils-ping + iproute2 are for LAN device discovery: the host-network
-# discovery agent ping-sweeps the segment to populate the ARP cache, then reads
-# it. Small, and only exercised when the discovery agent runs.
 RUN apt-get update \
-    && apt-get install -y python3 make g++ curl ca-certificates gnupg iputils-ping iproute2 \
+    && apt-get install -y python3 make g++ curl ca-certificates gnupg \
     && install -d /usr/share/postgresql-common/pgdg \
     && curl --fail -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc \
          https://www.postgresql.org/media/keys/ACCC4CF8.asc \
