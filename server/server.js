@@ -1739,11 +1739,20 @@ app.post('/api/devices', async (req, res) => {
         // The device will be marked offline by heartbeat checker if it doesn't communicate
         // This gives devices a chance to connect and avoids the "offline with 0m ago" issue
         const result = await db.query(
+            // status/last_activity are NOT set here. They are owned by real device
+            // contact: the ADMS handlers set status='online' and stamp
+            // last_activity the moment the device actually polls /iclock. Faking
+            // 'online' on a manual add (or an edit) made a device that has never
+            // contacted the server show green and read "online" — which is exactly
+            // what makes a queued command look like it should run when the device
+            // is not even talking to this server. A new manual device starts
+            // 'offline' with last_activity NULL, so the card reads "Never" until it
+            // genuinely checks in; an edit leaves the real values untouched.
             `INSERT INTO devices (
                 serial_number, device_name, ip_address, port, status, last_activity, area_id,
                 transfer_mode, timezone, is_registration_device, is_attendance_device,
                 connection_interval, device_direction, enable_access_control, vendor
-            ) VALUES ($1, $2, $3, $4, 'online', NOW(), $5, $6, $7, $8, $9, $10, $11, $12, COALESCE($13, 'ZKTeco'))
+            ) VALUES ($1, $2, $3, $4, 'offline', NULL, $5, $6, $7, $8, $9, $10, $11, $12, COALESCE($13, 'ZKTeco'))
              ON CONFLICT (serial_number) DO UPDATE SET
                 device_name = COALESCE($2, devices.device_name),
                 ip_address = COALESCE($3, devices.ip_address),
@@ -1756,9 +1765,7 @@ app.post('/api/devices', async (req, res) => {
                 connection_interval = COALESCE($10, devices.connection_interval),
                 device_direction = COALESCE($11, devices.device_direction),
                 enable_access_control = COALESCE($12, devices.enable_access_control),
-                vendor = COALESCE($13, devices.vendor),
-                status = 'online',
-                last_activity = NOW()
+                vendor = COALESCE($13, devices.vendor)
              RETURNING *`,
             [serial_number, device_name, ip_address, port || 4370, area_id || null,
                 transfer_mode || 'realtime', timezone || 'Etc/GMT+5:30',
@@ -1767,8 +1774,9 @@ app.post('/api/devices', async (req, res) => {
                 vendor || null]
         );
 
-        // Emit socket event to notify frontend that device is online
-        io.emit('device_status', { serial: serial_number, status: 'online' });
+        // Reflect the real status (offline for a new manual add; whatever it
+        // already was for an edit) — not a fabricated 'online'.
+        io.emit('device_status', { serial: serial_number, status: result.rows[0].status });
 
         // Auto-sync users to newly added device — but only if its driver can
         // actually push users. A receive-only or non-ADMS device would just
