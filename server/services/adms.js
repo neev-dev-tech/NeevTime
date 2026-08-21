@@ -351,6 +351,21 @@ const processBiodataLine = async (line, SN, table) => {
     }
 };
 
+// The device's own IP, taken from the connection rather than trusting the
+// device to report it. eSSL readers only include their IP in the ADMS INFO
+// string on some heartbeats (and some firmware never does), so a device could
+// sit in the list with a serial and no IP. But the reader connects TO us, so its
+// LAN IP is right there on the request — nginx forwards it as X-Real-IP for the
+// /iclock/ location. Prefer that; fall back to X-Forwarded-For, then the socket.
+// Returns null (not a bad string) when nothing looks like an IPv4 address, so it
+// only ever fills a gap, never overwrites a good value with junk.
+const clientIp = (req) => {
+    const xff = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim();
+    let ip = req.headers['x-real-ip'] || xff || req.socket?.remoteAddress || '';
+    ip = String(ip).replace(/^::ffff:/, ''); // unwrap IPv4-mapped IPv6
+    return /^(\d{1,3}\.){3}\d{1,3}$/.test(ip) ? ip : null;
+};
+
 // 1. Handshake
 const handleHandshake = async (req, res, io) => {
     const { SN } = req.query;
@@ -365,16 +380,19 @@ const handleHandshake = async (req, res, io) => {
 
     try {
         // Register/Update Device
+        const srcIp = clientIp(req);
         await db.query(`
-            INSERT INTO devices (serial_number, status, last_activity, vendor, approval_status, first_seen_at)
-            VALUES ($1, 'online', NOW(), 'ZKTeco', 'pending', NOW())
-            ON CONFLICT (serial_number) 
+            INSERT INTO devices (serial_number, status, last_activity, ip_address, vendor, approval_status, first_seen_at)
+            VALUES ($1, 'online', NOW(), $2, 'ZKTeco', 'pending', NOW())
+            ON CONFLICT (serial_number)
             -- A retired device must not resurrect itself just by staying on the
             -- network; last_activity still updates so the fleet view is honest.
             DO UPDATE SET
                 status = CASE WHEN devices.status = 'retired' THEN 'retired' ELSE 'online' END,
-                last_activity = NOW()
-        `, [SN]);
+                last_activity = NOW(),
+                -- Fill the IP if we learned one and did not have it; never wipe.
+                ip_address = COALESCE(NULLIF($2, ''), devices.ip_address)
+        `, [SN, srcIp]);
 
         // Notify Frontend
         io.emit('device_status', { serial: SN, status: 'online' });
@@ -647,6 +665,9 @@ const handleGetRequest = async (req, res, io) => {
             console.error(`[ADMS] Error parsing INFO for ${SN}:`, err.message);
         }
     }
+
+    // If the device did not report its IP in INFO, take it from the connection.
+    if (!deviceIP) deviceIP = clientIp(req);
 
     // Auto-register device if not exists, otherwise update last seen
     // Also update model, firmware, and IP if available from INFO
