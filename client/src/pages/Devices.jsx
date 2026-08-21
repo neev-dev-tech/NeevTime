@@ -533,6 +533,9 @@ export default function Devices() {
             serial_number: c.serial || '',
             ip_address: c.ip || '',
             device_name: label,
+            // Carried through to POST /api/devices so the device registers under
+            // the right vendor driver; null/unknown falls back to ZKTeco server-side.
+            vendor: c.vendor || undefined,
         });
         setShowDiscover(false);
         setShowModal(true);

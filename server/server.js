@@ -1732,7 +1732,7 @@ app.post('/api/devices', async (req, res) => {
     const {
         serial_number, device_name, ip_address, port, area_id,
         transfer_mode, timezone, is_registration_device, is_attendance_device,
-        connection_interval, device_direction, enable_access_control
+        connection_interval, device_direction, enable_access_control, vendor
     } = req.body;
     try {
         // When adding a device, set it to 'online' initially with current timestamp
@@ -1742,9 +1742,9 @@ app.post('/api/devices', async (req, res) => {
             `INSERT INTO devices (
                 serial_number, device_name, ip_address, port, status, last_activity, area_id,
                 transfer_mode, timezone, is_registration_device, is_attendance_device,
-                connection_interval, device_direction, enable_access_control
-            ) VALUES ($1, $2, $3, $4, 'online', NOW(), $5, $6, $7, $8, $9, $10, $11, $12)
-             ON CONFLICT (serial_number) DO UPDATE SET 
+                connection_interval, device_direction, enable_access_control, vendor
+            ) VALUES ($1, $2, $3, $4, 'online', NOW(), $5, $6, $7, $8, $9, $10, $11, $12, COALESCE($13, 'ZKTeco'))
+             ON CONFLICT (serial_number) DO UPDATE SET
                 device_name = COALESCE($2, devices.device_name),
                 ip_address = COALESCE($3, devices.ip_address),
                 port = COALESCE($4, devices.port),
@@ -1756,38 +1756,44 @@ app.post('/api/devices', async (req, res) => {
                 connection_interval = COALESCE($10, devices.connection_interval),
                 device_direction = COALESCE($11, devices.device_direction),
                 enable_access_control = COALESCE($12, devices.enable_access_control),
+                vendor = COALESCE($13, devices.vendor),
                 status = 'online',
                 last_activity = NOW()
              RETURNING *`,
             [serial_number, device_name, ip_address, port || 4370, area_id || null,
                 transfer_mode || 'realtime', timezone || 'Etc/GMT+5:30',
                 is_registration_device ?? true, is_attendance_device ?? true,
-                connection_interval || 10, device_direction || 'both', enable_access_control ?? false]
+                connection_interval || 10, device_direction || 'both', enable_access_control ?? false,
+                vendor || null]
         );
 
         // Emit socket event to notify frontend that device is online
         io.emit('device_status', { serial: serial_number, status: 'online' });
 
-        // Auto-sync users to newly added device
+        // Auto-sync users to newly added device — but only if its driver can
+        // actually push users. A receive-only or non-ADMS device would just
+        // accumulate command rows it never drains, which is the stuck-command
+        // trap. Enrolment for those vendors happens through their own channel.
         try {
-            const employees = await db.query("SELECT * FROM employees WHERE LOWER(status) = 'active'");
-            let syncCount = 0;
-            for (const emp of employees.rows) {
-                const pin = emp.employee_code;
-                const name = (emp.name || '').replace(/\t/g, ' ');
-                const pri = emp.privilege || 0;
-                const passwd = emp.password || '';
-                const card = emp.card_number || '';
-
-                // Include Face=1 and FPCount=1 to enable biometric recognition
-                const cmd = `DATA UPDATE USERINFO PIN=${pin}\tName=${name}\tPri=${pri}\tPasswd=${passwd}\tCard=${card}\tGrp=1\tTZ=1\tVerify=0\tFace=1\tFPCount=1`;
-                await db.query(
-                    `INSERT INTO device_commands (device_serial, command, status, sequence) VALUES ($1, $2, 'pending', 1)`,
-                    [serial_number, cmd]
-                );
-                syncCount++;
+            const { getDriver } = require('./services/drivers');
+            const driver = getDriver(result.rows[0]);
+            if (!driver.capabilities.canEnrollUsers) {
+                console.log(`[AUTO-SYNC] Skipped for ${serial_number}: ${driver.vendor} is ${driver.transport} (no enrol channel)`);
+            } else {
+                const employees = await db.query("SELECT * FROM employees WHERE LOWER(status) = 'active'");
+                let syncCount = 0;
+                for (const emp of employees.rows) {
+                    await driver.enrollUser(serial_number, {
+                        pin: emp.employee_code,
+                        name: (emp.name || '').replace(/\t/g, ' '),
+                        pri: emp.privilege || 0,
+                        passwd: emp.password || '',
+                        card: emp.card_number || '',
+                    });
+                    syncCount++;
+                }
+                console.log(`[AUTO-SYNC] Queued ${syncCount} users for newly added device ${serial_number}`);
             }
-            console.log(`[AUTO-SYNC] Queued ${syncCount} users for newly added device ${serial_number}`);
         } catch (syncErr) {
             console.error('[AUTO-SYNC] Failed to sync users to new device:', syncErr);
             // Don't fail the request, just log it
@@ -2203,12 +2209,29 @@ app.post('/api/device-commands', authenticateToken, requireAdmin, async (req, re
     }
 
     try {
-        const result = await db.query(
-            `INSERT INTO device_commands (device_serial, command, status)
-             VALUES ($1, $2, $3) RETURNING *`,
-            [device_serial, base, status || 'pending']
+        // Dispatch through the vendor driver rather than inserting directly. For a
+        // ZKTeco/eSSL device this is the same queue insert as before; for a
+        // receive-only or virtual device the driver refuses (422) instead of
+        // creating a command row that will never be drained.
+        const devRow = await db.query(
+            'SELECT vendor, is_virtual FROM devices WHERE serial_number = $1',
+            [device_serial]
         );
-        res.json(result.rows[0]);
+        if (devRow.rows.length === 0) {
+            return res.status(404).json({ error: 'Device not found' });
+        }
+
+        const { getDriver } = require('./services/drivers');
+        const driver = getDriver(devRow.rows[0]);
+        try {
+            const row = await driver.queueRaw(device_serial, base);
+            res.json(row);
+        } catch (e) {
+            if (e.code === 'NOT_SUPPORTED') {
+                return res.status(e.status || 422).json({ error: e.message });
+            }
+            throw e;
+        }
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
