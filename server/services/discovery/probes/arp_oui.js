@@ -51,9 +51,28 @@ async function probe(ctx = {}) {
     // not offer the server itself as a device to register.
     const selfIps = new Set(subnets.map((s) => s.address));
 
+    // Docker bridge networks the server is attached to are NOT the office LAN —
+    // their only occupants are the other containers (db/client) and the bridge
+    // gateway. Offering 172.18.0.2 as a "device to register" is the junk the
+    // in-process (bridged) scan produced. Drop any candidate that lives in a
+    // bridge subnet the server itself sits on, identified as an interface in
+    // Docker's default pool (172.16.0.0/12). A real office LAN is virtually never
+    // in that range; if a site genuinely runs there, it should use the host-net
+    // discovery agent, whose host interfaces make the real devices visible.
+    const asInt = (ip) => ip.split('.').reduce((a, o) => (a << 8) + (parseInt(o, 10) || 0), 0) >>> 0;
+    const inDockerPool = (ip) => {
+        const n = asInt(ip);
+        return n >= asInt('172.16.0.0') && n <= asInt('172.31.255.255');
+    };
+    const bridgeNets = subnets
+        .filter((s) => inDockerPool(s.address))
+        .map((s) => ({ base: asInt(s.address) & asInt(s.netmask), mask: asInt(s.netmask) }));
+    const inBridge = (ip) => bridgeNets.some((b) => (asInt(ip) & b.mask) === b.base);
+
     const seen = new Map();
     for (const { ip, mac } of rows) {
         if (selfIps.has(ip)) continue;
+        if (inBridge(ip)) continue; // docker container / bridge gateway, not a device
         if (seen.has(ip)) continue; // one row per IP; first resolved MAC wins
         seen.set(ip, {
             source: NAME,
