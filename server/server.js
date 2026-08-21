@@ -1730,14 +1730,19 @@ app.get('/api/devices/:serial/info', async (req, res) => {
 // Add Device
 app.post('/api/devices', async (req, res) => {
     const {
-        serial_number, device_name, ip_address, port, area_id,
+        device_name, ip_address, port, area_id,
         transfer_mode, timezone, is_registration_device, is_attendance_device,
         connection_interval, device_direction, enable_access_control, vendor
     } = req.body;
+    // The serial is the device's identity in ADMS: a reader checks in as
+    // SN=NYU7254000077, and every command is routed by exact serial match. A
+    // stray space from a copy-paste (observed: "NYU7254000077 ") stores a serial
+    // that no check-in will ever equal, so the device shows but never connects
+    // and its commands misroute silently. Trim it at the door.
+    const serial_number = typeof req.body.serial_number === 'string'
+        ? req.body.serial_number.trim()
+        : req.body.serial_number;
     try {
-        // When adding a device, set it to 'online' initially with current timestamp
-        // The device will be marked offline by heartbeat checker if it doesn't communicate
-        // This gives devices a chance to connect and avoids the "offline with 0m ago" issue
         const result = await db.query(
             // status/last_activity are NOT set here. They are owned by real device
             // contact: the ADMS handlers set status='online' and stamp
