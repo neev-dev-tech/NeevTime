@@ -337,7 +337,9 @@ if [ "${SKIP_DATAFLOW:-0}" != "1" ] && d inspect "$DB_CONTAINER" >/dev/null 2>&1
 
     undelivered=$(psql_q "SELECT count(*) FROM alert_state WHERE resolved_at IS NULL AND last_error IS NOT NULL" 2>/dev/null)
     [ "${undelivered:-0}" -gt 0 ] && note "$undelivered alerts failed to send — email may be broken"
-else
+elif [ "${SKIP_DATAFLOW:-0}" != "1" ]; then
+    # Only a genuine absence, not a deliberate fresh-install skip (which already
+    # printed its own explanation above and set SKIP_DATAFLOW).
     note "$DB_CONTAINER not found, skipping data checks"
 fi
 
