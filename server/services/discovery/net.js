@@ -15,10 +15,12 @@
  */
 
 const os = require('os');
+const fs = require('fs');
 const { execFile } = require('child_process');
 
 const isWindows = process.platform === 'win32';
 const isMac = process.platform === 'darwin';
+const isLinux = process.platform === 'linux';
 
 const run = (cmd, args, timeoutMs) =>
     new Promise((resolve) => {
@@ -62,6 +64,25 @@ function hostsInSlash24(ip) {
     return hosts;
 }
 
+/**
+ * The directed broadcast address for a local interface (address | ~netmask).
+ * Sending the ZK search to 10.81.20.255 bound to the LAN interface reaches the
+ * whole segment even on a multi-homed host, where 255.255.255.255 might leave by
+ * the wrong interface (e.g. the docker bridge). Returns { src, broadcast } per
+ * usable interface so the UDP probe can bind to src and target broadcast.
+ */
+function broadcastTargets() {
+    const out = [];
+    for (const s of localSubnets()) {
+        const ipParts = s.address.split('.').map((n) => parseInt(n, 10));
+        const maskParts = s.netmask.split('.').map((n) => parseInt(n, 10));
+        if (ipParts.length !== 4 || maskParts.length !== 4) continue;
+        const bc = ipParts.map((o, i) => (o & maskParts[i]) | (~maskParts[i] & 0xff));
+        out.push({ src: s.address, broadcast: bc.join('.') });
+    }
+    return out;
+}
+
 function pingArgs(ip) {
     // One packet, short deadline — we are only trying to provoke an ARP entry,
     // not measure latency.
@@ -101,21 +122,52 @@ function normalizeMac(mac) {
 
 /**
  * Read the ARP table as [{ ip, mac }]. Incomplete entries (no resolved MAC) are
- * dropped. Parsed line-by-line with regexes rather than by column, because the
- * table's columns differ across Linux, macOS, and Windows.
+ * dropped.
+ *
+ * On Linux we read /proc/net/arp directly instead of shelling out to `arp`:
+ * the kernel file is always present, needs no net-tools package (which the
+ * container does not ship), and its columns are fixed. macOS/Windows have no
+ * such file, so they fall back to parsing the `arp` command's output, whose
+ * columns differ per OS — hence the regex-based extraction there.
  */
 async function readArpTable() {
-    const args = isWindows ? ['-a'] : ['-a', '-n'];
-    const raw = await run('arp', isWindows ? args : ['-an'], 8000);
+    if (isLinux) {
+        try {
+            return readProcNetArp(fs.readFileSync('/proc/net/arp', 'utf8'));
+        } catch {
+            // Fall through to the command path if /proc is somehow unavailable.
+        }
+    }
+    const raw = await run('arp', isWindows ? ['-a'] : ['-an'], 8000);
     const rows = [];
     for (const line of raw.split(/\r?\n/)) {
         const macM = line.match(MAC_RE);
         const ipM = line.match(IP_RE);
         if (!macM || !ipM) continue;
         const mac = normalizeMac(macM[1]);
-        // Skip broadcast / incomplete / all-zero entries.
         if (mac === 'ff:ff:ff:ff:ff:ff' || mac === '00:00:00:00:00:00') continue;
         rows.push({ ip: ipM[1], mac });
+    }
+    return rows;
+}
+
+/**
+ * Parse /proc/net/arp. Columns are fixed:
+ *   IP address  HW type  Flags  HW address  Mask  Device
+ * Flags 0x0 means the entry is incomplete (no MAC resolved yet) — skip it.
+ */
+function readProcNetArp(text) {
+    const rows = [];
+    const lines = text.split(/\r?\n/).slice(1); // drop the header row
+    for (const line of lines) {
+        const cols = line.trim().split(/\s+/);
+        if (cols.length < 4) continue;
+        const [ip, , flags, mac] = cols;
+        if (flags === '0x0') continue; // incomplete
+        const norm = normalizeMac(mac);
+        if (norm === 'ff:ff:ff:ff:ff:ff' || norm === '00:00:00:00:00:00') continue;
+        if (!IP_RE.test(ip)) continue;
+        rows.push({ ip, mac: norm });
     }
     return rows;
 }
@@ -123,6 +175,7 @@ async function readArpTable() {
 module.exports = {
     localSubnets,
     hostsInSlash24,
+    broadcastTargets,
     primeArp,
     readArpTable,
     normalizeMac,

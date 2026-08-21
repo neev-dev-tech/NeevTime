@@ -1056,8 +1056,8 @@ export default function Devices() {
                         <>
                             {discovered?.candidates?.length === 0 ? (
                                 <div className="p-6 text-center text-slate-500 dark:text-slate-400 text-sm">
-                                    No hosts found on the segment. Confirm the server and the devices
-                                    share the same LAN (discovery cannot cross a router or VLAN).
+                                    {discovered?.note
+                                        || 'No hosts found on the segment. Confirm the server and the devices share the same LAN (discovery cannot cross a router or VLAN).'}
                                 </div>
                             ) : (
                                 <div className="overflow-x-auto max-h-[52vh] overflow-y-auto rounded-lg border border-slate-200 dark:border-slate-700">

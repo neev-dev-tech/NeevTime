@@ -1948,19 +1948,71 @@ app.post('/api/devices/:serial/test-connection', async (req, res) => {
  */
 app.post('/api/devices/discover', authenticateToken, requireAdmin, async (req, res) => {
     try {
+        // When a host-network discovery agent is configured, delegate the scan to
+        // it — the main server sits on the docker bridge and cannot see the office
+        // LAN, but the agent shares the host's network stack and can. Without the
+        // agent we still run in-process, which works when the server is NOT
+        // containerised (e.g. dev), and otherwise returns an empty, honest result
+        // plus a note explaining why.
+        const agentUrl = process.env.DISCOVERY_AGENT_URL;
+        if (agentUrl) {
+            const out = await runAgentScan(agentUrl, process.env.DISCOVERY_AGENT_TOKEN);
+            return res.json(out);
+        }
+
         const discovery = require('./services/discovery');
-        const skipPing = req.body?.skip_ping === true;
         const result = await discovery.discover({
-            skipPing,
+            skipPing: req.body?.skip_ping === true,
             timeoutMs: 3000,
             log: (m) => console.log(m),
         });
+        // Containerised main server on the bridge: warn rather than imply the LAN
+        // is empty.
+        if (result.candidates.length === 0) {
+            result.note = 'No hosts found. If the server runs in Docker, LAN discovery needs the host-network discovery agent (see docker-compose.discovery.yml); a bridged container cannot see the LAN.';
+        }
         res.json(result);
     } catch (err) {
         console.error('device discovery failed:', err.message);
         res.status(500).json({ error: 'Discovery failed', detail: err.message });
     }
 });
+
+// POST to the host-network discovery agent and return its JSON. Kept local to
+// this endpoint; uses the http module rather than fetch for runtime portability.
+function runAgentScan(agentUrl, token) {
+    return new Promise((resolve, reject) => {
+        let mod, u;
+        try {
+            u = new URL('/scan', agentUrl);
+            mod = u.protocol === 'https:' ? require('https') : require('http');
+        } catch (e) {
+            return reject(new Error(`bad DISCOVERY_AGENT_URL: ${e.message}`));
+        }
+        const reqAgent = mod.request(
+            u,
+            {
+                method: 'POST',
+                headers: { 'X-Discovery-Token': token || '', 'Content-Length': 0 },
+                timeout: 15000,
+            },
+            (r) => {
+                let body = '';
+                r.on('data', (c) => (body += c));
+                r.on('end', () => {
+                    if (r.statusCode !== 200) {
+                        return reject(new Error(`discovery agent responded ${r.statusCode}: ${body.slice(0, 200)}`));
+                    }
+                    try { resolve(JSON.parse(body)); }
+                    catch { reject(new Error('discovery agent returned invalid JSON')); }
+                });
+            }
+        );
+        reqAgent.on('timeout', () => reqAgent.destroy(new Error('discovery agent timed out')));
+        reqAgent.on('error', (e) => reject(new Error(`discovery agent unreachable: ${e.message}`)));
+        reqAgent.end();
+    });
+}
 
 // Helper for Generic CRUD
 // Column names come from the request body, so they must be strictly validated

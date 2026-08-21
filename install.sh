@@ -84,6 +84,10 @@ else
         echo "# the admin account. Change it after signing in, then this line does"
         echo "# nothing (the account already exists) and can be removed."
         echo "ADMIN_PASSWORD=$ADMIN_PW"
+        echo ""
+        echo "# Token for the optional LAN discovery agent (docker-compose.discovery.yml)."
+        echo "# Only used if you run the discovery overlay; harmless otherwise."
+        echo "DISCOVERY_AGENT_TOKEN=$(openssl rand -base64 32 | tr -d '\n=/+' | cut -c1-32)"
     } > .env
     chmod 600 .env
     ok ".env created with generated secrets (mode 600)"

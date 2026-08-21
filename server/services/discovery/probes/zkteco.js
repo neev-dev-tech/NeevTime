@@ -18,6 +18,7 @@
  */
 
 const dgram = require('dgram');
+const { broadcastTargets } = require('../net');
 
 const NAME = 'zkteco-udp';
 const ZK_SEARCH_PORT = 4950;
@@ -109,7 +110,17 @@ function probe(ctx = {}) {
             try {
                 socket.setBroadcast(true);
                 const pkt = buildSearchPacket();
-                socket.send(pkt, 0, pkt.length, ZK_SEARCH_PORT, '255.255.255.255');
+                // Target each local subnet's directed broadcast as well as the
+                // limited broadcast. On a host-networked multi-homed box the
+                // directed address (e.g. 10.81.20.255) is what actually reaches
+                // the readers' segment; 255.255.255.255 may leave by the wrong
+                // interface (the docker bridge). Belt and suspenders.
+                const targets = ['255.255.255.255', ...broadcastTargets().map((t) => t.broadcast)];
+                for (const addr of new Set(targets)) {
+                    socket.send(pkt, 0, pkt.length, ZK_SEARCH_PORT, addr, (err) => {
+                        if (err) log(`[${NAME}] send to ${addr} failed: ${err.message}`);
+                    });
+                }
             } catch (err) {
                 log(`[${NAME}] broadcast failed: ${err.message}`);
                 return finish();
