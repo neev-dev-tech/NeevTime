@@ -1048,13 +1048,13 @@ export default function Devices() {
 
                     {!discovering && discovered?.error && (
                         <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm">
-                            {discovered.error}
+                            {discovered?.error}
                         </div>
                     )}
 
                     {!discovering && discovered && !discovered.error && (
                         <>
-                            {discovered.candidates.length === 0 ? (
+                            {discovered?.candidates?.length === 0 ? (
                                 <div className="p-6 text-center text-slate-500 dark:text-slate-400 text-sm">
                                     No hosts found on the segment. Confirm the server and the devices
                                     share the same LAN (discovery cannot cross a router or VLAN).
@@ -1073,7 +1073,7 @@ export default function Devices() {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {discovered.candidates.map((c) => (
+                                            {discovered?.candidates?.map((c) => (
                                                 <tr key={c.ip} className="border-t border-slate-100 dark:border-slate-800">
                                                     <td className="px-3 py-2 font-mono text-slate-700 dark:text-slate-200">{c.ip}</td>
                                                     <td className="px-3 py-2">
