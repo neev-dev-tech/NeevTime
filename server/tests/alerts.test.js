@@ -242,7 +242,8 @@ test('the no-punches drill runs the real check, not a copy', () => {
     assert.match(src, /const drillNoPunches = async/, 'the fire drill is gone');
     // Both the check and the drill must go through the shared status + payload
     // helpers; a drill with its own query proves nothing about the check.
-    const checkUses = /const checkNoPunches = async \(\) => \{\s*\n\s*const r = await noPunchesStatus\(\)/.test(src);
+    const checkBody = src.slice(src.indexOf('const checkNoPunches'), src.indexOf('const drillNoPunches'));
+    const checkUses = /const r = await noPunchesStatus\(\)/.test(checkBody);
     const drillUses = src.indexOf('noPunchesStatus()', src.indexOf('drillNoPunches')) > -1;
     assert.ok(checkUses, 'checkNoPunches no longer uses the shared status query');
     assert.ok(drillUses, 'the drill has its own query — it can pass while the real check is broken');
@@ -271,4 +272,24 @@ test('the backup scheduler reads the clock in the configured zone', () => {
         'the due-time comparison uses the container clock again');
     assert.match(src, /createBackup\('auto', local\.format/,
         'auto dumps are stamped with the container clock — the daily dedupe will not match them');
+});
+
+test('a fresh install does not alarm on no punches', () => {
+    // The clean-second-install test on 21 Aug caught this: verify-deploy failed
+    // and the no-punches check would have emailed "collection broken" on day
+    // one, because an empty database (no employees, no punch ever) read as an
+    // outage. A new install has nothing that could have stopped.
+    const src = read('services/alert_checks.js');
+    const block = src.slice(src.indexOf('const checkNoPunches'), src.indexOf('const drillNoPunches'));
+    assert.match(block, /enrolled\.rows\[0\]\.n === 0 && ever\.rows\[0\]\.n === 0/,
+        'the no-punches alert fires on a fresh, empty install');
+});
+
+test('verify-deploy skips data-flow on an empty fresh install', () => {
+    const fs = require('node:fs');
+    const path = require('node:path');
+    const sh = fs.readFileSync(path.join(__dirname, '../../verify-deploy.sh'), 'utf8');
+    assert.match(sh, /SKIP_DATAFLOW=1/, 'verify-deploy fails a healthy fresh install with no data');
+    assert.match(sh, /fresh install: no employees enrolled and no punches yet/,
+        'the fresh-install case is not explained to the operator');
 });

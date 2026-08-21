@@ -308,6 +308,15 @@ const noPunchesPayload = (r) => ({
 });
 
 const checkNoPunches = async () => {
+    // A brand-new install has never collected a punch and has no employees —
+    // that is not an outage, and a customer must not get a "collection broken"
+    // alert on day one. Silent until there is something to have stopped.
+    const enrolled = await db.query(
+        `SELECT count(*)::int AS n FROM employees
+          WHERE LOWER(status) = 'active' AND attendance_required IS NOT FALSE`);
+    const ever = await db.query('SELECT count(*)::int AS n FROM attendance_logs');
+    if (enrolled.rows[0].n === 0 && ever.rows[0].n === 0) return;
+
     const r = await noPunchesStatus();
     // Only ask on a working day, once the morning has passed. Outside that the
     // check is silent rather than guessing — and critically, it does not resolve

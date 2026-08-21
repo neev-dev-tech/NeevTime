@@ -263,6 +263,24 @@ fi
 # one thing it exists for.
 head_ "4. Data flow"
 if d inspect "$DB_CONTAINER" >/dev/null 2>&1; then
+    # A fresh install is not a broken one. With no employees enrolled and no
+    # punch ever recorded, the collection checks below would read "empty" as
+    # "collection stopped" and fail a deploy that is perfectly healthy — which
+    # is exactly what a customer sees the first time they run this, before a
+    # single reader is pointed at the box. Distinguish the two: never collected
+    # is a new install; collected-then-stopped is the outage this section
+    # exists to catch.
+    ever=$(psql_q "SELECT count(*) FROM attendance_logs")
+    emp_total=$(psql_q "SELECT count(*) FROM employees WHERE lower(status)='active' AND attendance_required IS NOT FALSE")
+    if [ "${ever:-0}" -eq 0 ] && [ "${emp_total:-0}" -eq 0 ]; then
+        note "fresh install: no employees enrolled and no punches yet — collection checks skipped until there is data to check"
+        ok "active employees: 0 (new install)"
+        echo
+        # Skip the rest of section 4; nothing to judge on an empty database.
+        SKIP_DATAFLOW=1
+    fi
+fi
+if [ "${SKIP_DATAFLOW:-0}" != "1" ] && d inspect "$DB_CONTAINER" >/dev/null 2>&1; then
     last=$(psql_q "SELECT to_char(max(punch_time),'YYYY-MM-DD HH24:MI') FROM attendance_logs")
     # NOW() is UTC in this container while punch_time is local wall-clock time.
     # Subtracting them directly casts one through the server zone and reports a
