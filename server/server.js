@@ -1929,6 +1929,33 @@ app.post('/api/devices/:serial/test-connection', async (req, res) => {
     }
 });
 
+/**
+ * LAN discovery — the "Search Device" the admin clicks instead of typing a
+ * serial by hand. Sweeps the local segment (see services/discovery) and returns
+ * candidates, each flagged as already-known or new. Admin-only: it runs a ping
+ * sweep and opens a broadcast socket, so it is not something a read-only role or
+ * an unauthenticated caller should be able to trigger.
+ *
+ * Discovery only SURFACES devices; it never registers one. Turning a candidate
+ * into a device is still the existing POST /api/devices, so nothing joins the
+ * fleet without an explicit admin action.
+ */
+app.post('/api/devices/discover', authenticateToken, requireAdmin, async (req, res) => {
+    try {
+        const discovery = require('./services/discovery');
+        const skipPing = req.body?.skip_ping === true;
+        const result = await discovery.discover({
+            skipPing,
+            timeoutMs: 3000,
+            log: (m) => console.log(m),
+        });
+        res.json(result);
+    } catch (err) {
+        console.error('device discovery failed:', err.message);
+        res.status(500).json({ error: 'Discovery failed', detail: err.message });
+    }
+});
+
 // Helper for Generic CRUD
 // Column names come from the request body, so they must be strictly validated
 // before being interpolated into SQL.
