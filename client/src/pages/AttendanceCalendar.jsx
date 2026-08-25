@@ -21,11 +21,14 @@ export default function AttendanceCalendar() {
         setLoading(true);
         setError(null);
         try {
-            // In a real scenario, you'd pass startDate and endDate to fetch specific month data
-            // const startDate = `${year}-${String(month + 1).padStart(2, '0')}-01`;
-            // const endDate = `${year}-${String(month + 1).padStart(2, '0')}-${daysInMonth}`;
+            // Fetch only the visible month, not every summary row ever written —
+            // the endpoint now takes a [start_date, end_date] window.
+            const startDate = `${year}-${String(month + 1).padStart(2, '0')}-01`;
+            const endDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(daysInMonth).padStart(2, '0')}`;
 
-            const res = await api.get('/api/attendance/summary');
+            const res = await api.get('/api/attendance/summary', {
+                params: { start_date: startDate, end_date: endDate },
+            });
             const grouped = {};
             res.data.forEach(row => {
                 const date = row.date?.split('T')[0];

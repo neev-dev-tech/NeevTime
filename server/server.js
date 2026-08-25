@@ -331,7 +331,7 @@ const getRegisterSchema = () => {
 
 app.get('/api/attendance/summary', authenticateToken, async (req, res) => {
     try {
-        const { date, employee_code } = req.query;
+        const { date, employee_code, start_date, end_date } = req.query;
         const schema = await getRegisterSchema();
 
         // For a single day, drive the query from the employee list rather than
@@ -409,6 +409,16 @@ app.get('/api/attendance/summary', authenticateToken, async (req, res) => {
         if (date) {
             conditions.push(`ads.date = $${params.length + 1}`);
             params.push(date);
+        }
+        // Optional [start_date, end_date] window — the attendance calendar asks
+        // for a single month rather than pulling every summary row ever written.
+        if (start_date) {
+            conditions.push(`ads.date >= $${params.length + 1}`);
+            params.push(start_date);
+        }
+        if (end_date) {
+            conditions.push(`ads.date <= $${params.length + 1}`);
+            params.push(end_date);
         }
         if (employee_code) {
             conditions.push(`ads.employee_code = $${params.length + 1}`);

@@ -796,10 +796,7 @@ export default function Dashboard() {
                     <div className="space-y-2 text-sm">
                         <button
                             className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer"
-                            onClick={() => {
-                                // Future: Filter devices by online status
-                                console.log('Filter: Online devices');
-                            }}
+                            onClick={() => navigate('/devices')}
                         >
                             <div className="flex items-center gap-2">
                                 <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#2EAD6D' }} />
@@ -809,10 +806,7 @@ export default function Dashboard() {
                         </button>
                         <button
                             className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer"
-                            onClick={() => {
-                                // Future: Filter devices by offline status
-                                console.log('Filter: Offline devices');
-                            }}
+                            onClick={() => navigate('/devices')}
                         >
                             <div className="flex items-center gap-2">
                                 <div className="w-2.5 h-2.5 rounded-full bg-slate-300" />

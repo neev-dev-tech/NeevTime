@@ -32,7 +32,9 @@ export default function Login({ setAuth }) {
 
     const handleLogin = async (e) => {
         e.preventDefault();
+        if (busy) return; // a slow network must not let a double-click send two logins
         setError('');
+        setBusy(true);
         try {
             const res = await axios.post('/api/login', { username, password });
             const { token, user, must_change } = res.data;
@@ -47,6 +49,8 @@ export default function Login({ setAuth }) {
             enter(token, user);
         } catch (err) {
             setError(err.response?.data?.error || 'Login failed');
+        } finally {
+            setBusy(false);
         }
     };
 
@@ -208,8 +212,11 @@ export default function Login({ setAuth }) {
                             <a href="/forgot-password" className="text-saffron hover:underline font-medium">Forgot password?</a>
                         </div>
 
-                        <button className="w-full btn-primary py-3.5 rounded-xl shadow-lg shadow-orange-200 transition-ui hover:scale-[1.02] hover:shadow-xl text-base font-semibold">
-                            Sign In
+                        <button
+                            disabled={busy}
+                            className="w-full btn-primary py-3.5 rounded-xl shadow-lg shadow-orange-200 transition-ui hover:scale-[1.02] hover:shadow-xl text-base font-semibold disabled:opacity-60 disabled:hover:scale-100"
+                        >
+                            {busy ? 'Signing in…' : 'Sign In'}
                         </button>
                     </form>
                     ) : (

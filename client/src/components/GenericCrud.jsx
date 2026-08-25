@@ -21,8 +21,11 @@ export default function GenericCrud({ title, endpoint, columns, icon: Icon }) {
 
     useEffect(() => { fetchItems(); }, [endpoint]);
 
+    const [submitting, setSubmitting] = useState(false);
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (submitting) return; // guard against a double-click creating two records
+        setSubmitting(true);
         try {
             if (editingId) {
                 await api.put(`${endpoint}/${editingId}`, formData);
@@ -33,7 +36,11 @@ export default function GenericCrud({ title, endpoint, columns, icon: Icon }) {
             setFormData({});
             setEditingId(null);
             fetchItems();
-        } catch (err) { toast.error('Operation failed'); }
+        } catch (err) {
+            toast.error(err.response?.data?.error || 'Operation failed');
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     const handleEdit = (item) => {
@@ -120,8 +127,8 @@ export default function GenericCrud({ title, endpoint, columns, icon: Icon }) {
                             {/* Inside the form, so Enter still submits. Modal's
                                 footer slot renders outside it. */}
                             <div className="flex justify-end gap-3 pt-2">
-                                <Button type="button" variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
-                                <Button type="submit" variant="primary">Save</Button>
+                                <Button type="button" variant="secondary" onClick={() => setShowModal(false)} disabled={submitting}>Cancel</Button>
+                                <Button type="submit" variant="primary" disabled={submitting}>{submitting ? 'Saving…' : 'Save'}</Button>
                             </div>
                         </form>
             </Modal>
