@@ -6,13 +6,17 @@
  * payroll and the attendance rules; NeevTime owns the punches — so this uploads
  * raw swipes and lets greytHR build the muster.
  *
- * Auth is OAuth2 client-credentials: POST client id + secret (with the API key)
- * to /uas/v1/oauth2/client-token, cache the bearer, refresh before expiry.
+ * Auth (verified against greytHR API v2):
+ *   1. POST {base}/uas/v1/oauth2/client-token with client_id + client_secret and
+ *      the x-greythr-domain header  ->  { access_token }.
+ *   2. Every data call sends the token in the ACCESS-TOKEN header (NOT
+ *      Authorization: Bearer) plus x-greythr-domain.
+ * Required config: domain (the company's greytHR domain), client_id,
+ * client_secret. There is no separate "API key" — the access token IS the key.
  *
  * CONFIRM against the customer's greytHR "API Details" page (centralised so it's
- * a one-line change): swipe endpoint (`config.swipe_path`), swipe field names
- * (`_buildSwipe`), token/header shape (`_getToken`/`_authHeaders`).
- * Reference: https://api-docs.greythr.com/
+ * a one-line change): swipe endpoint (`config.swipe_path`) and swipe field names
+ * (`_buildSwipe`). Reference: https://api-docs.greythr.com/
  */
 
 const axios = require('axios');
@@ -28,9 +32,11 @@ class GreytHRIntegration extends BaseIntegration {
     constructor(config) {
         super(config);
         this.baseUrl = (this.baseUrl || DEFAULT_BASE).replace(/\/+$/, '');
+        // Accept from the config blob or the generic columns the UI maps to:
+        //   client_id  -> username,  client_secret -> api_secret,  domain -> api_key
         this.clientId = (this.config && this.config.client_id) || this.username;
         this.clientSecret = (this.config && this.config.client_secret) || this.apiSecret;
-        this.domain = (this.config && this.config.domain) || '';
+        this.domain = (this.config && this.config.domain) || this.apiKey || '';
         this.swipePath = (this.config && this.config.swipe_path) || DEFAULT_SWIPE_PATH;
 
         this.client = axios.create({ baseURL: this.baseUrl, timeout: 30000 });
@@ -45,9 +51,9 @@ class GreytHRIntegration extends BaseIntegration {
         const res = await this.client.post(
             TOKEN_PATH,
             { client_id: this.clientId, client_secret: this.clientSecret },
-            { headers: { 'access-token': (this.apiKey || '').trim(), 'Content-Type': 'application/json' } }
+            { headers: { 'x-greythr-domain': this.domain, 'Content-Type': 'application/json' } }
         );
-        const token = res.data && (res.data.access_token || res.data.token);
+        const token = res.data && (res.data.access_token || res.data.token || res.data['access-token']);
         if (!token) throw new Error('greytHR client-token response carried no access_token');
 
         this._token = token;
@@ -56,13 +62,13 @@ class GreytHRIntegration extends BaseIntegration {
     }
 
     _authHeaders(token) {
-        const h = {
-            'Authorization': `Bearer ${token}`,
-            'access-token': (this.apiKey || '').trim(),
+        // greytHR expects the token in ACCESS-TOKEN (not Authorization: Bearer),
+        // and the tenant in x-greythr-domain, on every data call.
+        return {
+            'ACCESS-TOKEN': token,
+            'x-greythr-domain': this.domain,
             'Content-Type': 'application/json',
         };
-        if (this.domain) h['x-greythr-domain'] = this.domain;
-        return h;
     }
 
     async testConnection() {

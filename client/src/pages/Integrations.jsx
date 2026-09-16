@@ -204,6 +204,21 @@ const Integrations = () => {
         }
     };
 
+    const buildSyncMessage = (data) => {
+        const results = data.stats || data.results || {};
+        const sections = data.stats ? { attendance: data.stats } : results;
+
+        return Object.entries(sections).map(([name, result]) => {
+            if (result?.error) {
+                return `${name}: failed - ${result.error}`;
+            }
+
+            const summary = `${name}: processed ${result?.processed ?? 0}, success ${result?.success ?? 0}, failed ${result?.failed ?? 0}`;
+            const firstError = result?.errors?.[0]?.error;
+            return firstError ? `${summary}\nFirst error: ${firstError}` : summary;
+        }).join('\n\n');
+    };
+
     const handleSync = async (id, type) => {
         setSyncing(`${id}-${type}`);
         try {
@@ -215,10 +230,11 @@ const Integrations = () => {
             } else {
                 response = await integrationsAPI.syncAttendance(id);
             }
-            alert(`Sync completed: ${JSON.stringify(response.data.stats || response.data.results)}`);
+            alert(`Sync completed:\n${buildSyncMessage(response.data)}`);
             fetchIntegrations();
         } catch (err) {
-            alert(`Sync failed: ${err.message}`);
+            const serverMessage = err.response?.data?.error || err.response?.data?.message;
+            alert(`Sync failed: ${serverMessage || err.message}`);
         } finally {
             setSyncing(null);
         }
@@ -298,10 +314,19 @@ const Integrations = () => {
                             <Chip
                                 label={integration.last_sync_status}
                                 size="small"
-                                color={integration.last_sync_status === 'success' ? 'success' : 'error'}
+                                color={integration.last_sync_status === 'success' ? 'success' : (integration.last_sync_status === 'partial' ? 'warning' : 'error')}
                             />
                         )}
                     </Box>
+                    {integration.last_sync_message && (
+                        <Typography
+                            variant="caption"
+                            color={integration.last_sync_status === 'success' ? 'text.secondary' : 'error'}
+                            sx={{ display: 'block', mt: 1 }}
+                        >
+                            {integration.last_sync_message}
+                        </Typography>
+                    )}
 
                     <Box sx={{ mt: 2, display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
                         <Tooltip title="View Logs">
@@ -628,6 +653,49 @@ const Integrations = () => {
                                                 Additional Configuration
                                             </Typography>
                                         </Grid>
+                                        {configFields.includes('domain') && (
+                                            <Grid size={{ xs: 12, md: 6 }}>
+                                                <TextField
+                                                    label="greytHR Domain"
+                                                    fullWidth
+                                                    value={formData.config?.domain || ''}
+                                                    onChange={(e) => setFormData({
+                                                        ...formData,
+                                                        config: { ...formData.config, domain: e.target.value }
+                                                    })}
+                                                    helperText="Company domain, sent as x-greythr-domain"
+                                                />
+                                            </Grid>
+                                        )}
+                                        {configFields.includes('client_id') && (
+                                            <Grid size={{ xs: 12, md: 6 }}>
+                                                <TextField
+                                                    label="Client ID"
+                                                    fullWidth
+                                                    value={formData.config?.client_id || ''}
+                                                    onChange={(e) => setFormData({
+                                                        ...formData,
+                                                        config: { ...formData.config, client_id: e.target.value }
+                                                    })}
+                                                    helperText="greytHR OAuth client ID"
+                                                />
+                                            </Grid>
+                                        )}
+                                        {configFields.includes('client_secret') && (
+                                            <Grid size={{ xs: 12, md: 6 }}>
+                                                <TextField
+                                                    label="Client Secret"
+                                                    fullWidth
+                                                    type="password"
+                                                    value={formData.config?.client_secret || ''}
+                                                    onChange={(e) => setFormData({
+                                                        ...formData,
+                                                        config: { ...formData.config, client_secret: e.target.value }
+                                                    })}
+                                                    helperText="greytHR OAuth client secret"
+                                                />
+                                            </Grid>
+                                        )}
                                         {configFields.includes('subdomain') && (
                                             <Grid size={{ xs: 12, md: 6 }}>
                                                 <TextField
