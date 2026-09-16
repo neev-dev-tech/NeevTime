@@ -14,9 +14,11 @@ const axios = require('axios');
 const https = require('https');
 const { BaseIntegration } = require('../hrms-integration');
 
-// Create HTTPS agent that allows self-signed certificates
+const allowSelfSigned = process.env.ALLOW_SELF_SIGNED_CERTS === 'true';
+
+// Secure by default: verify TLS certificates unless explicitly overridden
 const httpsAgent = new https.Agent({
-    rejectUnauthorized: false
+    rejectUnauthorized: !allowSelfSigned
 });
 
 class WorkdayIntegration extends BaseIntegration {

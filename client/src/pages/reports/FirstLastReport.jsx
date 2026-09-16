@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Search, Calculator, ArrowLeft, Printer, FileSpreadsheet, RefreshCw, Filter, Calendar } from 'lucide-react';
+import { Search, Calculator, ArrowLeft, Printer, FileSpreadsheet, RefreshCw, Filter, Calendar, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { exportToPDF } from '../../utils/pdfExport';
+import { exportToCSV as exportCSVUtil } from '../../utils/excelExport';
 import * as XLSX from 'xlsx';
 
 export default function FirstLastReport() {
@@ -82,6 +83,28 @@ export default function FirstLastReport() {
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Report");
         XLSX.writeFile(wb, `First_Last_Report_${startDate}_${endDate}.xlsx`);
+    };
+
+    const exportToCSV = async () => {
+        if (data.length === 0) return;
+
+        // Prepare Data
+        const csvData = data.map(r => ({
+            "Employee Id": r.employee_code,
+            "First Name": r.first_name,
+            "Last Name": r.last_name || '',
+            "Department": r.department,
+            "Date": r.date,
+            "Weekday": r.weekday,
+            "First Punch": r.first_punch || '-',
+            "Last Punch": r.last_punch || '-',
+            "Total Time": r.total_time
+        }));
+
+        await exportCSVUtil({
+            data: csvData,
+            filename: `First_Last_Report_${startDate}_${endDate}`
+        });
     };
 
     return (
@@ -235,6 +258,12 @@ export default function FirstLastReport() {
                             className="flex items-center gap-2 px-4 py-2 bg-white border border-emerald-200 text-emerald-700 rounded-lg hover:bg-emerald-50 font-semibold transition-colors shadow-sm"
                         >
                             <FileSpreadsheet size={16} /> Excel Export
+                        </button>
+                        <button
+                            onClick={exportToCSV}
+                            className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 text-blue-700 rounded-lg hover:bg-blue-50 font-semibold transition-colors shadow-sm"
+                        >
+                            <FileText size={16} /> CSV Export
                         </button>
                     </div>
                 </div>

@@ -109,7 +109,7 @@ router.post('/sync/all/download-logs', async (req, res) => {
         for (const serial of device_serials) {
             await db.query(
                 `INSERT INTO device_commands (device_serial, command, status) VALUES ($1, $2, 'pending')`,
-                [serial, 'INFO ATTLOG']
+                [serial, 'DATA QUERY ATTLOG']
             );
             commandCount++;
         }
@@ -117,6 +117,30 @@ router.post('/sync/all/download-logs', async (req, res) => {
         res.json({ success: true, message: `Queued log download from ${commandCount} devices.`, deviceCount: commandCount });
     } catch (err) {
         console.error('Sync All Download Logs Error:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Sync All: Clear Logs from ALL Devices
+router.post('/sync/all/clear-logs', async (req, res) => {
+    try {
+        const device_serials = await getAllDeviceSerials();
+        if (device_serials.length === 0) {
+            return res.status(400).json({ error: 'No devices registered' });
+        }
+
+        let commandCount = 0;
+        for (const serial of device_serials) {
+            await db.query(
+                `INSERT INTO device_commands (device_serial, command, status) VALUES ($1, $2, 'pending')`,
+                [serial, 'CLEAR LOG']
+            );
+            commandCount++;
+        }
+
+        res.json({ success: true, message: `Queued log clear command for ${commandCount} devices.`, deviceCount: commandCount });
+    } catch (err) {
+        console.error('Sync All Clear Logs Error:', err);
         res.status(500).json({ error: err.message });
     }
 });
@@ -249,7 +273,7 @@ router.post('/sync/download-logs', async (req, res) => {
         let commandCount = 0;
 
         for (const serial of device_serials) {
-            const cmd = `INFO ATTLOG`;
+            const cmd = `DATA QUERY ATTLOG`;
 
             await db.query(
                 `INSERT INTO device_commands (device_serial, command, status) VALUES ($1, $2, 'pending')`,

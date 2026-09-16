@@ -453,7 +453,8 @@ export default function Devices() {
                 'download-users': '/api/devices/sync/all/download-users',
                 'download-logs': '/api/devices/sync/all/download-logs',
                 'upload-biometrics': '/api/devices/sync/all/upload-biometrics',
-                'download-biometrics': '/api/devices/sync/all/download-biometrics'
+                'download-biometrics': '/api/devices/sync/all/download-biometrics',
+                'clear-logs': '/api/devices/sync/all/clear-logs'
             };
             const res = await api.post(endpointMap[action]);
             showToast(res.data.message, 'success');
@@ -581,10 +582,24 @@ export default function Devices() {
                                                         e.stopPropagation();
                                                         syncAllDevices('download-logs');
                                                     }}
-                                                    className="flex items-center gap-3 w-full text-left px-4 py-3 hover:bg-orange-50 text-sm text-slate-grey hover:text-charcoal"
+                                                    className="flex items-center gap-3 w-full text-left px-4 py-3 hover:bg-orange-50 text-sm text-slate-grey hover:text-charcoal border-b border-gray-50"
                                                 >
                                                     <Clock size={16} className="text-orange-600" />
                                                     Pull Logs from All Devices
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        if (window.confirm('Are you sure you want to CLEAR all logs from ALL devices? This cannot be undone.')) {
+                                                            syncAllDevices('clear-logs');
+                                                        }
+                                                    }}
+                                                    className="flex items-center gap-3 w-full text-left px-4 py-3 hover:bg-red-50 text-sm text-red-600 hover:text-red-700"
+                                                >
+                                                    <Trash2 size={16} className="text-red-600" />
+                                                    Clear All Device Logs
                                                 </button>
                                             </div>
                                         </>

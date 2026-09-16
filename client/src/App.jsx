@@ -44,6 +44,8 @@ import DatabaseTools from './pages/DatabaseTools';
 import DeviceData from './pages/DeviceData';
 import Integrations from './pages/Integrations';
 import AdvancedReports from './pages/AdvancedReports';
+import ScheduledReports from './pages/ScheduledReports';
+import SyncDashboard from './pages/SyncDashboard';
 import Geofences from './pages/Geofences';
 import MobilePunch from './pages/MobilePunch';
 
@@ -278,6 +280,7 @@ function MainLayout({ auth, setAuth, children }) {
       iconColor: '#059669', // Bright Green
       items: [
         { label: 'HRMS Integration', path: '/integrations', icon: Network, iconColor: '#059669' },
+        { label: 'Sync Monitoring', path: '/sync-monitoring', icon: Activity, iconColor: '#3B82F6' },
       ]
     },
     {
@@ -286,6 +289,7 @@ function MainLayout({ auth, setAuth, children }) {
       iconColor: '#7C3AED', // Bright Purple
       items: [
         { label: 'Advanced Reports', path: '/advanced-reports', icon: TrendingUp, iconColor: '#7C3AED' },
+        { label: 'Scheduled Reports', path: '/scheduled-reports', icon: Clock, iconColor: '#F97316' },
       ]
     },
     {
@@ -766,7 +770,9 @@ export default function App() {
                         <Route path="/system-logs" element={<SystemLogs />} />
                         <Route path="/settings" element={<Settings />} />
                         <Route path="/integrations" element={<Integrations />} />
+                        <Route path="/sync-monitoring" element={<SyncDashboard />} />
                         <Route path="/advanced-reports" element={<AdvancedReports />} />
+                        <Route path="/scheduled-reports" element={<ScheduledReports />} />
                       </Routes>
                     </MainLayout>
                   </PrivateRoute>

@@ -204,6 +204,21 @@ const Integrations = () => {
         }
     };
 
+    const buildSyncMessage = (data) => {
+        const results = data.stats || data.results || {};
+        const sections = data.stats ? { attendance: data.stats } : results;
+
+        return Object.entries(sections).map(([name, result]) => {
+            if (result?.error) {
+                return `${name}: failed - ${result.error}`;
+            }
+
+            const summary = `${name}: processed ${result?.processed ?? 0}, success ${result?.success ?? 0}, failed ${result?.failed ?? 0}`;
+            const firstError = result?.errors?.[0]?.error;
+            return firstError ? `${summary}\nFirst error: ${firstError}` : summary;
+        }).join('\n\n');
+    };
+
     const handleSync = async (id, type) => {
         setSyncing(`${id}-${type}`);
         try {
@@ -215,10 +230,11 @@ const Integrations = () => {
             } else {
                 response = await integrationsAPI.syncAttendance(id);
             }
-            alert(`Sync completed: ${JSON.stringify(response.data.stats || response.data.results)}`);
+            alert(`Sync completed:\n${buildSyncMessage(response.data)}`);
             fetchIntegrations();
         } catch (err) {
-            alert(`Sync failed: ${err.message}`);
+            const serverMessage = err.response?.data?.error || err.response?.data?.message;
+            alert(`Sync failed: ${serverMessage || err.message}`);
         } finally {
             setSyncing(null);
         }
@@ -298,10 +314,19 @@ const Integrations = () => {
                             <Chip
                                 label={integration.last_sync_status}
                                 size="small"
-                                color={integration.last_sync_status === 'success' ? 'success' : 'error'}
+                                color={integration.last_sync_status === 'success' ? 'success' : (integration.last_sync_status === 'partial' ? 'warning' : 'error')}
                             />
                         )}
                     </Box>
+                    {integration.last_sync_message && (
+                        <Typography
+                            variant="caption"
+                            color={integration.last_sync_status === 'success' ? 'text.secondary' : 'error'}
+                            sx={{ display: 'block', mt: 1 }}
+                        >
+                            {integration.last_sync_message}
+                        </Typography>
+                    )}
 
                     <Box sx={{ mt: 2, display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
                         <Tooltip title="View Logs">

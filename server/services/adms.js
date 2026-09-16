@@ -20,6 +20,98 @@ const formatTime = (ts) => {
     return ts;
 };
 
+const IN_STATES = new Set([0, 3, 4, 8]);
+const OUT_STATES = new Set([1, 2, 5, 9]);
+
+const normalizePunchState = (state, deviceDirection = 'both') => {
+    const direction = (deviceDirection || 'both').toLowerCase();
+    if (direction === 'in') return '0';
+    if (direction === 'out') return '1';
+
+    const raw = String(state ?? '').trim();
+    if (!raw) return '255';
+
+    const parsed = Number.parseInt(raw, 10);
+    if (Number.isInteger(parsed)) {
+        return String(parsed);
+    }
+
+    const normalized = raw.toLowerCase().replace(/[\s_-]+/g, '');
+    if (normalized.includes('breakout')) return '2';
+    if (normalized.includes('breakin')) return '3';
+    if (normalized.includes('overtimeout') || normalized.includes('otout')) return '5';
+    if (normalized.includes('overtimein') || normalized.includes('otin')) return '4';
+    if (normalized.includes('checkout') || normalized.includes('clockout') || normalized === 'out') return '1';
+    if (normalized.includes('checkin') || normalized.includes('clockin') || normalized === 'in') return '0';
+
+    return '255';
+};
+
+const inferPunchStateFromHistory = async (employeeCode, punchTimestamp) => {
+    try {
+        const history = await db.query(`
+            SELECT punch_state
+            FROM attendance_logs
+            WHERE employee_code = $1
+              AND DATE(punch_time) = DATE($2::timestamp)
+              AND punch_time < $2::timestamp
+            ORDER BY punch_time DESC
+            LIMIT 1
+        `, [employeeCode, punchTimestamp]);
+
+        if (history.rows.length === 0) {
+            return '0';
+        }
+
+        const lastState = Number.parseInt(history.rows[0].punch_state, 10);
+        if (IN_STATES.has(lastState)) return '1';
+        if (OUT_STATES.has(lastState)) return '0';
+    } catch (err) {
+        console.log(`[ADMS] State inference skipped for ${employeeCode}: ${err.message}`);
+    }
+
+    return '0';
+};
+
+const maybeQueueRecoveryLogPull = async (deviceSerial) => {
+    if (!deviceSerial) return false;
+
+    const [totalLogs, deviceLogs, recentRecovery] = await Promise.all([
+        db.query('SELECT COUNT(*)::int AS count FROM attendance_logs'),
+        db.query('SELECT COUNT(*)::int AS count FROM attendance_logs WHERE device_serial = $1', [deviceSerial]),
+        db.query(`
+            SELECT COUNT(*)::int AS count
+            FROM device_commands
+            WHERE device_serial = $1
+              AND command = 'DATA QUERY ATTLOG'
+              AND created_at > NOW() - INTERVAL '30 minutes'
+        `, [deviceSerial])
+    ]);
+
+    const totalCount = totalLogs.rows[0]?.count || 0;
+    const deviceCount = deviceLogs.rows[0]?.count || 0;
+    const recentRecoveryCount = recentRecovery.rows[0]?.count || 0;
+
+    const shouldRecover = totalCount === 0 || deviceCount === 0;
+    if (!shouldRecover || recentRecoveryCount > 0) {
+        return false;
+    }
+
+    await db.query(`
+        INSERT INTO device_commands (device_serial, command, status)
+        SELECT $1, 'DATA QUERY ATTLOG', 'pending'
+        WHERE NOT EXISTS (
+            SELECT 1
+            FROM device_commands
+            WHERE device_serial = $1
+              AND command = 'DATA QUERY ATTLOG'
+              AND status IN ('pending', 'sent')
+        )
+    `, [deviceSerial]);
+
+    return true;
+};
+
 // Restore Logging Helpers
 const logOperation = async (SN, time, opType, opWho, details) => {
     try {
@@ -607,11 +699,19 @@ const handleAttendanceLogs = async (req, res, io) => {
             debugLog(`Line: ${line} | Parts: ${parts.length} | Raw: ${JSON.stringify(parts)}`);
 
             if (parts.length >= 2) {
-                const [userId, timestamp, state, verifyMode, workCode] = parts;
+                const [userIdRaw, timestampRaw, state, verifyMode, workCode] = parts;
+                const userId = String(userIdRaw || '').trim();
+                const timestamp = String(timestampRaw || '').trim();
 
-                let finalState = state;
-                if (deviceDirection === 'in') finalState = '0'; // Check In
-                else if (deviceDirection === 'out') finalState = '1'; // Check Out
+                if (!userId || !timestamp) {
+                    debugLog(`Skipping line with empty user/time: ${line}`);
+                    continue;
+                }
+
+                let finalState = normalizePunchState(state, deviceDirection);
+                if (finalState === '255' && (deviceDirection || 'both').toLowerCase() === 'both') {
+                    finalState = await inferPunchStateFromHistory(userId, timestamp);
+                }
 
                 try {
                     // Check if employee exists, if not, create placeholder
@@ -641,7 +741,7 @@ const handleAttendanceLogs = async (req, res, io) => {
                         employee_code: userId,
                         device_serial: SN,
                         timestamp,
-                        state
+                        state: finalState
                     });
 
                     // Trigger Engine to update Dashboard Stats
@@ -765,6 +865,15 @@ const handleGetRequest = async (req, res, io) => {
 
     // Check DB for pending commands
     try {
+        try {
+            const queuedRecovery = await maybeQueueRecoveryLogPull(SN);
+            if (queuedRecovery) {
+                console.log(`[ADMS RECOVERY] Queued DATA QUERY ATTLOG for ${SN} after log-gap detection`);
+            }
+        } catch (recoveryErr) {
+            console.log(`[ADMS RECOVERY] Recovery check skipped for ${SN}: ${recoveryErr.message}`);
+        }
+
         const result = await db.query(`
             SELECT id, command FROM device_commands 
             WHERE device_serial = $1 AND status = 'pending' 

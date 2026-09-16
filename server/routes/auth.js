@@ -5,7 +5,24 @@ const jwt = require('jsonwebtoken');
 const db = require('../db');
 const { logLogin, logLogout } = require('../utils/systemLogger');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_key_123';
+const JWT_SECRET = process.env.JWT_SECRET || '';
+const ALLOW_DEFAULT_ADMIN_BOOTSTRAP = process.env.ALLOW_DEFAULT_ADMIN_BOOTSTRAP === 'true';
+
+const isWeakJwtSecret = (secret) => {
+    if (!secret) return true;
+    const weakValues = new Set([
+        'super_secret_key_123',
+        'secret',
+        'changeme',
+        'password',
+        'jwt_secret'
+    ]);
+    return secret.length < 32 || weakValues.has(secret.toLowerCase());
+};
+
+if (process.env.NODE_ENV === 'production' && isWeakJwtSecret(JWT_SECRET)) {
+    throw new Error('JWT_SECRET is missing or weak. Set a strong JWT_SECRET (minimum 32 chars) before starting the server.');
+}
 
 // Helper: Get User by Username
 const getUserByUsername = async (username) => {
@@ -20,8 +37,8 @@ router.post('/login', async (req, res) => {
     try {
         const user = await getUserByUsername(username);
 
-        // For initial setup, if no user exists, create admin:admin
-        if (!user && username === 'admin' && password === 'admin') {
+        // Default bootstrap is intentionally disabled unless explicitly opted in.
+        if (ALLOW_DEFAULT_ADMIN_BOOTSTRAP && !user && username === 'admin' && password === 'admin') {
             const hashedPassword = await bcrypt.hash('admin', 10);
             const newUser = await db.query(
                 'INSERT INTO users (username, password_hash, role) VALUES ($1, $2, $3) RETURNING *',
@@ -40,17 +57,11 @@ router.post('/login', async (req, res) => {
         }
 
         if (!user) {
-            console.log(`[LOGIN FAILED] User not found: ${username}`);
-            return res.status(400).json({ error: 'User not found' });
+            return res.status(400).json({ error: 'Invalid username or password' });
         }
 
         const validPass = await bcrypt.compare(password, user.password_hash);
-        console.log(`[LOGIN DEBUG] Request for: ${username}`);
-        console.log(`[LOGIN DEBUG] Input password: ${password}`);
-        console.log(`[LOGIN DEBUG] Stored hash: ${user.password_hash}`);
-        console.log(`[LOGIN DEBUG] Match result: ${validPass}`);
-
-        if (!validPass) return res.status(400).json({ error: 'Invalid password' });
+        if (!validPass) return res.status(400).json({ error: 'Invalid username or password' });
 
         const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET);
 

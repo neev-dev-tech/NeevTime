@@ -257,32 +257,42 @@ export default function Dashboard() {
         try {
             const res = await api.get('/api/logs', { params: { limit: 10 } });
             // Transform logs to match expected format
-            const formattedLogs = (res.data || []).map(log => ({
-                ...log,
-                employee_name: log.employee_name || log.emp_name || log.employee_code,
-                device_name: log.device_name || log.device_serial,
-                punch_type: log.punch_type || (log.punch_state === '0' || log.punch_state === 'Check In' ? 'IN' : 'OUT')
-            }));
+            const formattedLogs = (res.data || []).map(log => {
+                let punchType = log.punch_type;
+                if (!punchType) {
+                    const state = String(log.punch_state || '0');
+                    if (state === '0' || state === 'Check In' || state === '255') {
+                        punchType = 'IN';
+                    } else if (state === '1' || state === 'Check Out') {
+                        punchType = 'OUT';
+                    } else {
+                        punchType = 'IN'; // Default to IN for unknown states like Face/FP
+                    }
+                }
+                return {
+                    ...log,
+                    employee_name: log.employee_name || log.emp_name || log.employee_code,
+                    device_name: log.device_name || log.device_serial,
+                    punch_type: punchType
+                };
+            });
             setRecentLogs(formattedLogs);
         } catch (err) { console.error(err); }
     };
 
     const fetchAttendanceTrends = async () => {
         try {
-            // Generate last 7 days data
-            const days = [];
-            for (let i = 6; i >= 0; i--) {
-                const date = new Date(Date.now() - i * 24 * 60 * 60 * 1000);
-                days.push({
-                    date: date.toLocaleDateString('en-US', { weekday: 'short' }),
-                    fullDate: date.toISOString().split('T')[0],
-                    late: Math.floor(Math.random() * 15),
-                    earlyLeave: Math.floor(Math.random() * 10),
-                    absent: Math.floor(Math.random() * 20)
-                });
+            const res = await api.get('/api/attendance/trends');
+            if (res.data && Array.isArray(res.data)) {
+                setAttendanceTrends(res.data);
+            } else {
+                // Fallback to empty array if something went wrong
+                setAttendanceTrends([]);
             }
-            setAttendanceTrends(days);
-        } catch (err) { console.error(err); }
+        } catch (err) {
+            console.error('Failed to fetch attendance trends:', err);
+            setAttendanceTrends([]);
+        }
     };
 
     const StatCard = ({ icon: Icon, label, value, color, bgColor, subtitle, tooltip, benchmark, trend }) => {
@@ -407,6 +417,65 @@ export default function Dashboard() {
                     </div>
                 </div>
             )}
+
+            {/* Quick Actions */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <button 
+                    onClick={() => api.post('/api/integrations/sync/all/full').then(() => showToast('Full Sync Started', 'success'))}
+                    className="flex items-center gap-3 p-3 bg-white rounded-xl shadow-sm border border-slate-100 hover:shadow-md hover:border-orange-200 transition-all group"
+                >
+                    <div className="p-2.5 rounded-lg bg-orange-50 group-hover:bg-orange-100 transition-colors">
+                        <TrendingUp className="text-orange-600" size={20} />
+                    </div>
+                    <div className="text-left overflow-hidden">
+                        <p className="text-sm font-bold text-slate-800 truncate">Sync ERPNext</p>
+                        <p className="text-[10px] text-slate-400 font-medium truncate">Push/Pull Attendance</p>
+                    </div>
+                </button>
+
+                <button 
+                    onClick={() => api.post('/api/devices/sync/all/download-logs').then(() => showToast('Log Download Queued', 'success'))}
+                    className="flex items-center gap-3 p-3 bg-white rounded-xl shadow-sm border border-slate-100 hover:shadow-md hover:border-blue-200 transition-all group"
+                >
+                    <div className="p-2.5 rounded-lg bg-blue-50 group-hover:bg-blue-100 transition-colors">
+                        <Download className="text-blue-600" size={20} />
+                    </div>
+                    <div className="text-left overflow-hidden">
+                        <p className="text-sm font-bold text-slate-800 truncate">Download Logs</p>
+                        <p className="text-[10px] text-slate-400 font-medium truncate">Fetch from Biometrics</p>
+                    </div>
+                </button>
+
+                <button 
+                    onClick={() => {
+                        if (window.confirm('Clear all logs from all devices?')) {
+                            api.post('/api/devices/sync/all/clear-logs').then(() => showToast('Clear command sent', 'success'));
+                        }
+                    }}
+                    className="flex items-center gap-3 p-3 bg-white rounded-xl shadow-sm border border-slate-100 hover:shadow-md hover:border-red-200 transition-all group"
+                >
+                    <div className="p-2.5 rounded-lg bg-red-50 group-hover:bg-red-100 transition-colors">
+                        <Trash2 className="text-red-600" size={20} />
+                    </div>
+                    <div className="text-left overflow-hidden">
+                        <p className="text-sm font-bold text-slate-800 truncate">Clear Device Logs</p>
+                        <p className="text-[10px] text-slate-400 font-medium truncate">Free Device Space</p>
+                    </div>
+                </button>
+
+                <button 
+                    onClick={() => navigate('/scheduled-reports')}
+                    className="flex items-center gap-3 p-3 bg-white rounded-xl shadow-sm border border-slate-100 hover:shadow-md hover:border-purple-200 transition-all group"
+                >
+                    <div className="p-2.5 rounded-lg bg-purple-50 group-hover:bg-purple-100 transition-colors">
+                        <Clock className="text-purple-600" size={20} />
+                    </div>
+                    <div className="text-left overflow-hidden">
+                        <p className="text-sm font-bold text-slate-800 truncate">Scheduled Reports</p>
+                        <p className="text-[10px] text-slate-400 font-medium truncate">Manage Automation</p>
+                    </div>
+                </button>
+            </div>
 
             {/* Primary Stats Row - Premium Grid */}
             {loading ? (

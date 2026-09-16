@@ -27,6 +27,15 @@ const log = (level, msg, data = {}) => {
     fs.appendFileSync('integration.log', logEntry + '\n');
 };
 
+const summarizeSyncErrors = (stats) => {
+    if (!stats?.errors?.length) return null;
+
+    return stats.errors
+        .slice(0, 10)
+        .map(err => `${err.employee_code || 'unknown'} ${err.punch_time || ''}: ${err.error}`)
+        .join('\n');
+};
+
 // Sync Direction
 const SYNC_DIRECTION = {
     PUSH: 'push',   // Send data to HRMS
@@ -366,32 +375,42 @@ const runScheduledSync = async () => {
 const syncAttendanceToHRMS = async (integration) => {
     try {
         // Get unsynced attendance records (sync_status is VARCHAR: 'synced', 'pending', etc.)
+        // No date window: real-time push handles new punches; this batch is the catch-up
+        // safety net and must be able to drain any age of backlog (e.g. after downtime).
+        // Exclude 'unmapped' so we don't re-hammer ERPNext lookups for employees that
+        // don't exist there; 'failed' is kept so transient failures get retried.
         const result = await db.query(`
-            SELECT 
+            SELECT
                 al.*,
                 e.name as employee_name,
                 e.email
             FROM attendance_logs al
             LEFT JOIN employees e ON al.employee_code = e.employee_code
-            WHERE (al.sync_status IS NULL OR al.sync_status != 'synced')
-            AND al.punch_time > NOW() - INTERVAL '7 days'
+            WHERE COALESCE(al.sync_status, 'pending') NOT IN ('synced', 'unmapped')
             ORDER BY al.punch_time
             LIMIT 500
         `);
 
         if (result.rows.length === 0) {
             log('INFO', 'No attendance records to sync');
-            return;
+            return { processed: 0, success: 0, failed: 0 };
         }
 
         log('INFO', 'Syncing attendance to HRMS', { count: result.rows.length, integration: integration.name });
 
         const stats = await integration.pushAttendance(result.rows);
+        const status = stats.failed === 0 ? 'success' : (stats.success > 0 ? 'partial' : 'failed');
+        const errorSummary = summarizeSyncErrors(stats);
 
         await integration.logSync(SYNC_TYPE.ATTENDANCE, SYNC_DIRECTION.PUSH,
-            stats.failed > 0 ? 'partial' : 'success', stats);
+            status, stats, errorSummary);
 
-        await integration.updateSyncStatus('success', `Synced ${stats.success} attendance records`);
+        await integration.updateSyncStatus(
+            status,
+            status === 'success'
+                ? `Synced ${stats.success} attendance records`
+                : `Attendance sync ${status}: ${stats.success} succeeded, ${stats.failed} failed${errorSummary ? `. ${errorSummary.split('\n')[0]}` : ''}`
+        );
 
         return stats;
     } catch (err) {
@@ -450,6 +469,10 @@ const syncEmployeesFromHRMS = async (integration) => {
 
 // Start scheduled sync (every 5 minutes check)
 const startScheduledSync = () => {
+    // Run immediately on start
+    runScheduledSync();
+    
+    // Then every 5 minutes
     setInterval(runScheduledSync, 5 * 60 * 1000);
     log('INFO', 'Scheduled sync started');
 };
