@@ -314,6 +314,16 @@ router.post('/integrations/:id/mappings', async (req, res) => {
 router.get('/integration-types', (req, res) => {
     res.json([
         {
+            type: 'greythr',
+            name: 'greytHR',
+            description: 'Cloud HR/payroll (India). Pushes raw attendance swipes; greytHR builds the muster.',
+            documentation: 'https://api-docs.greythr.com/',
+            required_fields: ['api_key', 'username', 'api_secret'],
+            features: ['push_attendance'],
+            icon: '🕓',
+            color: '#F5821F'
+        },
+        {
             type: 'erpnext',
             name: 'ERPNext / Frappe',
             description: 'Connect to ERPNext HRMS or Frappe Framework based systems',
