@@ -319,7 +319,7 @@ router.get('/integration-types', (req, res) => {
             description: 'Cloud HR/payroll (India). Pushes raw attendance swipes; greytHR builds the muster.',
             documentation: 'https://api-docs.greythr.com/',
             required_fields: [],
-            config_fields: ['domain', 'client_id', 'client_secret'],
+            config_fields: ['domain', 'api_id', 'private_key'],
             features: ['push_attendance'],
             icon: '🕓',
             color: '#F5821F'

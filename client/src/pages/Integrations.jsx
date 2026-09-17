@@ -667,32 +667,33 @@ const Integrations = () => {
                                                 />
                                             </Grid>
                                         )}
-                                        {configFields.includes('client_id') && (
+                                        {configFields.includes('api_id') && (
                                             <Grid size={{ xs: 12, md: 6 }}>
                                                 <TextField
-                                                    label="Client ID"
+                                                    label="API ID"
                                                     fullWidth
-                                                    value={formData.config?.client_id || ''}
+                                                    value={formData.config?.api_id || ''}
                                                     onChange={(e) => setFormData({
                                                         ...formData,
-                                                        config: { ...formData.config, client_id: e.target.value }
+                                                        config: { ...formData.config, api_id: e.target.value }
                                                     })}
-                                                    helperText="greytHR OAuth client ID"
+                                                    helperText="greytHR API ID (from the API Details page)"
                                                 />
                                             </Grid>
                                         )}
-                                        {configFields.includes('client_secret') && (
-                                            <Grid size={{ xs: 12, md: 6 }}>
+                                        {configFields.includes('private_key') && (
+                                            <Grid size={{ xs: 12 }}>
                                                 <TextField
-                                                    label="Client Secret"
+                                                    label="RSA Private Key (PEM)"
                                                     fullWidth
-                                                    type="password"
-                                                    value={formData.config?.client_secret || ''}
+                                                    multiline
+                                                    minRows={4}
+                                                    value={formData.config?.private_key || ''}
                                                     onChange={(e) => setFormData({
                                                         ...formData,
-                                                        config: { ...formData.config, client_secret: e.target.value }
+                                                        config: { ...formData.config, private_key: e.target.value }
                                                     })}
-                                                    helperText="greytHR OAuth client secret"
+                                                    helperText="Signs each swipe batch; greytHR holds the matching public key"
                                                 />
                                             </Grid>
                                         )}

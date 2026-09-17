@@ -1,138 +1,136 @@
 /**
- * greytHR Integration — push raw attendance swipes to greytHR (cloud SaaS).
+ * greytHR Integration — push attendance swipes via greytHR's Attendance Swipe API.
  *
- * Built for THIS deployment's (older) integration framework: extends
- * BaseIntegration, resolved by the switch in hrms-integration.js. greytHR owns
- * payroll and the attendance rules; NeevTime owns the punches — so this uploads
- * raw swipes and lets greytHR build the muster.
+ * This is the RSA-signed Swipe API (per greytHR's help doc + their sample
+ * Java/Python client), NOT the OAuth2 V2 REST API:
  *
- * Auth (verified against greytHR API v2):
- *   1. POST {base}/uas/v1/oauth2/client-token with client_id + client_secret and
- *      the x-greythr-domain header  ->  { access_token }.
- *   2. Every data call sends the token in the ACCESS-TOKEN header (NOT
- *      Authorization: Bearer) plus x-greythr-domain.
- * Required config: domain (the company's greytHR domain), client_id,
- * client_secret. There is no separate "API key" — the access token IS the key.
+ *   POST https://<domain>.greythr.com/v2/attendance/asca/swipes
+ *     header: X-Requested-With: XMLHttpRequest
+ *     form  : id=<API_ID>  swipes=<csv lines>  sign=<base64 RSA-SHA1 of swipes>
+ *   swipe line: <ISO-datetime+offset>,<employee-code>,<door-name>,<1=IN|0=OUT>
+ *     e.g. 2026-09-17T09:09:00.000+05:30,40,Main Door,1
  *
- * CONFIRM against the customer's greytHR "API Details" page (centralised so it's
- * a one-line change): swipe endpoint (`config.swipe_path`) and swipe field names
- * (`_buildSwipe`). Reference: https://api-docs.greythr.com/
+ * Auth is a per-account **API ID** plus an **RSA signature**: greytHR holds the
+ * public key; we sign the swipes string with the matching private key. There is
+ * no OAuth token.
+ *
+ * Config: domain (subdomain), api_id, private_key (PEM). Optional: door_name,
+ * tz_offset, batch_size.
+ *
+ * CONFIRM against greytHR's sample script (centralised so it's a one-line
+ * change): the signing detail in `_sign` (algorithm, what exactly is signed),
+ * the line separator and datetime precision in `_swipeLine`. Node's crypto does
+ * RSA-SHA1 (a.k.a. SHA1withRSA) natively — a direct port of their client.
+ * Direction is greytHR's convention here: 1 = IN, 0 = OUT.
  */
 
 const axios = require('axios');
+const crypto = require('crypto');
 const { BaseIntegration } = require('../hrms-integration');
 const { formatLocal, decodeDirection, resolveDeviceDirections } = require('./punch_format');
 const db = require('../../db');
 
-const DEFAULT_BASE = 'https://api.greythr.com';
-const TOKEN_PATH = '/uas/v1/oauth2/client-token';
-const DEFAULT_SWIPE_PATH = '/attendance/v2/swipe';
-
 class GreytHRIntegration extends BaseIntegration {
     constructor(config) {
         super(config);
-        this.baseUrl = (this.baseUrl || DEFAULT_BASE).replace(/\/+$/, '');
-        // Accept from the config blob or the generic columns the UI maps to:
-        //   client_id  -> username,  client_secret -> api_secret,  domain -> api_key
-        this.clientId = (this.config && this.config.client_id) || this.username;
-        this.clientSecret = (this.config && this.config.client_secret) || this.apiSecret;
-        this.domain = (this.config && this.config.domain) || this.apiKey || '';
-        this.swipePath = (this.config && this.config.swipe_path) || DEFAULT_SWIPE_PATH;
+        const c = this.config || {};
+        this.domain = String(c.domain || '').trim().replace(/\.greythr\.com.*$/i, '');
+        this.apiId = String(c.api_id || '').trim();
+        this.privateKey = c.private_key || '';           // RSA private key, PEM
+        this.doorName = String(c.door_name || '').trim(); // optional; else device serial
+        this.tzOffset = String(c.tz_offset || '+05:30');  // deployment is IST
+        this.batchSize = Number.parseInt(c.batch_size, 10) > 0 ? Number.parseInt(c.batch_size, 10) : 200;
 
-        this.client = axios.create({ baseURL: this.baseUrl, timeout: 30000 });
-        this._token = null;
-        this._tokenExpiresAt = 0;
+        this.swipeUrl = this.domain ? `https://${this.domain}.greythr.com/v2/attendance/asca/swipes` : '';
+        this.client = axios.create({
+            timeout: 30000,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        });
     }
 
-    async _getToken(force = false) {
-        const now = Date.now();
-        if (!force && this._token && now < this._tokenExpiresAt - 60000) return this._token;
-
-        const res = await this.client.post(
-            TOKEN_PATH,
-            { client_id: this.clientId, client_secret: this.clientSecret },
-            { headers: { 'x-greythr-domain': this.domain, 'Content-Type': 'application/json' } }
-        );
-        const token = res.data && (res.data.access_token || res.data.token || res.data['access-token']);
-        if (!token) throw new Error('greytHR client-token response carried no access_token');
-
-        this._token = token;
-        this._tokenExpiresAt = now + ((Number(res.data.expires_in) || 3600) * 1000);
-        return token;
+    /** One greytHR swipe line for a punch. */
+    _swipeLine(record, direction) {
+        const local = formatLocal(record.punch_time);
+        const iso = `${local.date}T${local.time}.000${this.tzOffset}`; // 2026-09-17T09:09:00.000+05:30
+        const inOut = direction === 'IN' ? '1' : '0';                  // greytHR: 1=IN, 0=OUT
+        const door = this.doorName || record.device_serial || 'Main Door';
+        return `${iso},${record.employee_code},${door},${inOut}`;
     }
 
-    _authHeaders(token) {
-        // greytHR expects the token in ACCESS-TOKEN (not Authorization: Bearer),
-        // and the tenant in x-greythr-domain, on every data call.
-        return {
-            'ACCESS-TOKEN': token,
-            'x-greythr-domain': this.domain,
-            'Content-Type': 'application/json',
-        };
+    /** base64( RSA-SHA1( swipesString ) ) — greytHR's signature over the swipes payload. */
+    _sign(swipesString) {
+        const signer = crypto.createSign('RSA-SHA1');
+        signer.update(swipesString, 'utf8');
+        return signer.sign(this.privateKey, 'base64');
     }
 
+    async _postSwipes(swipesString) {
+        const form = new URLSearchParams();
+        form.append('id', this.apiId);
+        form.append('swipes', swipesString);
+        form.append('sign', this._sign(swipesString));
+        return this.client.post(this.swipeUrl, form.toString(), {
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        });
+    }
+
+    /**
+     * No cheap read endpoint on the Swipe API, so a "test" validates the config
+     * and that the private key actually signs. The real proof is a small push.
+     */
     async testConnection() {
         try {
-            await this._getToken(true);
-            return { success: true, message: 'greytHR authenticated (client-token acquired)' };
-        } catch (err) {
+            if (!this.domain) throw new Error('greytHR domain is required');
+            if (!this.apiId) throw new Error('API ID is required');
+            if (!this.privateKey) throw new Error('RSA private key is required');
+            this._sign('test'); // throws if the key is not a usable PEM
             return {
-                success: false,
-                message: (err.response && err.response.data) ? JSON.stringify(err.response.data) : err.message,
-                error: err.message,
+                success: true,
+                message: `Config OK. Swipes will POST to ${this.swipeUrl}. Run a small push to confirm greytHR accepts them.`,
             };
+        } catch (err) {
+            return { success: false, message: err.message, error: err.message };
         }
     }
 
-    _buildSwipe(record, direction) {
-        const local = formatLocal(record.punch_time);
-        return {
-            employeeNo: record.employee_code,
-            date: local.date,   // YYYY-MM-DD (local IST)
-            time: local.time,   // HH:mm:ss   (local IST)
-            inOut: direction,   // 'IN' | 'OUT'
-        };
-    }
-
+    /**
+     * Push new punches as swipes, in batches (the API takes many swipe lines per
+     * call). A batch is marked synced only if greytHR accepted it, so a failure
+     * is retried next run and nothing is lost or double-sent.
+     */
     async pushAttendance(records) {
         const stats = { processed: 0, success: 0, failed: 0 };
         if (!records || records.length === 0) return stats;
+        if (!this.swipeUrl) { stats.failed = records.length; stats.processed = records.length; console.error('greytHR: domain not configured'); return stats; }
 
-        let token = await this._getToken();
         const directions = await resolveDeviceDirections(records);
 
-        for (const record of records) {
-            stats.processed++;
-            try {
-                const local = formatLocal(record.punch_time);
+        for (let i = 0; i < records.length; i += this.batchSize) {
+            const chunk = records.slice(i, i + this.batchSize);
+            const lines = [];
+            const ids = [];
+            for (const r of chunk) {
+                stats.processed++;
+                const local = formatLocal(r.punch_time);
                 if (!local) { stats.failed++; continue; }
+                const dir = decodeDirection(r.punch_state, directions[r.device_serial] || 'in');
+                lines.push(this._swipeLine(r, dir));
+                ids.push(r.id);
+            }
+            if (lines.length === 0) continue;
 
-                const direction = decodeDirection(record.punch_state, directions[record.device_serial] || 'in');
-
-                try {
-                    await this.client.post(this.swipePath, this._buildSwipe(record, direction), { headers: this._authHeaders(token) });
-                } catch (err) {
-                    if (err.response && err.response.status === 401) {
-                        token = await this._getToken(true);
-                        await this.client.post(this.swipePath, this._buildSwipe(record, direction), { headers: this._authHeaders(token) });
-                    } else {
-                        throw err;
-                    }
-                }
-
-                await db.query(`UPDATE attendance_logs SET sync_status = 'synced' WHERE id = $1`, [record.id]);
-                stats.success++;
+            try {
+                await this._postSwipes(lines.join('\n'));
+                await db.query(`UPDATE attendance_logs SET sync_status = 'synced' WHERE id = ANY($1)`, [ids]);
+                stats.success += ids.length;
             } catch (err) {
-                const body = (err.response && err.response.data) ? JSON.stringify(err.response.data) : err.message;
-                if (/duplicate|already exists|already recorded|already present/i.test(body)) {
-                    await db.query(`UPDATE attendance_logs SET sync_status = 'synced' WHERE id = $1`, [record.id]);
-                    stats.success++;
-                } else {
-                    stats.failed++;
-                    if (!stats.failed_details) stats.failed_details = [];
-                    if (stats.failed_details.length < 5) stats.failed_details.push({ emp: record.employee_code, err: String(body).slice(0, 200) });
-                    console.error(`greytHR swipe push failed for ${record.employee_code}: ${body}`);
+                const body = err.response?.data ? JSON.stringify(err.response.data) : err.message;
+                stats.failed += ids.length;
+                if (!stats.failed_details) stats.failed_details = [];
+                if (stats.failed_details.length < 5) {
+                    stats.failed_details.push({ batch: `${ids[0]}..${ids[ids.length - 1]}`, err: String(body).slice(0, 300) });
                 }
+                console.error(`greytHR swipe push failed (ids ${ids[0]}..${ids[ids.length - 1]}): ${body}`);
             }
         }
         return stats;
