@@ -41,7 +41,8 @@ class GreytHRIntegration extends BaseIntegration {
         this.tzOffset = String(c.tz_offset || '+05:30');  // deployment is IST
         this.batchSize = Number.parseInt(c.batch_size, 10) > 0 ? Number.parseInt(c.batch_size, 10) : 200;
 
-        this.swipeUrl = this.domain ? `https://${this.domain}.greythr.com/v2/attendance/asca/swipes` : '';
+        const _host = (c.base_url && String(c.base_url).trim()) || (this.domain ? `https://${this.domain}.greythr.com` : '');
+        this.swipeUrl = _host ? _host.replace(/\/+$/, '') + '/v2/attendance/asca/swipes' : '';
         this.client = axios.create({
             timeout: 30000,
             headers: { 'X-Requested-With': 'XMLHttpRequest' },
@@ -120,7 +121,7 @@ class GreytHRIntegration extends BaseIntegration {
             if (lines.length === 0) continue;
 
             try {
-                await this._postSwipes(lines.join('\n'));
+                await this._postSwipes(lines.join('\r\n'));
                 await db.query(`UPDATE attendance_logs SET sync_status = 'synced' WHERE id = ANY($1)`, [ids]);
                 stats.success += ids.length;
             } catch (err) {
