@@ -7,8 +7,7 @@ import {
     TrendingUp, Calendar, UserPlus, UserMinus, Tablet, Fingerprint, RefreshCw,
     ArrowUpRight, ArrowDownRight, Timer, LogIn, LogOut as LogOutIcon, Percent,
     Activity, Target, Zap, BarChart3, TrendingDown, Brain, Info, ExternalLink,
-    ChevronRight, Circle
-} from 'lucide-react';
+    ChevronRight, Circle, Trash2} from 'lucide-react';
 import { SkeletonStatCard } from '../components/SkeletonLoader';
 import { formatTimeShort } from '../utils/dateFormat';
 
