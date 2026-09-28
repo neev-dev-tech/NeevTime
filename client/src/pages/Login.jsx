@@ -83,11 +83,11 @@ export default function Login({ setAuth }) {
     return (
         <div className="min-h-screen flex">
             {/* Left Panel - Illustration */}
-            <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-orange-50 via-cream-50 to-orange-100 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 relative overflow-hidden">
+            <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-slate-50 via-cream-50 to-slate-200 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 relative overflow-hidden">
                 {/* Background Pattern */}
                 <div className="absolute inset-0 opacity-30">
                     <div className="absolute top-20 left-10 w-72 h-72 bg-saffron/20 rounded-full blur-3xl"></div>
-                    <div className="absolute bottom-20 right-10 w-96 h-96 bg-orange-300/20 rounded-full blur-3xl"></div>
+                    <div className="absolute bottom-20 right-10 w-96 h-96 bg-slate-300/20 rounded-full blur-3xl"></div>
                 </div>
 
                 {/* Content */}
@@ -159,7 +159,7 @@ export default function Login({ setAuth }) {
                                     // Show text fallback if image fails
                                     const fallback = document.createElement('div');
                                     fallback.className = 'flex items-center justify-center gap-2';
-                                    fallback.innerHTML = '<span class="text-5xl font-bold" style="color: #1E293B">Neev</span><span class="text-5xl font-bold" style="color: #F97316">Time</span>';
+                                    fallback.innerHTML = '<span class="text-5xl font-bold" style="color: #1E293B">Neev</span><span class="text-5xl font-bold" style="color: #0F172A">Time</span>';
                                     e.target.parentElement?.appendChild(fallback);
                                 }}
                             />
@@ -214,7 +214,7 @@ export default function Login({ setAuth }) {
 
                         <button
                             disabled={busy}
-                            className="w-full btn-primary py-3.5 rounded-xl shadow-lg shadow-orange-200 transition-ui hover:scale-[1.02] hover:shadow-xl text-base font-semibold disabled:opacity-60 disabled:hover:scale-100"
+                            className="w-full btn-primary py-3.5 rounded-xl shadow-lg shadow-slate-200 transition-ui hover:scale-[1.02] hover:shadow-xl text-base font-semibold disabled:opacity-60 disabled:hover:scale-100"
                         >
                             {busy ? 'Signing in…' : 'Sign In'}
                         </button>
@@ -257,7 +257,7 @@ export default function Login({ setAuth }) {
 
                         <button
                             disabled={busy}
-                            className="w-full btn-primary py-3.5 rounded-xl shadow-lg shadow-orange-200 transition-ui hover:scale-[1.02] hover:shadow-xl text-base font-semibold disabled:opacity-60 disabled:hover:scale-100"
+                            className="w-full btn-primary py-3.5 rounded-xl shadow-lg shadow-slate-200 transition-ui hover:scale-[1.02] hover:shadow-xl text-base font-semibold disabled:opacity-60 disabled:hover:scale-100"
                         >
                             {busy ? 'Saving…' : 'Set password & continue'}
                         </button>

@@ -61,6 +61,7 @@ import DatabaseTools from './pages/DatabaseTools';
 import DeviceData from './pages/DeviceData';
 import DeviceSync from './pages/DeviceSync';
 import Integrations from './pages/Integrations';
+import ApiAccess from './pages/ApiAccess';
 import Geofences from './pages/Geofences';
 import MobilePunch from './pages/MobilePunch';
 
@@ -247,6 +248,7 @@ export default function App() {
                         <Route path="/settings" element={<AdminRoute><Settings /></AdminRoute>} />
                         <Route path="/settings/:tab" element={<AdminRoute><Settings /></AdminRoute>} />
                         <Route path="/integrations" element={<AdminRoute><Integrations /></AdminRoute>} />
+                        <Route path="/api-access" element={<AdminRoute><ApiAccess /></AdminRoute>} />
                         {/* Legacy MUI report generator merged into /reports */}
                         <Route path="/advanced-reports" element={<Navigate to="/reports" replace />} />
                       </Routes>

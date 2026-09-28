@@ -7,6 +7,8 @@
    Inter is gone. It is the default every generated interface reaches for, and
    an app that looks machine-made is the thing being fixed here. */
 @import './fonts.css';
+/* Neev One platform typeface — Inter, one face across the SaaS suite. */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -53,9 +55,10 @@
 }
 
 body {
-  background-color: #FAFBFC;
-  font-family: 'Public Sans', system-ui, sans-serif;
-  color: #1E293B;
+  background-color: #F8FAFC;
+  font-family: 'Inter', system-ui, sans-serif;
+  color: #0F172A;
+  font-variant-numeric: tabular-nums lining-nums;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -72,7 +75,7 @@ body {
 
 /* Main app container background */
 #root {
-  background-color: #FAFBFC;
+  background-color: #F8FAFC;
   min-height: 100vh;
 }
 
@@ -95,21 +98,20 @@ body {
 @layer components {
 
   /* Button System - Modernized */
+  /* Neev One primary: solid black, flat. One primary action per screen. */
   .btn-primary {
-    @apply px-6 py-3 rounded-[8px] text-white font-medium bg-saffron-gradient;
-    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+    @apply px-4 py-2 rounded-[6px] text-white font-medium;
+    background-color: #171717;
     transition: var(--transition-props) var(--transition-fast) var(--ease-snappy);
     @apply flex items-center justify-center gap-2;
   }
 
   .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(249, 115, 22, 0.4);
+    background-color: #0A0A0A;
   }
 
   .btn-primary:active {
-    transform: scale(0.97) translateY(0);
-    box-shadow: 0 2px 8px rgba(249, 115, 22, 0.3);
+    background-color: #000000;
   }
 
   .btn-secondary {

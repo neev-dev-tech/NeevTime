@@ -8,22 +8,25 @@ export default {
     theme: {
         extend: {
             colors: {
+                // Neev One platform tokens — monochrome black + slate + white.
                 cream: {
-                    50: '#FFFCF5', // Very Light Cream (Hover Row)
-                    100: '#FAFBFC', // Cool Neutral Background (was #FFFBF0)
+                    50: '#F8FAFC', // hover row → canvas tint
+                    100: '#F8FAFC', // canvas
                 },
                 app: {
-                    bg: '#FAFBFC', // Main app background - cool neutral
-                    surface: '#FFFFFF', // Card/Form surfaces
-                    hover: '#F8FAFC', // Hover states
+                    bg: '#F8FAFC', // canvas (Neev One --canvas)
+                    surface: '#FFFFFF', // cards/forms
+                    hover: '#F8FAFC', // hover
                 },
+                // Kept the name `saffron` so 300+ call sites recolour at once;
+                // the value is now the Neev One primary (#171717 black), not orange.
                 saffron: {
-                    light: '#FB923C', // Orange-400
-                    DEFAULT: '#F97316', // Orange-500
-                    dark: '#EA580C', // Orange-600
+                    light: '#404040',
+                    DEFAULT: '#171717', // --brand
+                    dark: '#000000', // pressed
                 },
                 charcoal: {
-                    DEFAULT: '#1E293B', // Slate-800 "Dark Charcoal"
+                    DEFAULT: '#0F172A', // Neev One text-primary
                 },
                 'slate-grey': '#475569', // Slate-600 "Slate Blue-Grey"
                 // Status Colors (from modern design)
@@ -60,9 +63,9 @@ export default {
                 // Public Sans for everything you read, Sora for what you scan.
                 // `display` is the opt-in for headings and headline figures;
                 // `sans` stays the default so no existing markup changes meaning.
-                sans: ['Public Sans', 'system-ui', 'sans-serif'],
-                display: ['Sora', 'Public Sans', 'sans-serif'],
-                mono: ['IBM Plex Mono', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+                sans: ['Inter', 'system-ui', 'sans-serif'],
+                display: ['Inter', 'system-ui', 'sans-serif'],
+                mono: ['Inter', 'IBM Plex Mono', 'ui-monospace', 'monospace'],
             },
             boxShadow: {
                 'soft-orange': '0 4px 12px rgba(249, 115, 22, 0.3)',

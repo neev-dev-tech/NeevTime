@@ -193,6 +193,7 @@ export const systemSidebar = [
     iconColor: '#059669',
     items: [
       { label: 'HRMS Integration', path: '/integrations', icon: Network, iconColor: '#059669' },
+      { label: 'API Access', path: '/api-access', icon: Shield, iconColor: '#0EA5E9' },
     ]
   },
   {
