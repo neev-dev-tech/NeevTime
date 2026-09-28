@@ -77,7 +77,12 @@ class BaseIntegration {
         this.apiSecret = config.api_secret;
         this.username = config.username;
         this.password = config.password;
-        this.config = config.config || {};
+        // config is jsonb; tolerate a legacy double-encoded string just in case
+        let cfg = config.config || {};
+        if (typeof cfg === 'string') {
+            try { cfg = JSON.parse(cfg); } catch (e) { cfg = {}; }
+        }
+        this.config = cfg;
         this.fieldMappings = {};
     }
 
@@ -391,8 +396,11 @@ const syncAttendanceToHRMS = async (integration) => {
                 e.name as employee_name,
                 e.email
             FROM attendance_logs al
-            LEFT JOIN employees e ON al.employee_code = e.employee_code
+            JOIN employees e ON al.employee_code = e.employee_code
             WHERE COALESCE(al.sync_status, 'pending') NOT IN ('synced', 'unmapped')
+              -- never push door-only / excluded / deleted staff (e.g. gate guard) to HRMS
+              AND COALESCE(e.exclude_from_hrms, false) = false
+              AND e.deleted_at IS NULL
             ORDER BY al.punch_time
             LIMIT 500
         `);

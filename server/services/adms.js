@@ -3,6 +3,42 @@ const attendanceEngine = require('./attendance_engine');
 const fs = require('fs');
 const deviceCapabilities = require('./device-capabilities');
 
+// Biometric devices were enrolled with an "OMNT-" prefixed PIN during the
+// ERPNext era. Employees are now keyed by the bare code (e.g. OMNT-027 -> 027)
+// to match greytHR. Strip the prefix on every ingest path so punches match the
+// renamed employees without re-enrolling any device. Idempotent for bare PINs.
+// Device-PIN -> employee_code aliases, cached in memory and refreshed
+// periodically. eSSL/ZKTeco devices store numeric user IDs WITHOUT the leading
+// zeros the app/greytHR codes use (device "50" vs employee "050"), and some
+// staff were enrolled under ad-hoc IDs. The device_pin_map table records those
+// exceptions so punches land on the right employee without re-enrolling.
+const PIN_ALIASES = new Map();
+const loadPinAliases = async () => {
+    try {
+        const r = await db.query('SELECT device_pin, employee_code FROM device_pin_map');
+        PIN_ALIASES.clear();
+        for (const row of r.rows) PIN_ALIASES.set(String(row.device_pin), String(row.employee_code));
+    } catch (e) {
+        // table may not exist yet; aliases simply stay empty
+    }
+};
+loadPinAliases();
+setInterval(loadPinAliases, 5 * 60 * 1000);
+
+const normalizePin = (pin) => {
+    const code = String(pin == null ? '' : pin).trim().replace(/^OMNT-/i, '');
+    return PIN_ALIASES.get(code) || code;
+};
+
+// Cross-device biometric sync: enroll on one device -> mirror the template to
+// the other device(s). ENABLED. The mirror uses the RAW device PIN (rawPin)
+// that the source device sent, not the normalized app code, so every device
+// holds the user under the identical PIN and no duplicate users are created.
+// These mirror commands are inserted with trusted=true so the getrequest
+// choke point dispatches them, while other DATA UPDATE/DELETE pushes that use
+// app codes (e.g. device_sync.js bulk routes) stay blocked.
+const CROSS_DEVICE_SYNC = true;
+
 /**
  * ADMS Protocol Handler
  * 
@@ -18,6 +54,98 @@ const formatTime = (ts) => {
     // If ts is not provided or invalid, return now
     if (!ts) return new Date();
     return ts;
+};
+
+const IN_STATES = new Set([0, 3, 4, 8]);
+const OUT_STATES = new Set([1, 2, 5, 9]);
+
+const normalizePunchState = (state, deviceDirection = 'both') => {
+    const direction = (deviceDirection || 'both').toLowerCase();
+    if (direction === 'in') return '0';
+    if (direction === 'out') return '1';
+
+    const raw = String(state ?? '').trim();
+    if (!raw) return '255';
+
+    const parsed = Number.parseInt(raw, 10);
+    if (Number.isInteger(parsed)) {
+        return String(parsed);
+    }
+
+    const normalized = raw.toLowerCase().replace(/[\s_-]+/g, '');
+    if (normalized.includes('breakout')) return '2';
+    if (normalized.includes('breakin')) return '3';
+    if (normalized.includes('overtimeout') || normalized.includes('otout')) return '5';
+    if (normalized.includes('overtimein') || normalized.includes('otin')) return '4';
+    if (normalized.includes('checkout') || normalized.includes('clockout') || normalized === 'out') return '1';
+    if (normalized.includes('checkin') || normalized.includes('clockin') || normalized === 'in') return '0';
+
+    return '255';
+};
+
+const inferPunchStateFromHistory = async (employeeCode, punchTimestamp) => {
+    try {
+        const history = await db.query(`
+            SELECT punch_state
+            FROM attendance_logs
+            WHERE employee_code = $1
+              AND DATE(punch_time) = DATE($2::timestamp)
+              AND punch_time < $2::timestamp
+            ORDER BY punch_time DESC
+            LIMIT 1
+        `, [employeeCode, punchTimestamp]);
+
+        if (history.rows.length === 0) {
+            return '0';
+        }
+
+        const lastState = Number.parseInt(history.rows[0].punch_state, 10);
+        if (IN_STATES.has(lastState)) return '1';
+        if (OUT_STATES.has(lastState)) return '0';
+    } catch (err) {
+        console.log(`[ADMS] State inference skipped for ${employeeCode}: ${err.message}`);
+    }
+
+    return '0';
+};
+
+const maybeQueueRecoveryLogPull = async (deviceSerial) => {
+    if (!deviceSerial) return false;
+
+    const [totalLogs, deviceLogs, recentRecovery] = await Promise.all([
+        db.query('SELECT COUNT(*)::int AS count FROM attendance_logs'),
+        db.query('SELECT COUNT(*)::int AS count FROM attendance_logs WHERE device_serial = $1', [deviceSerial]),
+        db.query(`
+            SELECT COUNT(*)::int AS count
+            FROM device_commands
+            WHERE device_serial = $1
+              AND command = 'DATA QUERY ATTLOG'
+              AND created_at > NOW() - INTERVAL '30 minutes'
+        `, [deviceSerial])
+    ]);
+
+    const totalCount = totalLogs.rows[0]?.count || 0;
+    const deviceCount = deviceLogs.rows[0]?.count || 0;
+    const recentRecoveryCount = recentRecovery.rows[0]?.count || 0;
+
+    const shouldRecover = totalCount === 0 || deviceCount === 0;
+    if (!shouldRecover || recentRecoveryCount > 0) {
+        return false;
+    }
+
+    await db.query(`
+        INSERT INTO device_commands (device_serial, command, status)
+        SELECT $1, 'DATA QUERY ATTLOG', 'pending'
+        WHERE NOT EXISTS (
+            SELECT 1
+            FROM device_commands
+            WHERE device_serial = $1
+              AND command = 'DATA QUERY ATTLOG'
+              AND status IN ('pending', 'sent')
+        )
+    `, [deviceSerial]);
+
+    return true;
 };
 
 // Restore Logging Helpers
@@ -45,7 +173,7 @@ const logAttendanceLogs = async (SN, pin, time, status, verify, workcode) => {
             INSERT INTO attendance_logs (device_serial, employee_code, punch_time, punch_state, verification_mode, work_code, created_at, sync_status)
             VALUES ($1, $2, $3, $4, $5, $6, NOW(), 'synced')
             ON CONFLICT (employee_code, punch_time) DO NOTHING
-        `, [SN, pin, formatTime(time), status, verify, workcode]);
+        `, [SN, normalizePin(pin), formatTime(time), status, verify, workcode]);
     } catch (e) { console.error('logAttendanceLogs error:', e); }
 };
 
@@ -90,7 +218,12 @@ const processBiodataLine = async (line, SN, table) => {
         });
 
         // Handle case-insensitive PIN field (devices may send Pin= or PIN=)
-        const PIN = fields['PIN'] || fields['Pin'] || fields[Object.keys(fields).find(k => k.toLowerCase() === 'pin')];
+        // rawPin = exactly what the device sent (e.g. OMNT-027, 50). PIN =
+        // normalized app/employee code (027, 050). DB rows key on PIN; commands
+        // pushed to OTHER devices must use rawPin so every device holds the user
+        // under the identical PIN (no duplicates).
+        const rawPin = String(fields['PIN'] || fields['Pin'] || fields[Object.keys(fields).find(k => k.toLowerCase() === 'pin')] || '').trim();
+        const PIN = normalizePin(rawPin);
         if (!PIN) {
             fs.appendFileSync('adms_debug.log', `[ADMS WARNING] No PIN found in line: ${line.substring(0, 100)}\n`);
             return;
@@ -196,7 +329,7 @@ const processBiodataLine = async (line, SN, table) => {
         // This ensures real-time sync when templates are pulled from devices or updated
         const shouldAutoSync = isNewTemplate || templateChanged || shouldForceSync || true; // Always sync to ensure consistency
 
-        if (shouldAutoSync) {
+        if (CROSS_DEVICE_SYNC && shouldAutoSync) {
             try {
                 // Get all other devices (excluding the source device)
                 const otherDevices = await db.query(
@@ -236,17 +369,19 @@ const processBiodataLine = async (line, SN, table) => {
                             AND status IN ('pending', 'sent')
                             AND created_at > NOW() - INTERVAL '2 minutes'
                             LIMIT 1
-                        `, [dev.serial_number, `DATA UPDATE USERINFO PIN=${PIN}%`]);
+                        `, [dev.serial_number, `DATA UPDATE USERINFO PIN=${rawPin}%`]);
 
                         // Only send USERINFO if not already queued recently
                         if (recentUserInfo.rows.length === 0) {
                             // First, ensure user exists on device with complete USERINFO
                             // Format matches device display: PIN Name (e.g., "INT001 suresh")
                             // Include Face=1 and FPCount=1 to enable biometric recognition
-                            const cmdUser = `DATA UPDATE USERINFO PIN=${PIN}\tName=${empName}\tPri=${empPri}\tPasswd=${empPasswd}\tCard=${empCard}\tGrp=1\tTZ=1\tVerify=0\tFace=1\tFPCount=1`;
-                            // Use sequence=1 to ensure USERINFO is always first
+                            const cmdUser = `DATA UPDATE USERINFO PIN=${rawPin}\tName=${empName}\tPri=${empPri}\tPasswd=${empPasswd}\tCard=${empCard}\tGrp=1\tTZ=1\tVerify=0\tFace=1\tFPCount=1`;
+                            // Use sequence=1 to ensure USERINFO is always first.
+                            // trusted=true: this mirror uses the raw device PIN, so the
+                            // choke point may dispatch it (unlike bulk app-code pushes).
                             await db.query(
-                                `INSERT INTO device_commands (device_serial, command, status, sequence) VALUES ($1, $2, 'pending', 1)`,
+                                `INSERT INTO device_commands (device_serial, command, status, sequence, trusted) VALUES ($1, $2, 'pending', 1, true)`,
                                 [dev.serial_number, cmdUser]
                             );
                             console.log(`[ADMS AUTO-SYNC] Queued USERINFO for PIN=${PIN} on device ${dev.serial_number} (sequence=1, must be first)`);
@@ -259,9 +394,9 @@ const processBiodataLine = async (line, SN, table) => {
                             // Always delete regardless of template_no to ensure clean update
                             // But do this AFTER USERINFO so user exists on device
                             // Use sequence=2 to ensure DELETE comes after USERINFO
-                            const deleteFaceCmd = `DATA DELETE FACE PIN=${PIN}`;
+                            const deleteFaceCmd = `DATA DELETE FACE PIN=${rawPin}`;
                             await db.query(
-                                `INSERT INTO device_commands (device_serial, command, status, sequence) VALUES ($1, $2, 'pending', 2)`,
+                                `INSERT INTO device_commands (device_serial, command, status, sequence, trusted) VALUES ($1, $2, 'pending', 2, true)`,
                                 [dev.serial_number, deleteFaceCmd]
                             );
                             console.log(`[ADMS AUTO-SYNC] Queued face deletion for PIN=${PIN} on device ${dev.serial_number} (sequence=2, after USERINFO)`);
@@ -317,17 +452,17 @@ const processBiodataLine = async (line, SN, table) => {
 
                             // Use BIODATA command format (this is what the device expects for cross-device sync)
                             // Format: DATA UPDATE BIODATA Pin=XXX No=0 Index=0 Valid=1 Duress=0 Type=9 MajorVer=40 MinorVer=1 Format=0 Tmp=...
-                            const biodataCmd = `DATA UPDATE BIODATA Pin=${PIN}\tNo=${faceNo}\tIndex=${indexNo}\tValid=${validVal}\tDuress=${duressVal}\tType=9\tMajorVer=${majorVer}\tMinorVer=${minorVer}\tFormat=${formatVal}\tTmp=${normalizedFreshTemp}`;
+                            const biodataCmd = `DATA UPDATE BIODATA Pin=${rawPin}\tNo=${faceNo}\tIndex=${indexNo}\tValid=${validVal}\tDuress=${duressVal}\tType=9\tMajorVer=${majorVer}\tMinorVer=${minorVer}\tFormat=${formatVal}\tTmp=${normalizedFreshTemp}`;
 
-                            await db.query(`INSERT INTO device_commands (device_serial, command, status, sequence) VALUES ($1, $2, 'pending', 3)`,
+                            await db.query(`INSERT INTO device_commands (device_serial, command, status, sequence, trusted) VALUES ($1, $2, 'pending', 3, true)`,
                                 [dev.serial_number, biodataCmd]);
                             console.log(`[ADMS AUTO-SYNC] Queued BIODATA face template for PIN=${PIN} No=${faceNo} on device ${dev.serial_number} (sequence=3, MajorVer=${majorVer}, MinorVer=${minorVer}, Size=${freshSize})`);
                         } else {
                             // FINGERPRINT templates - Use FINGERTMP (confirmed working)
                             // Use sequence=3 (same as face, but fingerprints don't need DELETE)
                             const fingerFID = templateNo || '0';
-                            await db.query(`INSERT INTO device_commands (device_serial, command, status, sequence) VALUES ($1, $2, 'pending', 3)`,
-                                [dev.serial_number, `DATA UPDATE FINGERTMP PIN=${PIN}\tFID=${fingerFID}\tSize=${freshSize}\tValid=${validFlag}\tTMP=${normalizedFreshTemp}`]);
+                            await db.query(`INSERT INTO device_commands (device_serial, command, status, sequence, trusted) VALUES ($1, $2, 'pending', 3, true)`,
+                                [dev.serial_number, `DATA UPDATE FINGERTMP PIN=${rawPin}\tFID=${fingerFID}\tSize=${freshSize}\tValid=${validFlag}\tTMP=${normalizedFreshTemp}`]);
                             console.log(`[ADMS AUTO-SYNC] Queued FINGERTMP template for PIN=${PIN} FID=${fingerFID} on device ${dev.serial_number} (sequence=3, Size=${freshSize})`);
                         }
                     }
@@ -607,11 +742,19 @@ const handleAttendanceLogs = async (req, res, io) => {
             debugLog(`Line: ${line} | Parts: ${parts.length} | Raw: ${JSON.stringify(parts)}`);
 
             if (parts.length >= 2) {
-                const [userId, timestamp, state, verifyMode, workCode] = parts;
+                const [userIdRaw, timestampRaw, state, verifyMode, workCode] = parts;
+                const userId = normalizePin(userIdRaw);
+                const timestamp = String(timestampRaw || '').trim();
 
-                let finalState = state;
-                if (deviceDirection === 'in') finalState = '0'; // Check In
-                else if (deviceDirection === 'out') finalState = '1'; // Check Out
+                if (!userId || !timestamp) {
+                    debugLog(`Skipping line with empty user/time: ${line}`);
+                    continue;
+                }
+
+                let finalState = normalizePunchState(state, deviceDirection);
+                if (finalState === '255' && (deviceDirection || 'both').toLowerCase() === 'both') {
+                    finalState = await inferPunchStateFromHistory(userId, timestamp);
+                }
 
                 try {
                     // Check if employee exists, if not, create placeholder
@@ -641,7 +784,7 @@ const handleAttendanceLogs = async (req, res, io) => {
                         employee_code: userId,
                         device_serial: SN,
                         timestamp,
-                        state
+                        state: finalState
                     });
 
                     // Trigger Engine to update Dashboard Stats
@@ -655,6 +798,20 @@ const handleAttendanceLogs = async (req, res, io) => {
                     (async () => {
                         try {
                             const hrmsIntegration = require('./hrms-integration');
+
+                            // Only real HRMS employees are pushed to external
+                            // systems. Door-only / excluded / deleted staff (e.g.
+                            // the gate guard 003/004) must never reach greytHR.
+                            const empChk = await db.query(
+                                'SELECT exclude_from_hrms, deleted_at FROM employees WHERE employee_code = $1',
+                                [userId]
+                            );
+                            const ec = empChk.rows[0];
+                            if (!ec || ec.exclude_from_hrms || ec.deleted_at) {
+                                debugLog(`Skipping HRMS push for excluded/unknown ${userId}`);
+                                return;
+                            }
+
                             const integrations = await hrmsIntegration.getActiveIntegrations();
 
                             for (const integration of integrations) {
@@ -765,9 +922,29 @@ const handleGetRequest = async (req, res, io) => {
 
     // Check DB for pending commands
     try {
+        try {
+            const queuedRecovery = await maybeQueueRecoveryLogPull(SN);
+            if (queuedRecovery) {
+                console.log(`[ADMS RECOVERY] Queued DATA QUERY ATTLOG for ${SN} after log-gap detection`);
+            }
+        } catch (recoveryErr) {
+            console.log(`[ADMS RECOVERY] Recovery check skipped for ${SN}: ${recoveryErr.message}`);
+        }
+
+        // SAFETY CHOKE POINT: never push writes to a device. Devices are the
+        // source of truth (enroll device-side; app ingests via normalizePin).
+        // Several code paths still queue DATA UPDATE/DELETE USERINFO/BIODATA/
+        // FINGERTMP/FACE under bare PINs, which would duplicate the OMNT- users
+        // already on the devices. Refuse to dispatch those here so they can
+        // never reach a device, whatever queued them. QUERY (read) and control
+        // commands still dispatch normally.
         const result = await db.query(`
-            SELECT id, command FROM device_commands 
-            WHERE device_serial = $1 AND status = 'pending' 
+            SELECT id, command FROM device_commands
+            WHERE device_serial = $1 AND status = 'pending'
+              AND (
+                trusted = true
+                OR (command NOT LIKE 'DATA UPDATE%' AND command NOT LIKE 'DATA DELETE%')
+              )
             ORDER BY COALESCE(sequence, 999) ASC, created_at ASC LIMIT 1
         `, [SN]);
 

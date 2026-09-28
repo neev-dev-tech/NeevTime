@@ -16,6 +16,18 @@ const router = express.Router();
 const db = require('../db');
 const hrmsIntegration = require('../services/hrms-integration');
 
+// The client sends `config` already JSON-stringified. Stringifying it again
+// stored a double-encoded jsonb *string* instead of an object, which broke the
+// adapter reading fields like private_key. Coerce to a real object first so the
+// column always holds proper JSON (a multi-line PEM survives intact).
+const toConfigJson = (config) => {
+    let c = config;
+    if (typeof c === 'string') {
+        try { c = JSON.parse(c); } catch (e) { c = {}; }
+    }
+    return JSON.stringify(c || {});
+};
+
 // ==========================================
 // INTEGRATION MANAGEMENT
 // ==========================================
@@ -84,7 +96,7 @@ router.post('/integrations', async (req, res) => {
         `, [
             name, type, base_url, api_key, api_secret, username, password, database_name,
             sync_employees ?? true, sync_attendance ?? true, sync_leaves ?? true,
-            sync_interval_minutes || 30, JSON.stringify(config || {})
+            sync_interval_minutes || 30, toConfigJson(config)
         ]);
 
         res.status(201).json(result.rows[0]);
@@ -124,7 +136,7 @@ router.put('/integrations/:id', async (req, res) => {
         `, [
             req.params.id, name, type, base_url, api_key, api_secret, username, password,
             database_name, is_active, sync_employees, sync_attendance, sync_leaves,
-            sync_interval_minutes, config ? JSON.stringify(config) : null
+            sync_interval_minutes, config != null ? toConfigJson(config) : null
         ]);
 
         if (result.rows.length === 0) {
