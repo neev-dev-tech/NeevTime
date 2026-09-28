@@ -93,10 +93,13 @@ export default function Login({ setAuth }) {
                 {/* Content */}
                 <div className="relative z-10 flex flex-col justify-center items-center w-full p-12">
                     {/* Illustration */}
+                    {/* Raster illustration carries a baked light background, which
+                        reads as a bright box on the black theme. Hidden in dark
+                        until a neutral asset lands (theme Phase 4). */}
                     <img
                         src={loginIllustration}
                         alt="Attendance Management"
-                        className="w-full max-w-lg mb-8 drop-shadow-2xl"
+                        className="w-full max-w-lg mb-8 drop-shadow-2xl dark:hidden"
                     />
 
                     {/* Features List */}
