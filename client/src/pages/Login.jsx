@@ -83,7 +83,7 @@ export default function Login({ setAuth }) {
     return (
         <div className="min-h-screen flex">
             {/* Left Panel - Illustration */}
-            <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-slate-50 via-cream-50 to-slate-200 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 relative overflow-hidden">
+            <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-slate-50 via-cream-50 to-slate-200 dark:from-black dark:via-black dark:to-neutral-900 relative overflow-hidden">
                 {/* Background Pattern */}
                 <div className="absolute inset-0 opacity-30">
                     <div className="absolute top-20 left-10 w-72 h-72 bg-saffron/20 rounded-full blur-3xl"></div>
@@ -101,33 +101,33 @@ export default function Login({ setAuth }) {
 
                     {/* Features List */}
                     <div className="space-y-4 text-center max-w-md">
-                        <h2 className="text-2xl font-bold text-charcoal dark:text-slate-100">Smart Attendance Management</h2>
-                        <p className="text-slate-grey dark:text-slate-400">Streamline your workforce management with biometric integration and real-time tracking.</p>
+                        <h2 className="text-2xl font-bold text-charcoal">Smart Attendance Management</h2>
+                        <p className="text-slate-grey">Streamline your workforce management with biometric integration and real-time tracking.</p>
 
                         <div className="flex justify-center gap-8 pt-6">
                             <div className="flex flex-col items-center gap-2">
-                                <div className="w-12 h-12 bg-white dark:bg-slate-800 rounded-xl shadow-lg flex items-center justify-center">
+                                <div className="w-12 h-12 bg-app-surface rounded-xl shadow-lg flex items-center justify-center">
                                     <Fingerprint className="w-6 h-6 text-saffron" />
                                 </div>
-                                <span className="text-xs font-medium text-slate-grey dark:text-slate-400">Biometric</span>
+                                <span className="text-xs font-medium text-slate-grey">Biometric</span>
                             </div>
                             <div className="flex flex-col items-center gap-2">
-                                <div className="w-12 h-12 bg-white dark:bg-slate-800 rounded-xl shadow-lg flex items-center justify-center">
+                                <div className="w-12 h-12 bg-app-surface rounded-xl shadow-lg flex items-center justify-center">
                                     <Clock className="w-6 h-6 text-saffron" />
                                 </div>
-                                <span className="text-xs font-medium text-slate-grey dark:text-slate-400">Real-time</span>
+                                <span className="text-xs font-medium text-slate-grey">Real-time</span>
                             </div>
                             <div className="flex flex-col items-center gap-2">
-                                <div className="w-12 h-12 bg-white dark:bg-slate-800 rounded-xl shadow-lg flex items-center justify-center">
+                                <div className="w-12 h-12 bg-app-surface rounded-xl shadow-lg flex items-center justify-center">
                                     <Shield className="w-6 h-6 text-saffron" />
                                 </div>
-                                <span className="text-xs font-medium text-slate-grey dark:text-slate-400">Secure</span>
+                                <span className="text-xs font-medium text-slate-grey">Secure</span>
                             </div>
                             <div className="flex flex-col items-center gap-2">
-                                <div className="w-12 h-12 bg-white dark:bg-slate-800 rounded-xl shadow-lg flex items-center justify-center">
+                                <div className="w-12 h-12 bg-app-surface rounded-xl shadow-lg flex items-center justify-center">
                                     <Users className="w-6 h-6 text-saffron" />
                                 </div>
-                                <span className="text-xs font-medium text-slate-grey dark:text-slate-400">Team</span>
+                                <span className="text-xs font-medium text-slate-grey">Team</span>
                             </div>
                         </div>
                     </div>
@@ -135,7 +135,7 @@ export default function Login({ setAuth }) {
             </div>
 
             {/* Right Panel - Login Form */}
-            <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-white dark:bg-slate-800">
+            <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-app-surface">
                 <div className="w-full max-w-md depth-in">
                     {/* Logo */}
                     <div className="text-center mb-8">
@@ -164,7 +164,7 @@ export default function Login({ setAuth }) {
                                 }}
                             />
                         </div>
-                        <p className="text-slate-grey dark:text-slate-300 text-sm font-medium">
+                        <p className="text-slate-grey text-sm font-medium">
                             {mustChange ? 'Set a new administrator password' : 'Sign in to your account'}
                         </p>
                     </div>
@@ -179,7 +179,7 @@ export default function Login({ setAuth }) {
                     /* Login Form */
                     <form onSubmit={handleLogin} className="space-y-6">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-charcoal dark:text-slate-100">Username</label>
+                            <label className="text-sm font-medium text-charcoal">Username</label>
                             <div className="relative">
                                 <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                                 <input
@@ -193,7 +193,7 @@ export default function Login({ setAuth }) {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-charcoal dark:text-slate-100">Password</label>
+                            <label className="text-sm font-medium text-charcoal">Password</label>
                             <div className="relative">
                                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                                 <input
@@ -222,12 +222,12 @@ export default function Login({ setAuth }) {
                     ) : (
                     /* First-sign-in: replace the bootstrap password */
                     <form onSubmit={handleChangePassword} className="space-y-6">
-                        <p className="text-sm text-slate-grey dark:text-slate-400 -mt-2">
+                        <p className="text-sm text-slate-grey -mt-2">
                             This account was created with a temporary password. Choose your own to continue.
                         </p>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-charcoal dark:text-slate-100">New password</label>
+                            <label className="text-sm font-medium text-charcoal">New password</label>
                             <div className="relative">
                                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                                 <input
@@ -242,7 +242,7 @@ export default function Login({ setAuth }) {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-charcoal dark:text-slate-100">Confirm new password</label>
+                            <label className="text-sm font-medium text-charcoal">Confirm new password</label>
                             <div className="relative">
                                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                                 <input
