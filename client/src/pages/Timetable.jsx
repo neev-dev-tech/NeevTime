@@ -240,7 +240,7 @@ export default function Timetable() {
                                         </div>
                                         <div className="flex gap-1 shrink-0">
                                             {tt.is_overnight && (
-                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300" title="Overnight">
+                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300" title="Overnight">
                                                     <Moon size={10} /> Night
                                                 </span>
                                             )}

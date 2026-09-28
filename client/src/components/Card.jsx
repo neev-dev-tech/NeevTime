@@ -162,10 +162,10 @@ export function StatCard({
             valueColor: 'text-slate-800'
         },
         blue: {
-            bg: 'bg-gradient-to-br from-blue-50 to-indigo-100',
+            bg: 'bg-gradient-to-br from-slate-50 to-slate-100',
             border: 'border-l-4 border-l-blue-500',
-            iconBg: 'bg-blue-100',
-            iconColor: 'text-blue-500',
+            iconBg: 'bg-slate-100',
+            iconColor: 'text-slate-500',
             valueColor: 'text-slate-800'
         },
         red: {
@@ -176,10 +176,10 @@ export function StatCard({
             valueColor: 'text-slate-800'
         },
         purple: {
-            bg: 'bg-gradient-to-br from-purple-50 to-violet-100',
+            bg: 'bg-gradient-to-br from-slate-50 to-slate-100',
             border: 'border-l-4 border-l-purple-500',
-            iconBg: 'bg-purple-100',
-            iconColor: 'text-purple-500',
+            iconBg: 'bg-slate-100',
+            iconColor: 'text-slate-500',
             valueColor: 'text-slate-800'
         }
     };
@@ -345,9 +345,9 @@ export function FeatureCard({
 }) {
     const colorStyles = {
         orange: 'from-orange-500 to-orange-600',
-        blue: 'from-blue-500 to-blue-600',
+        blue: 'from-slate-500 to-slate-600',
         green: 'from-green-500 to-green-600',
-        purple: 'from-purple-500 to-violet-600'
+        purple: 'from-slate-500 to-slate-600'
     };
 
     return (

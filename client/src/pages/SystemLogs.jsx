@@ -60,12 +60,12 @@ export default function SystemLogs() {
         const styles = {
             LOGIN: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
             LOGOUT: 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300',
-            CREATE: 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
+            CREATE: 'bg-slate-50 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300',
             UPDATE: 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
             DELETE: 'bg-rose-50 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300',
-            EXPORT: 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
-            IMPORT: 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300',
-            SYNC: 'bg-cyan-50 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300'
+            EXPORT: 'bg-slate-50 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300',
+            IMPORT: 'bg-slate-50 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300',
+            SYNC: 'bg-slate-50 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300'
         };
         return styles[action] || 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300';
     };
@@ -115,9 +115,9 @@ export default function SystemLogs() {
     );
 
     const KPIS = [
-        { label: 'Total Logs', value: filteredLogs.length, icon: Activity, tint: 'text-purple-600 dark:text-purple-400', ring: 'bg-purple-50 dark:bg-purple-900/30' },
+        { label: 'Total Logs', value: filteredLogs.length, icon: Activity, tint: 'text-slate-600 dark:text-slate-400', ring: 'bg-slate-50 dark:bg-slate-900/30' },
         { label: 'Logins', value: filteredLogs.filter(l => l.action === 'LOGIN').length, icon: User, tint: 'text-emerald-600 dark:text-emerald-400', ring: 'bg-emerald-50 dark:bg-emerald-900/30' },
-        { label: 'Data Changes', value: filteredLogs.filter(l => ['CREATE', 'UPDATE', 'DELETE'].includes(l.action)).length, icon: Database, tint: 'text-blue-600 dark:text-blue-400', ring: 'bg-blue-50 dark:bg-blue-900/30' },
+        { label: 'Data Changes', value: filteredLogs.filter(l => ['CREATE', 'UPDATE', 'DELETE'].includes(l.action)).length, icon: Database, tint: 'text-slate-600 dark:text-slate-400', ring: 'bg-slate-50 dark:bg-slate-900/30' },
         { label: 'Active Users', value: uniqueUsers.length, icon: Users, tint: 'text-amber-600 dark:text-amber-400', ring: 'bg-amber-50 dark:bg-amber-900/30' }
     ];
 

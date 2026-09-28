@@ -13,7 +13,7 @@ const EXPORT_TYPES = [
 
 const FORMATS = [
     { id: 'csv', label: 'CSV', icon: FileSpreadsheet, tint: 'text-emerald-600 dark:text-emerald-400' },
-    { id: 'json', label: 'JSON', icon: FileText, tint: 'text-blue-600 dark:text-blue-400' },
+    { id: 'json', label: 'JSON', icon: FileText, tint: 'text-slate-600 dark:text-slate-400' },
     { id: 'pdf', label: 'PDF', icon: FileDown, tint: 'text-rose-600 dark:text-rose-400' },
 ];
 

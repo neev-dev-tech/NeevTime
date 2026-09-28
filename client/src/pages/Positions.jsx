@@ -435,7 +435,7 @@ export default function Positions() {
                     </Button>
 
                     {/* File Input */}
-                    <div className="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg p-6 text-center hover:border-purple-400 transition-colors">
+                    <div className="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg p-6 text-center hover:border-slate-400 transition-colors">
                         <input
                             ref={fileInputRef}
                             type="file"

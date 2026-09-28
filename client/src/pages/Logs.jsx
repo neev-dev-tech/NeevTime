@@ -271,8 +271,8 @@ export default function Logs() {
                                         </td>
                                         <td className="px-5 py-3 whitespace-nowrap">
                                             <div className="flex items-center gap-2">
-                                                <div className="p-1.5 bg-purple-50 dark:bg-purple-900/30 rounded-md">
-                                                    <Fingerprint size={14} className="text-purple-600 dark:text-purple-400" />
+                                                <div className="p-1.5 bg-slate-50 dark:bg-slate-900/30 rounded-md">
+                                                    <Fingerprint size={14} className="text-slate-600 dark:text-slate-400" />
                                                 </div>
                                                 <span className="text-xs uppercase tracking-wide font-medium text-slate-600 dark:text-slate-300">
                                                     {log.verification_mode || 'Unknown'}

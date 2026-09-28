@@ -417,29 +417,29 @@ export default function Dashboard() {
         // Identity colours: the icon is coloured by what it counts, while the
         // figure itself stays near-black so the numbers remain the thing you read.
         people: {
-            chip: 'bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-300',
+            chip: 'bg-slate-100 text-slate-600 dark:bg-slate-900/40 dark:text-slate-300',
             value: 'text-slate-900 dark:text-slate-50',
-            rule: 'bg-blue-500'
+            rule: 'bg-slate-500'
         },
         device: {
-            chip: 'bg-violet-100 text-violet-600 dark:bg-violet-900/40 dark:text-violet-300',
+            chip: 'bg-slate-100 text-slate-600 dark:bg-slate-900/40 dark:text-slate-300',
             value: 'text-slate-900 dark:text-slate-50',
-            rule: 'bg-violet-500'
+            rule: 'bg-slate-500'
         },
         biometric: {
-            chip: 'bg-cyan-100 text-cyan-600 dark:bg-cyan-900/40 dark:text-cyan-300',
+            chip: 'bg-slate-100 text-slate-600 dark:bg-slate-900/40 dark:text-slate-300',
             value: 'text-slate-900 dark:text-slate-50',
-            rule: 'bg-cyan-500'
+            rule: 'bg-slate-500'
         },
         activity: {
-            chip: 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/40 dark:text-indigo-300',
+            chip: 'bg-slate-100 text-slate-600 dark:bg-slate-900/40 dark:text-slate-300',
             value: 'text-slate-900 dark:text-slate-50',
-            rule: 'bg-indigo-500'
+            rule: 'bg-slate-500'
         },
         time: {
-            chip: 'bg-teal-100 text-teal-600 dark:bg-teal-900/40 dark:text-teal-300',
+            chip: 'bg-slate-100 text-slate-600 dark:bg-slate-900/40 dark:text-slate-300',
             value: 'text-slate-900 dark:text-slate-50',
-            rule: 'bg-teal-500'
+            rule: 'bg-slate-500'
         },
         good: {
             chip: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
@@ -1006,7 +1006,7 @@ export default function Dashboard() {
                 {/* Device List - Staggered */}
                 <div className="card-tier-2 animate-slide-up stagger-6">
                     <h2 className="font-semibold mb-6 flex items-center gap-2 text-base text-slate-800 dark:text-slate-100">
-                        <Wifi className="text-blue-500" size={18} /> Connected Devices
+                        <Wifi className="text-slate-500" size={18} /> Connected Devices
                     </h2>
                     <div className="overflow-x-auto rounded-xl border border-slate-100 dark:border-slate-700" style={{ maxHeight: '400px', overflowY: 'auto' }}>
                         <table className="w-full text-sm">

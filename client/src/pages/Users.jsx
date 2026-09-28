@@ -17,7 +17,7 @@ const ROLE_HELP = {
 const BADGE = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide';
 const ROLE_TINTS = {
     admin: 'bg-rose-50 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300',
-    hr: 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+    hr: 'bg-slate-50 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300'
 };
 const ROLE_FALLBACK = 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300';
 
@@ -356,7 +356,7 @@ export default function UsersPage() {
             {/* Toast */}
             {toast && (
                 <div className={`fixed bottom-4 right-4 flex items-center px-4 py-3 rounded-xl shadow-xl text-white z-50 animate-in slide-in-from-bottom-5 duration-300 ${toast.type === 'success' ? 'bg-emerald-600 dark:bg-emerald-500' :
-                    toast.type === 'error' ? 'bg-rose-600 dark:bg-rose-500' : 'bg-blue-600 dark:bg-blue-500'
+                    toast.type === 'error' ? 'bg-rose-600 dark:bg-rose-500' : 'bg-slate-600 dark:bg-slate-500'
                     }`}>
                     <span className="flex-1 pr-3 text-sm font-medium">{toast.message}</span>
                     <button

@@ -57,8 +57,8 @@ export default function AttendanceRegister() {
             'Late': 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
             'Half Day': 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
             'Short Day': 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
-            'Miss Punch': 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
-            'Weekly Off': 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
+            'Miss Punch': 'bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300',
+            'Weekly Off': 'bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300',
             'Holiday': 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300',
         };
         return styles[status] || 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300';
@@ -133,7 +133,7 @@ export default function AttendanceRegister() {
         { label: 'Present', value: summary.present, icon: CheckCircle, tone: 'text-emerald-600 dark:text-emerald-400' },
         { label: 'Absent', value: summary.absent, icon: XCircle, tone: 'text-rose-600 dark:text-rose-400' },
         { label: 'Late Arrival', value: summary.late, icon: Clock, tone: 'text-amber-600 dark:text-amber-400' },
-        { label: 'Miss Punch', value: summary.missPunch, icon: AlertTriangle, tone: 'text-purple-600 dark:text-purple-400' }
+        { label: 'Miss Punch', value: summary.missPunch, icon: AlertTriangle, tone: 'text-slate-600 dark:text-slate-400' }
     ];
 
     return (

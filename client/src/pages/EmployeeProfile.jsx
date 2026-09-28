@@ -208,8 +208,8 @@ api.get('/api/contractors').then(r => setContractors(r.data.filter(c => c.is_act
             'Absent': 'bg-red-500',
             'Late': 'bg-yellow-500',
             'Half Day': 'bg-orange-500',
-            'Leave': 'bg-blue-500',
-            'Holiday': 'bg-purple-500',
+            'Leave': 'bg-slate-500',
+            'Holiday': 'bg-slate-500',
             'Weekly Off': 'bg-slate-400',
         };
         return colors[status] || 'bg-slate-300';

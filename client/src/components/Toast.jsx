@@ -37,8 +37,8 @@ const TOAST_TYPES = {
     },
     info: {
         icon: Info,
-        className: 'bg-gradient-to-r from-blue-500 to-indigo-500',
-        progressColor: 'bg-blue-300'
+        className: 'bg-gradient-to-r from-slate-500 to-slate-500',
+        progressColor: 'bg-slate-300'
     },
     loading: {
         icon: Loader2,

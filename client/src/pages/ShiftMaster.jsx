@@ -139,7 +139,7 @@ export default function ShiftMaster() {
                                         <h3 className="font-semibold text-slate-800 dark:text-slate-100 truncate">{shift.name || '—'}</h3>
                                         <div className="mt-1 flex flex-wrap items-center gap-1.5">
                                             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${shift.shift_type === 'Night'
-                                                ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300'
+                                                ? 'bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300'
                                                 : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'}`}>
                                                 {shift.shift_type || 'Fixed'}
                                             </span>
@@ -163,7 +163,7 @@ export default function ShiftMaster() {
                                     </span>
                                     <span className="text-slate-400 dark:text-slate-500">→</span>
                                     <span className="inline-flex items-center gap-1.5 text-slate-800 dark:text-slate-100 font-semibold tabular-nums">
-                                        <Moon size={14} className="text-blue-500 dark:text-blue-400" />
+                                        <Moon size={14} className="text-slate-500 dark:text-slate-400" />
                                         {shift.end_time?.substring(0, 5) || '—'}
                                     </span>
                                 </div>

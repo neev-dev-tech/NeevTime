@@ -260,7 +260,7 @@ export default function ApprovalFlow() {
                                 <td className="px-5 py-3 text-slate-600 dark:text-slate-300 tabular-nums">{flow.start_date?.split('T')[0] || '—'}</td>
                                 <td className="px-5 py-3 text-slate-600 dark:text-slate-300 tabular-nums">{flow.end_date?.split('T')[0] || '—'}</td>
                                 <td className="px-5 py-3">
-                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800">
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-slate-50 text-slate-700 border border-slate-200 dark:bg-slate-900/30 dark:text-slate-300 dark:border-slate-800">
                                         {flow.request_type || '—'}
                                     </span>
                                 </td>
@@ -394,7 +394,7 @@ export default function ApprovalFlow() {
                         </div>
                     </div>
 
-                    <div className="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg text-blue-800 dark:text-blue-300 text-xs">
+                    <div className="p-3 bg-slate-50 dark:bg-slate-900/30 rounded-lg text-slate-800 dark:text-slate-300 text-xs">
                         <strong>Note:</strong> Select only one among Requester, Department and Position for the flow scope.
                     </div>
                 </form>

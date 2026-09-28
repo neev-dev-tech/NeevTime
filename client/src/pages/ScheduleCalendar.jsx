@@ -95,12 +95,12 @@ export default function ScheduleCalendar() {
 
     const getShiftColor = (shiftId) => {
         const colors = [
-            'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
+            'bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300',
             'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
-            'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
+            'bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300',
             'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
             'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300',
-            'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300'
+            'bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300'
         ];
         return colors[shiftId % colors.length];
     };
@@ -335,12 +335,12 @@ export default function ScheduleCalendar() {
                 </div>
                 <div className="bg-white/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 hover:-translate-y-0.5 transition-transform">
                     <div className="flex items-center gap-2 mb-2">
-                        <div className="p-1.5 rounded-xl bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">
+                        <div className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-900/30 text-slate-600 dark:text-slate-400">
                             <Building2 size={16} />
                         </div>
                         <h3 className="text-[10px] uppercase tracking-[0.09em] font-bold text-slate-500 dark:text-slate-400">Departments</h3>
                     </div>
-                    <div className="text-3xl font-bold tabular-nums text-purple-600 dark:text-purple-400">{departments.length}</div>
+                    <div className="text-3xl font-bold tabular-nums text-slate-600 dark:text-slate-400">{departments.length}</div>
                     <div className="text-sm text-slate-600 dark:text-slate-300">With employees</div>
                 </div>
             </div>

@@ -27,8 +27,8 @@ const searchCategories = {
     employees: {
         icon: Users,
         label: 'Employees',
-        color: 'text-blue-600 dark:text-blue-300',
-        bgColor: 'bg-blue-50 dark:bg-blue-900/30'
+        color: 'text-slate-600 dark:text-slate-300',
+        bgColor: 'bg-slate-50 dark:bg-slate-900/30'
     },
     devices: {
         icon: TabletSmartphone,
@@ -39,8 +39,8 @@ const searchCategories = {
     reports: {
         icon: FileBarChart,
         label: 'Reports',
-        color: 'text-purple-600 dark:text-purple-300',
-        bgColor: 'bg-purple-50 dark:bg-purple-900/30'
+        color: 'text-slate-600 dark:text-slate-300',
+        bgColor: 'bg-slate-50 dark:bg-slate-900/30'
     },
     settings: {
         icon: Settings2,

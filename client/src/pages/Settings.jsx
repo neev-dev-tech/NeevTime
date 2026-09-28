@@ -7,9 +7,9 @@ import LogoUpload from '../components/LogoUpload';
 import ThemeSettings from '../components/ThemeSettings';
 
 const CATEGORIES = [
-    { id: 'company', label: 'Company', icon: Building, iconClass: 'text-blue-500 dark:text-blue-400' },
+    { id: 'company', label: 'Company', icon: Building, iconClass: 'text-slate-500 dark:text-slate-400' },
     { id: 'attendance', label: 'Attendance Rules', icon: Timer, iconClass: 'text-orange-500 dark:text-orange-400' },
-    { id: 'weekend', label: 'Weekend Rules', icon: CalendarDays, iconClass: 'text-violet-500 dark:text-violet-400' },
+    { id: 'weekend', label: 'Weekend Rules', icon: CalendarDays, iconClass: 'text-slate-500 dark:text-slate-400' },
     { id: 'notifications', label: 'Email/SMTP', icon: Mail, iconClass: 'text-emerald-500 dark:text-emerald-400' },
     { id: 'security', label: 'Security', icon: ShieldCheck, iconClass: 'text-rose-500 dark:text-rose-400' },
     // Employee sign-in: single sign-on and directory settings. The rows were
@@ -20,7 +20,7 @@ const CATEGORIES = [
     // The client secret and LDAP bind password are deliberately NOT here. They
     // come from the environment, so this tab shows what an administrator may
     // safely see on a screen someone else might be standing behind.
-    { id: 'auth', label: 'Employee Sign-in', icon: KeyRound, iconClass: 'text-indigo-500 dark:text-indigo-400' },
+    { id: 'auth', label: 'Employee Sign-in', icon: KeyRound, iconClass: 'text-slate-500 dark:text-slate-400' },
     // Fields render generically from app_settings, so this tab needed only the
     // entry. Placed next to Email/SMTP because it depends on it: alerting is
     // email-only, and a broken SMTP means no alerts at all.
@@ -30,13 +30,13 @@ const CATEGORIES = [
     // is where people look — the controls previously existed only in a slide-over
     // panel behind a palette icon in the header, which is why the theme toggle
     // was reported as not working when it worked fine.
-    { id: 'appearance', label: 'Appearance', icon: Palette, iconClass: 'text-violet-500 dark:text-violet-400' },
+    { id: 'appearance', label: 'Appearance', icon: Palette, iconClass: 'text-slate-500 dark:text-slate-400' },
     // SMS and WhatsApp tabs removed — the server has no provider integration for
     // either, so every field on them was saved and never read by anything.
     { id: 'reports', label: 'Auto Reports', icon: BarChart3, iconClass: 'text-emerald-500 dark:text-emerald-400' },
     { id: 'pdf', label: 'PDF Settings', icon: FileCheck, iconClass: 'text-amber-500 dark:text-amber-400' },
-    { id: 'database', label: 'Database', icon: DatabaseIcon, iconClass: 'text-violet-500 dark:text-violet-400' },
-    { id: 'timezone', label: 'Timezone', icon: Globe, iconClass: 'text-sky-500 dark:text-sky-400' },
+    { id: 'database', label: 'Database', icon: DatabaseIcon, iconClass: 'text-slate-500 dark:text-slate-400' },
+    { id: 'timezone', label: 'Timezone', icon: Globe, iconClass: 'text-slate-500 dark:text-slate-400' },
 ];
 
 // Zones the app is realistically deployed in. Kept short deliberately — the

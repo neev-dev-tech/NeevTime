@@ -10,7 +10,7 @@ import { Button, PageHeader, useToast } from '../components';
 import { formatDate, toLocalDateString } from '../utils/dateFormat';
 
 const BADGE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide';
-const BADGE_AUTO = 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300';
+const BADGE_AUTO = 'bg-slate-50 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300';
 const BADGE_MANUAL = 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300';
 
 const CELL_MONO = 'font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold';
@@ -310,9 +310,9 @@ export default function DatabaseTools() {
     };
 
     const STATS = [
-        { label: 'DB Size', value: dbStats?.database_size || '—', icon: Database, tint: 'text-blue-600 dark:text-blue-400', ring: 'bg-blue-50 dark:bg-blue-900/30', breakAll: true },
+        { label: 'DB Size', value: dbStats?.database_size || '—', icon: Database, tint: 'text-slate-600 dark:text-slate-400', ring: 'bg-slate-50 dark:bg-slate-900/30', breakAll: true },
         { label: 'Employees', value: dbStats?.total_employees ?? 0, icon: FileText, tint: 'text-emerald-600 dark:text-emerald-400', ring: 'bg-emerald-50 dark:bg-emerald-900/30' },
-        { label: 'Departments', value: dbStats?.total_departments ?? 0, icon: HardDrive, tint: 'text-purple-600 dark:text-purple-400', ring: 'bg-purple-50 dark:bg-purple-900/30' },
+        { label: 'Departments', value: dbStats?.total_departments ?? 0, icon: HardDrive, tint: 'text-slate-600 dark:text-slate-400', ring: 'bg-slate-50 dark:bg-slate-900/30' },
         { label: 'Logs', value: dbStats?.total_attendance_logs ?? 0, icon: Clock, tint: 'text-amber-600 dark:text-amber-400', ring: 'bg-amber-50 dark:bg-amber-900/30' },
         { label: 'Holidays', value: dbStats?.total_holidays ?? 0, icon: Calendar, tint: 'text-rose-600 dark:text-rose-400', ring: 'bg-rose-50 dark:bg-rose-900/30' },
         {

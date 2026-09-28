@@ -157,7 +157,7 @@ export default function AttendanceRules() {
                 <div className="min-w-0">
                     <h3 className="font-semibold text-slate-800 dark:text-slate-100 truncate">{rule.name || '—'}</h3>
                     <span className={`mt-1 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${rule.rule_type === 'global'
-                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                        ? 'bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300'
                         : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
                         }`}>
                         {rule.rule_type === 'global' ? 'Global Rule' : (rule.department_name || '—')}
@@ -194,7 +194,7 @@ export default function AttendanceRules() {
                 <div className="bg-white/60 dark:bg-slate-900/50 rounded-xl px-3 py-2 border border-slate-100 dark:border-slate-700">
                     <dt className="text-[10px] uppercase tracking-[0.09em] font-bold text-slate-500 dark:text-slate-400 mb-0.5">Half Day</dt>
                     <dd className="font-semibold text-slate-800 dark:text-slate-100 tabular-nums flex items-center gap-1.5">
-                        <AlertTriangle size={13} className="text-purple-500 dark:text-purple-400" />
+                        <AlertTriangle size={13} className="text-slate-500 dark:text-slate-400" />
                         {rule.half_day_threshold_minutes ?? '—'} min
                     </dd>
                 </div>
@@ -217,7 +217,7 @@ export default function AttendanceRules() {
                             </span>
                         )}
                         {rule.alternate_saturday && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300">
                                 <Calendar size={10} /> Alt. Sat
                             </span>
                         )}
@@ -263,7 +263,7 @@ export default function AttendanceRules() {
 
             {/* Info Banner */}
             <div className="bg-white/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 flex items-start gap-3">
-                <div className="p-2 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 shrink-0">
+                <div className="p-2 rounded-xl bg-slate-100 dark:bg-slate-900/30 text-slate-600 dark:text-slate-300 shrink-0">
                     <AlertTriangle size={16} />
                 </div>
                 <div className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
@@ -394,7 +394,7 @@ export default function AttendanceRules() {
                     {/* Time Thresholds */}
                     <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-100 dark:border-slate-700">
                         <h3 className="font-bold text-slate-700 dark:text-slate-300 mb-4 flex items-center gap-2">
-                            <Clock size={16} className="text-blue-500" /> Time Thresholds
+                            <Clock size={16} className="text-slate-500" /> Time Thresholds
                         </h3>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <div className="space-y-1">

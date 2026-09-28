@@ -618,9 +618,9 @@ export default function Devices() {
                                                         e.stopPropagation();
                                                         syncAllDevices('upload-biometrics');
                                                     }}
-                                                    className="flex items-center gap-3 w-full text-left px-4 py-3 hover:bg-purple-50 dark:hover:bg-slate-700 text-sm text-slate-grey dark:text-slate-400 hover:text-charcoal dark:hover:text-slate-100 border-b border-slate-50 dark:border-slate-700"
+                                                    className="flex items-center gap-3 w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 text-sm text-slate-grey dark:text-slate-400 hover:text-charcoal dark:hover:text-slate-100 border-b border-slate-50 dark:border-slate-700"
                                                 >
-                                                    <Fingerprint size={16} className="text-purple-600" />
+                                                    <Fingerprint size={16} className="text-slate-600" />
                                                     Push Biometrics to All Devices
                                                 </button>
                                                 <button
@@ -979,7 +979,7 @@ export default function Devices() {
 
             {/* Toast UI */}
             {toast && (
-                <div className={`fixed bottom-4 right-4 flex items-center px-4 py-3 rounded-lg shadow-xl text-white z-50 animate-in slide-in-from-bottom-5 duration-300 ${toast.type === 'success' ? 'bg-green-500' : toast.type === 'error' ? 'bg-red-500' : 'bg-blue-500'}`}>
+                <div className={`fixed bottom-4 right-4 flex items-center px-4 py-3 rounded-lg shadow-xl text-white z-50 animate-in slide-in-from-bottom-5 duration-300 ${toast.type === 'success' ? 'bg-green-500' : toast.type === 'error' ? 'bg-red-500' : 'bg-slate-500'}`}>
                     <span className="flex-1 pr-3">{toast.message}</span>
                     <button
                         onClick={() => {

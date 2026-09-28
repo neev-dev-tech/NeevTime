@@ -116,8 +116,8 @@ class ErrorBoundary extends React.Component {
                             </div>
 
                             {/* Help Text */}
-                            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                                <p className="text-sm text-blue-800">
+                            <div className="mt-6 p-4 bg-slate-50 border border-slate-200 rounded-lg">
+                                <p className="text-sm text-slate-800">
                                     <strong>Need help?</strong> If this error persists, please contact support with the Error ID above.
                                 </p>
                             </div>

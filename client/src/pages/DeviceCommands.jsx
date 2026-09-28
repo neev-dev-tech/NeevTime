@@ -96,7 +96,7 @@ export default function DeviceCommands() {
         switch (status) {
             case 'success': return 'bg-green-100 text-green-800';
             case 'pending': return 'bg-yellow-100 text-yellow-800';
-            case 'sent': return 'bg-blue-100 text-blue-800';
+            case 'sent': return 'bg-slate-100 text-slate-800';
             case 'fail': return 'bg-red-100 text-red-800';
             default: return 'bg-slate-100 text-slate-800';
         }
@@ -104,11 +104,11 @@ export default function DeviceCommands() {
 
     const getCommandColor = (color) => {
         const colors = {
-            blue: 'bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50 dark:border-blue-800',
+            blue: 'bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-200 dark:bg-slate-900/30 dark:text-slate-300 dark:hover:bg-slate-900/50 dark:border-slate-800',
             green: 'bg-green-50 text-green-600 hover:bg-green-100 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-900/50 dark:border-green-800',
             amber: 'bg-amber-50 text-amber-600 hover:bg-amber-100 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:hover:bg-amber-900/50 dark:border-amber-800',
             red: 'bg-red-50 text-red-600 hover:bg-red-100 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50 dark:border-red-800',
-            purple: 'bg-purple-50 text-purple-600 hover:bg-purple-100 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:hover:bg-purple-900/50 dark:border-purple-800'
+            purple: 'bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-200 dark:bg-slate-900/30 dark:text-slate-300 dark:hover:bg-slate-900/50 dark:border-slate-800'
         };
         return colors[color] || colors.blue;
     };
@@ -340,7 +340,7 @@ export default function DeviceCommands() {
                                         <div className="flex items-center gap-3 min-w-0">
                                             <div className={`w-2 h-2 rounded-full flex-shrink-0 ${cmd.status === 'success' ? 'bg-green-500' :
                                                 cmd.status === 'pending' ? 'bg-yellow-500' :
-                                                    cmd.status === 'sent' ? 'bg-blue-500' :
+                                                    cmd.status === 'sent' ? 'bg-slate-500' :
                                                         'bg-red-500'
                                                 }`} />
                                             <div className="min-w-0">

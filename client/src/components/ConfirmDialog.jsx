@@ -25,7 +25,7 @@ export default function ConfirmDialog() {
         confirmText: 'Confirm',
         cancelText: 'Cancel',
         type: 'warning', // 'warning', 'danger', 'info'
-        confirmButtonColor: 'bg-blue-600 hover:bg-blue-700'
+        confirmButtonColor: 'bg-slate-600 hover:bg-slate-700'
     });
 
     React.useEffect(() => {
@@ -72,9 +72,9 @@ export default function ConfirmDialog() {
             border: 'border-red-200 dark:border-red-800'
         },
         info: {
-            icon: 'text-blue-600 dark:text-blue-300',
-            bg: 'bg-blue-50 dark:bg-blue-900/30',
-            border: 'border-blue-200 dark:border-blue-800'
+            icon: 'text-slate-600 dark:text-slate-300',
+            bg: 'bg-slate-50 dark:bg-slate-900/30',
+            border: 'border-slate-200 dark:border-slate-800'
         }
     };
 
@@ -84,7 +84,7 @@ export default function ConfirmDialog() {
     const confirmColorByType = {
         danger: 'bg-rose-600 hover:bg-rose-700',
         warning: 'bg-orange-600 hover:bg-orange-700',
-        info: 'bg-blue-600 hover:bg-blue-700'
+        info: 'bg-slate-600 hover:bg-slate-700'
     };
     const confirmColor = options.confirmButtonColor || confirmColorByType[options.type] || confirmColorByType.warning;
 

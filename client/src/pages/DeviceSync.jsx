@@ -26,7 +26,7 @@ const BADGE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] fon
 
 const STAT_TONES = {
     pending: { chip: 'bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-300', icon: Clock },
-    sent: { chip: 'bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-300', icon: Send },
+    sent: { chip: 'bg-slate-100 text-slate-600 dark:bg-slate-900/40 dark:text-slate-300', icon: Send },
     success: { chip: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-300', icon: CheckCircle },
     failed: { chip: 'bg-rose-100 text-rose-600 dark:bg-rose-900/40 dark:text-rose-300', icon: AlertCircle },
     dead_letter: { chip: 'bg-rose-100 text-rose-600 dark:bg-rose-900/40 dark:text-rose-300', icon: AlertTriangle }
@@ -300,7 +300,7 @@ export default function DeviceSync() {
             {biometrics && (
                 <div className="card-base">
                     <h2 className="font-semibold text-base text-slate-800 dark:text-slate-100 mb-3 flex items-center gap-2">
-                        <Fingerprint size={18} className="text-cyan-500" /> Biometric templates
+                        <Fingerprint size={18} className="text-slate-500" /> Biometric templates
                     </h2>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                         {Object.entries(biometrics).filter(([, v]) => typeof v === 'number').map(([k, v]) => (
