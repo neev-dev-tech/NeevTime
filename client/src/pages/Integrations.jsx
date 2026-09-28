@@ -637,6 +637,50 @@ const Integrations = () => {
                                                 Additional Configuration
                                             </Typography>
                                         </Grid>
+                                        {configFields.includes('domain') && (
+                                            <Grid size={{ xs: 12, md: 6 }}>
+                                                <TextField
+                                                    label="greytHR Domain"
+                                                    fullWidth
+                                                    value={formData.config?.domain || ''}
+                                                    onChange={(e) => setFormData({
+                                                        ...formData,
+                                                        config: { ...formData.config, domain: e.target.value }
+                                                    })}
+                                                    helperText="Company subdomain, builds https://<domain>.greythr.com (leave blank if Base URL is set)"
+                                                />
+                                            </Grid>
+                                        )}
+                                        {configFields.includes('api_id') && (
+                                            <Grid size={{ xs: 12, md: 6 }}>
+                                                <TextField
+                                                    label="API ID"
+                                                    fullWidth
+                                                    value={formData.config?.api_id || ''}
+                                                    onChange={(e) => setFormData({
+                                                        ...formData,
+                                                        config: { ...formData.config, api_id: e.target.value }
+                                                    })}
+                                                    helperText="greytHR API ID (from the API Details page)"
+                                                />
+                                            </Grid>
+                                        )}
+                                        {configFields.includes('private_key') && (
+                                            <Grid size={{ xs: 12 }}>
+                                                <TextField
+                                                    label="RSA Private Key (PEM)"
+                                                    fullWidth
+                                                    multiline
+                                                    minRows={6}
+                                                    value={formData.config?.private_key || ''}
+                                                    onChange={(e) => setFormData({
+                                                        ...formData,
+                                                        config: { ...formData.config, private_key: e.target.value }
+                                                    })}
+                                                    helperText="Paste the full .pem including the BEGIN/END lines. Signs each swipe batch; greytHR holds the matching public key."
+                                                />
+                                            </Grid>
+                                        )}
                                         {configFields.includes('subdomain') && (
                                             <Grid size={{ xs: 12, md: 6 }}>
                                                 <TextField

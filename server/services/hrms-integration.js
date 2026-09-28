@@ -125,7 +125,12 @@ class BaseIntegration {
         this.apiSecret = config.api_secret;
         this.username = config.username;
         this.password = config.password;
-        this.config = config.config || {};
+        // config is jsonb; tolerate a legacy double-encoded string just in case
+        let cfg = config.config || {};
+        if (typeof cfg === 'string') {
+            try { cfg = JSON.parse(cfg); } catch (e) { cfg = {}; }
+        }
+        this.config = cfg;
         this.fieldMappings = {};
     }
 

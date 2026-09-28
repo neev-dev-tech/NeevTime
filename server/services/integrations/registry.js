@@ -60,6 +60,22 @@ const ADAPTERS = [
         color: '#4CAF50'
     },
     {
+        type: 'greythr',
+        name: 'greytHR',
+        description: 'Cloud HR/payroll (India). Pushes raw attendance swipes; greytHR builds the muster and payroll.',
+        documentation: 'https://api-docs.greythr.com/',
+        load: () => require('./greythr'),
+        aliases: [],
+        // RSA "Attendance Swipe" API: no OAuth. base_url is the tenant host
+        // (https://<domain>.greythr.com); api_id and the RSA private_key (PEM)
+        // come from greytHR's API Details page and live in the config blob.
+        // The signature over the swipes string is the auth.
+        required_fields: ['base_url'],
+        config_fields: ['domain', 'api_id', 'private_key'],
+        icon: '🕒',
+        color: '#F5821F'
+    },
+    {
         type: 'webhook',
         name: 'Generic Webhook / API',
         description: 'Any system that can post JSON. The way to connect a vendor with a closed API.',
@@ -102,6 +118,7 @@ const list = () => ADAPTERS.map(entry => ({
     description: entry.description,
     documentation: entry.documentation,
     required_fields: entry.required_fields,
+    config_fields: entry.config_fields || [],
     icon: entry.icon,
     color: entry.color,
     capabilities: capabilitiesOf(entry)
