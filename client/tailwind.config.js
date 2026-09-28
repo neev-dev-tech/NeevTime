@@ -8,27 +8,30 @@ export default {
     theme: {
         extend: {
             colors: {
-                // Neev One platform tokens — monochrome black + slate + white.
+                // Neev One platform tokens — now theme variables (see index.css
+                // :root / [data-theme="black"]). Values swap per theme; light is
+                // unchanged from the previous hardcoded hex.
                 cream: {
-                    50: '#F8FAFC', // hover row → canvas tint
-                    100: '#F8FAFC', // canvas
+                    50: 'rgb(var(--surface-2) / <alpha-value>)', // hover row → canvas tint
+                    100: 'rgb(var(--bg) / <alpha-value>)', // canvas
                 },
                 app: {
-                    bg: '#F8FAFC', // canvas (Neev One --canvas)
-                    surface: '#FFFFFF', // cards/forms
-                    hover: '#F8FAFC', // hover
+                    bg: 'rgb(var(--bg) / <alpha-value>)', // canvas
+                    surface: 'rgb(var(--surface) / <alpha-value>)', // cards/forms
+                    hover: 'rgb(var(--surface-2) / <alpha-value>)', // hover
                 },
                 // Kept the name `saffron` so 300+ call sites recolour at once;
-                // the value is now the Neev One primary (#171717 black), not orange.
+                // now the theme brand (black in light, white in the black theme).
                 saffron: {
-                    light: '#404040',
-                    DEFAULT: '#171717', // --brand
-                    dark: '#000000', // pressed
+                    light: 'rgb(var(--brand-light) / <alpha-value>)',
+                    DEFAULT: 'rgb(var(--brand) / <alpha-value>)',
+                    dark: 'rgb(var(--brand-active) / <alpha-value>)',
                 },
                 charcoal: {
-                    DEFAULT: '#0F172A', // Neev One text-primary
+                    DEFAULT: 'rgb(var(--text) / <alpha-value>)', // text-primary
                 },
-                'slate-grey': '#475569', // Slate-600 "Slate Blue-Grey"
+                'slate-grey': 'rgb(var(--text-muted) / <alpha-value>)', // secondary text
+                border: 'rgb(var(--border) / <alpha-value>)',
                 // Status Colors (from modern design)
                 success: {
                     DEFAULT: '#10B981', // Emerald-500 - Success states
