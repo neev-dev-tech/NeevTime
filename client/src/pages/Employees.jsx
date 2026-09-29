@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import ResignationModal from '../components/ResignationModal';
-import { Button, PageHeader } from '../components';
+import { Button } from '../components';
 import Modal from '../components/Modal';
 import { toLocalDateString } from '../utils/dateFormat';
 import useTableControls from '../hooks/useTableControls';
@@ -502,24 +502,31 @@ export default function Employees() {
         setShowSyncMenu(false);
     };
 
-    // Bulk-action menu: button plus a panel of DropdownItems.
-    const BulkMenu = ({ label, icon: Icon, open, onToggle, width = 'w-56', disabled = false, children }) => (
+    // One size for every toolbar control on this page: 32px tall, 13px text.
+    const TB = '!h-8 !px-3 !py-0 !text-[13px] !gap-1.5';
+
+    // Bulk-action menu: button plus a panel of DropdownItems. Always clickable;
+    // with nothing ticked the panel says so instead of listing actions.
+    const BulkMenu = ({ label, icon: Icon, open, onToggle, width = 'w-56', children }) => (
         <div className="relative dropdown-container">
             <Button
                 variant="tonal"
-                size="sm"
                 icon={Icon}
+                iconSize={15}
+                className={TB}
                 aria-haspopup="menu"
                 aria-expanded={open}
-                disabled={disabled}
-                title={disabled ? 'Select employees first' : undefined}
                 onClick={(e) => { e.stopPropagation(); const was = open; closeMenus(); if (!was) onToggle(); }}
             >
                 {label} <ChevronDown size={13} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
             </Button>
             {open && (
-                <div role="menu" className={`absolute top-full left-0 mt-1.5 ${width} bg-app-surface border border-slate-200 dark:border-slate-700 shadow-lg rounded-xl z-20 overflow-hidden py-1 dropdown-menu`}>
-                    {children}
+                <div role="menu" className={`absolute top-full right-0 mt-1.5 ${width} bg-app-surface border border-slate-200 dark:border-slate-700 shadow-lg rounded-xl z-30 overflow-hidden py-1 dropdown-menu`}>
+                    {selectedIds.length ? children : (
+                        <p className="px-3.5 py-2.5 text-[13px] text-slate-500 dark:text-slate-400">
+                            Tick one or more employees in the list first.
+                        </p>
+                    )}
                 </div>
             )}
         </div>
@@ -569,27 +576,44 @@ export default function Employees() {
         // Full-bleed: cancels the layout padding and fills the content area edge
         // to edge. Header, toolbar and pager stay put; only the rows scroll.
         <div className="relative -m-4 sm:-m-6 h-[calc(100%+2rem)] sm:h-[calc(100%+3rem)] flex flex-col bg-app-surface">
-            <div className="px-4 sm:px-6 pt-5">
-            <PageHeader
-                className="!mb-0 !border-b-0 !pb-4"
-                icon={Users}
-                title="Employees"
-                subtitle="Personnel records, biometric enrolment and app access"
-                actions={
-                    <>
-                        <Button variant="tonal" icon={Upload} onClick={() => setShowImportModal(true)}>Import</Button>
-                        <Button variant="tonal" icon={Download} onClick={handleExport}>Export</Button>
-                        <Button variant="successSolid" icon={Plus} onClick={() => setShowAddModal(true)}>Add employee</Button>
-                    </>
-                }
-            />
-
+            {/* Row 1: title + count, view tabs, page actions */}
+            <div className="flex items-center gap-x-4 gap-y-2 px-4 sm:px-6 min-h-14 py-2.5 border-b border-slate-200 dark:border-slate-800 flex-wrap">
+                <h1 className="flex items-baseline gap-2 text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-50">
+                    Employees
+                    <span className="text-sm font-medium text-slate-400 tabular-nums">{employees.length}</span>
+                </h1>
+                <div role="tablist" aria-label="Filter employees" className="flex items-center gap-0.5 flex-wrap">
+                    {QUICK_FILTERS.map(f => {
+                        const n = employees.filter(f.test).length;
+                        const on = quickFilter === f.key;
+                        return (
+                            <button
+                                key={f.key}
+                                type="button"
+                                role="tab"
+                                aria-selected={on}
+                                onClick={() => setQuickFilter(f.key)}
+                                className={`inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-[13px] font-medium transition-colors ${on
+                                    ? 'bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-white'
+                                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-200'}`}
+                            >
+                                {f.label}
+                                <span className="tabular-nums text-xs text-slate-400">{n}</span>
+                            </button>
+                        );
+                    })}
+                </div>
+                <div className="ml-auto flex items-center gap-2">
+                    <Button variant="tonal" icon={Upload} iconSize={15} className={TB} onClick={() => setShowImportModal(true)}>Import</Button>
+                    <Button variant="tonal" icon={Download} iconSize={15} className={TB} onClick={handleExport}>Export</Button>
+                    <Button variant="successSolid" icon={Plus} iconSize={15} className={TB} onClick={() => setShowAddModal(true)}>Add employee</Button>
+                </div>
             </div>
 
-            <div className="flex-1 min-h-0 flex flex-col border-t border-slate-200 dark:border-slate-800">
-                {/* Row 1: search, quick filters, refresh */}
-                <div className="flex items-center gap-3 px-4 sm:px-6 py-3 border-b border-slate-200 dark:border-slate-700 flex-wrap">
-                    <div className="relative w-full sm:w-72">
+            <div className="flex-1 min-h-0 flex flex-col">
+                {/* Row 2: search, selection, actions on the ticked employees */}
+                <div className={`flex items-center gap-2 px-4 sm:px-6 py-2 border-b border-slate-200 dark:border-slate-800 flex-wrap ${selectedIds.length ? 'bg-slate-50 dark:bg-slate-800/50' : ''}`}>
+                    <div className="relative w-full sm:w-64">
                         <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true" />
                         <input
                             type="search"
@@ -597,47 +621,12 @@ export default function Employees() {
                             placeholder="Search name, code or department"
                             value={searchQuery}
                             onChange={e => setSearchQuery(e.target.value)}
-                            className="field-sm pl-9"
+                            className="field-sm !h-8 !py-0 pl-9"
                         />
                     </div>
-                    <div role="group" aria-label="Filter employees" className="flex items-center gap-1 flex-wrap">
-                        {QUICK_FILTERS.map(f => {
-                            const n = employees.filter(f.test).length;
-                            const on = quickFilter === f.key;
-                            return (
-                                <button
-                                    key={f.key}
-                                    type="button"
-                                    aria-pressed={on}
-                                    onClick={() => setQuickFilter(f.key)}
-                                    className={`inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-[13px] font-medium transition-colors ${on
-                                        ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
-                                        : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'}`}
-                                >
-                                    {f.label}
-                                    <span className={`tabular-nums text-xs ${on ? 'opacity-70' : 'text-slate-400'}`}>{n}</span>
-                                </button>
-                            );
-                        })}
-                    </div>
-                    <button
-                        type="button"
-                        onClick={refreshAll}
-                        disabled={refreshing}
-                        className="ml-auto grid place-items-center w-9 h-9 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800 disabled:opacity-50 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
-                        aria-label="Refresh"
-                        title="Refresh"
-                    >
-                        <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
-                    </button>
-                </div>
-
-                {/* Row 2: actions on the selected employees — always on screen,
-                    enabled once something is ticked. */}
-                <div className={`flex items-center gap-2 px-4 sm:px-6 py-2 border-b border-slate-200 dark:border-slate-700 flex-wrap ${selectedIds.length ? 'bg-slate-50 dark:bg-slate-800/60' : ''}`}>
-                    {selectedIds.length ? (
-                        <>
-                            <span className="text-sm font-semibold text-slate-900 dark:text-slate-100 tabular-nums">{selectedIds.length} selected</span>
+                    {selectedIds.length > 0 && (
+                        <div className="flex items-center gap-1 pl-1">
+                            <span className="text-[13px] font-semibold text-slate-900 dark:text-slate-100 tabular-nums">{selectedIds.length} selected</span>
                             <button
                                 type="button"
                                 onClick={() => { setSelectedIds([]); closeMenus(); }}
@@ -645,31 +634,39 @@ export default function Employees() {
                             >
                                 <X size={13} /> Clear
                             </button>
-                        </>
-                    ) : (
-                        <span className="text-xs text-slate-500 dark:text-slate-400">Tick employees to sync, transfer or change access</span>
+                        </div>
                     )}
                     <div className="ml-auto flex items-center gap-2 flex-wrap">
-                        <BulkMenu label="Sync" icon={RefreshCw} open={showSyncMenu} onToggle={() => setShowSyncMenu(true)} width="w-60" disabled={!selectedIds.length}>
+                        <BulkMenu label="Sync" icon={RefreshCw} open={showSyncMenu} onToggle={() => setShowSyncMenu(true)} width="w-60">
                             <DropdownItem label="Resynchronize to device" onClick={() => { closeMenus(); handleMoreSettings('push'); }} />
                             <DropdownItem label="Re-upload from device" onClick={() => { closeMenus(); handleMoreSettings('pull'); }} />
                             <DropdownItem label="Delete Biometric Template" danger onClick={() => { closeMenus(); handleMoreSettings('delete-bio'); }} />
                         </BulkMenu>
-                        <BulkMenu label="Transfer" icon={ArrowRightLeft} open={showTransferMenu} onToggle={() => setShowTransferMenu(true)} disabled={!selectedIds.length}>
+                        <BulkMenu label="Transfer" icon={ArrowRightLeft} open={showTransferMenu} onToggle={() => setShowTransferMenu(true)}>
                             <DropdownItem label="Department Transfer" onClick={() => { closeMenus(); handleTransfer('Department'); }} />
                             <DropdownItem label="Position Transfer" onClick={() => { closeMenus(); handleTransfer('Position'); }} />
                             <DropdownItem label="Move to New Area" onClick={() => { closeMenus(); handleTransfer('Area'); }} />
                             <DropdownItem label="Resignation" danger onClick={() => { closeMenus(); setShowResignationModal(true); }} />
                         </BulkMenu>
-                        <BulkMenu label="App access" icon={Smartphone} open={showAppMenu} onToggle={() => setShowAppMenu(true)} width="w-44" disabled={!selectedIds.length}>
+                        <BulkMenu label="App access" icon={Smartphone} open={showAppMenu} onToggle={() => setShowAppMenu(true)} width="w-48">
                             <DropdownItem label="Enable Access" onClick={() => { closeMenus(); handleAppAccess(true); }} />
                             <DropdownItem label="Disable Access" danger onClick={() => { closeMenus(); handleAppAccess(false); }} />
                         </BulkMenu>
-                        <BulkMenu label="More" icon={Settings} open={showMoreMenu} onToggle={() => setShowMoreMenu(true)} width="w-60" disabled={!selectedIds.length}>
+                        <BulkMenu label="More" icon={Settings} open={showMoreMenu} onToggle={() => setShowMoreMenu(true)} width="w-60">
                             <DropdownItem label="Mark as door access only" onClick={() => { closeMenus(); handleDoorAccessOnly(true); }} />
                             <DropdownItem label="Restore attendance tracking" onClick={() => { closeMenus(); handleDoorAccessOnly(false); }} />
                         </BulkMenu>
-                        <Button variant="danger" size="sm" icon={Trash2} onClick={handleDelete} disabled={!selectedIds.length} title={selectedIds.length ? undefined : 'Select employees first'}>Delete</Button>
+                        <Button variant="danger" icon={Trash2} iconSize={15} className={TB} onClick={handleDelete}>Delete</Button>
+                        <button
+                            type="button"
+                            onClick={refreshAll}
+                            disabled={refreshing}
+                            className="grid place-items-center w-8 h-8 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800 disabled:opacity-50 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+                            aria-label="Refresh"
+                            title="Refresh"
+                        >
+                            <RefreshCw size={15} className={refreshing ? 'animate-spin' : ''} />
+                        </button>
                     </div>
                 </div>
 
