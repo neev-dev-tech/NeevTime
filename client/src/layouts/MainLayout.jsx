@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ChevronDown, ChevronRight, LogOut, Info, HelpCircle } from 'lucide-react';
+import { ChevronDown, ChevronRight, LogOut, Info, HelpCircle, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import PropTypes from 'prop-types';
 import { modules, personnelSidebar, deviceSidebar, attendanceSidebar, systemSidebar } from '../config/navigation';
@@ -178,7 +178,19 @@ export default function MainLayout({ children }) {
 
         {/* Top bar */}
         <header className="h-16 flex-shrink-0 flex items-center justify-between px-6 border-b border-slate-200 dark:border-slate-700 bg-app-surface/80 backdrop-blur-md">
-          <div className="text-sm font-semibold text-slate-500 dark:text-slate-400">{activeModule}</div>
+          {/* Visible search that opens the existing Ctrl/⌘+K palette — same
+              component, just discoverable. Dispatches the shortcut it already
+              listens for, so search behaviour is untouched. */}
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true }))}
+            className="flex items-center gap-2.5 w-full max-w-md h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-app-hover/60 text-sm text-slate-400 hover:border-slate-300 dark:hover:border-slate-600 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer"
+            aria-label="Search employees, devices and pages"
+          >
+            <Search size={16} aria-hidden="true" />
+            <span className="flex-1 text-left">Search employees, devices, pages…</span>
+            <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded-md border border-slate-200 dark:border-slate-600 bg-app-surface text-[11px] font-medium text-slate-500">⌘K</kbd>
+          </button>
           <div className="flex items-center gap-3">
             <DarkModeToggle />
             <NotificationCenter />

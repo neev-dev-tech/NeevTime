@@ -79,7 +79,7 @@ export default function HeroStat({
                             : ''}`}
         >
             <div className="flex items-center justify-between gap-2">
-                <p className="text-[10px] font-bold uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400 truncate">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400 truncate">
                     {label}
                 </p>
                 <span
@@ -90,30 +90,22 @@ export default function HeroStat({
                 </span>
             </div>
 
-            <div className="mt-2.5 flex items-center gap-3">
-                {pct !== null ? (
-                    <Gauge pct={pct} accent={accent} />
-                ) : (
-                    <span
-                        className="shrink-0 grid place-items-center rounded-full"
-                        style={{ width: SIZE, height: SIZE, backgroundColor: `${accent}14`, color: accent }}
-                    >
-                        <Icon size={22} strokeWidth={2} />
-                    </span>
-                )}
+            {/* Premium: the icon appears once (header chip). The gauge stays
+                where a share is meaningful; otherwise the figure takes the
+                space — grid rows already hold the four cards to one height.
+                The number is neutral; colour lives in the icon and gauge. */}
+            <div className="mt-3 flex items-center gap-3">
+                {pct !== null && <Gauge pct={pct} accent={accent} />}
 
                 <div className="min-w-0">
-                    <p
-                        className="text-[26px] leading-none font-bold tabular-nums tracking-tight"
-                        style={{ color: accent }}
-                    >
+                    <p className="text-[28px] leading-none font-bold tabular-nums tracking-tight text-charcoal">
                         {value}
                     </p>
-                    <p className="mt-1 text-[10px] text-slate-500 dark:text-slate-400 truncate leading-tight">
+                    <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400 leading-snug">
                         {shareLabel || hint}
                     </p>
                     {trend && (
-                        <p className="text-[10px] font-semibold truncate leading-tight" style={{ color: accent }}>
+                        <p className="mt-0.5 text-xs font-semibold leading-snug" style={{ color: accent }}>
                             {trend}
                         </p>
                     )}

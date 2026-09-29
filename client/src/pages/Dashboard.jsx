@@ -487,12 +487,12 @@ export default function Dashboard() {
                 </div>
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1">
-                        <p className="text-[9px] font-bold uppercase tracking-[0.05em] text-slate-500 dark:text-slate-400 leading-tight">{label}</p>
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.05em] text-slate-500 dark:text-slate-400 leading-tight">{label}</p>
                         {tooltip && <Info size={11} className="text-slate-400 cursor-help shrink-0" title={tooltip} />}
                     </div>
-                    <p className={`text-xl leading-tight font-bold tabular-nums truncate tracking-tight ${t.value}`}>{value}</p>
+                    <p className="text-xl leading-tight font-bold tabular-nums tracking-tight text-charcoal">{value}</p>
                     {(trend || subtitle) && (
-                        <p className="text-[10px] leading-tight truncate"
+                        <p className="text-xs leading-snug"
                            style={trend?.color ? { color: trend.color } : undefined}>
                             <span className={trend ? 'font-semibold' : 'text-slate-500 dark:text-slate-400'}>
                                 {trend ? trend.text : subtitle}
@@ -603,7 +603,7 @@ export default function Dashboard() {
                     </div>
 
                     {/* Standing facts — neutral, so they do not compete with the above */}
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                    <div className="grid grid-cols-[repeat(auto-fill,minmax(170px,1fr))] gap-3">
                         <StatCard
                             icon={Percent}
                             label="Attendance"
