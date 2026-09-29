@@ -112,12 +112,12 @@ export default function ExportCenter() {
                                     key={type.id}
                                     onClick={() => setExportType(type.id)}
                                     className={`p-4 rounded-xl text-left border transition-colors ${active
-                                        ? 'border-orange-400 dark:border-orange-500 bg-orange-50/70 dark:bg-orange-900/30 shadow-sm'
-                                        : 'border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 hover:border-orange-300 dark:hover:border-orange-500/60 hover:bg-orange-50/40 dark:hover:bg-slate-700/50'
+                                        ? 'border-slate-400 dark:border-slate-500 bg-slate-50/70 dark:bg-slate-900/30 shadow-sm'
+                                        : 'border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 hover:border-slate-300 dark:hover:border-slate-500/60 hover:bg-slate-50/40 dark:hover:bg-slate-700/50'
                                         }`}
                                 >
                                     <FileSpreadsheet
-                                        className={`mb-1.5 ${active ? 'text-orange-600 dark:text-orange-400' : 'text-slate-400 dark:text-slate-500'}`}
+                                        className={`mb-1.5 ${active ? 'text-slate-600 dark:text-slate-400' : 'text-slate-400 dark:text-slate-500'}`}
                                         size={20}
                                     />
                                     <div className={`text-sm ${active ? 'font-semibold text-slate-800 dark:text-slate-100' : 'font-medium text-slate-600 dark:text-slate-300'}`}>
@@ -163,8 +163,8 @@ export default function ExportCenter() {
                                 <label
                                     key={f.id}
                                     className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold cursor-pointer border transition-colors ${active
-                                        ? 'bg-orange-600 text-white border-transparent shadow-sm'
-                                        : 'bg-white/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-orange-300 hover:text-orange-600 dark:hover:text-orange-400'
+                                        ? 'bg-slate-600 text-white border-transparent shadow-sm'
+                                        : 'bg-white/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300 hover:text-slate-600 dark:hover:text-slate-400'
                                         }`}
                                 >
                                     <input

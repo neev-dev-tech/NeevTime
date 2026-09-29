@@ -32,7 +32,7 @@ const TOAST_TYPES = {
     },
     warning: {
         icon: AlertTriangle,
-        className: 'bg-gradient-to-r from-amber-500 to-orange-500',
+        className: 'bg-gradient-to-r from-amber-500 to-slate-500',
         progressColor: 'bg-amber-300'
     },
     info: {

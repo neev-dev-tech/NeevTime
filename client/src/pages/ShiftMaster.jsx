@@ -151,7 +151,7 @@ export default function ShiftMaster() {
                                         </div>
                                     </div>
                                     <div className="flex gap-1 shrink-0">
-                                        <button onClick={() => handleEdit(shift)} aria-label="Edit shift" className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-slate-700 rounded-lg transition-colors"><Edit2 size={16} /></button>
+                                        <button onClick={() => handleEdit(shift)} aria-label="Edit shift" className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg transition-colors"><Edit2 size={16} /></button>
                                         <button onClick={() => handleDelete(shift.id)} aria-label="Delete shift" className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-lg transition-colors"><Trash2 size={16} /></button>
                                     </div>
                                 </div>

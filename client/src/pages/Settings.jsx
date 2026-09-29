@@ -8,7 +8,7 @@ import ThemeSettings from '../components/ThemeSettings';
 
 const CATEGORIES = [
     { id: 'company', label: 'Company', icon: Building, iconClass: 'text-slate-500 dark:text-slate-400' },
-    { id: 'attendance', label: 'Attendance Rules', icon: Timer, iconClass: 'text-orange-500 dark:text-orange-400' },
+    { id: 'attendance', label: 'Attendance Rules', icon: Timer, iconClass: 'text-slate-500 dark:text-slate-400' },
     { id: 'weekend', label: 'Weekend Rules', icon: CalendarDays, iconClass: 'text-slate-500 dark:text-slate-400' },
     { id: 'notifications', label: 'Email/SMTP', icon: Mail, iconClass: 'text-emerald-500 dark:text-emerald-400' },
     { id: 'security', label: 'Security', icon: ShieldCheck, iconClass: 'text-rose-500 dark:text-rose-400' },
@@ -318,9 +318,9 @@ export default function Settings() {
 
         if (config.data_type === 'boolean') {
             return (
-                <label key={key} className="flex items-center justify-between p-4 rounded-xl transition-colors border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900/50 group hover:border-orange-200 dark:hover:border-orange-800 hover:shadow-sm cursor-pointer">
+                <label key={key} className="flex items-center justify-between p-4 rounded-xl transition-colors border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900/50 group hover:border-slate-200 dark:hover:border-slate-800 hover:shadow-sm cursor-pointer">
                     <div className="flex-1">
-                        <span className="font-medium block mb-1 text-slate-700 dark:text-slate-300 group-hover:text-orange-700 dark:group-hover:text-orange-300 transition-colors">{label}</span>
+                        <span className="font-medium block mb-1 text-slate-700 dark:text-slate-300 group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors">{label}</span>
                         {config.description && (
                             <p className="text-xs text-slate-500 dark:text-slate-400">{config.description}</p>
                         )}
@@ -530,8 +530,8 @@ export default function Settings() {
                                 key={cat.id}
                                 onClick={() => setActiveTab(cat.id)}
                                 className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors border ${isActive
-                                    ? 'bg-orange-600 text-white border-transparent shadow-sm'
-                                    : 'bg-white/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-orange-300 hover:text-orange-600 dark:hover:text-orange-400'
+                                    ? 'bg-slate-600 text-white border-transparent shadow-sm'
+                                    : 'bg-white/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300 hover:text-slate-600 dark:hover:text-slate-400'
                                     }`}
                             >
                                 <Icon size={15} className={isActive ? 'text-white' : cat.iconClass} />

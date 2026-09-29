@@ -21,7 +21,7 @@ const ROLE_TINTS = {
 };
 const ROLE_FALLBACK = 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300';
 
-const CELL_MONO = 'font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold';
+const CELL_MONO = 'font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold';
 const CELL_STRONG = 'font-semibold text-slate-800 dark:text-slate-100';
 const CELL_SOFT = 'text-slate-600 dark:text-slate-300';
 
@@ -206,7 +206,7 @@ export default function UsersPage() {
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                                 {users.map((user, idx) => (
-                                    <tr key={user.id} className="hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                    <tr key={user.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/40 transition-colors">
                                         <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{idx + 1}</td>
                                         <td className="px-5 py-3">
                                             <span className={CELL_MONO}>{dash(user.id)}</span>
@@ -215,7 +215,7 @@ export default function UsersPage() {
                                             <div className="flex items-center gap-3 min-w-0">
                                                 <span
                                                     aria-hidden="true"
-                                                    className="w-8 h-8 shrink-0 rounded-full grid place-items-center font-bold text-xs bg-orange-100 text-orange-700 border border-orange-200 dark:bg-orange-900/40 dark:text-orange-300 dark:border-orange-800/70"
+                                                    className="w-8 h-8 shrink-0 rounded-full grid place-items-center font-bold text-xs bg-slate-100 text-slate-700 border border-slate-200 dark:bg-slate-900/40 dark:text-slate-300 dark:border-slate-800/70"
                                                 >
                                                     {initialOf(user.username)}
                                                 </span>

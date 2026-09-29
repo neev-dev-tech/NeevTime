@@ -123,13 +123,13 @@ export default function Regularizations() {
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                                 {requests.map((req, idx) => (
-                                    <tr key={req.id} className="hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                    <tr key={req.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/40 transition-colors">
                                         <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{idx + 1}</td>
                                         <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">
                                             {req.employee_name || '—'}
                                         </td>
                                         <td className="px-5 py-3 whitespace-nowrap">
-                                            <span className="font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold">
+                                            <span className="font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">
                                                 {req.employee_code || '—'}
                                             </span>
                                         </td>
@@ -145,7 +145,7 @@ export default function Regularizations() {
                                             </span>
                                         </td>
                                         <td className="px-5 py-3 whitespace-nowrap">
-                                            <span className="font-mono text-xs tabular-nums font-semibold text-orange-600 dark:text-orange-400">
+                                            <span className="font-mono text-xs tabular-nums font-semibold text-slate-600 dark:text-slate-400">
                                                 {req.requested_in_time || '(keep)'} → {req.requested_out_time || '(keep)'}
                                             </span>
                                         </td>
@@ -171,7 +171,7 @@ export default function Regularizations() {
                                                             placeholder="Comment (optional)"
                                                             value={comment[req.id] || ''}
                                                             onChange={e => setComment(c => ({ ...c, [req.id]: e.target.value }))}
-                                                            className="text-xs w-40 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 px-2 py-1.5 focus:outline-none focus:border-orange-400 dark:focus:border-orange-500"
+                                                            className="text-xs w-40 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 px-2 py-1.5 focus:outline-none focus:border-slate-400 dark:focus:border-slate-500"
                                                         />
                                                         <Button variant="success" size="sm" icon={CheckCircle} onClick={() => review(req.id, 'approved')}>
                                                             Approve

@@ -244,8 +244,8 @@ export default function AttendanceRules() {
                 <button
                     onClick={() => setActiveTab('global')}
                     className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors border ${activeTab === 'global'
-                        ? 'bg-orange-600 text-white border-transparent shadow-sm'
-                        : 'bg-white/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-orange-300 hover:text-orange-600 dark:hover:text-orange-400'}`}
+                        ? 'bg-slate-600 text-white border-transparent shadow-sm'
+                        : 'bg-white/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300 hover:text-slate-600 dark:hover:text-slate-400'}`}
                 >
                     <Globe size={13} />
                     Global Rules ({globalRules.length})
@@ -253,8 +253,8 @@ export default function AttendanceRules() {
                 <button
                     onClick={() => setActiveTab('department')}
                     className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors border ${activeTab === 'department'
-                        ? 'bg-orange-600 text-white border-transparent shadow-sm'
-                        : 'bg-white/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-orange-300 hover:text-orange-600 dark:hover:text-orange-400'}`}
+                        ? 'bg-slate-600 text-white border-transparent shadow-sm'
+                        : 'bg-white/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300 hover:text-slate-600 dark:hover:text-slate-400'}`}
                 >
                     <Building2 size={13} />
                     Department Rules ({departmentRules.length})
@@ -516,8 +516,8 @@ export default function AttendanceRules() {
                                     type="button"
                                     onClick={() => toggleWeekOff(day)}
                                     className={`px-3.5 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide transition-colors border ${form.week_off_days.includes(day)
-                                        ? 'bg-orange-600 text-white border-transparent shadow-sm'
-                                        : 'bg-white/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-orange-300 hover:text-orange-600 dark:hover:text-orange-400'
+                                        ? 'bg-slate-600 text-white border-transparent shadow-sm'
+                                        : 'bg-white/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300 hover:text-slate-600 dark:hover:text-slate-400'
                                         }`}
                                 >
                                     {day.substring(0, 3)}
@@ -535,7 +535,7 @@ export default function AttendanceRules() {
                                     onChange={e => setForm({ ...form, alternate_saturday: e.target.checked })}
                                     className="sr-only peer"
                                 />
-                                <div className="w-11 h-6 bg-slate-200 dark:bg-slate-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-100 dark:peer-focus:ring-orange-900/40 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-ui peer-checked:bg-orange-600"></div>
+                                <div className="w-11 h-6 bg-slate-200 dark:bg-slate-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-slate-100 dark:peer-focus:ring-slate-900/40 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-ui peer-checked:bg-slate-600"></div>
                             </div>
                             <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Alternate Saturday Off</span>
                         </label>

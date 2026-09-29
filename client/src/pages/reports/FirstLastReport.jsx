@@ -121,7 +121,7 @@ function FirstLastReport() {
         handleExportExcel();
     };
 
-    const CODE_CELL = 'font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold';
+    const CODE_CELL = 'font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold';
     const NAME_CELL = 'font-semibold text-slate-800 dark:text-slate-100';
     const SECONDARY_CELL = 'text-slate-600 dark:text-slate-300';
 
@@ -131,7 +131,7 @@ function FirstLastReport() {
             <div className="flex items-center justify-between flex-wrap gap-3">
                 <div className="flex items-center gap-3 min-w-0">
                     <Button variant="ghost" size="sm" icon={ArrowLeft} iconSize={18} onClick={() => navigate('/reports')} aria-label="Back to reports" />
-                    <div className="p-2.5 bg-orange-50 border border-orange-100 rounded-xl text-orange-600 shrink-0 dark:bg-orange-900/30 dark:border-orange-800 dark:text-orange-400">
+                    <div className="p-2.5 bg-slate-50 border border-slate-100 rounded-xl text-slate-600 shrink-0 dark:bg-slate-900/30 dark:border-slate-800 dark:text-slate-400">
                         <Search size={22} />
                     </div>
                     <div className="min-w-0">
@@ -245,7 +245,7 @@ function FirstLastReport() {
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                                 {data.map((row, i) => (
-                                    <tr key={i} className="hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                    <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/40 transition-colors">
                                         <td className="px-5 py-3 text-slate-400 tabular-nums">{i + 1}</td>
                                         <td className="px-5 py-3 whitespace-nowrap">
                                             <span className={CODE_CELL}>{row.employee_code || '—'}</span>

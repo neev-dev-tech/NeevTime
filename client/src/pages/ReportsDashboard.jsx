@@ -267,7 +267,7 @@ export default function ReportsDashboard() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-bold flex items-center gap-3 text-charcoal dark:text-slate-100">
-                    <div className="p-2 bg-orange-50 dark:bg-orange-900/30 rounded-lg">
+                    <div className="p-2 bg-slate-50 dark:bg-slate-900/30 rounded-lg">
                         <FileBarChart className="text-saffron" size={24} />
                     </div>
                     Reports

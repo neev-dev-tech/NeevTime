@@ -275,7 +275,7 @@ export default function MainLayout({ children }) {
               </div>
               <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Simplicity Attendance — biometric attendance management</p>
               <div className="flex justify-center mb-4"><VersionDisplay /></div>
-              <button onClick={() => setShowAbout(false)} className="w-full py-2 bg-slate-900 hover:bg-orange-700 text-white text-sm font-semibold rounded-lg">Close</button>
+              <button onClick={() => setShowAbout(false)} className="w-full py-2 bg-slate-900 hover:bg-slate-700 text-white text-sm font-semibold rounded-lg">Close</button>
             </div>
           </div>
         )}
@@ -299,7 +299,7 @@ export default function MainLayout({ children }) {
                 <p><b className="text-slate-800 dark:text-slate-100">Employee portal:</b> employees sign in at <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded">/portal/login</code> after HR sets a portal password on their profile.</p>
                 <p><b className="text-slate-800 dark:text-slate-100">Theme:</b> palette icon in the top bar toggles dark mode.</p>
               </div>
-              <button onClick={() => setShowHelp(false)} className="mt-5 w-full py-2 bg-slate-900 hover:bg-orange-700 text-white text-sm font-semibold rounded-lg">Got it</button>
+              <button onClick={() => setShowHelp(false)} className="mt-5 w-full py-2 bg-slate-900 hover:bg-slate-700 text-white text-sm font-semibold rounded-lg">Got it</button>
             </div>
           </div>
         )}

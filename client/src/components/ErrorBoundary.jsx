@@ -68,7 +68,7 @@ class ErrorBoundary extends React.Component {
                 <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: '#FAFBFC' }}>
                     <div className="max-w-2xl w-full bg-white rounded-xl shadow-lg border border-red-100 overflow-hidden">
                         {/* Header */}
-                        <div className="bg-gradient-to-r from-red-50 to-orange-50 px-6 py-4 border-b border-red-100">
+                        <div className="bg-gradient-to-r from-red-50 to-slate-50 px-6 py-4 border-b border-red-100">
                             <div className="flex items-center gap-3">
                                 <div className="p-2 bg-red-100 rounded-lg">
                                     <AlertTriangle className="text-red-600" size={24} />

@@ -44,13 +44,13 @@ function ModeCard({ active, icon: Icon, title, subtitle, onClick }) {
             aria-pressed={active}
             className={`flex-1 min-w-[150px] p-4 rounded-xl border text-left transition-ui ${
                 active
-                    ? 'border-orange-400 bg-orange-50 dark:bg-orange-900/20 dark:border-orange-600 shadow-sm'
-                    : 'border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900/50 hover:border-orange-200 dark:hover:border-orange-800'
+                    ? 'border-slate-400 bg-slate-50 dark:bg-slate-900/20 dark:border-slate-600 shadow-sm'
+                    : 'border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900/50 hover:border-slate-200 dark:hover:border-slate-800'
             }`}
         >
             <div className="flex items-center justify-between mb-1">
-                <Icon size={20} className={active ? 'text-orange-500' : 'text-slate-400'} />
-                {active && <Check size={16} className="text-orange-500" />}
+                <Icon size={20} className={active ? 'text-slate-500' : 'text-slate-400'} />
+                {active && <Check size={16} className="text-slate-500" />}
             </div>
             <p className="font-semibold text-slate-800 dark:text-slate-100">{title}</p>
             <p className="text-xs text-slate-500 dark:text-slate-400">{subtitle}</p>
@@ -157,8 +157,8 @@ export default function ThemeSettings() {
                                 aria-pressed={active}
                                 className={`p-3 rounded-xl border text-left transition-ui ${
                                     active
-                                        ? 'border-orange-400 shadow-sm bg-orange-50/60 dark:bg-orange-900/20 dark:border-orange-600'
-                                        : 'border-slate-200 dark:border-slate-700 hover:border-orange-200 dark:hover:border-orange-800'
+                                        ? 'border-slate-400 shadow-sm bg-slate-50/60 dark:bg-slate-900/20 dark:border-slate-600'
+                                        : 'border-slate-200 dark:border-slate-700 hover:border-slate-200 dark:hover:border-slate-800'
                                 }`}
                             >
                                 <div className="flex items-center gap-1.5 mb-2">
@@ -174,7 +174,7 @@ export default function ThemeSettings() {
                                     {preset.name}
                                 </p>
                                 {active && (
-                                    <p className="text-[10px] text-orange-600 dark:text-orange-400 font-semibold">In use</p>
+                                    <p className="text-[10px] text-slate-600 dark:text-slate-400 font-semibold">In use</p>
                                 )}
                             </button>
                         );
@@ -195,7 +195,7 @@ export default function ThemeSettings() {
                     {SWATCHES.map(({ key, label, hint }) => (
                         <label
                             key={key}
-                            className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900/50 cursor-pointer hover:border-orange-200 dark:hover:border-orange-800"
+                            className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900/50 cursor-pointer hover:border-slate-200 dark:hover:border-slate-800"
                         >
                             {/* A native colour input keeps the OS picker, which
                                 handles eyedroppers and hex entry better than
@@ -240,7 +240,7 @@ export default function ThemeSettings() {
                         type="button"
                         onClick={publish}
                         disabled={saving}
-                        className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold bg-orange-500 hover:bg-orange-600 text-white disabled:opacity-60"
+                        className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold bg-slate-500 hover:bg-slate-600 text-white disabled:opacity-60"
                     >
                         <Save size={15} />
                         {saving ? 'Saving…' : 'Apply to everyone'}

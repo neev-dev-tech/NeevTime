@@ -78,7 +78,7 @@ export const FormInput = ({
                             ? 'border-red-400 bg-red-50/50 dark:bg-red-900/20 focus:border-red-500 focus:ring-2 focus:ring-red-200'
                             : isValid
                                 ? 'border-green-400 bg-green-50/30 dark:bg-green-900/20 focus:border-green-500 focus:ring-2 focus:ring-green-200'
-                                : 'border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 focus:border-orange-400 focus:ring-2 focus:ring-orange-100'
+                                : 'border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 focus:border-slate-400 focus:ring-2 focus:ring-slate-100'
                         }
                         ${disabled ? 'bg-slate-100 dark:bg-slate-700 cursor-not-allowed opacity-60' : ''}
                         focus:outline-none
@@ -179,11 +179,11 @@ export const FormSelect = ({
                             ? 'border-red-400 bg-red-50/50 dark:bg-red-900/20 focus:border-red-500'
                             : isValid
                                 ? 'border-green-400 bg-green-50/30 dark:bg-green-900/20 focus:border-green-500'
-                                : 'border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 focus:border-orange-400'
+                                : 'border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 focus:border-slate-400'
                         }
                         ${disabled ? 'bg-slate-100 dark:bg-slate-700 cursor-not-allowed opacity-60' : ''}
                         focus:outline-none focus:ring-2 
-                        ${hasError ? 'focus:ring-red-200' : 'focus:ring-orange-100'}
+                        ${hasError ? 'focus:ring-red-200' : 'focus:ring-slate-100'}
                     `}
                     {...props}
                 >
@@ -261,11 +261,11 @@ export const FormTextarea = ({
                         ? 'border-red-400 bg-red-50/50 dark:bg-red-900/20 focus:border-red-500'
                         : isValid
                             ? 'border-green-400 bg-green-50/30 dark:bg-green-900/20 focus:border-green-500'
-                            : 'border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 focus:border-orange-400'
+                            : 'border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 focus:border-slate-400'
                     }
                     ${disabled ? 'bg-slate-100 dark:bg-slate-700 cursor-not-allowed opacity-60' : ''}
                     focus:outline-none focus:ring-2 
-                    ${hasError ? 'focus:ring-red-200' : 'focus:ring-orange-100'}
+                    ${hasError ? 'focus:ring-red-200' : 'focus:ring-slate-100'}
                 `}
                 {...props}
             />
@@ -310,9 +310,9 @@ export const FormCheckbox = ({
                     {...props}
                 />
                 <div className="w-5 h-5 border-2 border-slate-300 dark:border-slate-600 rounded-md transition-ui duration-200
-                    peer-checked:bg-orange-500 peer-checked:border-orange-500
-                    peer-focus:ring-2 peer-focus:ring-orange-200
-                    group-hover:border-orange-400
+                    peer-checked:bg-slate-500 peer-checked:border-slate-500
+                    peer-focus:ring-2 peer-focus:ring-slate-200
+                    group-hover:border-slate-400
                     flex items-center justify-center"
                 >
                     <svg
@@ -412,7 +412,7 @@ export const FormRadioGroup = ({
                             checked={value === (opt.value ?? opt)}
                             onChange={onChange}
                             disabled={disabled}
-                            className="w-4 h-4 text-orange-500 border-slate-300 dark:border-slate-600 focus:ring-orange-400"
+                            className="w-4 h-4 text-slate-500 border-slate-300 dark:border-slate-600 focus:ring-slate-400"
                         />
                         <span className="text-sm text-slate-700 dark:text-slate-300">{opt.label ?? opt}</span>
                     </label>

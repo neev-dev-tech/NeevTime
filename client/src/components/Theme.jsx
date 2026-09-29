@@ -255,7 +255,7 @@ export function DarkModeToggle({ className = '' }) {
             className={`
                 relative w-14 h-7 rounded-full p-1
                 transition-colors duration-300
-                ${isDarkMode ? 'bg-slate-700' : 'bg-orange-100'}
+                ${isDarkMode ? 'bg-slate-700' : 'bg-slate-100'}
                 ${className}
             `}
             title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
@@ -267,7 +267,7 @@ export function DarkModeToggle({ className = '' }) {
                     flex items-center justify-center
                     ${isDarkMode
                         ? 'translate-x-7 bg-slate-900'
-                        : 'translate-x-0 bg-orange-500'
+                        : 'translate-x-0 bg-slate-500'
                     }
                 `}
             >
@@ -316,7 +316,7 @@ export function ThemePanel({ isOpen, onClose }) {
                 <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <Palette size={20} className="text-orange-500" />
+                            <Palette size={20} className="text-slate-500" />
                             <h2 className="font-semibold text-slate-800 dark:text-white">Theme Settings</h2>
                         </div>
                         <button

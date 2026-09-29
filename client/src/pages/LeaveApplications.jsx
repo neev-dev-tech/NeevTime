@@ -196,7 +196,7 @@ export default function LeaveApplications() {
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                                 {filteredApps.map((app, idx) => (
-                                    <tr key={app.id} className="hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                    <tr key={app.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/40 transition-colors">
                                         <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{idx + 1}</td>
                                         <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">
                                             {app.employee_name || '—'}

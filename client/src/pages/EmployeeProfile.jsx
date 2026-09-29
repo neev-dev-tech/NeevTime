@@ -207,7 +207,7 @@ api.get('/api/contractors').then(r => setContractors(r.data.filter(c => c.is_act
             'Present': 'bg-green-500',
             'Absent': 'bg-red-500',
             'Late': 'bg-yellow-500',
-            'Half Day': 'bg-orange-500',
+            'Half Day': 'bg-slate-500',
             'Leave': 'bg-slate-500',
             'Holiday': 'bg-slate-500',
             'Weekly Off': 'bg-slate-400',
@@ -243,7 +243,7 @@ api.get('/api/contractors').then(r => setContractors(r.data.filter(c => c.is_act
 
     if (!employee) return (
         <div className="p-6 max-w-6xl mx-auto">
-            <Link to="/employees" className="inline-flex items-center gap-2 text-orange-600 dark:text-orange-400 hover:underline text-sm mb-4">
+            <Link to="/employees" className="inline-flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:underline text-sm mb-4">
                 <ArrowLeft size={16} /> Back to Employees
             </Link>
             <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 py-16 text-center">
@@ -260,15 +260,15 @@ api.get('/api/contractors').then(r => setContractors(r.data.filter(c => c.is_act
     return (
         <div className="p-6 max-w-6xl mx-auto">
             {/* Back Link */}
-            <Link to="/employees" className="inline-flex items-center gap-2 text-orange-600 dark:text-orange-400 hover:underline text-sm mb-4">
+            <Link to="/employees" className="inline-flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:underline text-sm mb-4">
                 <ArrowLeft size={16} /> Back to Employees
             </Link>
 
             {/* Profile Header — identity card */}
             <div className="relative overflow-hidden bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 mb-6">
-                <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-orange-50 to-transparent dark:from-orange-900/20 dark:to-transparent" />
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-slate-50 to-transparent dark:from-slate-900/20 dark:to-transparent" />
                 <div className="relative flex flex-col md:flex-row items-start gap-6">
-                    <div className="w-28 h-28 shrink-0 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white text-4xl font-bold shadow-lg ring-4 ring-orange-100 dark:ring-orange-900/40">
+                    <div className="w-28 h-28 shrink-0 rounded-2xl bg-gradient-to-br from-slate-500 to-amber-600 flex items-center justify-center text-white text-4xl font-bold shadow-lg ring-4 ring-slate-100 dark:ring-slate-900/40">
                         {employee.name?.[0]?.toUpperCase() || 'E'}
                     </div>
                     <div className="flex-1 w-full min-w-0">
@@ -277,9 +277,9 @@ api.get('/api/contractors').then(r => setContractors(r.data.filter(c => c.is_act
                                 <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 truncate">{employee.name || '—'}</h1>
                                 <p className="text-sm text-slate-600 dark:text-slate-300 mt-0.5">{employee.designation || 'Employee'}</p>
                                 <div className="flex flex-wrap items-center gap-2 mt-2.5">
-                                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-orange-50 dark:bg-orange-900/30 border border-orange-100 dark:border-orange-800">
+                                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-slate-50 dark:bg-slate-900/30 border border-slate-100 dark:border-slate-800">
                                         <span className="text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 font-bold">ID</span>
-                                        <span className="font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold">{employee.employee_code || '—'}</span>
+                                        <span className="font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">{employee.employee_code || '—'}</span>
                                     </span>
                                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide border ${employee.status === 'active'
                                         ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800'
@@ -323,8 +323,8 @@ api.get('/api/contractors').then(r => setContractors(r.data.filter(c => c.is_act
                         key={tab}
                         onClick={() => setActiveTab(tab)}
                         className={`px-4 py-1.5 rounded-lg text-xs font-semibold capitalize transition-colors ${activeTab === tab
-                            ? 'bg-orange-600 text-white shadow-sm'
-                            : 'text-slate-600 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-white/70 dark:hover:bg-slate-700/60'}`}
+                            ? 'bg-slate-600 text-white shadow-sm'
+                            : 'text-slate-600 dark:text-slate-300 hover:text-slate-600 dark:hover:text-slate-400 hover:bg-white/70 dark:hover:bg-slate-700/60'}`}
                     >
                         {tab}
                     </button>
@@ -338,7 +338,7 @@ api.get('/api/contractors').then(r => setContractors(r.data.filter(c => c.is_act
                         <div>
                             <h3 className="text-[10px] uppercase tracking-[0.09em] font-bold text-slate-500 dark:text-slate-400 mb-4 flex items-center gap-2"><User size={14} /> Personal Details</h3>
                             <dl className="space-y-3 text-sm">
-                                <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-500 dark:text-slate-400">Employee ID</dt><dd className="col-span-2 font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold">{employee.employee_code || '—'}</dd></div>
+                                <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-500 dark:text-slate-400">Employee ID</dt><dd className="col-span-2 font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">{employee.employee_code || '—'}</dd></div>
                                 <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-500 dark:text-slate-400">Full Name</dt><dd className="col-span-2 font-semibold text-slate-800 dark:text-slate-100">{employee.name || '—'}</dd></div>
                                 <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-500 dark:text-slate-400">Gender</dt><dd className="col-span-2 text-slate-600 dark:text-slate-300">{employee.gender || '—'}</dd></div>
                                 <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-500 dark:text-slate-400">Date of Birth</dt><dd className="col-span-2 text-slate-600 dark:text-slate-300">{formatDate(employee.dob)}</dd></div>
@@ -359,7 +359,7 @@ api.get('/api/contractors').then(r => setContractors(r.data.filter(c => c.is_act
                             </dl>
 
                             {/* Self-service portal access */}
-                            <div className="mt-6 p-4 bg-orange-50/60 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-800 rounded-xl">
+                            <div className="mt-6 p-4 bg-slate-50/60 dark:bg-slate-900/20 border border-slate-100 dark:border-slate-800 rounded-xl">
                                 <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-100 mb-1">Employee Portal Access</h4>
                                 <p className="text-xs text-slate-600 dark:text-slate-300 mb-3">So this employee can view their attendance and apply for leave at <code className="font-mono text-xs bg-white dark:bg-slate-800 px-1 rounded border border-slate-200 dark:border-slate-700">/portal/login</code>.</p>
 
@@ -489,9 +489,9 @@ api.get('/api/contractors').then(r => setContractors(r.data.filter(c => c.is_act
                         ) : (
                             <ul className="divide-y divide-slate-100 dark:divide-slate-700 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
                                 {docs.map(doc => (
-                                    <li key={doc.id} className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-orange-50/50 dark:hover:bg-slate-700/40">
+                                    <li key={doc.id} className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-slate-50/50 dark:hover:bg-slate-700/40">
                                         <div className="flex items-center gap-3 min-w-0">
-                                            <FileText size={18} className="text-orange-500 dark:text-orange-400 shrink-0" />
+                                            <FileText size={18} className="text-slate-500 dark:text-slate-400 shrink-0" />
                                             <div className="min-w-0">
                                                 <p className="font-semibold text-slate-800 dark:text-slate-100 truncate">{doc.doc_name}</p>
                                                 <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -504,7 +504,7 @@ api.get('/api/contractors').then(r => setContractors(r.data.filter(c => c.is_act
                                                 <a
                                                     href={doc.file_path}
                                                     download={doc.doc_name}
-                                                    className="text-xs font-semibold text-orange-600 dark:text-orange-400 hover:underline"
+                                                    className="text-xs font-semibold text-slate-600 dark:text-slate-400 hover:underline"
                                                 >
                                                     Download
                                                 </a>

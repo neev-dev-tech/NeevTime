@@ -9,9 +9,9 @@ import PropTypes from 'prop-types';
  *   <Button variant="secondary" size="sm" icon={Download}>CSV</Button>
  */
 const VARIANTS = {
-    // orange-600: white text passes contrast far better than orange-500 while
-    // staying on-brand
-    primary: 'bg-orange-600 hover:bg-orange-700 text-white border border-transparent shadow-sm',
+    // Brand primary via theme tokens: black on light, white on the black theme,
+    // with the correct contrasting text either way. One primary look app-wide.
+    primary: 'bg-[rgb(var(--brand))] hover:bg-[rgb(var(--brand-hover))] text-[rgb(var(--brand-contrast))] border border-transparent shadow-sm',
     // Filled neutral — no white buttons in the app
     secondary: 'bg-slate-500 hover:bg-slate-600 text-white border border-transparent shadow-sm dark:bg-slate-600 dark:hover:bg-slate-500',
     danger: 'bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 dark:bg-rose-900/30 dark:hover:bg-rose-900/50 dark:text-rose-300 dark:border-rose-800',
@@ -46,7 +46,7 @@ export default function Button({
             type={type}
             disabled={disabled}
             className={`inline-flex items-center justify-center font-semibold rounded-lg transition-colors
-                focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-1
+                focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-1
                 disabled:opacity-50 disabled:cursor-not-allowed
                 ${VARIANTS[variant] || VARIANTS.primary} ${SIZES[size] || SIZES.md} ${className}`}
             {...rest}

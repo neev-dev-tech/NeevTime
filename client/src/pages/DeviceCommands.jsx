@@ -190,12 +190,12 @@ export default function DeviceCommands() {
                                         key={device.serial_number}
                                         onClick={() => setSelectedDevice(device)}
                                         className={`w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors ${selectedDevice?.serial_number === device.serial_number
-                                            ? 'bg-orange-600 text-white'
+                                            ? 'bg-slate-600 text-white'
                                             : 'bg-slate-50 dark:bg-slate-900/50 hover:bg-slate-100 dark:hover:bg-slate-700'
                                             }`}
                                     >
                                         <div className={`p-2 rounded-lg ${selectedDevice?.serial_number === device.serial_number
-                                            ? 'bg-orange-500'
+                                            ? 'bg-slate-500'
                                             : device.status === 'online' ? 'bg-green-100' : 'bg-slate-200'
                                             }`}>
                                             {device.status === 'online' ? (
@@ -217,7 +217,7 @@ export default function DeviceCommands() {
                                                 {device.device_name || 'Unnamed Device'}
                                             </div>
                                             <div className={`text-xs truncate ${selectedDevice?.serial_number === device.serial_number
-                                                ? 'text-orange-200'
+                                                ? 'text-slate-200'
                                                 : 'text-slate-500 dark:text-slate-400'
                                                 }`}>
                                                 {device.serial_number}

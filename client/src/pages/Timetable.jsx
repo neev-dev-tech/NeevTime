@@ -234,7 +234,7 @@ export default function Timetable() {
                                     <div className="flex items-start justify-between gap-3 mb-3">
                                         <div className="min-w-0">
                                             <h3 className="font-semibold text-slate-800 dark:text-slate-100 truncate">{tt.name || '—'}</h3>
-                                            <span className="font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold">
+                                            <span className="font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">
                                                 {tt.code || '—'}
                                             </span>
                                         </div>

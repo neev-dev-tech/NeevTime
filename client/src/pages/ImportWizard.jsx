@@ -100,7 +100,7 @@ export default function ImportWizard() {
                 {/* Connector Line */}
                 <div className="absolute top-[36px] left-[12.5%] right-[12.5%] h-1 bg-slate-100 dark:bg-slate-700 rounded-full" />
                 <div
-                    className="absolute top-[36px] left-[12.5%] h-1 bg-orange-500 dark:bg-orange-500 rounded-full transition-ui duration-500"
+                    className="absolute top-[36px] left-[12.5%] h-1 bg-slate-500 dark:bg-slate-500 rounded-full transition-ui duration-500"
                     style={{ width: `calc(75% * ${(step - 1) / 3})` }}
                 />
 
@@ -109,13 +109,13 @@ export default function ImportWizard() {
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-ui shadow-sm backdrop-blur-sm border ${step > i + 1
                             ? 'bg-emerald-500 text-white border-transparent'
                             : step === i + 1
-                                ? 'bg-orange-600 text-white border-transparent scale-110'
+                                ? 'bg-slate-600 text-white border-transparent scale-110'
                                 : 'bg-white/80 dark:bg-slate-900/70 border-slate-200 dark:border-slate-600 text-slate-400 dark:text-slate-500'
                             }`}>
                             {step > i + 1 ? <CheckCircle size={18} /> : i + 1}
                         </div>
                         <span className={`text-[10px] font-bold uppercase tracking-[0.09em] text-center ${step === i + 1
-                            ? 'text-orange-600 dark:text-orange-400'
+                            ? 'text-slate-600 dark:text-slate-400'
                             : step > i + 1
                                 ? 'text-emerald-600 dark:text-emerald-400'
                                 : 'text-slate-400 dark:text-slate-500'
@@ -136,15 +136,15 @@ export default function ImportWizard() {
                                 <button
                                     key={type.id}
                                     onClick={() => { setImportType(type.id); setStep(2); }}
-                                    className="flex flex-col text-left p-6 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm hover:border-orange-400 dark:hover:border-orange-500 hover:shadow-md hover:bg-orange-50/40 dark:hover:bg-slate-700/60 transition-ui group"
+                                    className="flex flex-col text-left p-6 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm hover:border-slate-400 dark:hover:border-slate-500 hover:shadow-md hover:bg-slate-50/40 dark:hover:bg-slate-700/60 transition-ui group"
                                 >
-                                    <div className="w-12 h-12 rounded-xl bg-orange-100 text-orange-700 border border-orange-200 dark:bg-orange-900/40 dark:text-orange-300 dark:border-orange-800/70 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                    <div className="w-12 h-12 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 dark:bg-slate-900/40 dark:text-slate-300 dark:border-slate-800/70 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                                         <FileSpreadsheet size={24} />
                                     </div>
                                     <div className="font-bold text-lg text-slate-800 dark:text-slate-100 mb-1">{type.label}</div>
                                     <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{type.description}</p>
 
-                                    <div className="mt-4 flex items-center text-orange-600 dark:text-orange-400 text-sm font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div className="mt-4 flex items-center text-slate-600 dark:text-slate-400 text-sm font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
                                         Select <ArrowRight size={14} className="ml-1" />
                                     </div>
                                 </button>
@@ -159,18 +159,18 @@ export default function ImportWizard() {
                         <div className="text-center">
                             <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100">Upload CSV File</h2>
                             <p className="text-slate-600 dark:text-slate-300 mt-1">
-                                Importing: <span className="font-semibold text-orange-600 dark:text-orange-400">{IMPORT_TYPES.find(t => t.id === importType)?.label}</span>
+                                Importing: <span className="font-semibold text-slate-600 dark:text-slate-400">{IMPORT_TYPES.find(t => t.id === importType)?.label}</span>
                             </p>
                         </div>
 
-                        <div className="relative rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-600 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm p-12 text-center transition-ui group cursor-pointer hover:border-orange-400 dark:hover:border-orange-500 hover:bg-orange-50/40 dark:hover:bg-slate-700/50">
+                        <div className="relative rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-600 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm p-12 text-center transition-ui group cursor-pointer hover:border-slate-400 dark:hover:border-slate-500 hover:bg-slate-50/40 dark:hover:bg-slate-700/50">
                             <input
                                 type="file"
                                 accept=".csv"
                                 onChange={handleFileSelect}
                                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                             />
-                            <div className="w-16 h-16 rounded-full bg-orange-100 text-orange-700 border border-orange-200 dark:bg-orange-900/40 dark:text-orange-300 dark:border-orange-800/70 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                            <div className="w-16 h-16 rounded-full bg-slate-100 text-slate-700 border border-slate-200 dark:bg-slate-900/40 dark:text-slate-300 dark:border-slate-800/70 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
                                 <Upload size={30} />
                             </div>
                             <h3 className="font-semibold text-slate-800 dark:text-slate-100">Click to upload or drag and drop</h3>
@@ -191,7 +191,7 @@ export default function ImportWizard() {
                             <div>
                                 <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100">Preview Data</h2>
                                 <p className="text-slate-600 dark:text-slate-300 mt-1">
-                                    Review your data before importing. Found <span className="font-semibold text-orange-600 dark:text-orange-400">{parsedData.length} records</span>.
+                                    Review your data before importing. Found <span className="font-semibold text-slate-600 dark:text-slate-400">{parsedData.length} records</span>.
                                 </p>
                             </div>
                         </div>
@@ -219,7 +219,7 @@ export default function ImportWizard() {
                                             </thead>
                                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                                                 {parsedData.slice(0, 50).map((row, i) => (
-                                                    <tr key={i} className="hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                                    <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/40 transition-colors">
                                                         <td className="px-4 py-2.5 text-slate-400 dark:text-slate-500 tabular-nums">{i + 1}</td>
                                                         {Object.values(row).map((v, j) => (
                                                             <td key={j} className="px-4 py-2.5 text-slate-600 dark:text-slate-300 whitespace-nowrap">

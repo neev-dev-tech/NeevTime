@@ -21,7 +21,7 @@ import { usePermissions } from '../hooks/usePermissions';
  * command queue works — 36,000+ commands have been delivered through it.
  */
 
-const CELL_MONO = 'font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold';
+const CELL_MONO = 'font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold';
 const BADGE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide';
 
 const STAT_TONES = {
@@ -254,7 +254,7 @@ export default function DeviceSync() {
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                                     {deadLetter.map((row, i) => (
-                                        <tr key={row.id} className="hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                        <tr key={row.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/40 transition-colors">
                                             <td className="px-5 py-3 text-slate-400 tabular-nums">{i + 1}</td>
                                             <td className={`px-5 py-3 ${CELL_MONO}`}>{row.device_serial || '—'}</td>
                                             <td className="px-5 py-3 max-w-[280px]">

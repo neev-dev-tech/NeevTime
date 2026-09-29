@@ -31,7 +31,7 @@ export default function ResignationModal({ isOpen, onClose, selectedCount, onCon
             <form onSubmit={handleSubmit}>
                 <div className="space-y-5">
                     {selectedCount > 1 && (
-                        <div className="flex items-start gap-3 p-3 bg-orange-50 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 rounded-lg text-sm border border-orange-100 dark:border-orange-800">
+                        <div className="flex items-start gap-3 p-3 bg-slate-50 dark:bg-slate-900/30 text-slate-800 dark:text-slate-300 rounded-lg text-sm border border-slate-100 dark:border-slate-800">
                             <AlertTriangle size={18} className="shrink-0 mt-0.5" />
                             <p>You are applying resignation for <strong>{selectedCount}</strong> employees. All of them will share these details.</p>
                         </div>

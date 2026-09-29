@@ -192,10 +192,10 @@ const Geofences = () => {
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                                 {filteredGeofences.map((fence, idx) => (
-                                    <tr key={fence.id} className="hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                    <tr key={fence.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/40 transition-colors">
                                         <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{idx + 1}</td>
                                         <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100">{fence.name || '—'}</td>
-                                        <td className="px-5 py-3 font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold whitespace-nowrap">
+                                        <td className="px-5 py-3 font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold whitespace-nowrap">
                                             {Number(fence.latitude).toFixed(5)}, {Number(fence.longitude).toFixed(5)}
                                         </td>
                                         <td className="px-5 py-3 text-slate-600 dark:text-slate-300 tabular-nums whitespace-nowrap">{fence.radius_meters}m</td>

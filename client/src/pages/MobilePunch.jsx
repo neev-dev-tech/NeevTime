@@ -318,8 +318,8 @@ const MobilePunch = () => {
                             </div>
                         ) : status === 'locating' ? (
                             <div className="flex flex-col items-center z-10">
-                                <Navigation className="text-orange-500 animate-spin mb-2" size={32} />
-                                <span className="text-orange-600 dark:text-orange-400 font-semibold text-sm">Locating GPS…</span>
+                                <Navigation className="text-slate-500 animate-spin mb-2" size={32} />
+                                <span className="text-slate-600 dark:text-slate-400 font-semibold text-sm">Locating GPS…</span>
                                 <div className="mt-3 h-2 w-32 rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
                             </div>
                         ) : location ? (
@@ -381,7 +381,7 @@ const MobilePunch = () => {
                             <div className="space-y-4">
                                 <div className="bg-slate-50/70 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 p-4 rounded-xl text-sm">
                                     <p className="flex items-center gap-2 font-semibold text-slate-800 dark:text-slate-100">
-                                        <MapPin size={16} className="text-orange-500" /> Location required
+                                        <MapPin size={16} className="text-slate-500" /> Location required
                                     </p>
                                     <p className="mt-1 text-slate-600 dark:text-slate-300">
                                         You must be within <span className="tabular-nums font-semibold">{nearestFence?.radius_meters || 100}m</span> of an office location.
@@ -470,7 +470,7 @@ const MobilePunch = () => {
                                     w-full py-4 rounded-2xl font-bold text-lg shadow-lg transform transition-ui active:scale-95
                                     flex items-center justify-center gap-2
                                     ${status === 'ready'
-                                            ? 'bg-saffron-gradient text-white hover:shadow-orange-200 dark:hover:shadow-orange-900/40'
+                                            ? 'bg-saffron-gradient text-white hover:shadow-slate-200 dark:hover:shadow-slate-900/40'
                                             : 'bg-slate-200 text-slate-400 cursor-not-allowed dark:bg-slate-700 dark:text-slate-500'}
                                 `}
                                 >

@@ -8,10 +8,10 @@ import { Button, PageHeader } from '../components';
 import { formatDate, toLocalDateString } from '../utils/dateFormat';
 
 const BADGE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide';
-const CELL_MONO = 'font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold';
+const CELL_MONO = 'font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold';
 const CELL_STRONG = 'font-semibold text-slate-800 dark:text-slate-100';
 const CELL_SOFT = 'text-slate-600 dark:text-slate-300';
-const FIELD = 'w-full text-sm rounded-lg px-3 py-1.5 border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-100 focus:outline-none focus:border-orange-400 dark:focus:border-orange-500';
+const FIELD = 'w-full text-sm rounded-lg px-3 py-1.5 border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-100 focus:outline-none focus:border-slate-400 dark:focus:border-slate-500';
 
 const dash = (v) => (v === null || v === undefined || v === '' ? '—' : v);
 
@@ -134,7 +134,7 @@ export default function SystemLogs() {
                             variant="secondary"
                             icon={Filter}
                             onClick={() => setShowFilters(!showFilters)}
-                            className={showFilters ? 'ring-2 ring-orange-400 ring-offset-1 dark:ring-offset-slate-900' : ''}
+                            className={showFilters ? 'ring-2 ring-slate-400 ring-offset-1 dark:ring-offset-slate-900' : ''}
                         >
                             Filters
                             <ChevronDown size={14} className={`transition-transform ${showFilters ? 'rotate-180' : ''}`} />
@@ -275,7 +275,7 @@ export default function SystemLogs() {
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                                 {filteredLogs.map((log, idx) => (
-                                    <tr key={log.id} className="hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                    <tr key={log.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/40 transition-colors">
                                         <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{idx + 1}</td>
                                         <td className="px-5 py-3">
                                             <div className="flex items-center gap-2">
@@ -294,7 +294,7 @@ export default function SystemLogs() {
                                             <div className="flex flex-col">
                                                 <span className={CELL_STRONG}>{dash(log.entity_type)}</span>
                                                 {log.entity_id && (
-                                                    <span className="font-mono text-[11px] tabular-nums text-orange-600 dark:text-orange-400 font-semibold">
+                                                    <span className="font-mono text-[11px] tabular-nums text-slate-600 dark:text-slate-400 font-semibold">
                                                         ID: {log.entity_id}
                                                     </span>
                                                 )}
@@ -304,7 +304,7 @@ export default function SystemLogs() {
                                             <div className="flex items-center gap-2.5 min-w-0">
                                                 <span
                                                     aria-hidden="true"
-                                                    className="w-8 h-8 shrink-0 rounded-full grid place-items-center font-bold text-xs bg-orange-100 text-orange-700 border border-orange-200 dark:bg-orange-900/40 dark:text-orange-300 dark:border-orange-800/70"
+                                                    className="w-8 h-8 shrink-0 rounded-full grid place-items-center font-bold text-xs bg-slate-100 text-slate-700 border border-slate-200 dark:bg-slate-900/40 dark:text-slate-300 dark:border-slate-800/70"
                                                 >
                                                     {(String(log.username || '').trim().charAt(0) || '?').toUpperCase()}
                                                 </span>

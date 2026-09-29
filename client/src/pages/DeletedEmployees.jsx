@@ -141,7 +141,7 @@ export default function DeletedEmployees() {
                                                     aria-label={`Select ${emp.name || emp.employee_code}`}
                                                 />
                                             </td>
-                                            <td className="px-5 py-3 font-mono text-xs text-orange-600 dark:text-orange-400">
+                                            <td className="px-5 py-3 font-mono text-xs text-slate-600 dark:text-slate-400">
                                                 {emp.employee_code}
                                             </td>
                                             <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100">

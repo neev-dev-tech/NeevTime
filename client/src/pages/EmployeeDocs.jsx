@@ -275,15 +275,15 @@ export default function EmployeeDocs() {
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                             {filteredDocuments.map(doc => (
-                                <tr key={doc.id} className="hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                <tr key={doc.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/40 transition-colors">
                                     <td className="px-5 py-3">
                                         <div className="flex items-center gap-2">
-                                            <FileText size={16} className="text-orange-600 dark:text-orange-400 shrink-0" />
+                                            <FileText size={16} className="text-slate-600 dark:text-slate-400 shrink-0" />
                                             <span className="font-semibold text-slate-800 dark:text-slate-100">{doc.doc_name || '—'}</span>
                                         </div>
                                     </td>
                                     <td className="px-5 py-3 text-slate-600 dark:text-slate-300">{doc.employee_name || '—'}</td>
-                                    <td className="px-5 py-3 font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold">{doc.employee_code || '—'}</td>
+                                    <td className="px-5 py-3 font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">{doc.employee_code || '—'}</td>
                                     <td className="px-5 py-3 text-slate-600 dark:text-slate-300">
                                         <div className="flex items-center gap-2">
                                             <Calendar size={14} className="text-slate-400 dark:text-slate-500" />
@@ -360,7 +360,7 @@ export default function EmployeeDocs() {
 
                     <div>
                         <label className="block text-sm font-medium text-slate-grey dark:text-slate-400 mb-1.5">File *</label>
-                        <div className="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-lg p-4 hover:border-orange-300 transition-colors">
+                        <div className="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-lg p-4 hover:border-slate-300 transition-colors">
                             <input
                                 ref={fileInputRef}
                                 type="file"
@@ -374,7 +374,7 @@ export default function EmployeeDocs() {
                                 htmlFor="file-upload"
                                 className="cursor-pointer flex flex-col items-center justify-center"
                             >
-                                <Upload size={32} className="text-orange-500 dark:text-orange-400 mb-2" />
+                                <Upload size={32} className="text-slate-500 dark:text-slate-400 mb-2" />
                                 <span className="text-sm text-slate-grey dark:text-slate-400">
                                     {selectedFile ? selectedFile.name : 'Click to select file'}
                                 </span>

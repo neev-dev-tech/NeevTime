@@ -77,10 +77,10 @@ export default function AttendanceCalendar() {
             days.push(
                 <div
                     key={day}
-                    className={`${CELL_BASE} relative min-h-[120px] p-2 transition-colors group hover:bg-orange-50/50 dark:hover:bg-slate-700/40 ${isToday ? 'bg-orange-50/60 dark:bg-orange-900/20' : 'bg-white/70 dark:bg-slate-800/70'}`}
+                    className={`${CELL_BASE} relative min-h-[120px] p-2 transition-colors group hover:bg-slate-50/50 dark:hover:bg-slate-700/40 ${isToday ? 'bg-slate-50/60 dark:bg-slate-900/20' : 'bg-white/70 dark:bg-slate-800/70'}`}
                 >
                     <div className="flex justify-between items-start mb-2">
-                        <span className={`text-sm font-semibold tabular-nums w-7 h-7 flex items-center justify-center rounded-full ${isToday ? 'bg-orange-600 text-white shadow-sm' : 'text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-700'}`}>
+                        <span className={`text-sm font-semibold tabular-nums w-7 h-7 flex items-center justify-center rounded-full ${isToday ? 'bg-slate-600 text-white shadow-sm' : 'text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-700'}`}>
                             {day}
                         </span>
                         {dayData && (

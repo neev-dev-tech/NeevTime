@@ -33,7 +33,7 @@ const MARK_STYLE = {
     L: { label: 'Leave', cls: 'bg-slate-50 text-slate-700 dark:bg-slate-500/15 dark:text-slate-300' },
     H: { label: 'Holiday', cls: 'bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300' },
     W: { label: 'Weekly off', cls: 'bg-slate-100 text-slate-500 dark:bg-slate-700/60 dark:text-slate-400' },
-    '?': { label: 'No data — readers not reporting', cls: 'bg-orange-50 text-orange-700 dark:bg-orange-500/15 dark:text-orange-300' },
+    '?': { label: 'No data — readers not reporting', cls: 'bg-slate-50 text-slate-700 dark:bg-slate-500/15 dark:text-slate-300' },
     '–': { label: 'Not employed', cls: 'bg-transparent text-slate-300 dark:text-slate-600' }
 };
 

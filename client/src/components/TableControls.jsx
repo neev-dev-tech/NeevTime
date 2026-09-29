@@ -43,7 +43,7 @@ export function TableToolbar({ controls, placeholder = 'Search…', children }) 
                         type="button"
                         onClick={reset}
                         className="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 dark:text-slate-300
-                                   hover:text-orange-600 dark:hover:text-orange-400"
+                                   hover:text-slate-600 dark:hover:text-slate-400"
                     >
                         <X size={13} /> Clear
                     </button>
@@ -76,7 +76,7 @@ export function SortableTh({ controls, sortKey, children, className = '' }) {
                 type="button"
                 onClick={() => controls.toggleSort(sortKey)}
                 className="inline-flex items-center gap-1 uppercase tracking-[0.09em] text-[10px] font-bold
-                           hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
+                           hover:text-slate-600 dark:hover:text-slate-400 transition-colors"
             >
                 {children}
                 {/* The arrow only appears on the sorted column. An icon on every

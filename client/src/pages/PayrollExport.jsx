@@ -137,13 +137,13 @@ export default function PayrollExport() {
             </div>
 
             {totalUncollected > 0 && (
-                <div className="flex items-start gap-3 p-4 rounded-xl border border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-900/20">
-                    <AlertTriangle size={18} className="shrink-0 mt-0.5 text-orange-600 dark:text-orange-400" />
+                <div className="flex items-start gap-3 p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/20">
+                    <AlertTriangle size={18} className="shrink-0 mt-0.5 text-slate-600 dark:text-slate-400" />
                     <div className="text-sm">
-                        <p className="font-semibold text-orange-800 dark:text-orange-300">
+                        <p className="font-semibold text-slate-800 dark:text-slate-300">
                             {totalUncollected} employee-day(s) in this period have no attendance data
                         </p>
-                        <p className="mt-1 text-orange-700 dark:text-orange-400">
+                        <p className="mt-1 text-slate-700 dark:text-slate-400">
                             No reader reported on those days, so they are counted as payable and
                             <strong> not</strong> as loss of pay. That is deliberate — a reader outage is not
                             an absence, and deducting for it takes money off someone who came to work.
@@ -194,7 +194,7 @@ export default function PayrollExport() {
                                             const v = r[c.key];
                                             const emphasise =
                                                 c.emphasis === 'bad' && v > 0 ? 'font-semibold text-rose-700 dark:text-rose-400' :
-                                                c.emphasis === 'warn' && v > 0 ? 'font-semibold text-orange-700 dark:text-orange-400' :
+                                                c.emphasis === 'warn' && v > 0 ? 'font-semibold text-slate-700 dark:text-slate-400' :
                                                 'text-slate-700 dark:text-slate-300';
                                             return (
                                                 <td key={c.key}

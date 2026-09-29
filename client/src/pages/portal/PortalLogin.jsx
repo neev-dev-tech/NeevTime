@@ -153,13 +153,13 @@ export default function PortalLogin() {
     const ldap = method === 'ldap';
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 via-white to-amber-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 p-4">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-amber-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 p-4">
             {/* Arrives from depth and leans gently toward the cursor — the
                 one place a flourish earns its keep, since sign-in is the first
                 thing anyone sees. Touch and reduced-motion get a plain card. */}
-            <div {...tilt} className="tilt-3d depth-in w-full max-w-sm bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-orange-100 dark:border-slate-700 p-8">
+            <div {...tilt} className="tilt-3d depth-in w-full max-w-sm bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 p-8">
                 <div className="flex flex-col items-center mb-6">
-                    <div className="p-3 bg-orange-100 dark:bg-orange-900/30 rounded-2xl text-orange-600 dark:text-orange-300 mb-3">
+                    <div className="p-3 bg-slate-100 dark:bg-slate-900/30 rounded-2xl text-slate-600 dark:text-slate-300 mb-3">
                         <Fingerprint size={28} />
                     </div>
                     <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">Employee Portal</h1>
@@ -261,7 +261,7 @@ export default function PortalLogin() {
                                 type="button"
                                 onClick={() => { setMethod(id); setError(''); }}
                                 className={`flex-1 rounded-lg px-3 py-2 border ${method === id
-                                    ? 'border-orange-400 bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300'
+                                    ? 'border-slate-400 bg-slate-50 dark:bg-slate-900/20 text-slate-700 dark:text-slate-300'
                                     : 'border-slate-200 dark:border-slate-700 text-slate-500'}`}
                             >
                                 {label}
@@ -333,7 +333,7 @@ export default function PortalLogin() {
                 {view === 'signin' && modes?.local && (
                     <div className="flex justify-between mt-4 text-xs">
                         <button type="button" onClick={() => { setView('activate'); setError(''); setNotice(''); }}
-                                className="text-orange-600 font-semibold hover:underline">
+                                className="text-slate-600 font-semibold hover:underline">
                             First time here?
                         </button>
                         <button type="button" onClick={() => { setView('forgot'); setError(''); setNotice(''); }}
@@ -344,7 +344,7 @@ export default function PortalLogin() {
                 )}
 
                 <p className="text-center text-xs text-slate-400 mt-6">
-                    Admin or HR? <Link to="/login" className="text-orange-600 font-semibold hover:underline">Sign in here</Link>
+                    Admin or HR? <Link to="/login" className="text-slate-600 font-semibold hover:underline">Sign in here</Link>
                 </p>
             </div>
         </div>

@@ -290,10 +290,10 @@ export default function DataTable({
             return <ChevronsUpDown size={14} className="text-slate-300 group-hover:text-slate-400" />;
         }
         if (sortOrder === SORT_ORDER.ASC) {
-            return <ChevronUp size={14} className="text-orange-500" />;
+            return <ChevronUp size={14} className="text-slate-500" />;
         }
         if (sortOrder === SORT_ORDER.DESC) {
-            return <ChevronDown size={14} className="text-orange-500" />;
+            return <ChevronDown size={14} className="text-slate-500" />;
         }
         return <ChevronsUpDown size={14} className="text-slate-300" />;
     };
@@ -369,7 +369,7 @@ export default function DataTable({
                                                     type="checkbox"
                                                     checked={visibleColumns[col.key]}
                                                     onChange={() => toggleColumn(col.key)}
-                                                    className="rounded border-slate-300 dark:border-slate-600 text-orange-500 focus:ring-orange-400"
+                                                    className="rounded border-slate-300 dark:border-slate-600 text-slate-500 focus:ring-slate-400"
                                                 />
                                                 <span className="text-sm text-slate-700 dark:text-slate-300">{col.label}</span>
                                             </label>
@@ -409,7 +409,7 @@ export default function DataTable({
                                         type="checkbox"
                                         checked={paginatedData.length > 0 && selectedRows.size === paginatedData.length}
                                         onChange={handleSelectAll}
-                                        className="rounded border-slate-300 dark:border-slate-600 text-orange-500 focus:ring-orange-400"
+                                        className="rounded border-slate-300 dark:border-slate-600 text-slate-500 focus:ring-slate-400"
                                     />
                                 </th>
                             )}
@@ -479,7 +479,7 @@ export default function DataTable({
                                         className={`
                                             border-b border-slate-100 dark:border-slate-700 transition-colors
                                             ${striped && rowIndex % 2 === 1 ? 'bg-slate-50/50 dark:bg-slate-900/25' : 'bg-white dark:bg-slate-800'}
-                                            ${isSelected ? 'bg-orange-50 dark:bg-orange-900/30' : ''}
+                                            ${isSelected ? 'bg-slate-50 dark:bg-slate-900/30' : ''}
                                             ${onRowClick ? 'cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50' : 'hover:bg-slate-50/80 dark:hover:bg-slate-700/50'}
                                             ${rowClassName}
                                         `}
@@ -491,7 +491,7 @@ export default function DataTable({
                                                     type="checkbox"
                                                     checked={isSelected}
                                                     onChange={() => handleSelectRow(rowId)}
-                                                    className="rounded border-slate-300 dark:border-slate-600 text-orange-500 focus:ring-orange-400"
+                                                    className="rounded border-slate-300 dark:border-slate-600 text-slate-500 focus:ring-slate-400"
                                                 />
                                             </td>
                                         )}
@@ -581,7 +581,7 @@ export default function DataTable({
                                             className={`
                                                 w-8 h-8 rounded-lg text-sm font-medium transition-colors
                                                 ${currentPage === pageNum
-                                                    ? 'bg-orange-500 text-white'
+                                                    ? 'bg-slate-500 text-white'
                                                     : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
                                                 }
                                             `}

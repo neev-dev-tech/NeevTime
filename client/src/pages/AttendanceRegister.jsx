@@ -55,7 +55,7 @@ export default function AttendanceRegister() {
             'Present': 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
             'Absent': 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300',
             'Late': 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
-            'Half Day': 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
+            'Half Day': 'bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300',
             'Short Day': 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
             'Miss Punch': 'bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300',
             'Weekly Off': 'bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300',
@@ -244,13 +244,13 @@ export default function AttendanceRegister() {
                                     them — dozens of identical keys, and React
                                     recycling the wrong rows on filter changes. */}
                                 {data.map((row, idx) => (
-                                    <tr key={`${row.employee_code}-${row.date}`} className="hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                    <tr key={`${row.employee_code}-${row.date}`} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/40 transition-colors">
                                         <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{idx + 1}</td>
                                         <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">
                                             {row.name || '—'}
                                         </td>
                                         <td className="px-5 py-3 whitespace-nowrap">
-                                            <span className="font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold">
+                                            <span className="font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">
                                                 {row.employee_code || '—'}
                                             </span>
                                         </td>

@@ -15,13 +15,13 @@ import { formatDate, toLocalDateString } from '../utils/dateFormat';
 
 // Stat tile tones — written out in full so Tailwind's scanner keeps the classes
 const STAT_TONES = {
-    orange: 'bg-orange-50 border-orange-100 text-orange-600 dark:bg-orange-900/30 dark:border-orange-800 dark:text-orange-400',
+    orange: 'bg-slate-50 border-slate-100 text-slate-600 dark:bg-slate-900/30 dark:border-slate-800 dark:text-slate-400',
     emerald: 'bg-emerald-50 border-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:border-emerald-800 dark:text-emerald-400',
     rose: 'bg-rose-50 border-rose-100 text-rose-600 dark:bg-rose-900/30 dark:border-rose-800 dark:text-rose-400',
     amber: 'bg-amber-50 border-amber-100 text-amber-600 dark:bg-amber-900/30 dark:border-amber-800 dark:text-amber-400'
 };
 
-const CODE_CELL = 'font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold';
+const CODE_CELL = 'font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold';
 const SECONDARY_CELL = 'text-slate-600 dark:text-slate-300';
 
 export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
@@ -186,7 +186,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                         label: 'Mode',
                         render: (row) => (
                             <div className="flex items-center gap-1.5 text-xs tabular-nums text-slate-600 dark:text-slate-300">
-                                <Fingerprint size={12} className="text-orange-500" />
+                                <Fingerprint size={12} className="text-slate-500" />
                                 {row.verification_mode || '15'}
                             </div>
                         )
@@ -235,7 +235,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                     ...commonEmployeeCols,
                     { key: 'dob', label: 'Date of Birth', type: 'date' },
                     { key: 'age', label: 'Age', type: 'number' },
-                    { key: 'upcoming', label: 'Upcoming Birthday', type: 'date', className: 'text-orange-600 font-bold' }
+                    { key: 'upcoming', label: 'Upcoming Birthday', type: 'date', className: 'text-slate-600 font-bold' }
                 ];
 
             case 'half_day':
@@ -620,7 +620,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
             <div className="flex items-center justify-between flex-wrap gap-3">
                 <div className="flex items-center gap-3 min-w-0">
                     <Button variant="ghost" size="sm" icon={ArrowLeft} iconSize={18} onClick={() => navigate('/reports')} aria-label="Back to reports" />
-                    <div className="p-2.5 bg-orange-50 border border-orange-100 rounded-xl text-orange-600 shrink-0 dark:bg-orange-900/30 dark:border-orange-800 dark:text-orange-400">
+                    <div className="p-2.5 bg-slate-50 border border-slate-100 rounded-xl text-slate-600 shrink-0 dark:bg-slate-900/30 dark:border-slate-800 dark:text-slate-400">
                         <FileBarChart size={22} />
                     </div>
                     <div className="min-w-0">
@@ -739,7 +739,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                                 {reportData.map((row, i) => (
-                                    <tr key={i} className="hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                    <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/40 transition-colors">
                                         <td className="px-5 py-3 text-slate-400 tabular-nums">{i + 1}</td>
                                         {columns
                                             ? columns.map((col, j) => (

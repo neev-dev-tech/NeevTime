@@ -78,7 +78,7 @@ export default function GenericCrud({ title, endpoint, columns, icon: Icon }) {
 
             <div className="card-base overflow-hidden">
                 <table className="w-full text-left">
-                    <thead className="bg-orange-50/50 dark:bg-orange-900/20 border-b border-orange-100 dark:border-orange-800">
+                    <thead className="bg-slate-50/50 dark:bg-slate-900/20 border-b border-slate-100 dark:border-slate-800">
                         <tr>
                             <th className="px-6 py-4 font-semibold text-charcoal dark:text-slate-100 text-sm">ID</th>
                             {columns.map(col => <th key={col.key} className="px-6 py-4 font-semibold text-charcoal dark:text-slate-100 capitalize text-sm">{col.label}</th>)}
@@ -95,7 +95,7 @@ export default function GenericCrud({ title, endpoint, columns, icon: Icon }) {
                                     </td>
                                 ))}
                                 <td className="px-6 py-4 text-right flex justify-end gap-2">
-                                    <button onClick={() => handleEdit(item)} className="text-saffron hover:bg-orange-50 dark:hover:bg-orange-900/30 p-2 rounded-full transition-colors"><Edit size={18} /></button>
+                                    <button onClick={() => handleEdit(item)} className="text-saffron hover:bg-slate-50 dark:hover:bg-slate-900/30 p-2 rounded-full transition-colors"><Edit size={18} /></button>
                                     <button onClick={() => confirmDelete(item.id)} className="text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 p-2 rounded-full transition-colors"><Trash2 size={18} /></button>
                                 </td>
                             </tr>

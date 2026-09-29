@@ -262,7 +262,7 @@ export default function EmployeePortal() {
             <header className="bg-white dark:bg-slate-800 border-b dark:border-slate-700 sticky top-0 z-10">
                 <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <div className="p-1.5 bg-orange-100 dark:bg-orange-900/30 rounded-lg text-orange-600 dark:text-orange-300"><Fingerprint size={18} /></div>
+                        <div className="p-1.5 bg-slate-100 dark:bg-slate-900/30 rounded-lg text-slate-600 dark:text-slate-300"><Fingerprint size={18} /></div>
                         <span className="font-bold text-slate-800 dark:text-slate-100">My NeevTime</span>
                     </div>
                     <div className="flex items-center gap-3">
@@ -276,7 +276,7 @@ export default function EmployeePortal() {
                 {/* Profile card */}
                 {profile && (
                     <div className="bg-white/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 p-4 flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-orange-600 text-white flex items-center justify-center font-bold text-lg shrink-0">
+                        <div className="w-12 h-12 rounded-full bg-slate-600 text-white flex items-center justify-center font-bold text-lg shrink-0">
                             {/* Optional chaining throughout this card: it renders
                                 on every tab, so a null here takes the entire
                                 portal down rather than one panel. */}
@@ -285,7 +285,7 @@ export default function EmployeePortal() {
                         <div className="flex-1 min-w-0">
                             <p className="font-semibold text-slate-800 dark:text-slate-100 truncate">{profile?.name || '—'}</p>
                             <p className="text-xs flex items-center gap-2">
-                                <span className="font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold">
+                                <span className="font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">
                                     {profile?.employee_code || '—'}
                                 </span>
                                 {profile?.department && (
@@ -320,8 +320,8 @@ export default function EmployeePortal() {
                             onClick={() => setTab(id)}
                             aria-pressed={tab === id}
                             className={`shrink-0 sm:flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-sm font-semibold whitespace-nowrap transition-colors ${tab === id
-                                ? 'bg-orange-600 text-white shadow-sm'
-                                : 'text-slate-600 dark:text-slate-300 hover:bg-orange-50/60 dark:hover:bg-slate-700/40 hover:text-orange-600 dark:hover:text-orange-400'
+                                ? 'bg-slate-600 text-white shadow-sm'
+                                : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50/60 dark:hover:bg-slate-700/40 hover:text-slate-600 dark:hover:text-slate-400'
                                 }`}
                         >
                             <Icon size={15} /> {label}
@@ -378,7 +378,7 @@ export default function EmployeePortal() {
                                         </thead>
                                         <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                                             {attendance.map((row, i) => (
-                                                <tr key={i} className="hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                                <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/40 transition-colors">
                                                     <td className="px-4 py-3 whitespace-nowrap">
                                                         <span className="font-semibold tabular-nums text-slate-800 dark:text-slate-100">{row.date || '—'}</span>
                                                         <span className="text-[10px] uppercase tracking-[0.09em] font-bold text-slate-500 dark:text-slate-400 ml-1.5">
@@ -478,7 +478,7 @@ export default function EmployeePortal() {
                                 <>
                                     <div className="divide-y divide-slate-100 dark:divide-slate-700">
                                         {leave.applications.map(app => (
-                                            <div key={app.id} className="px-4 py-3 flex items-center justify-between gap-3 hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                            <div key={app.id} className="px-4 py-3 flex items-center justify-between gap-3 hover:bg-slate-50/50 dark:hover:bg-slate-700/40 transition-colors">
                                                 <div className="min-w-0">
                                                     <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">{app.leave_type_name || '—'}</p>
                                                     <p className="text-xs text-slate-600 dark:text-slate-300 tabular-nums">
@@ -561,7 +561,7 @@ export default function EmployeePortal() {
                                 <>
                                     <div className="divide-y divide-slate-100 dark:divide-slate-700">
                                         {regularizations.map(reg => (
-                                            <div key={reg.id} className="px-4 py-3 flex items-center justify-between gap-3 hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                            <div key={reg.id} className="px-4 py-3 flex items-center justify-between gap-3 hover:bg-slate-50/50 dark:hover:bg-slate-700/40 transition-colors">
                                                 <div className="min-w-0">
                                                     <p className="text-sm font-semibold tabular-nums text-slate-800 dark:text-slate-100">{reg.date || '—'}</p>
                                                     <p className="text-xs text-slate-600 dark:text-slate-300 truncate">

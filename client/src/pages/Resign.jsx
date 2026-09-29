@@ -353,7 +353,7 @@ export default function Resign() {
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                         {paginatedItems.map(emp => (
-                            <tr key={emp.id} className="hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors group">
+                            <tr key={emp.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/40 transition-colors group">
                                 <td className="px-5 py-3 text-center">
                                     <input
                                         type="checkbox"
@@ -362,7 +362,7 @@ export default function Resign() {
                                         onChange={() => toggleSelect(emp.id)}
                                     />
                                 </td>
-                                <td className="px-5 py-3 font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold">{emp.employee_code || '—'}</td>
+                                <td className="px-5 py-3 font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">{emp.employee_code || '—'}</td>
                                 <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100">{emp.name} {emp.last_name || ''}</td>
                                 <td className="px-5 py-3 text-slate-600 dark:text-slate-300">{emp.department_name || '—'}</td>
                                 <td className="px-5 py-3 text-slate-600 dark:text-slate-300">{emp.position_name || emp.designation || '—'}</td>
@@ -370,7 +370,7 @@ export default function Resign() {
                                 <td className="px-5 py-3">
                                     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide border ${emp.resignation_type === 'Dismissed' ? 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-900/30 dark:text-rose-300 dark:border-rose-800' :
                                         emp.resignation_type === 'Transfer' ? 'bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-900/30 dark:text-slate-300 dark:border-slate-800' :
-                                            'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-800'
+                                            'bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-900/30 dark:text-slate-300 dark:border-slate-800'
                                         }`}>
                                         {emp.resignation_type || 'Resigned'}
                                     </span>
@@ -395,7 +395,7 @@ export default function Resign() {
                 {/* Right Side: Selected Count */}
                 <div className="flex items-center gap-4">
                     {selectedIds.length > 0 && (
-                        <span className="text-xs font-medium text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-900/30 border border-orange-200 dark:border-orange-800 px-3 py-1 rounded-full shadow-sm">
+                        <span className="text-xs font-medium text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800 px-3 py-1 rounded-full shadow-sm">
                             Selected: <span className="font-bold ml-1 tabular-nums">{selectedIds.length}</span>
                         </span>
                     )}
@@ -503,7 +503,7 @@ export default function Resign() {
                 <div className="text-center">
                 <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 
                     ${confirmModal.type === 'danger' ? 'bg-red-100 text-red-500 dark:bg-red-900/30 dark:text-red-400' :
-                        confirmModal.type === 'warning' ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400' : 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400'}`}>
+                        confirmModal.type === 'warning' ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400' : 'bg-slate-100 text-slate-600 dark:bg-slate-900/30 dark:text-slate-400'}`}>
                     {confirmModal.type === 'danger' ? <Trash2 size={24} /> :
                         confirmModal.type === 'warning' ? <BellOff size={24} /> : <RotateCcw size={24} />}
                 </div>

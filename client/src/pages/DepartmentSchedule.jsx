@@ -174,7 +174,7 @@ export default function DepartmentSchedule() {
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                                 {schedules.map((schedule, idx) => (
-                                    <tr key={schedule.id} className="hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                    <tr key={schedule.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/40 transition-colors">
                                         <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{idx + 1}</td>
                                         <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100">
                                             {schedule.department_name || '—'}
@@ -310,8 +310,8 @@ export default function DepartmentSchedule() {
                                     type="button"
                                     onClick={() => toggleWeekOff(day)}
                                     className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide transition-colors border ${form.week_off_days.includes(day)
-                                        ? 'bg-orange-600 text-white border-transparent shadow-sm'
-                                        : 'bg-white/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-orange-300 hover:text-orange-600 dark:hover:text-orange-400'
+                                        ? 'bg-slate-600 text-white border-transparent shadow-sm'
+                                        : 'bg-white/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300 hover:text-slate-600 dark:hover:text-slate-400'
                                         }`}
                                 >
                                     {day.substring(0, 3)}

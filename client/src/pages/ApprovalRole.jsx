@@ -227,7 +227,7 @@ export default function ApprovalRole() {
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                         {paginatedItems.map(role => (
-                            <tr key={role.id} className="hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors group">
+                            <tr key={role.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/40 transition-colors group">
                                 <td className="px-5 py-3 text-center">
                                     <input
                                         type="checkbox"
@@ -236,7 +236,7 @@ export default function ApprovalRole() {
                                         onChange={() => toggleSelect(role.id)}
                                     />
                                 </td>
-                                <td className="px-5 py-3 font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold">{role.role_code || role.id || '—'}</td>
+                                <td className="px-5 py-3 font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">{role.role_code || role.id || '—'}</td>
                                 <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100">{role.role_name || role.name || '—'}</td>
                                 <td className="px-5 py-3 text-slate-600 dark:text-slate-300">{role.description || '—'}</td>
                                 <td className="px-5 py-3 text-slate-600 dark:text-slate-300 tabular-nums">{role.employee_count || 0}</td>
@@ -265,7 +265,7 @@ export default function ApprovalRole() {
                         <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="p-1.5 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 transition-colors border-r border-slate-200 dark:border-slate-700">
                             <ChevronLeft size={16} />
                         </button>
-                        <span className="px-3 py-1 font-bold bg-orange-600 text-white text-xs tabular-nums">{currentPage}</span>
+                        <span className="px-3 py-1 font-bold bg-slate-600 text-white text-xs tabular-nums">{currentPage}</span>
                         <button onClick={() => setCurrentPage(p => Math.min(totalPages || 1, p + 1))} disabled={currentPage === totalPages} className="p-1.5 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 transition-colors border-l border-slate-200 dark:border-slate-700">
                             <ChevronRight size={16} />
                         </button>

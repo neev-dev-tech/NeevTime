@@ -518,7 +518,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-semibold flex items-center gap-3 text-slate-800 dark:text-slate-100">
-                        <div className="p-2 bg-orange-50 dark:bg-orange-900/30 rounded-lg">
+                        <div className="p-2 bg-slate-50 dark:bg-slate-900/30 rounded-lg">
                             <LayoutDashboard className="text-saffron" size={24} />
                         </div>
                         Worktable
@@ -683,7 +683,7 @@ export default function Dashboard() {
             {/* Insights rail */}
             <aside className="order-1 xl:order-2 card-base animate-fade-in xl:sticky xl:top-24">
                 <div className="flex items-center gap-2 mb-4">
-                    <Brain size={18} className="text-orange-500" />
+                    <Brain size={18} className="text-slate-500" />
                     <h2 className="font-semibold text-base text-slate-800 dark:text-slate-100">Today's Insights</h2>
                 </div>
                 {loading ? (
@@ -702,7 +702,7 @@ export default function Dashboard() {
                                 success: 'bg-emerald-50 dark:bg-emerald-900/25 text-emerald-700 dark:text-emerald-300 border-emerald-100 dark:border-emerald-800',
                                 warning: 'bg-amber-50 dark:bg-amber-900/25 text-amber-700 dark:text-amber-300 border-amber-100 dark:border-amber-800',
                                 error: 'bg-rose-50 dark:bg-rose-900/25 text-rose-700 dark:text-rose-300 border-rose-100 dark:border-rose-800',
-                                info: 'bg-orange-50 dark:bg-orange-900/25 text-orange-700 dark:text-orange-300 border-orange-100 dark:border-orange-800'
+                                info: 'bg-slate-50 dark:bg-slate-900/25 text-slate-700 dark:text-slate-300 border-slate-100 dark:border-slate-800'
                             }[insight.type] || 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-100 dark:border-slate-700';
                             return (
                                 <div key={idx} className={`flex items-start gap-2.5 p-3 rounded-xl border ${tone}`}>
@@ -829,7 +829,7 @@ export default function Dashboard() {
                 <div className="card-base animate-slide-up stagger-4">
                     <div className="flex items-center justify-between mb-1">
                         <h2 className="font-semibold flex items-center gap-2 text-base text-slate-800 dark:text-slate-100">
-                            <TrendingUp className="text-orange-500" size={18} /> Attendance Exceptions
+                            <TrendingUp className="text-slate-500" size={18} /> Attendance Exceptions
                         </h2>
                         <span className="text-[11px] text-slate-500 dark:text-slate-400">last 7 days</span>
                     </div>
@@ -875,7 +875,7 @@ export default function Dashboard() {
                                                      style={{ height: `${H}px` }}
                                                      title={`${day.date} — late ${day.late || 0}, early leave ${day.earlyLeave || 0}, absent ${day.absent || 0}`}>
                                                     <div style={{ height: `${px(day.late)}px` }} className="w-full bg-amber-400" />
-                                                    <div style={{ height: `${px(day.earlyLeave)}px` }} className="w-full bg-orange-500" />
+                                                    <div style={{ height: `${px(day.earlyLeave)}px` }} className="w-full bg-slate-500" />
                                                     <div style={{ height: `${px(day.absent)}px` }} className="w-full bg-rose-500" />
                                                 </div>
                                                 <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 truncate w-full text-center">
@@ -887,7 +887,7 @@ export default function Dashboard() {
                                 </div>
                                 <div className="flex justify-center gap-5 mt-4 text-[11px] text-slate-600 dark:text-slate-300">
                                     <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-amber-400" /> Late</div>
-                                    <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-orange-500" /> Early leave</div>
+                                    <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-slate-500" /> Early leave</div>
                                     <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-rose-500" /> Absent</div>
                                 </div>
                             </>

@@ -287,11 +287,11 @@ export default function EmployeeSchedule() {
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                                 {filteredSchedules.map((schedule, idx) => (
-                                    <tr key={schedule.id} className="hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                    <tr key={schedule.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/40 transition-colors">
                                         <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums align-top">{idx + 1}</td>
                                         <td className="px-5 py-3">
                                             <div className="font-semibold text-slate-800 dark:text-slate-100">{schedule.employee_name || '—'}</div>
-                                            <div className="font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold">
+                                            <div className="font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">
                                                 {schedule.employee_code || '—'}
                                             </div>
                                         </td>
@@ -465,7 +465,7 @@ export default function EmployeeSchedule() {
                         </div>
                         <div className="space-y-1">
                             {filteredEmployees.map(emp => (
-                                <label key={emp.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-orange-50/50 dark:hover:bg-slate-700/40 cursor-pointer transition-colors">
+                                <label key={emp.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-slate-50/50 dark:hover:bg-slate-700/40 cursor-pointer transition-colors">
                                     <input
                                         type="checkbox"
                                         checked={selectedEmployees.includes(emp.id)}
@@ -473,7 +473,7 @@ export default function EmployeeSchedule() {
                                         className="w-4 h-4 text-green-600 rounded"
                                     />
                                     <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">{emp.name || '—'}</span>
-                                    <span className="font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold">{emp.employee_code || '—'}</span>
+                                    <span className="font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">{emp.employee_code || '—'}</span>
                                 </label>
                             ))}
                         </div>

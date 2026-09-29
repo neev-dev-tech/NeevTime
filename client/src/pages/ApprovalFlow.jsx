@@ -246,7 +246,7 @@ export default function ApprovalFlow() {
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                         {paginatedItems.map(flow => (
-                            <tr key={flow.id} className="hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors group">
+                            <tr key={flow.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/40 transition-colors group">
                                 <td className="px-5 py-3 text-center">
                                     <input
                                         type="checkbox"
@@ -255,7 +255,7 @@ export default function ApprovalFlow() {
                                         onChange={() => toggleSelect(flow.id)}
                                     />
                                 </td>
-                                <td className="px-5 py-3 font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold">{flow.flow_code || '—'}</td>
+                                <td className="px-5 py-3 font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">{flow.flow_code || '—'}</td>
                                 <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100">{flow.name || '—'}</td>
                                 <td className="px-5 py-3 text-slate-600 dark:text-slate-300 tabular-nums">{flow.start_date?.split('T')[0] || '—'}</td>
                                 <td className="px-5 py-3 text-slate-600 dark:text-slate-300 tabular-nums">{flow.end_date?.split('T')[0] || '—'}</td>
@@ -290,7 +290,7 @@ export default function ApprovalFlow() {
                         <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="p-1.5 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 transition-colors border-r border-slate-200 dark:border-slate-700">
                             <ChevronLeft size={16} />
                         </button>
-                        <span className="px-3 py-1 font-bold bg-orange-600 text-white text-xs tabular-nums">{currentPage}</span>
+                        <span className="px-3 py-1 font-bold bg-slate-600 text-white text-xs tabular-nums">{currentPage}</span>
                         <button onClick={() => setCurrentPage(p => Math.min(totalPages || 1, p + 1))} className="p-1.5 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 transition-colors border-l border-slate-200 dark:border-slate-700">
                             <ChevronRight size={16} />
                         </button>
@@ -374,7 +374,7 @@ export default function ApprovalFlow() {
                                         <tr><td colSpan={3} className="p-6 text-center text-slate-500 dark:text-slate-400 text-xs">No nodes added yet — add one to build the approval chain.</td></tr>
                                     ) : (
                                         flowNodes.map((node, i) => (
-                                            <tr key={i} className="hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                            <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/40 transition-colors">
                                                 <td className="p-3 pl-4 text-slate-400 dark:text-slate-500 tabular-nums">{i + 1}</td>
                                                 <td className="p-3">
                                                     <select value={node.node_id} onChange={e => updateNode(i, 'node_id', e.target.value)}

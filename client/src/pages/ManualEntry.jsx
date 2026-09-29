@@ -64,7 +64,7 @@ export default function ManualEntry() {
         setSubmitting(false);
     };
 
-    const fieldClass = 'w-full rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 pl-10 pr-4 py-2 focus:outline-none focus:border-orange-400 dark:focus:border-orange-500';
+    const fieldClass = 'w-full rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 pl-10 pr-4 py-2 focus:outline-none focus:border-slate-400 dark:focus:border-slate-500';
     const labelClass = 'block text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-2';
 
     return (
@@ -129,10 +129,10 @@ export default function ManualEntry() {
                                 </div>
                             ) : filteredEmployees.slice(0, 5).map(emp => (
                                 <button key={emp.id} type="button" onClick={() => { setSelectedEmployee(emp); setSearchTerm(''); }}
-                                    className="w-full text-left px-4 py-2 hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors flex items-center gap-2">
+                                    className="w-full text-left px-4 py-2 hover:bg-slate-50/50 dark:hover:bg-slate-700/40 transition-colors flex items-center gap-2">
                                     <User size={16} className="text-slate-400 dark:text-slate-500" />
                                     <span className="font-semibold text-slate-800 dark:text-slate-100">{emp.name || '—'}</span>
-                                    <span className="ml-auto font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold">
+                                    <span className="ml-auto font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">
                                         {emp.employee_code || '—'}
                                     </span>
                                 </button>

@@ -606,9 +606,9 @@ export default function Devices() {
                                                         e.stopPropagation();
                                                         syncAllDevices('download-users');
                                                     }}
-                                                    className="flex items-center gap-3 w-full text-left px-4 py-3 hover:bg-orange-50 dark:hover:bg-slate-700 text-sm text-slate-grey dark:text-slate-400 hover:text-charcoal dark:hover:text-slate-100 border-b border-slate-50 dark:border-slate-700"
+                                                    className="flex items-center gap-3 w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 text-sm text-slate-grey dark:text-slate-400 hover:text-charcoal dark:hover:text-slate-100 border-b border-slate-50 dark:border-slate-700"
                                                 >
-                                                    <Download size={16} className="text-orange-600" />
+                                                    <Download size={16} className="text-slate-600" />
                                                     Pull Users from All Devices
                                                 </button>
                                                 <button
@@ -642,9 +642,9 @@ export default function Devices() {
                                                         e.stopPropagation();
                                                         syncAllDevices('download-logs');
                                                     }}
-                                                    className="flex items-center gap-3 w-full text-left px-4 py-3 hover:bg-orange-50 dark:hover:bg-slate-700 text-sm text-slate-grey dark:text-slate-400 hover:text-charcoal dark:hover:text-slate-100"
+                                                    className="flex items-center gap-3 w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 text-sm text-slate-grey dark:text-slate-400 hover:text-charcoal dark:hover:text-slate-100"
                                                 >
-                                                    <Clock size={16} className="text-orange-600" />
+                                                    <Clock size={16} className="text-slate-600" />
                                                     Pull Logs from All Devices
                                                 </button>
                                             </div>
@@ -681,7 +681,7 @@ export default function Devices() {
                                                             initiateDataTransfer(action);
                                                             setShowTransferMenu(false);
                                                         }}
-                                                        className="block w-full text-left px-4 py-3 hover:bg-orange-50 dark:hover:bg-slate-700 text-sm text-slate-grey dark:text-slate-400 hover:text-charcoal dark:hover:text-slate-100 capitalize border-b border-slate-50 dark:border-slate-700 last:border-0"
+                                                        className="block w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 text-sm text-slate-grey dark:text-slate-400 hover:text-charcoal dark:hover:text-slate-100 capitalize border-b border-slate-50 dark:border-slate-700 last:border-0"
                                                     >
                                                         {action.replace('-', ' ')}
                                                     </button>

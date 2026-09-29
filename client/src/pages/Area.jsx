@@ -18,19 +18,19 @@ const AreaTreeItem = ({ area, areas, onSelect, selectedId, level = 0 }) => {
         <div className="">
             <div
                 className={`flex items-center gap-2 py-2 px-3 cursor-pointer rounded-lg transition-colors mb-0.5 ${isSelected
-                    ? 'bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 font-semibold'
+                    ? 'bg-slate-50 dark:bg-slate-900/30 text-slate-600 dark:text-slate-400 font-semibold'
                     : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}
                 style={{ paddingLeft: `${level * 16 + 12}px` }}
                 onClick={() => onSelect(area)}
             >
                 <button
                     onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
-                    className={`text-slate-400 dark:text-slate-500 hover:text-orange-600 dark:hover:text-orange-400 transition-colors ${children.length === 0 ? 'invisible' : ''}`}
+                    className={`text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-400 transition-colors ${children.length === 0 ? 'invisible' : ''}`}
                 >
                     {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                 </button>
 
-                <Folder size={16} className={isSelected ? 'text-orange-500 dark:text-orange-400 fill-orange-200/60 dark:fill-orange-400/20' : 'text-amber-400 dark:text-amber-300 fill-amber-100 dark:fill-amber-400/20'} />
+                <Folder size={16} className={isSelected ? 'text-slate-500 dark:text-slate-400 fill-orange-200/60 dark:fill-orange-400/20' : 'text-amber-400 dark:text-amber-300 fill-amber-100 dark:fill-amber-400/20'} />
                 <span className="text-sm font-medium truncate">{area.name}</span>
             </div>
             {expanded && children.map(child => (
@@ -255,11 +255,11 @@ export default function Area() {
                             <>
                                 <div
                                     className={`flex items-center gap-2 py-2 px-3 cursor-pointer rounded-lg mb-0.5 transition-colors ${!selectedArea
-                                        ? 'bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 font-semibold'
+                                        ? 'bg-slate-50 dark:bg-slate-900/30 text-slate-600 dark:text-slate-400 font-semibold'
                                         : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}
                                     onClick={() => setSelectedArea(null)}
                                 >
-                                    <Folder size={16} className={!selectedArea ? 'text-orange-500 dark:text-orange-400 fill-orange-200/60 dark:fill-orange-400/20' : 'text-amber-400 dark:text-amber-300 fill-amber-100 dark:fill-amber-400/20'} />
+                                    <Folder size={16} className={!selectedArea ? 'text-slate-500 dark:text-slate-400 fill-orange-200/60 dark:fill-orange-400/20' : 'text-amber-400 dark:text-amber-300 fill-amber-100 dark:fill-amber-400/20'} />
                                     <span className="text-sm font-medium">All Areas</span>
                                 </div>
                                 {rootAreas.map(area => (
@@ -346,7 +346,7 @@ export default function Area() {
                                 <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 sticky top-0 z-10">
                                     <tr>
                                         <th className="px-5 py-3 font-bold w-10">
-                                            <input type="checkbox" checked={selectedRows.length === tableData.length && tableData.length > 0} onChange={toggleAllRows} className="rounded text-orange-600 focus:ring-orange-500" />
+                                            <input type="checkbox" checked={selectedRows.length === tableData.length && tableData.length > 0} onChange={toggleAllRows} className="rounded text-slate-600 focus:ring-slate-500" />
                                         </th>
                                         <th className="px-5 py-3 font-bold w-12">#</th>
                                         <th className="px-5 py-3 font-bold whitespace-nowrap">Area Code</th>
@@ -363,13 +363,13 @@ export default function Area() {
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                                     {tableData.map((area, idx) => (
-                                        <tr key={area.id} className={`hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors ${selectedRows.includes(area.id) ? 'bg-orange-50/60 dark:bg-orange-900/20' : ''}`}>
+                                        <tr key={area.id} className={`hover:bg-slate-50/50 dark:hover:bg-slate-700/40 transition-colors ${selectedRows.includes(area.id) ? 'bg-slate-50/60 dark:bg-slate-900/20' : ''}`}>
                                             <td className="px-5 py-3">
-                                                <input type="checkbox" checked={selectedRows.includes(area.id)} onChange={() => toggleRowSelection(area.id)} className="rounded text-orange-600 focus:ring-orange-500" />
+                                                <input type="checkbox" checked={selectedRows.includes(area.id)} onChange={() => toggleRowSelection(area.id)} className="rounded text-slate-600 focus:ring-slate-500" />
                                             </td>
                                             <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{idx + 1}</td>
                                             <td className="px-5 py-3">
-                                                <span className="font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold">
+                                                <span className="font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">
                                                     {area.code || '—'}
                                                 </span>
                                             </td>
@@ -466,9 +466,9 @@ export default function Area() {
                             className="input-base p-2"
                         />
                     </div>
-                    <div className="bg-orange-50/50 dark:bg-orange-900/20 p-4 rounded-xl border border-orange-100 dark:border-orange-800 text-sm text-slate-grey dark:text-slate-400">
-                        <p className="font-bold text-orange-600 dark:text-orange-400 mb-1">CSV Format:</p>
-                        <code className="block bg-white dark:bg-slate-800 p-2 rounded border border-orange-100 dark:border-orange-800 mb-2">Area Name, Area Code</code>
+                    <div className="bg-slate-50/50 dark:bg-slate-900/20 p-4 rounded-xl border border-slate-100 dark:border-slate-800 text-sm text-slate-grey dark:text-slate-400">
+                        <p className="font-bold text-slate-600 dark:text-slate-400 mb-1">CSV Format:</p>
+                        <code className="block bg-white dark:bg-slate-800 p-2 rounded border border-slate-100 dark:border-slate-800 mb-2">Area Name, Area Code</code>
                         <Button variant="secondary" icon={Download} type="button" onClick={downloadTemplate}>
                             Download Template
                         </Button>

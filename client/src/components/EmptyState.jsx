@@ -49,13 +49,13 @@ export function EmptyState({
                 <div className={`
                     ${isCompact ? 'w-14 h-14 mb-4' : 'w-20 h-20 mb-6'}
                     rounded-full flex items-center justify-center
-                    bg-gradient-to-br from-orange-50 to-orange-100
-                    dark:from-orange-500/10 dark:to-orange-500/20
+                    bg-gradient-to-br from-slate-50 to-slate-100
+                    dark:from-slate-500/10 dark:to-slate-500/20
                     animate-pulse-subtle
                 `}>
                     {React.cloneElement(icon, {
                         size: isCompact ? 28 : 40,
-                        className: 'text-orange-500 dark:text-orange-400'
+                        className: 'text-slate-500 dark:text-slate-400'
                     })}
                 </div>
             ) : null}
@@ -87,7 +87,7 @@ export function EmptyState({
                         <button
                             onClick={onAction}
                             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl
-                                bg-gradient-to-r from-orange-500 to-orange-600 text-white
+                                bg-gradient-to-r from-slate-500 to-slate-600 text-white
                                 font-medium shadow-md hover:shadow-lg
                                 transform hover:-translate-y-0.5
                                 transition-ui duration-200"
@@ -402,8 +402,8 @@ export function EmptyShifts({ onAdd, ...props }) {
 export function EmptyLoading({ message = 'Loading...', ...props }) {
     return (
         <div className="flex flex-col items-center justify-center py-16" {...props}>
-            <div className="w-16 h-16 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center mb-4 animate-pulse">
-                <div className="w-8 h-8 border-[3px] border-orange-400 dark:border-orange-300 border-t-transparent rounded-full animate-spin" />
+            <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-900/30 flex items-center justify-center mb-4 animate-pulse">
+                <div className="w-8 h-8 border-[3px] border-slate-400 dark:border-slate-300 border-t-transparent rounded-full animate-spin" />
             </div>
             <p className="text-slate-500 dark:text-slate-400">{message}</p>
         </div>

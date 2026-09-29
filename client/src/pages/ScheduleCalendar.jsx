@@ -155,16 +155,16 @@ export default function ScheduleCalendar() {
                             <button
                                 onClick={() => setViewMode('week')}
                                 className={`px-4 py-1 rounded-full text-xs font-semibold transition-colors ${viewMode === 'week'
-                                    ? 'bg-orange-600 text-white shadow-sm'
-                                    : 'text-slate-600 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400'}`}
+                                    ? 'bg-slate-600 text-white shadow-sm'
+                                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-600 dark:hover:text-slate-400'}`}
                             >
                                 Week
                             </button>
                             <button
                                 onClick={() => setViewMode('month')}
                                 className={`px-4 py-1 rounded-full text-xs font-semibold transition-colors ${viewMode === 'month'
-                                    ? 'bg-orange-600 text-white shadow-sm'
-                                    : 'text-slate-600 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400'}`}
+                                    ? 'bg-slate-600 text-white shadow-sm'
+                                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-600 dark:hover:text-slate-400'}`}
                             >
                                 Month
                             </button>
@@ -179,7 +179,7 @@ export default function ScheduleCalendar() {
                     <button
                         onClick={() => navigateMonth(-1)}
                         aria-label="Previous"
-                        className="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-orange-50 dark:hover:bg-slate-700 hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
+                        className="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-600 dark:hover:text-slate-400 transition-colors"
                     >
                         <ChevronLeft size={18} />
                     </button>
@@ -189,7 +189,7 @@ export default function ScheduleCalendar() {
                     <button
                         onClick={() => navigateMonth(1)}
                         aria-label="Next"
-                        className="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-orange-50 dark:hover:bg-slate-700 hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
+                        className="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-600 dark:hover:text-slate-400 transition-colors"
                     >
                         <ChevronRight size={18} />
                     </button>
@@ -244,14 +244,14 @@ export default function ScheduleCalendar() {
                                     {days.map((day, i) => (
                                         <th
                                             key={i}
-                                            className={`p-1.5 rounded-lg ring-1 ring-black/5 dark:ring-white/10 text-center min-w-[60px] ${day && isToday(day) ? 'bg-orange-100 dark:bg-orange-900/30' :
+                                            className={`p-1.5 rounded-lg ring-1 ring-black/5 dark:ring-white/10 text-center min-w-[60px] ${day && isToday(day) ? 'bg-slate-100 dark:bg-slate-900/30' :
                                                 day && isWeekend(day) ? 'bg-slate-100 dark:bg-slate-700' : 'bg-slate-50/70 dark:bg-slate-900/50'
                                                 }`}
                                         >
                                             {day ? (
                                                 <>
                                                     <div className="text-[10px] uppercase tracking-[0.09em] font-bold text-slate-500 dark:text-slate-400">{dayNames[day.getDay()]}</div>
-                                                    <div className={`text-xs tabular-nums ${isToday(day) ? 'text-orange-600 dark:text-orange-400 font-bold' : 'text-slate-600 dark:text-slate-300'}`}>
+                                                    <div className={`text-xs tabular-nums ${isToday(day) ? 'text-slate-600 dark:text-slate-400 font-bold' : 'text-slate-600 dark:text-slate-300'}`}>
                                                         {day.getDate()}
                                                     </div>
                                                 </>
@@ -263,9 +263,9 @@ export default function ScheduleCalendar() {
                             <tbody>
                                 {filteredEmployees.slice(0, 15).map((emp) => (
                                     <tr key={emp.id} className="group">
-                                        <td className="p-2 rounded-lg ring-1 ring-black/5 dark:ring-white/10 bg-white dark:bg-slate-800 sticky left-0 z-10 group-hover:bg-orange-50/50 dark:group-hover:bg-slate-700/40 transition-colors">
+                                        <td className="p-2 rounded-lg ring-1 ring-black/5 dark:ring-white/10 bg-white dark:bg-slate-800 sticky left-0 z-10 group-hover:bg-slate-50/50 dark:group-hover:bg-slate-700/40 transition-colors">
                                             <div className="font-semibold text-sm text-slate-800 dark:text-slate-100">{emp.name || '—'}</div>
-                                            <div className="font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold">{emp.employee_code || '—'}</div>
+                                            <div className="font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">{emp.employee_code || '—'}</div>
                                         </td>
                                         {days.map((day, i) => {
                                             if (!day) return <td key={i} className="rounded-lg ring-1 ring-black/5 dark:ring-white/10 bg-slate-50/50 dark:bg-slate-900/40"></td>;
@@ -276,7 +276,7 @@ export default function ScheduleCalendar() {
                                             return (
                                                 <td
                                                     key={i}
-                                                    className={`p-1 text-center rounded-lg ring-1 ring-black/5 dark:ring-white/10 ${isToday(day) ? 'bg-orange-50 dark:bg-orange-900/20' :
+                                                    className={`p-1 text-center rounded-lg ring-1 ring-black/5 dark:ring-white/10 ${isToday(day) ? 'bg-slate-50 dark:bg-slate-900/20' :
                                                         isWO ? 'bg-slate-100 dark:bg-slate-700' : 'bg-white dark:bg-slate-800'
                                                         }`}
                                                 >
@@ -313,12 +313,12 @@ export default function ScheduleCalendar() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-white/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 hover:-translate-y-0.5 transition-transform">
                     <div className="flex items-center gap-2 mb-2">
-                        <div className="p-1.5 rounded-xl bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400">
+                        <div className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-900/30 text-slate-600 dark:text-slate-400">
                             <Users size={16} />
                         </div>
                         <h3 className="text-[10px] uppercase tracking-[0.09em] font-bold text-slate-500 dark:text-slate-400">Total Employees</h3>
                     </div>
-                    <div className="text-3xl font-bold tabular-nums text-orange-600 dark:text-orange-400">{filteredEmployees.length}</div>
+                    <div className="text-3xl font-bold tabular-nums text-slate-600 dark:text-slate-400">{filteredEmployees.length}</div>
                     <div className="text-sm text-slate-600 dark:text-slate-300">
                         {selectedDepartment ? 'In selected department' : 'Across all departments'}
                     </div>

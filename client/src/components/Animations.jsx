@@ -96,9 +96,9 @@ export function RippleButton({
     ...props
 }) {
     const variantClasses = {
-        primary: 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 shadow-md hover:shadow-lg',
+        primary: 'bg-gradient-to-r from-slate-500 to-slate-600 text-white hover:from-slate-600 hover:to-slate-700 shadow-md hover:shadow-lg',
         secondary: 'bg-slate-100 text-slate-700 hover:bg-slate-200',
-        outline: 'border-2 border-orange-500 text-orange-600 hover:bg-orange-50',
+        outline: 'border-2 border-slate-500 text-slate-600 hover:bg-slate-50',
         ghost: 'text-slate-600 hover:bg-slate-100',
         danger: 'bg-gradient-to-r from-red-500 to-rose-600 text-white hover:from-red-600 hover:to-rose-700 shadow-md'
     };
@@ -122,7 +122,7 @@ export function RippleButton({
                     inline-flex items-center justify-center
                     font-medium rounded-xl
                     transform transition-ui duration-200
-                    focus:outline-none focus:ring-2 focus:ring-orange-300 focus:ring-offset-2
+                    focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-2
                     disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none
                     active:scale-[0.98]
                     ${variantClasses[variant]}

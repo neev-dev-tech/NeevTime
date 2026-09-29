@@ -83,7 +83,7 @@ export default function ConfirmDialog() {
     // Confirm button follows the dialog type unless explicitly overridden
     const confirmColorByType = {
         danger: 'bg-rose-600 hover:bg-rose-700',
-        warning: 'bg-orange-600 hover:bg-orange-700',
+        warning: 'bg-slate-600 hover:bg-slate-700',
         info: 'bg-slate-600 hover:bg-slate-700'
     };
     const confirmColor = options.confirmButtonColor || confirmColorByType[options.type] || confirmColorByType.warning;

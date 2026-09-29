@@ -100,7 +100,7 @@ export default function NotificationCenter() {
             <button
                 ref={triggerRef}
                 onClick={openPanel}
-                className="relative p-2 rounded-full hover:bg-orange-50 dark:hover:bg-slate-700 text-slate-400 hover:text-orange-500 transition-colors"
+                className="relative p-2 rounded-full hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-500 transition-colors"
                 aria-label="Notifications"
             >
                 <Bell size={20} />
@@ -112,8 +112,8 @@ export default function NotificationCenter() {
             </button>
 
             {open && (
-                <div ref={panelRef} className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-800 shadow-xl rounded-2xl overflow-hidden z-40 border border-orange-100 dark:border-slate-700">
-                    <div className="px-4 py-3 border-b border-orange-50 dark:border-slate-700 bg-orange-50/50 dark:bg-slate-900/50 flex items-center justify-between">
+                <div ref={panelRef} className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-800 shadow-xl rounded-2xl overflow-hidden z-40 border border-slate-100 dark:border-slate-700">
+                    <div className="px-4 py-3 border-b border-slate-50 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50 flex items-center justify-between">
                         <p className="text-sm font-bold text-slate-800 dark:text-slate-100">Notifications</p>
                         <button onClick={() => setOpen(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300" aria-label="Close">
                             <X size={14} />
@@ -122,12 +122,12 @@ export default function NotificationCenter() {
 
                     {/* Pending work */}
                     <div className="py-1 border-b border-slate-100 dark:border-slate-700">
-                        <button onClick={() => go('/leaves')} className="w-full px-4 py-2.5 flex items-center justify-between hover:bg-orange-50 dark:hover:bg-slate-700 text-left">
+                        <button onClick={() => go('/leaves')} className="w-full px-4 py-2.5 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-700 text-left">
                             <span className="flex items-center gap-2.5 text-sm text-slate-600 dark:text-slate-300"><Plane size={15} className="text-emerald-600" /> Pending leave requests</span>
                             <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${summary.pending_leave > 0 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400'}`}>{summary.pending_leave}</span>
                         </button>
-                        <button onClick={() => go('/regularizations')} className="w-full px-4 py-2.5 flex items-center justify-between hover:bg-orange-50 dark:hover:bg-slate-700 text-left">
-                            <span className="flex items-center gap-2.5 text-sm text-slate-600 dark:text-slate-300"><FileCheck size={15} className="text-orange-600" /> Pending regularizations</span>
+                        <button onClick={() => go('/regularizations')} className="w-full px-4 py-2.5 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-700 text-left">
+                            <span className="flex items-center gap-2.5 text-sm text-slate-600 dark:text-slate-300"><FileCheck size={15} className="text-slate-600" /> Pending regularizations</span>
                             <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${summary.pending_regularizations > 0 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400'}`}>{summary.pending_regularizations}</span>
                         </button>
                         {pushOff.length > 0 && (
@@ -145,7 +145,7 @@ export default function NotificationCenter() {
                             </button>
                         )}
                         {summary.devices_pending_approval > 0 && (
-                            <button onClick={() => go('/devices')} className={`w-full px-4 py-2.5 flex items-center justify-between text-left ${losingPunches ? 'bg-rose-50 hover:bg-rose-100 dark:bg-rose-900/20 dark:hover:bg-rose-900/40' : 'hover:bg-orange-50 dark:hover:bg-slate-700'}`}>
+                            <button onClick={() => go('/devices')} className={`w-full px-4 py-2.5 flex items-center justify-between text-left ${losingPunches ? 'bg-rose-50 hover:bg-rose-100 dark:bg-rose-900/20 dark:hover:bg-rose-900/40' : 'hover:bg-slate-50 dark:hover:bg-slate-700'}`}>
                                 <span className="flex items-center gap-2.5 text-sm text-slate-700 dark:text-slate-200">
                                     <ShieldAlert size={15} className="text-rose-600 shrink-0" />
                                     <span>
@@ -160,7 +160,7 @@ export default function NotificationCenter() {
                                 <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300 shrink-0">{summary.devices_pending_approval}</span>
                             </button>
                         )}
-                        <button onClick={() => go('/devices')} className="w-full px-4 py-2.5 flex items-center justify-between hover:bg-orange-50 dark:hover:bg-slate-700 text-left">
+                        <button onClick={() => go('/devices')} className="w-full px-4 py-2.5 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-700 text-left">
                             <span className="flex items-center gap-2.5 text-sm text-slate-600 dark:text-slate-300"><WifiOff size={15} className="text-rose-600" /> Devices offline</span>
                             <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${summary.devices_offline > 0 ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300' : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400'}`}>{summary.devices_offline}</span>
                         </button>

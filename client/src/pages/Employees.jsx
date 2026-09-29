@@ -16,7 +16,7 @@ import { toLocalDateString } from '../utils/dateFormat';
 const BADGE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide';
 const BADGE_ON = `${BADGE} bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300`;
 const BADGE_OFF = `${BADGE} bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300`;
-const CELL_CODE = 'font-mono text-xs tabular-nums text-orange-600 dark:text-orange-400 font-semibold';
+const CELL_CODE = 'font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold';
 const CELL_STRONG = 'font-semibold text-slate-800 dark:text-slate-100';
 const CELL_SOFT = 'text-slate-600 dark:text-slate-300';
 const CELL_MONO = 'font-mono text-xs tabular-nums text-slate-600 dark:text-slate-300';
@@ -762,7 +762,7 @@ export default function Employees() {
                                     <div className="flex items-center gap-3 min-w-0">
                                         <span
                                             aria-hidden="true"
-                                            className="w-9 h-9 shrink-0 rounded-full grid place-items-center font-bold text-xs bg-orange-100 text-orange-700 border border-orange-200 dark:bg-orange-900/40 dark:text-orange-300 dark:border-orange-800/70"
+                                            className="w-9 h-9 shrink-0 rounded-full grid place-items-center font-bold text-xs bg-slate-100 text-slate-700 border border-slate-200 dark:bg-slate-900/40 dark:text-slate-300 dark:border-slate-800/70"
                                         >
                                             {initialOf(emp.name)}
                                         </span>
@@ -823,7 +823,7 @@ export default function Employees() {
 
             <div className="px-5 py-3 border-t border-slate-200/80 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400 flex justify-between items-center">
                 <span>Total <span className="font-bold text-slate-700 dark:text-slate-200">{filteredEmployees.length}</span> Records</span>
-                <span>Selected: <span className="font-bold text-orange-600 dark:text-orange-400">{selectedIds.length}</span></span>
+                <span>Selected: <span className="font-bold text-slate-600 dark:text-slate-400">{selectedIds.length}</span></span>
             </div>
             </div>
 
@@ -1004,9 +1004,9 @@ export default function Employees() {
                 size="lg"
             >
                 <div className="p-8 text-center">
-                    <div className="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl p-8 hover:bg-orange-50/50 dark:hover:bg-slate-700/50 hover:border-saffron/50 transition-ui cursor-pointer group">
-                        <div className="w-16 h-16 bg-orange-50 dark:bg-orange-900/30 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                            <Upload className="text-orange-500 dark:text-orange-400" size={28} />
+                    <div className="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl p-8 hover:bg-slate-50/50 dark:hover:bg-slate-700/50 hover:border-saffron/50 transition-ui cursor-pointer group">
+                        <div className="w-16 h-16 bg-slate-50 dark:bg-slate-900/30 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                            <Upload className="text-slate-500 dark:text-slate-400" size={28} />
                         </div>
                         <h4 className="text-lg font-bold text-charcoal dark:text-slate-100 mb-2">Upload CSV File</h4>
                         <p className="text-sm text-slate-grey dark:text-slate-400 mb-6">Format: ID, Name, DeptID</p>
@@ -1036,7 +1036,7 @@ export default function Employees() {
                     hideClose
                 >
                     <div className="mb-6">
-                        <div className="w-12 h-12 bg-orange-50 dark:bg-orange-900/30 rounded-full flex items-center justify-center mb-4">
+                        <div className="w-12 h-12 bg-slate-50 dark:bg-slate-900/30 rounded-full flex items-center justify-center mb-4">
                             <ArrowRightLeft className="text-saffron" size={24} />
                         </div>
                             <h3 className="font-semibold text-xl mb-1 text-slate-800 dark:text-slate-100">{transferType} Transfer</h3>
@@ -1135,7 +1135,7 @@ export default function Employees() {
                 hideClose
             >
                 <div className="mb-6">
-                    <div className="w-12 h-12 bg-orange-50 dark:bg-orange-900/30 rounded-full flex items-center justify-center mb-4">
+                    <div className="w-12 h-12 bg-slate-50 dark:bg-slate-900/30 rounded-full flex items-center justify-center mb-4">
                         <Settings className="text-saffron" size={24} />
                     </div>
                         <h3 className="font-semibold text-xl mb-1 text-slate-800 dark:text-slate-100">Confirm Action</h3>

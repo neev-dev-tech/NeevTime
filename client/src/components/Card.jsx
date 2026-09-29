@@ -82,9 +82,9 @@ export function CardHeader({
         <div className={`flex items-start justify-between mb-4 ${className}`}>
             <div className="flex items-start gap-3">
                 {icon && (
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-50 to-orange-100 
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 
                         flex items-center justify-center flex-shrink-0">
-                        {React.cloneElement(icon, { size: 20, className: 'text-orange-500' })}
+                        {React.cloneElement(icon, { size: 20, className: 'text-slate-500' })}
                     </div>
                 )}
                 <div>
@@ -148,10 +148,10 @@ export function StatCard({
 }) {
     const colorStyles = {
         orange: {
-            bg: 'bg-gradient-to-br from-orange-50 to-orange-100',
+            bg: 'bg-gradient-to-br from-slate-50 to-slate-100',
             border: 'border-l-4 border-l-orange-500',
-            iconBg: 'bg-orange-100',
-            iconColor: 'text-orange-500',
+            iconBg: 'bg-slate-100',
+            iconColor: 'text-slate-500',
             valueColor: 'text-slate-800'
         },
         green: {
@@ -246,7 +246,7 @@ export function SummaryCard({
                         <span className="text-sm text-slate-600 dark:text-slate-400">{item.label}</span>
                         <span className={`font-semibold ${item.color === 'green' ? 'text-green-600 dark:text-green-300' :
                                 item.color === 'red' ? 'text-red-600 dark:text-red-300' :
-                                    item.color === 'orange' ? 'text-orange-600 dark:text-orange-300' :
+                                    item.color === 'orange' ? 'text-slate-600 dark:text-slate-300' :
                                         'text-slate-800 dark:text-slate-100'
                             }`}>
                             {item.value}
@@ -274,10 +274,10 @@ export function ActionCard({
         <Card variant={variant} hover className={`group ${className}`}>
             <div className="flex items-start gap-4">
                 {icon && (
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-100 to-orange-200 
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 
                         flex items-center justify-center flex-shrink-0
                         group-hover:scale-110 transition-transform">
-                        {React.cloneElement(icon, { size: 24, className: 'text-orange-600 dark:text-orange-300' })}
+                        {React.cloneElement(icon, { size: 24, className: 'text-slate-600 dark:text-slate-300' })}
                     </div>
                 )}
                 <div className="flex-1 min-w-0">
@@ -285,7 +285,7 @@ export function ActionCard({
                     <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">{description}</p>
                     <button
                         onClick={onAction}
-                        className="text-sm font-medium text-orange-600 dark:text-orange-300 hover:text-orange-700 
+                        className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-700 
                             flex items-center gap-1 group/btn"
                     >
                         {actionLabel}
@@ -344,7 +344,7 @@ export function FeatureCard({
     className = ''
 }) {
     const colorStyles = {
-        orange: 'from-orange-500 to-orange-600',
+        orange: 'from-slate-500 to-slate-600',
         blue: 'from-slate-500 to-slate-600',
         green: 'from-green-500 to-green-600',
         purple: 'from-slate-500 to-slate-600'
@@ -365,7 +365,7 @@ export function FeatureCard({
                     <div className="flex items-center gap-2 mb-1">
                         <h4 className="font-semibold text-slate-800 dark:text-slate-100">{title}</h4>
                         {badge && (
-                            <span className="px-2 py-0.5 text-xs font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-300 rounded-full">
+                            <span className="px-2 py-0.5 text-xs font-medium bg-slate-100 dark:bg-slate-900/30 text-slate-600 dark:text-slate-300 rounded-full">
                                 {badge}
                             </span>
                         )}
@@ -399,7 +399,7 @@ export function ListCard({
                     {hasMore && (
                         <button
                             onClick={onViewAll}
-                            className="text-sm text-orange-600 dark:text-orange-300 hover:text-orange-700 font-medium"
+                            className="text-sm text-slate-600 dark:text-slate-300 hover:text-slate-700 font-medium"
                         >
                             View All ({items.length})
                         </button>

@@ -205,8 +205,8 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
                 <button
                     onClick={() => setActiveTab('locations')}
                     className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors border ${activeTab === 'locations'
-                        ? 'bg-orange-600 text-white border-transparent shadow-sm'
-                        : 'bg-white/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-orange-300 hover:text-orange-600 dark:hover:text-orange-400'
+                        ? 'bg-slate-600 text-white border-transparent shadow-sm'
+                        : 'bg-white/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300 hover:text-slate-600 dark:hover:text-slate-400'
                         }`}
                 >
                     <MapPin size={13} />
@@ -215,8 +215,8 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
                 <button
                     onClick={() => setActiveTab('holidays')}
                     className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors border ${activeTab === 'holidays'
-                        ? 'bg-orange-600 text-white border-transparent shadow-sm'
-                        : 'bg-white/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-orange-300 hover:text-orange-600 dark:hover:text-orange-400'
+                        ? 'bg-slate-600 text-white border-transparent shadow-sm'
+                        : 'bg-white/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300 hover:text-slate-600 dark:hover:text-slate-400'
                         }`}
                 >
                     <Calendar size={13} />
@@ -280,7 +280,7 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
                                 <div key={loc.id} className="bg-white/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 hover:-translate-y-0.5 transition-transform">
                                     <div className="flex items-start justify-between gap-3">
                                         <div className="flex items-center gap-3 min-w-0">
-                                            <div className="p-2 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-xl shrink-0">
+                                            <div className="p-2 bg-slate-100 dark:bg-slate-900/30 text-slate-600 dark:text-slate-400 rounded-xl shrink-0">
                                                 <MapPin size={20} />
                                             </div>
                                             <div className="min-w-0">
@@ -341,7 +341,7 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                                     {holidays.map((h, idx) => (
-                                        <tr key={h.id} className="hover:bg-orange-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                        <tr key={h.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/40 transition-colors">
                                             <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums align-top">{idx + 1}</td>
                                             <td className="px-5 py-3">
                                                 <div className="font-semibold text-slate-800 dark:text-slate-100">{h.name || '—'}</div>

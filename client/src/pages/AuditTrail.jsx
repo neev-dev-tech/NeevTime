@@ -124,7 +124,7 @@ export default function AuditTrail() {
                         <button
                             type="button"
                             onClick={() => { setOffset(0); setFilters({ table: '', action: '', from: '', to: '' }); }}
-                            className="text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400"
+                            className="text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-600 dark:hover:text-slate-400"
                         >
                             Clear
                         </button>
