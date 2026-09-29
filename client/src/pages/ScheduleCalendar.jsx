@@ -238,7 +238,7 @@ export default function ScheduleCalendar() {
                         <table className="w-full border-separate border-spacing-1">
                             <thead>
                                 <tr>
-                                    <th className="p-2 rounded-lg ring-1 ring-black/5 dark:ring-white/10 bg-slate-50/70 dark:bg-slate-900/50 text-left min-w-[150px] sticky left-0 z-10 text-[10px] uppercase tracking-[0.09em] font-bold text-slate-500 dark:text-slate-400">
+                                    <th className="p-2 rounded-lg ring-1 ring-black/5 dark:ring-white/10 bg-slate-50/70 dark:bg-slate-900/50 text-left min-w-[150px] sticky left-0 z-10 text-[11px] uppercase tracking-[0.06em] font-semibold text-slate-500 dark:text-slate-400">
                                         Employee
                                     </th>
                                     {days.map((day, i) => (
@@ -250,7 +250,7 @@ export default function ScheduleCalendar() {
                                         >
                                             {day ? (
                                                 <>
-                                                    <div className="text-[10px] uppercase tracking-[0.09em] font-bold text-slate-500 dark:text-slate-400">{dayNames[day.getDay()]}</div>
+                                                    <div className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400">{dayNames[day.getDay()]}</div>
                                                     <div className={`text-xs tabular-nums ${isToday(day) ? 'text-slate-600 dark:text-slate-400 font-bold' : 'text-slate-600 dark:text-slate-300'}`}>
                                                         {day.getDate()}
                                                     </div>
@@ -316,7 +316,7 @@ export default function ScheduleCalendar() {
                         <div className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-900/30 text-slate-600 dark:text-slate-400">
                             <Users size={16} />
                         </div>
-                        <h3 className="text-[10px] uppercase tracking-[0.09em] font-bold text-slate-500 dark:text-slate-400">Total Employees</h3>
+                        <h3 className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400">Total Employees</h3>
                     </div>
                     <div className="text-3xl font-bold tabular-nums text-slate-600 dark:text-slate-400">{filteredEmployees.length}</div>
                     <div className="text-sm text-slate-600 dark:text-slate-300">
@@ -328,7 +328,7 @@ export default function ScheduleCalendar() {
                         <div className="p-1.5 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
                             <Clock size={16} />
                         </div>
-                        <h3 className="text-[10px] uppercase tracking-[0.09em] font-bold text-slate-500 dark:text-slate-400">Active Shifts</h3>
+                        <h3 className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400">Active Shifts</h3>
                     </div>
                     <div className="text-3xl font-bold tabular-nums text-emerald-600 dark:text-emerald-400">{shifts.length}</div>
                     <div className="text-sm text-slate-600 dark:text-slate-300">Defined in system</div>
@@ -338,7 +338,7 @@ export default function ScheduleCalendar() {
                         <div className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-900/30 text-slate-600 dark:text-slate-400">
                             <Building2 size={16} />
                         </div>
-                        <h3 className="text-[10px] uppercase tracking-[0.09em] font-bold text-slate-500 dark:text-slate-400">Departments</h3>
+                        <h3 className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400">Departments</h3>
                     </div>
                     <div className="text-3xl font-bold tabular-nums text-slate-600 dark:text-slate-400">{departments.length}</div>
                     <div className="text-sm text-slate-600 dark:text-slate-300">With employees</div>

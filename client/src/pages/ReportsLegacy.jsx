@@ -725,21 +725,21 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
-                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">
+                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
                                 <tr>
-                                    <th className="px-5 py-3 font-bold w-12">#</th>
+                                    <th className="px-5 py-3 font-semibold w-12">#</th>
                                     {columns
                                         ? columns.map((col, i) => (
-                                            <th key={i} className="px-5 py-3 font-bold whitespace-nowrap">{col.label}</th>
+                                            <th key={i} className="px-5 py-3 font-semibold whitespace-nowrap">{col.label}</th>
                                         ))
                                         : Object.keys(reportData[0] || {}).map(k => (
-                                            <th key={k} className="px-5 py-3 font-bold whitespace-nowrap capitalize">{k.replace(/_/g, ' ')}</th>
+                                            <th key={k} className="px-5 py-3 font-semibold whitespace-nowrap capitalize">{k.replace(/_/g, ' ')}</th>
                                         ))}
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                                 {reportData.map((row, i) => (
-                                    <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                    <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
                                         <td className="px-5 py-3 text-slate-400 tabular-nums">{i + 1}</td>
                                         {columns
                                             ? columns.map((col, j) => (

@@ -230,22 +230,22 @@ function FirstLastReport() {
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
-                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">
+                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
                                 <tr>
-                                    <th className="px-5 py-3 font-bold w-12">#</th>
-                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Employee ID</th>
-                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Name</th>
-                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Department</th>
-                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Date</th>
-                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Weekday</th>
-                                    <th className="px-5 py-3 font-bold whitespace-nowrap">First Punch</th>
-                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Last Punch</th>
-                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Total Time</th>
+                                    <th className="px-5 py-3 font-semibold w-12">#</th>
+                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Employee ID</th>
+                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Name</th>
+                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Department</th>
+                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Date</th>
+                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Weekday</th>
+                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">First Punch</th>
+                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Last Punch</th>
+                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Total Time</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                                 {data.map((row, i) => (
-                                    <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                    <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
                                         <td className="px-5 py-3 text-slate-400 tabular-nums">{i + 1}</td>
                                         <td className="px-5 py-3 whitespace-nowrap">
                                             <span className={CODE_CELL}>{row.employee_code || '—'}</span>

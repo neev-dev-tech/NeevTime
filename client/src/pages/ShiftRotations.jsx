@@ -99,7 +99,7 @@ export default function ShiftRotations() {
                     </div>
                 ) : (
                     <table className="w-full text-left text-sm">
-                        <thead className="bg-slate-50 dark:bg-slate-900/40 text-[10px] uppercase tracking-[0.09em] font-bold text-slate-500 dark:text-slate-400">
+                        <thead className="bg-slate-50 dark:bg-slate-900/40 text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400">
                             <tr>
                                 <th className="px-5 py-3">Rotation</th>
                                 <th className="px-5 py-3">Pattern</th>

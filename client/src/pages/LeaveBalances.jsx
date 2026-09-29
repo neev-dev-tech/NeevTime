@@ -225,9 +225,9 @@ export default function LeaveBalances() {
                     </TableToolbar>
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
-                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">
+                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
                                 <tr>
-                                    <th className="px-5 py-3 font-bold w-12">#</th>
+                                    <th className="px-5 py-3 font-semibold w-12">#</th>
                                     <SortableTh controls={controls} sortKey="employee_name" className="whitespace-nowrap">Employee</SortableTh>
                                     <SortableTh controls={controls} sortKey="employee_code" className="whitespace-nowrap">Code</SortableTh>
                                     <SortableTh controls={controls} sortKey="leave_type_name" className="whitespace-nowrap">Leave Type</SortableTh>
@@ -238,7 +238,7 @@ export default function LeaveBalances() {
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                                 {controls.view.map((b, idx) => (
-                                    <tr key={b.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                    <tr key={b.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
                                         <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{(controls.page - 1) * controls.pageSize + idx + 1}</td>
                                         <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">
                                             {b.employee_name || '—'}

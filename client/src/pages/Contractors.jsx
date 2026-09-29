@@ -114,7 +114,7 @@ export default function Contractors() {
                     </div>
                 ) : (
                     <table className="w-full text-left text-sm">
-                        <thead className="bg-slate-50 dark:bg-slate-900/40 text-[10px] uppercase tracking-[0.09em] font-bold text-slate-500 dark:text-slate-400">
+                        <thead className="bg-slate-50 dark:bg-slate-900/40 text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400">
                             <tr>
                                 <th className="px-5 py-3">Contractor</th>
                                 <th className="px-5 py-3">Contact</th>
@@ -256,7 +256,7 @@ export default function Contractors() {
                                     </p>
                                 ) : (
                                 <table className="w-full text-left text-sm">
-                                    <thead className="text-[10px] uppercase tracking-[0.09em] font-bold text-slate-500">
+                                    <thead className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500">
                                         <tr>
                                             <th className="py-2">Employee</th>
                                             <th className="py-2 text-right">Days</th>

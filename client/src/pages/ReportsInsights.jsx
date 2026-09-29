@@ -112,7 +112,7 @@ export default function ReportsInsights() {
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm">
-                            <thead className="bg-slate-50 dark:bg-slate-900/40 text-[10px] uppercase tracking-[0.09em] font-bold text-slate-500 dark:text-slate-400">
+                            <thead className="bg-slate-50 dark:bg-slate-900/40 text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400">
                                 <tr>{columns.map(c => (
                                     <th key={c.key} className={`px-4 py-3 ${c.key === 'department' ? '' : 'text-right'}`}>{c.label}</th>
                                 ))}</tr>

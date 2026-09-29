@@ -121,20 +121,20 @@ export default function LeaveTypes() {
                     <TableToolbar controls={controls} placeholder="Search leave types…" />
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
-                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">
+                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
                                 <tr>
-                                    <th className="px-5 py-3 font-bold w-12">#</th>
+                                    <th className="px-5 py-3 font-semibold w-12">#</th>
                                     <SortableTh controls={controls} sortKey="code" className="whitespace-nowrap">Code</SortableTh>
                                     <SortableTh controls={controls} sortKey="name" className="whitespace-nowrap">Name</SortableTh>
                                     <SortableTh controls={controls} sortKey="annual_quota" className="whitespace-nowrap">Annual Quota</SortableTh>
                                     <SortableTh controls={controls} sortKey="carry_forward" className="whitespace-nowrap">Carry Forward</SortableTh>
-                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Color</th>
-                                    <th className="px-5 py-3 font-bold text-right whitespace-nowrap">Actions</th>
+                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Color</th>
+                                    <th className="px-5 py-3 font-semibold text-right whitespace-nowrap">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                                 {controls.view.map((t, idx) => (
-                                    <tr key={t.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                    <tr key={t.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
                                         <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{(controls.page - 1) * controls.pageSize + idx + 1}</td>
                                         <td className="px-5 py-3 whitespace-nowrap">
                                             <span className="font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">

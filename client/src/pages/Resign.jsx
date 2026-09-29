@@ -333,7 +333,7 @@ export default function Resign() {
                     </div>
                 ) : (
                 <table className="w-full text-left text-sm border-collapse">
-                    <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 sticky top-0 z-10 border-b border-slate-100 dark:border-slate-700">
+                    <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400 sticky top-0 z-10 border-b border-slate-100 dark:border-slate-700">
                         <tr>
                             <th className="px-5 py-3 w-12 text-center">
                                 <input
@@ -343,17 +343,17 @@ export default function Resign() {
                                     onChange={toggleSelectAll}
                                 />
                             </th>
-                            <th className="px-5 py-3 font-bold whitespace-nowrap">Employee Id</th>
-                            <th className="px-5 py-3 font-bold whitespace-nowrap">Full Name</th>
-                            <th className="px-5 py-3 font-bold whitespace-nowrap">Department</th>
-                            <th className="px-5 py-3 font-bold whitespace-nowrap">Position</th>
-                            <th className="px-5 py-3 font-bold whitespace-nowrap">Area Name</th>
-                            <th className="px-5 py-3 font-bold whitespace-nowrap">Resign Type</th>
+                            <th className="px-5 py-3 font-semibold whitespace-nowrap">Employee Id</th>
+                            <th className="px-5 py-3 font-semibold whitespace-nowrap">Full Name</th>
+                            <th className="px-5 py-3 font-semibold whitespace-nowrap">Department</th>
+                            <th className="px-5 py-3 font-semibold whitespace-nowrap">Position</th>
+                            <th className="px-5 py-3 font-semibold whitespace-nowrap">Area Name</th>
+                            <th className="px-5 py-3 font-semibold whitespace-nowrap">Resign Type</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                         {paginatedItems.map(emp => (
-                            <tr key={emp.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/40 transition-colors group">
+                            <tr key={emp.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors group">
                                 <td className="px-5 py-3 text-center">
                                     <input
                                         type="checkbox"

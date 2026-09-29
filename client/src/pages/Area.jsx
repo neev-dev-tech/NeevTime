@@ -343,27 +343,27 @@ export default function Area() {
                             </div>
                         ) : (
                             <table className="w-full text-sm text-left">
-                                <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 sticky top-0 z-10">
+                                <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400 sticky top-0 z-10">
                                     <tr>
-                                        <th className="px-5 py-3 font-bold w-10">
+                                        <th className="px-5 py-3 font-semibold w-10">
                                             <input type="checkbox" checked={selectedRows.length === tableData.length && tableData.length > 0} onChange={toggleAllRows} className="rounded text-slate-600 focus:ring-slate-500" />
                                         </th>
-                                        <th className="px-5 py-3 font-bold w-12">#</th>
-                                        <th className="px-5 py-3 font-bold whitespace-nowrap">Area Code</th>
-                                        <th className="px-5 py-3 font-bold whitespace-nowrap">Area Name</th>
-                                        <th className="px-5 py-3 font-bold whitespace-nowrap">Parent</th>
-                                        <th className="px-5 py-3 font-bold whitespace-nowrap">Device Count</th>
-                                        <th className="px-5 py-3 font-bold whitespace-nowrap">Employee Count</th>
-                                        <th className="px-5 py-3 font-bold whitespace-nowrap">Resigned Count</th>
-                                        <th className="px-5 py-3 font-bold whitespace-nowrap">FP Count</th>
-                                        <th className="px-5 py-3 font-bold whitespace-nowrap">Face Count</th>
-                                        <th className="px-5 py-3 font-bold whitespace-nowrap">Card Count</th>
-                                        <th className="px-5 py-3 font-bold text-right whitespace-nowrap w-20">Actions</th>
+                                        <th className="px-5 py-3 font-semibold w-12">#</th>
+                                        <th className="px-5 py-3 font-semibold whitespace-nowrap">Area Code</th>
+                                        <th className="px-5 py-3 font-semibold whitespace-nowrap">Area Name</th>
+                                        <th className="px-5 py-3 font-semibold whitespace-nowrap">Parent</th>
+                                        <th className="px-5 py-3 font-semibold whitespace-nowrap">Device Count</th>
+                                        <th className="px-5 py-3 font-semibold whitespace-nowrap">Employee Count</th>
+                                        <th className="px-5 py-3 font-semibold whitespace-nowrap">Resigned Count</th>
+                                        <th className="px-5 py-3 font-semibold whitespace-nowrap">FP Count</th>
+                                        <th className="px-5 py-3 font-semibold whitespace-nowrap">Face Count</th>
+                                        <th className="px-5 py-3 font-semibold whitespace-nowrap">Card Count</th>
+                                        <th className="px-5 py-3 font-semibold text-right whitespace-nowrap w-20">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                                     {tableData.map((area, idx) => (
-                                        <tr key={area.id} className={`hover:bg-slate-50/50 dark:hover:bg-slate-700/40 transition-colors ${selectedRows.includes(area.id) ? 'bg-slate-50/60 dark:bg-slate-900/20' : ''}`}>
+                                        <tr key={area.id} className={`hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors ${selectedRows.includes(area.id) ? 'bg-slate-50/60 dark:bg-slate-900/20' : ''}`}>
                                             <td className="px-5 py-3">
                                                 <input type="checkbox" checked={selectedRows.includes(area.id)} onChange={() => toggleRowSelection(area.id)} className="rounded text-slate-600 focus:ring-slate-500" />
                                             </td>

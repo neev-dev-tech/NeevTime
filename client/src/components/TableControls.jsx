@@ -65,11 +65,11 @@ export function SortableTh({ controls, sortKey, children, className = '' }) {
     const dir = active ? controls.sort.dir : null;
 
     if (!sortKey) {
-        return <th className={`px-5 py-3 font-bold ${className}`}>{children}</th>;
+        return <th className={`px-5 py-3 font-semibold ${className}`}>{children}</th>;
     }
 
     return (
-        <th className={`px-5 py-3 font-bold ${className}`} aria-sort={
+        <th className={`px-5 py-3 font-semibold ${className}`} aria-sort={
             active ? (dir === 'asc' ? 'ascending' : 'descending') : 'none'
         }>
             <button

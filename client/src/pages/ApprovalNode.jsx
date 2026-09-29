@@ -211,7 +211,7 @@ export default function ApprovalNode() {
                     </div>
                 ) : (
                 <table className="w-full text-left text-sm border-collapse">
-                    <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 sticky top-0 z-10 border-b border-slate-100 dark:border-slate-700">
+                    <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400 sticky top-0 z-10 border-b border-slate-100 dark:border-slate-700">
                         <tr>
                             <th className="px-5 py-3 w-12 text-center">
                                 <input
@@ -221,16 +221,16 @@ export default function ApprovalNode() {
                                     onChange={toggleSelectAll}
                                 />
                             </th>
-                            <th className="px-5 py-3 font-bold whitespace-nowrap">Node Code</th>
-                            <th className="px-5 py-3 font-bold whitespace-nowrap">Node Name</th>
-                            <th className="px-5 py-3 font-bold whitespace-nowrap">Approver Type</th>
-                            <th className="px-5 py-3 font-bold whitespace-nowrap">Description</th>
-                            <th className="px-5 py-3 font-bold whitespace-nowrap w-24 text-right">Actions</th>
+                            <th className="px-5 py-3 font-semibold whitespace-nowrap">Node Code</th>
+                            <th className="px-5 py-3 font-semibold whitespace-nowrap">Node Name</th>
+                            <th className="px-5 py-3 font-semibold whitespace-nowrap">Approver Type</th>
+                            <th className="px-5 py-3 font-semibold whitespace-nowrap">Description</th>
+                            <th className="px-5 py-3 font-semibold whitespace-nowrap w-24 text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                         {paginatedItems.map(node => (
-                            <tr key={node.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/40 transition-colors group">
+                            <tr key={node.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors group">
                                 <td className="px-5 py-3 text-center">
                                     <input
                                         type="checkbox"

@@ -129,7 +129,7 @@ export default function ManualEntry() {
                                 </div>
                             ) : filteredEmployees.slice(0, 5).map(emp => (
                                 <button key={emp.id} type="button" onClick={() => { setSelectedEmployee(emp); setSearchTerm(''); }}
-                                    className="w-full text-left px-4 py-2 hover:bg-slate-50/50 dark:hover:bg-slate-700/40 transition-colors flex items-center gap-2">
+                                    className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors flex items-center gap-2">
                                     <User size={16} className="text-slate-400 dark:text-slate-500" />
                                     <span className="font-semibold text-slate-800 dark:text-slate-100">{emp.name || '—'}</span>
                                     <span className="ml-auto font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">

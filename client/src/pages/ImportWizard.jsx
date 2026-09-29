@@ -209,17 +209,17 @@ export default function ImportWizard() {
                                 <>
                                     <div className="max-h-[400px] overflow-auto custom-scrollbar">
                                         <table className="w-full text-sm text-left">
-                                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 sticky top-0 z-10">
+                                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400 sticky top-0 z-10">
                                                 <tr>
-                                                    <th className="px-4 py-3 font-bold w-12 bg-slate-50 dark:bg-slate-900">#</th>
+                                                    <th className="px-4 py-3 font-semibold w-12 bg-slate-50 dark:bg-slate-900">#</th>
                                                     {parsedData[0] && Object.keys(parsedData[0]).map(k => (
-                                                        <th key={k} className="px-4 py-3 font-bold whitespace-nowrap bg-slate-50 dark:bg-slate-900">{k}</th>
+                                                        <th key={k} className="px-4 py-3 font-semibold whitespace-nowrap bg-slate-50 dark:bg-slate-900">{k}</th>
                                                     ))}
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                                                 {parsedData.slice(0, 50).map((row, i) => (
-                                                    <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                                    <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
                                                         <td className="px-4 py-2.5 text-slate-400 dark:text-slate-500 tabular-nums">{i + 1}</td>
                                                         {Object.values(row).map((v, j) => (
                                                             <td key={j} className="px-4 py-2.5 text-slate-600 dark:text-slate-300 whitespace-nowrap">

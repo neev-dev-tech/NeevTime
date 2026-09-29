@@ -82,7 +82,7 @@ export default function MainLayout({ children }) {
       <GlobalSearch />
 
       {/* ── Persistent left sidebar ─────────────────────────────────────── */}
-      <aside className="w-64 flex-shrink-0 flex flex-col border-r border-slate-200 dark:border-slate-700 bg-app-surface/90 backdrop-blur-xl z-40">
+      <aside className="w-64 flex-shrink-0 flex flex-col border-r border-slate-200 dark:border-slate-700 bg-app-surface z-40">
         {/* Logo */}
         <div className="h-16 flex items-center gap-2.5 px-5 border-b border-slate-200 dark:border-slate-700 flex-shrink-0">
           {hasLogo ? (
@@ -99,18 +99,18 @@ export default function MainLayout({ children }) {
 
         {/* Nav: modules, with the active one expanded to its groups/items */}
         <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
-          <p className="px-3 mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">Main</p>
+          <p className="px-3 mb-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-400 dark:text-slate-500">Main</p>
           {modules.map((mod) => {
             const isActive = activeModule === mod.name;
             return (
               <div key={mod.name}>
                 <button
                   onClick={() => { setActiveModule(mod.name); if (mod.path !== '#') navigate(mod.path); }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-ui ${isActive
-                    ? 'bg-slate-900 text-white shadow-sm dark:bg-slate-100 dark:text-slate-900'
-                    : 'text-slate-600 dark:text-slate-300 hover:bg-app-hover dark:hover:bg-slate-800'}`}
+                  className={`w-full flex items-center gap-3 px-3 h-9 rounded-lg text-sm font-medium transition-ui ${isActive
+                    ? 'bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-white'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 hover:text-slate-900 dark:hover:bg-slate-800/60 dark:hover:text-slate-100'}`}
                 >
-                  <mod.icon size={18} />
+                  <mod.icon size={17} className={isActive ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'} />
                   <span className="flex-1 text-left">{mod.name}</span>
                   {currentSidebar.length > 0 && isActive && <ChevronDown size={14} />}
                 </button>
@@ -121,7 +121,7 @@ export default function MainLayout({ children }) {
                       <div key={i}>
                         <button
                           onClick={() => toggleGroup(group.group)}
-                          className="w-full px-2 py-1.5 flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                          className="w-full px-2 pt-2 pb-1 flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
                         >
                           <span>{group.group}</span>
                           {expandedGroups[group.group] ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
@@ -142,11 +142,11 @@ export default function MainLayout({ children }) {
                                   <Link
                                     key={j}
                                     to={item.path}
-                                    className={`flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-sm transition-ui ${itemActive
-                                      ? 'bg-app-hover text-slate-900 dark:text-white font-semibold'
-                                      : 'text-slate-500 dark:text-slate-400 hover:bg-app-hover hover:text-slate-800 dark:hover:text-slate-200'}`}
+                                    className={`flex items-center gap-2.5 px-2 h-8 rounded-md text-[13px] transition-ui ${itemActive
+                                      ? 'bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-white font-medium'
+                                      : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 hover:text-slate-900 dark:hover:bg-slate-800/60 dark:hover:text-slate-200'}`}
                                   >
-                                    <item.icon size={16} />
+                                    <item.icon size={15} className="shrink-0" />
                                     {item.label}
                                   </Link>
                                 );
@@ -184,11 +184,11 @@ export default function MainLayout({ children }) {
           <button
             type="button"
             onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true }))}
-            className="flex items-center gap-2.5 w-full max-w-md h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-app-hover/60 text-sm text-slate-400 hover:border-slate-300 dark:hover:border-slate-600 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer"
+            className="flex items-center gap-2.5 w-full min-w-0 max-w-md h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-app-hover/60 text-sm text-slate-400 hover:border-slate-300 dark:hover:border-slate-600 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer"
             aria-label="Search employees, devices and pages"
           >
             <Search size={16} aria-hidden="true" />
-            <span className="flex-1 text-left">Search employees, devices, pages…</span>
+            <span className="flex-1 min-w-0 text-left truncate whitespace-nowrap">Search employees, devices, pages…</span>
             <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded-md border border-slate-200 dark:border-slate-600 bg-app-surface text-[11px] font-medium text-slate-500">⌘K</kbd>
           </button>
           <div className="flex items-center gap-3">

@@ -171,28 +171,28 @@ export default function AttendanceRules() {
 
             <dl className="grid grid-cols-2 gap-2 mb-3">
                 <div className="bg-app-surface/60 dark:bg-slate-900/50 rounded-xl px-3 py-2 border border-slate-100 dark:border-slate-700">
-                    <dt className="text-[10px] uppercase tracking-[0.09em] font-bold text-slate-500 dark:text-slate-400 mb-0.5">Late Threshold</dt>
+                    <dt className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400 mb-0.5">Late Threshold</dt>
                     <dd className="font-semibold text-slate-800 dark:text-slate-100 tabular-nums flex items-center gap-1.5">
                         <Clock size={13} className="text-amber-500 dark:text-amber-400" />
                         {rule.late_threshold_minutes ?? '—'} min
                     </dd>
                 </div>
                 <div className="bg-app-surface/60 dark:bg-slate-900/50 rounded-xl px-3 py-2 border border-slate-100 dark:border-slate-700">
-                    <dt className="text-[10px] uppercase tracking-[0.09em] font-bold text-slate-500 dark:text-slate-400 mb-0.5">Early Leave</dt>
+                    <dt className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400 mb-0.5">Early Leave</dt>
                     <dd className="font-semibold text-slate-800 dark:text-slate-100 tabular-nums flex items-center gap-1.5">
                         <Clock size={13} className="text-rose-500 dark:text-rose-400" />
                         {rule.early_leave_threshold_minutes ?? '—'} min
                     </dd>
                 </div>
                 <div className="bg-app-surface/60 dark:bg-slate-900/50 rounded-xl px-3 py-2 border border-slate-100 dark:border-slate-700">
-                    <dt className="text-[10px] uppercase tracking-[0.09em] font-bold text-slate-500 dark:text-slate-400 mb-0.5">Grace Period</dt>
+                    <dt className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400 mb-0.5">Grace Period</dt>
                     <dd className="font-semibold text-slate-800 dark:text-slate-100 tabular-nums flex items-center gap-1.5">
                         <CheckCircle size={13} className="text-emerald-500 dark:text-emerald-400" />
                         {rule.grace_period_minutes ?? '—'} min
                     </dd>
                 </div>
                 <div className="bg-app-surface/60 dark:bg-slate-900/50 rounded-xl px-3 py-2 border border-slate-100 dark:border-slate-700">
-                    <dt className="text-[10px] uppercase tracking-[0.09em] font-bold text-slate-500 dark:text-slate-400 mb-0.5">Half Day</dt>
+                    <dt className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400 mb-0.5">Half Day</dt>
                     <dd className="font-semibold text-slate-800 dark:text-slate-100 tabular-nums flex items-center gap-1.5">
                         <AlertTriangle size={13} className="text-slate-500 dark:text-slate-400" />
                         {rule.half_day_threshold_minutes ?? '—'} min
@@ -202,7 +202,7 @@ export default function AttendanceRules() {
 
             <div className="pt-3 border-t border-slate-100 dark:border-slate-700 space-y-2">
                 <div className="flex flex-wrap items-center gap-1.5">
-                    <span className="text-[10px] uppercase tracking-[0.09em] font-bold text-slate-500 dark:text-slate-400">Week Off</span>
+                    <span className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400">Week Off</span>
                     {rule.week_off_days?.length ? rule.week_off_days.map(day => (
                         <span key={day} className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300">
                             {day.substring(0, 3)}

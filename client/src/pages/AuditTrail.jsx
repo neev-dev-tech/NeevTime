@@ -160,13 +160,13 @@ export default function AuditTrail() {
                     <>
                         <div className="overflow-x-auto">
                             <table className="w-full text-left text-sm border-collapse">
-                                <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-700">
+                                <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-700">
                                     <tr>
-                                        <th className="px-5 py-3 font-bold">When</th>
-                                        <th className="px-5 py-3 font-bold">Who</th>
-                                        <th className="px-5 py-3 font-bold">Change</th>
-                                        <th className="px-5 py-3 font-bold">Record</th>
-                                        <th className="px-5 py-3 font-bold">What changed</th>
+                                        <th className="px-5 py-3 font-semibold">When</th>
+                                        <th className="px-5 py-3 font-semibold">Who</th>
+                                        <th className="px-5 py-3 font-semibold">Change</th>
+                                        <th className="px-5 py-3 font-semibold">Record</th>
+                                        <th className="px-5 py-3 font-semibold">What changed</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
@@ -250,11 +250,11 @@ export default function AuditTrail() {
                         return (
                             <div className="overflow-x-auto">
                                 <table className="w-full text-sm border-collapse">
-                                    <thead className="text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-700">
+                                    <thead className="text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-700">
                                         <tr>
-                                            <th className="py-2 pr-4 text-left font-bold">Field</th>
-                                            <th className="py-2 pr-4 text-left font-bold">Before</th>
-                                            <th className="py-2 text-left font-bold">After</th>
+                                            <th className="py-2 pr-4 text-left font-semibold">Field</th>
+                                            <th className="py-2 pr-4 text-left font-semibold">Before</th>
+                                            <th className="py-2 text-left font-semibold">After</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-100 dark:divide-slate-700">

@@ -170,15 +170,15 @@ export default function ShiftMaster() {
 
                                 <dl className="grid grid-cols-3 gap-2 pt-3 border-t border-slate-100 dark:border-slate-700 text-center">
                                     <div>
-                                        <dt className="text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 font-bold">Grace</dt>
+                                        <dt className="text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400 font-bold">Grace</dt>
                                         <dd className="text-sm font-semibold text-slate-800 dark:text-slate-100 tabular-nums">{shift.grace_in_minutes || 0}m</dd>
                                     </div>
                                     <div>
-                                        <dt className="text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 font-bold">Late After</dt>
+                                        <dt className="text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400 font-bold">Late After</dt>
                                         <dd className="text-sm font-semibold text-slate-800 dark:text-slate-100 tabular-nums">{shift.late_threshold_minutes || 15}m</dd>
                                     </div>
                                     <div>
-                                        <dt className="text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 font-bold">Break</dt>
+                                        <dt className="text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400 font-bold">Break</dt>
                                         <dd className="text-sm font-semibold text-slate-800 dark:text-slate-100 tabular-nums">
                                             {shift.break_duration_minutes > 0 ? `${shift.break_duration_minutes}m` : '—'}
                                         </dd>

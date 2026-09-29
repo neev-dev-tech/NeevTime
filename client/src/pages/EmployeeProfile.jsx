@@ -278,7 +278,7 @@ api.get('/api/contractors').then(r => setContractors(r.data.filter(c => c.is_act
                                 <p className="text-sm text-slate-600 dark:text-slate-300 mt-0.5">{employee.designation || 'Employee'}</p>
                                 <div className="flex flex-wrap items-center gap-2 mt-2.5">
                                     <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-slate-50 dark:bg-slate-900/30 border border-slate-100 dark:border-slate-800">
-                                        <span className="text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 font-bold">ID</span>
+                                        <span className="text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400 font-bold">ID</span>
                                         <span className="font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">{employee.employee_code || '—'}</span>
                                     </span>
                                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide border ${employee.status === 'active'
@@ -336,7 +336,7 @@ api.get('/api/contractors').then(r => setContractors(r.data.filter(c => c.is_act
                 {activeTab === 'overview' && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
                         <div>
-                            <h3 className="text-[10px] uppercase tracking-[0.09em] font-bold text-slate-500 dark:text-slate-400 mb-4 flex items-center gap-2"><User size={14} /> Personal Details</h3>
+                            <h3 className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400 mb-4 flex items-center gap-2"><User size={14} /> Personal Details</h3>
                             <dl className="space-y-3 text-sm">
                                 <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-500 dark:text-slate-400">Employee ID</dt><dd className="col-span-2 font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">{employee.employee_code || '—'}</dd></div>
                                 <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-500 dark:text-slate-400">Full Name</dt><dd className="col-span-2 font-semibold text-slate-800 dark:text-slate-100">{employee.name || '—'}</dd></div>
@@ -347,7 +347,7 @@ api.get('/api/contractors').then(r => setContractors(r.data.filter(c => c.is_act
                             </dl>
                         </div>
                         <div>
-                            <h3 className="text-[10px] uppercase tracking-[0.09em] font-bold text-slate-500 dark:text-slate-400 mb-4 flex items-center gap-2"><Briefcase size={14} /> Work Details</h3>
+                            <h3 className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400 mb-4 flex items-center gap-2"><Briefcase size={14} /> Work Details</h3>
                             <dl className="space-y-3 text-sm">
                                 <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-500 dark:text-slate-400">Department</dt><dd className="col-span-2 font-semibold text-slate-800 dark:text-slate-100">{employee.department_name || '—'}</dd></div>
                                 <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-500 dark:text-slate-400">Designation</dt><dd className="col-span-2 text-slate-600 dark:text-slate-300">{employee.designation || '—'}</dd></div>
@@ -432,7 +432,7 @@ api.get('/api/contractors').then(r => setContractors(r.data.filter(c => c.is_act
 
                 {activeTab === 'attendance' && (
                     <div>
-                        <h3 className="text-[10px] uppercase tracking-[0.09em] font-bold text-slate-500 dark:text-slate-400 mb-4 flex items-center gap-2"><Clock size={14} /> Recent Attendance</h3>
+                        <h3 className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400 mb-4 flex items-center gap-2"><Clock size={14} /> Recent Attendance</h3>
                         {attendance.length === 0 ? (
                             <div className="py-16 text-center">
                                 <Clock size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
@@ -489,7 +489,7 @@ api.get('/api/contractors').then(r => setContractors(r.data.filter(c => c.is_act
                         ) : (
                             <ul className="divide-y divide-slate-100 dark:divide-slate-700 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
                                 {docs.map(doc => (
-                                    <li key={doc.id} className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-slate-50/50 dark:hover:bg-slate-700/40">
+                                    <li key={doc.id} className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/60">
                                         <div className="flex items-center gap-3 min-w-0">
                                             <FileText size={18} className="text-slate-500 dark:text-slate-400 shrink-0" />
                                             <div className="min-w-0">

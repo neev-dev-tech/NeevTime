@@ -513,31 +513,37 @@ export default function Dashboard() {
     const offlinePercent = 100 - onlinePercent;
 
     return (
-        <div className="space-y-8">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-semibold flex items-center gap-3 text-slate-800 dark:text-slate-100">
-                        <div className="p-2 bg-slate-50 dark:bg-slate-900/30 rounded-lg">
-                            <LayoutDashboard className="text-saffron" size={24} />
+        <div className="space-y-6">
+            {/* Header — same rhythm as the shared PageHeader: eyebrow, title,
+                quiet subtitle, one action on the right, hairline beneath. */}
+            <div className="flex items-end justify-between flex-wrap gap-4 pb-5 border-b border-slate-200/70 dark:border-slate-800">
+                <div className="min-w-0">
+                    <p className="mb-2 text-xs font-medium text-slate-400 dark:text-slate-500">
+                        {new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                    </p>
+                    <div className="flex items-center gap-3">
+                        <div className="grid place-items-center w-10 h-10 rounded-xl border border-slate-200 bg-slate-100 text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 shrink-0">
+                            <LayoutDashboard size={19} />
                         </div>
-                        Worktable
-                    </h1>
-                    <div className="flex items-center gap-3 mt-1 ml-11">
-                        <p className="text-sm text-slate-600 dark:text-slate-400">Overview of today's attendance and device status</p>
-                        {lastUpdated && (
-                            <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                                <Circle size={6} className="text-green-500 fill-green-500 animate-pulse" />
-                                <span>Live · Updated {Math.floor((new Date() - lastUpdated) / 1000 / 60)} min{Math.floor((new Date() - lastUpdated) / 1000 / 60) !== 1 ? 's' : ''} ago</span>
+                        <div className="min-w-0">
+                            <h1 className="text-[22px] leading-tight font-semibold tracking-tight text-slate-900 dark:text-slate-50">Worktable</h1>
+                            <div className="mt-0.5 flex items-center gap-3 flex-wrap text-sm text-slate-500 dark:text-slate-400">
+                                <span>Overview of today's attendance and device status</span>
+                                {lastUpdated && (
+                                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border border-emerald-200 bg-emerald-50 text-[11px] font-medium text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300">
+                                        <Circle size={6} className="text-emerald-500 fill-emerald-500 animate-pulse" />
+                                        Live · {Math.floor((new Date() - lastUpdated) / 1000 / 60)} min{Math.floor((new Date() - lastUpdated) / 1000 / 60) !== 1 ? 's' : ''} ago
+                                    </span>
+                                )}
                             </div>
-                        )}
+                        </div>
                     </div>
                 </div>
                 <button
                     onClick={fetchAllData}
                     className="btn-primary flex items-center gap-2"
                 >
-                    <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+                    <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
                     Refresh
                 </button>
             </div>

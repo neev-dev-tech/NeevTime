@@ -178,10 +178,10 @@ export default function PayrollExport() {
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm border-collapse">
-                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-700">
+                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-700">
                                 <tr>
                                     {COLUMNS.map(c => (
-                                        <th key={c.key} className={`px-4 py-2 font-bold ${c.num ? 'text-right' : 'text-left'}`}>
+                                        <th key={c.key} className={`px-4 py-2 font-semibold ${c.num ? 'text-right' : 'text-left'}`}>
                                             {c.label}
                                         </th>
                                     ))}

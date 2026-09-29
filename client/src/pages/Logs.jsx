@@ -219,26 +219,26 @@ export default function Logs() {
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
-                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">
+                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
                                 <tr>
-                                    <th className="px-5 py-3 font-bold w-12">#</th>
-                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Employee</th>
-                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Code</th>
-                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Time</th>
-                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Log Type</th>
-                                    <th className="px-5 py-3 font-bold whitespace-nowrap">State</th>
-                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Device</th>
-                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Verification</th>
+                                    <th className="px-5 py-3 font-semibold w-12">#</th>
+                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Employee</th>
+                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Code</th>
+                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Time</th>
+                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Log Type</th>
+                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">State</th>
+                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Device</th>
+                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Verification</th>
                                     {/* The whole point of capturing a photo is that somebody can
                                         look at it. Stored and served since this morning, and
                                         displayed nowhere — which reduces buddy punching not at
                                         all. */}
-                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Photo</th>
+                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Photo</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                                 {logs.map((log, i) => (
-                                    <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                    <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
                                         <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{i + 1}</td>
                                         <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">
                                             {log.emp_name || 'Unknown'}

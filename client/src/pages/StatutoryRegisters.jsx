@@ -201,7 +201,7 @@ export default function StatutoryRegisters() {
                             <table className="text-sm border-collapse">
                                 <thead>
                                     <tr className="bg-slate-50/70 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-700">
-                                        <th className="sticky left-0 z-10 bg-slate-50 dark:bg-slate-900 px-4 py-2 text-left text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 min-w-[13rem]">
+                                        <th className="sticky left-0 z-10 bg-slate-50 dark:bg-slate-900 px-4 py-2 text-left text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400 min-w-[13rem]">
                                             Worker
                                         </th>
                                         {data.days.map(d => {
@@ -213,9 +213,9 @@ export default function StatutoryRegisters() {
                                                 </th>
                                             );
                                         })}
-                                        <th className="px-3 py-2 text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">P</th>
-                                        <th className="px-3 py-2 text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">A</th>
-                                        <th className="px-3 py-2 text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">L</th>
+                                        <th className="px-3 py-2 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">P</th>
+                                        <th className="px-3 py-2 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">A</th>
+                                        <th className="px-3 py-2 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">L</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
@@ -249,10 +249,10 @@ export default function StatutoryRegisters() {
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm border-collapse">
-                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-700">
+                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-700">
                                 <tr>
                                     {Object.keys(data.rows[0]).map(k => (
-                                        <th key={k} className="px-4 py-2 text-left font-bold">{k.replace(/_/g, ' ')}</th>
+                                        <th key={k} className="px-4 py-2 text-left font-semibold">{k.replace(/_/g, ' ')}</th>
                                     ))}
                                 </tr>
                             </thead>

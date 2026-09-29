@@ -255,14 +255,14 @@ export default function Timetable() {
                                     {/* Time Display */}
                                     <div className="grid grid-cols-2 gap-2 mb-3">
                                         <div className="rounded-xl p-2.5 text-center bg-emerald-50 dark:bg-emerald-900/25 border border-emerald-100 dark:border-emerald-900/40">
-                                            <div className="text-[10px] uppercase tracking-[0.09em] font-bold text-emerald-700 dark:text-emerald-400 mb-0.5">Check In</div>
+                                            <div className="text-[11px] uppercase tracking-[0.06em] font-bold text-emerald-700 dark:text-emerald-400 mb-0.5">Check In</div>
                                             <div className="text-lg font-bold tabular-nums text-emerald-700 dark:text-emerald-300">{formatTime(tt.check_in)}</div>
                                             <div className="text-[11px] tabular-nums text-slate-500 dark:text-slate-400">
                                                 {tt.late_in ? `Late after ${formatTime(tt.late_in)}` : '—'}
                                             </div>
                                         </div>
                                         <div className="rounded-xl p-2.5 text-center bg-rose-50 dark:bg-rose-900/25 border border-rose-100 dark:border-rose-900/40">
-                                            <div className="text-[10px] uppercase tracking-[0.09em] font-bold text-rose-700 dark:text-rose-400 mb-0.5">Check Out</div>
+                                            <div className="text-[11px] uppercase tracking-[0.06em] font-bold text-rose-700 dark:text-rose-400 mb-0.5">Check Out</div>
                                             <div className="text-lg font-bold tabular-nums text-rose-700 dark:text-rose-300">{formatTime(tt.check_out)}</div>
                                             <div className="text-[11px] tabular-nums text-slate-500 dark:text-slate-400">
                                                 {tt.early_out ? `Early before ${formatTime(tt.early_out)}` : '—'}
@@ -273,15 +273,15 @@ export default function Timetable() {
                                     {/* Details */}
                                     <dl className="grid grid-cols-3 gap-2 text-center mb-3">
                                         <div>
-                                            <dt className="text-[10px] uppercase tracking-[0.09em] font-bold text-slate-500 dark:text-slate-400">Grace</dt>
+                                            <dt className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400">Grace</dt>
                                             <dd className="text-sm font-semibold tabular-nums text-slate-800 dark:text-slate-100">{tt.grace_period_minutes ?? 0}m</dd>
                                         </div>
                                         <div>
-                                            <dt className="text-[10px] uppercase tracking-[0.09em] font-bold text-slate-500 dark:text-slate-400">Full Day</dt>
+                                            <dt className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400">Full Day</dt>
                                             <dd className="text-sm font-semibold tabular-nums text-slate-800 dark:text-slate-100">{tt.min_hours_for_full_day || 8}h</dd>
                                         </div>
                                         <div>
-                                            <dt className="text-[10px] uppercase tracking-[0.09em] font-bold text-slate-500 dark:text-slate-400">Breaks</dt>
+                                            <dt className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400">Breaks</dt>
                                             <dd className="text-sm font-semibold tabular-nums text-slate-800 dark:text-slate-100">{tt.break_count || 0}</dd>
                                         </div>
                                     </dl>

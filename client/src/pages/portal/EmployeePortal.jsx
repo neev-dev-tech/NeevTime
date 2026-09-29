@@ -297,11 +297,11 @@ export default function EmployeePortal() {
                         </div>
                         <div className="text-right hidden sm:block">
                             <p className="text-lg font-bold tabular-nums text-slate-800 dark:text-slate-100">{presentDays}</p>
-                            <p className="text-[10px] uppercase tracking-[0.09em] font-bold text-slate-500 dark:text-slate-400">Days present</p>
+                            <p className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400">Days present</p>
                         </div>
                         <div className="text-right">
                             <p className="text-lg font-bold tabular-nums text-slate-800 dark:text-slate-100">{Math.floor(totalMinutes / 60)}h</p>
-                            <p className="text-[10px] uppercase tracking-[0.09em] font-bold text-slate-500 dark:text-slate-400">Hours worked</p>
+                            <p className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400">Hours worked</p>
                         </div>
                     </div>
                 )}
@@ -367,21 +367,21 @@ export default function EmployeePortal() {
                             <>
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-left text-sm">
-                                        <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">
+                                        <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
                                             <tr>
-                                                <th className="px-4 py-3 font-bold whitespace-nowrap">Date</th>
-                                                <th className="px-4 py-3 font-bold whitespace-nowrap">In</th>
-                                                <th className="px-4 py-3 font-bold whitespace-nowrap">Out</th>
-                                                <th className="px-4 py-3 font-bold whitespace-nowrap">Hours</th>
-                                                <th className="px-4 py-3 font-bold whitespace-nowrap">Status</th>
+                                                <th className="px-4 py-3 font-semibold whitespace-nowrap">Date</th>
+                                                <th className="px-4 py-3 font-semibold whitespace-nowrap">In</th>
+                                                <th className="px-4 py-3 font-semibold whitespace-nowrap">Out</th>
+                                                <th className="px-4 py-3 font-semibold whitespace-nowrap">Hours</th>
+                                                <th className="px-4 py-3 font-semibold whitespace-nowrap">Status</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                                             {attendance.map((row, i) => (
-                                                <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                                <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
                                                     <td className="px-4 py-3 whitespace-nowrap">
                                                         <span className="font-semibold tabular-nums text-slate-800 dark:text-slate-100">{row.date || '—'}</span>
-                                                        <span className="text-[10px] uppercase tracking-[0.09em] font-bold text-slate-500 dark:text-slate-400 ml-1.5">
+                                                        <span className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400 ml-1.5">
                                                             {(row.weekday || '').trim().slice(0, 3)}
                                                         </span>
                                                     </td>
@@ -478,7 +478,7 @@ export default function EmployeePortal() {
                                 <>
                                     <div className="divide-y divide-slate-100 dark:divide-slate-700">
                                         {leave.applications.map(app => (
-                                            <div key={app.id} className="px-4 py-3 flex items-center justify-between gap-3 hover:bg-slate-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                            <div key={app.id} className="px-4 py-3 flex items-center justify-between gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
                                                 <div className="min-w-0">
                                                     <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">{app.leave_type_name || '—'}</p>
                                                     <p className="text-xs text-slate-600 dark:text-slate-300 tabular-nums">
@@ -561,7 +561,7 @@ export default function EmployeePortal() {
                                 <>
                                     <div className="divide-y divide-slate-100 dark:divide-slate-700">
                                         {regularizations.map(reg => (
-                                            <div key={reg.id} className="px-4 py-3 flex items-center justify-between gap-3 hover:bg-slate-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                            <div key={reg.id} className="px-4 py-3 flex items-center justify-between gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
                                                 <div className="min-w-0">
                                                     <p className="text-sm font-semibold tabular-nums text-slate-800 dark:text-slate-100">{reg.date || '—'}</p>
                                                     <p className="text-xs text-slate-600 dark:text-slate-300 truncate">

@@ -225,7 +225,7 @@ export default function ApprovalFlow() {
                     </div>
                 ) : (
                 <table className="w-full text-left text-sm border-collapse">
-                    <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 sticky top-0 z-10 border-b border-slate-100 dark:border-slate-700">
+                    <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400 sticky top-0 z-10 border-b border-slate-100 dark:border-slate-700">
                         <tr>
                             <th className="px-5 py-3 w-12 text-center">
                                 <input
@@ -235,18 +235,18 @@ export default function ApprovalFlow() {
                                     onChange={toggleSelectAll}
                                 />
                             </th>
-                            <th className="px-5 py-3 font-bold whitespace-nowrap">Flow Code</th>
-                            <th className="px-5 py-3 font-bold whitespace-nowrap">Name</th>
-                            <th className="px-5 py-3 font-bold whitespace-nowrap">Start Date</th>
-                            <th className="px-5 py-3 font-bold whitespace-nowrap">End Date</th>
-                            <th className="px-5 py-3 font-bold whitespace-nowrap">Request Type</th>
-                            <th className="px-5 py-3 font-bold whitespace-nowrap">Department</th>
-                            <th className="px-5 py-3 font-bold whitespace-nowrap w-24 text-right">Actions</th>
+                            <th className="px-5 py-3 font-semibold whitespace-nowrap">Flow Code</th>
+                            <th className="px-5 py-3 font-semibold whitespace-nowrap">Name</th>
+                            <th className="px-5 py-3 font-semibold whitespace-nowrap">Start Date</th>
+                            <th className="px-5 py-3 font-semibold whitespace-nowrap">End Date</th>
+                            <th className="px-5 py-3 font-semibold whitespace-nowrap">Request Type</th>
+                            <th className="px-5 py-3 font-semibold whitespace-nowrap">Department</th>
+                            <th className="px-5 py-3 font-semibold whitespace-nowrap w-24 text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                         {paginatedItems.map(flow => (
-                            <tr key={flow.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/40 transition-colors group">
+                            <tr key={flow.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors group">
                                 <td className="px-5 py-3 text-center">
                                     <input
                                         type="checkbox"
@@ -362,11 +362,11 @@ export default function ApprovalFlow() {
 
                         <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
                             <table className="w-full text-sm">
-                                <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">
+                                <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
                                     <tr className="text-left">
-                                        <th className="p-3 pl-4 font-bold">#</th>
-                                        <th className="p-3 font-bold">Node Name</th>
-                                        <th className="p-3 text-right pr-4 font-bold">Actions</th>
+                                        <th className="p-3 pl-4 font-semibold">#</th>
+                                        <th className="p-3 font-semibold">Node Name</th>
+                                        <th className="p-3 text-right pr-4 font-semibold">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
@@ -374,7 +374,7 @@ export default function ApprovalFlow() {
                                         <tr><td colSpan={3} className="p-6 text-center text-slate-500 dark:text-slate-400 text-xs">No nodes added yet — add one to build the approval chain.</td></tr>
                                     ) : (
                                         flowNodes.map((node, i) => (
-                                            <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                            <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
                                                 <td className="p-3 pl-4 text-slate-400 dark:text-slate-500 tabular-nums">{i + 1}</td>
                                                 <td className="p-3">
                                                     <select value={node.node_id} onChange={e => updateNode(i, 'node_id', e.target.value)}

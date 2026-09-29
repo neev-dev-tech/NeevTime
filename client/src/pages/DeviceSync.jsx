@@ -242,19 +242,19 @@ export default function DeviceSync() {
                     <>
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm">
-                                <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">
+                                <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
                                     <tr>
-                                        <th className="text-left font-bold px-5 py-3">#</th>
-                                        <th className="text-left font-bold px-5 py-3">Device</th>
-                                        <th className="text-left font-bold px-5 py-3">Command</th>
-                                        <th className="text-left font-bold px-5 py-3">Last error</th>
-                                        <th className="text-left font-bold px-5 py-3">Tries</th>
-                                        <th className="text-right font-bold px-5 py-3">Actions</th>
+                                        <th className="text-left font-semibold px-5 py-3">#</th>
+                                        <th className="text-left font-semibold px-5 py-3">Device</th>
+                                        <th className="text-left font-semibold px-5 py-3">Command</th>
+                                        <th className="text-left font-semibold px-5 py-3">Last error</th>
+                                        <th className="text-left font-semibold px-5 py-3">Tries</th>
+                                        <th className="text-right font-semibold px-5 py-3">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                                     {deadLetter.map((row, i) => (
-                                        <tr key={row.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                        <tr key={row.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
                                             <td className="px-5 py-3 text-slate-400 tabular-nums">{i + 1}</td>
                                             <td className={`px-5 py-3 ${CELL_MONO}`}>{row.device_serial || '—'}</td>
                                             <td className="px-5 py-3 max-w-[280px]">

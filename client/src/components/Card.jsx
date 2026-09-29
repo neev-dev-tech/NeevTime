@@ -411,7 +411,7 @@ export function ListCard({
                     {emptyMessage}
                 </div>
             ) : (
-                <div className="divide-y divide-slate-50 dark:divide-slate-700">
+                <div className="divide-y divide-slate-100 dark:divide-slate-700">
                     {displayItems.map((item, index) => (
                         <div key={index} className="px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
                             {item.icon && (

@@ -180,19 +180,19 @@ const Geofences = () => {
                 ) : (
                     <div className="overflow-auto flex-1">
                         <table className="w-full text-sm text-left">
-                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 sticky top-0 z-10">
+                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400 sticky top-0 z-10">
                                 <tr>
-                                    <th className="px-5 py-3 font-bold w-12">#</th>
-                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Name</th>
-                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Coordinates</th>
-                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Radius</th>
-                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Address</th>
-                                    <th className="px-5 py-3 font-bold text-right whitespace-nowrap">Actions</th>
+                                    <th className="px-5 py-3 font-semibold w-12">#</th>
+                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Name</th>
+                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Coordinates</th>
+                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Radius</th>
+                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Address</th>
+                                    <th className="px-5 py-3 font-semibold text-right whitespace-nowrap">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                                 {filteredGeofences.map((fence, idx) => (
-                                    <tr key={fence.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                    <tr key={fence.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
                                         <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{idx + 1}</td>
                                         <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100">{fence.name || '—'}</td>
                                         <td className="px-5 py-3 font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold whitespace-nowrap">

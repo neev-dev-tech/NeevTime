@@ -119,7 +119,7 @@ export default function DeletedEmployees() {
                     <>
                         <div className="overflow-x-auto">
                             <table className="w-full text-left text-sm border-collapse">
-                                <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-700">
+                                <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-700">
                                     <tr>
                                         <th className="px-5 py-3 w-10"></th>
                                         <SortableTh controls={controls} sortKey="employee_code">Employee ID</SortableTh>

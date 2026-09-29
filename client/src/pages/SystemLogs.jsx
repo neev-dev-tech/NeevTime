@@ -262,20 +262,20 @@ export default function SystemLogs() {
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
-                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">
+                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
                                 <tr>
-                                    <th className="px-5 py-3 font-bold w-12">#</th>
-                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Result</th>
-                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Action</th>
-                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Entity</th>
-                                    <th className="px-5 py-3 font-bold whitespace-nowrap">User</th>
-                                    <th className="px-5 py-3 font-bold whitespace-nowrap">IP Address</th>
-                                    <th className="px-5 py-3 font-bold whitespace-nowrap">Time</th>
+                                    <th className="px-5 py-3 font-semibold w-12">#</th>
+                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Result</th>
+                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Action</th>
+                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Entity</th>
+                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">User</th>
+                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">IP Address</th>
+                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Time</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                                 {filteredLogs.map((log, idx) => (
-                                    <tr key={log.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/40 transition-colors">
+                                    <tr key={log.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
                                         <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{idx + 1}</td>
                                         <td className="px-5 py-3">
                                             <div className="flex items-center gap-2">
