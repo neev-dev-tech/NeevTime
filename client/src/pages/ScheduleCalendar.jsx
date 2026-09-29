@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import api from '../api';
-import { CalendarDays, ChevronLeft, ChevronRight, Users, Building2, Clock, Filter, AlertCircle, RefreshCw } from 'lucide-react';
-import { PageHeader, Button } from '../components';
+import { ChevronLeft, ChevronRight, Users, AlertCircle, RefreshCw } from 'lucide-react';
+import { Button, ListPage, ListTabs, ListSearch, ListIconButton } from '../components';
 import { toLocalDateString } from '../utils/dateFormat';
 
 // DATE columns arrive either as 'YYYY-MM-DD' or as the UTC instant of local
@@ -9,23 +10,32 @@ import { toLocalDateString } from '../utils/dateFormat';
 // read the second in local time so it is not a day early.
 const dayOf = (v) => (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : toLocalDateString(v));
 
+const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const DOW_KEY = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+// Fallback shift colours, used in a fixed order when a shift has none of its own.
+const FALLBACK = ['#0ea5e9', '#10b981', '#8b5cf6', '#f59e0b', '#f43f5e', '#14b8a6'];
+
+const sameDay = (a, b) => a.toDateString() === b.toDateString();
+
 export default function ScheduleCalendar() {
     const [currentDate, setCurrentDate] = useState(new Date());
-    const [viewMode, setViewMode] = useState('month'); // 'week' or 'month'
+    const [viewMode, setViewMode] = useState('month');
     const [employees, setEmployees] = useState([]);
     const [schedules, setSchedules] = useState([]);
     const [shifts, setShifts] = useState([]);
     const [departments, setDepartments] = useState([]);
     const [selectedDepartment, setSelectedDepartment] = useState('');
+    const [query, setQuery] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    useEffect(() => {
-        fetchData();
-    }, []);
+    useEffect(() => { fetchData(); }, []);
 
     const fetchData = async () => {
         try {
+            setLoading(true);
             setError(null);
             const [empRes, shiftRes, deptRes, schedRes] = await Promise.all([
                 api.get('/api/employees'),
@@ -38,321 +48,257 @@ export default function ScheduleCalendar() {
             setDepartments(deptRes.data || []);
             setSchedules(schedRes.data || []);
         } catch (err) {
-            console.error('Error fetching data:', err);
-            setError(err.response?.data?.error || 'Could not load the schedule calendar');
+            setError(err.response?.data?.error || 'Could not load the schedule');
         } finally {
             setLoading(false);
         }
     };
 
-    // Calendar helpers
-    const getDaysInMonth = (date) => {
-        const year = date.getFullYear();
-        const month = date.getMonth();
-        const firstDay = new Date(year, month, 1);
-        const lastDay = new Date(year, month + 1, 0);
-        const daysInMonth = lastDay.getDate();
-        const startingDayOfWeek = firstDay.getDay();
-
-        const days = [];
-        // Add empty cells for days before the first day of the month
-        for (let i = 0; i < startingDayOfWeek; i++) {
-            days.push(null);
-        }
-        // Add days of the month
-        for (let i = 1; i <= daysInMonth; i++) {
-            days.push(new Date(year, month, i));
-        }
-        return days;
-    };
-
-    const getWeekDays = (date) => {
-        const days = [];
-        const startOfWeek = new Date(date);
-        startOfWeek.setDate(date.getDate() - date.getDay());
-
-        for (let i = 0; i < 7; i++) {
-            const day = new Date(startOfWeek);
-            day.setDate(startOfWeek.getDate() + i);
-            days.push(day);
-        }
-        return days;
-    };
-
-    const navigateMonth = (direction) => {
-        const newDate = new Date(currentDate);
+    // Only real days: a roster runs left to right, so the month grid's leading
+    // blank cells (for the weekday the month starts on) meant nothing here.
+    const days = useMemo(() => {
         if (viewMode === 'month') {
-            newDate.setMonth(newDate.getMonth() + direction);
-        } else {
-            newDate.setDate(newDate.getDate() + (direction * 7));
+            const y = currentDate.getFullYear(), m = currentDate.getMonth();
+            const n = new Date(y, m + 1, 0).getDate();
+            return Array.from({ length: n }, (_, i) => new Date(y, m, i + 1));
         }
-        setCurrentDate(newDate);
+        const start = new Date(currentDate);
+        start.setDate(currentDate.getDate() - currentDate.getDay());
+        return Array.from({ length: 7 }, (_, i) => { const d = new Date(start); d.setDate(start.getDate() + i); return d; });
+    }, [currentDate, viewMode]);
+
+    const step = (dir) => {
+        const d = new Date(currentDate);
+        if (viewMode === 'month') d.setMonth(d.getMonth() + dir);
+        else d.setDate(d.getDate() + dir * 7);
+        setCurrentDate(d);
     };
 
-    const getScheduleForEmployeeOnDate = (employeeId, date) => {
-        if (!date) return null;
-        // The cell's own calendar date, not its UTC instant (a day early in IST).
-        const dateStr = toLocalDateString(date);
+    const periodLabel = viewMode === 'month'
+        ? `${MONTHS[currentDate.getMonth()]} ${currentDate.getFullYear()}`
+        : `${days[0].getDate()} ${MONTHS[days[0].getMonth()].slice(0, 3)} – ${days[6].getDate()} ${MONTHS[days[6].getMonth()].slice(0, 3)} ${days[6].getFullYear()}`;
+
+    // A shift's own colour when it is distinctive; when several shifts share one
+    // (every shift created with the default blue), they get a fixed palette
+    // slot instead so they can be told apart in the grid.
+    const shiftById = useMemo(() => {
+        const uses = {};
+        shifts.forEach(s => { if (s.color) uses[s.color.toLowerCase()] = (uses[s.color.toLowerCase()] || 0) + 1; });
+        return Object.fromEntries(shifts.map((s, i) => [s.id, {
+        ...s, tint: s.color && uses[s.color.toLowerCase()] === 1 ? s.color : FALLBACK[i % FALLBACK.length],
+        short: s.code || (s.name || '').slice(0, 3).toUpperCase()
+    }]));
+    }, [shifts]);
+
+    const scheduleFor = (employeeId, date) => {
+        const ds = toLocalDateString(date);
         return schedules.find(s =>
             s.employee_id === employeeId &&
-            s.effective_from && dateStr >= dayOf(s.effective_from) &&
-            (!s.effective_to || dateStr <= dayOf(s.effective_to))
+            s.effective_from && ds >= dayOf(s.effective_from) &&
+            (!s.effective_to || ds <= dayOf(s.effective_to))
         );
     };
 
-    const getShiftColor = (shiftId) => {
-        const colors = [
-            'bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300',
-            'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
-            'bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300',
-            'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
-            'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300',
-            'bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300'
-        ];
-        return colors[shiftId % colors.length];
+    // Week off comes from the employee's schedule; with no schedule, the
+    // weekend is shown as off, as before.
+    const cellFor = (emp, date) => {
+        const sch = scheduleFor(emp.id, date);
+        const dow = date.getDay();
+        const offDays = Array.isArray(sch?.week_off_days) ? sch.week_off_days.map(d => String(d).toLowerCase()) : null;
+        const isOff = offDays ? offDays.includes(DOW_KEY[dow]) : (dow === 0 || dow === 6);
+        if (isOff) return { kind: 'off' };
+        if (sch) return { kind: 'shift', shift: shiftById[sch.shift_id], name: sch.shift_name, temporary: sch.is_temporary };
+        return { kind: 'none' };
     };
 
-    const isWeekend = (date) => {
-        if (!date) return false;
-        const day = date.getDay();
-        return day === 0 || day === 6;
-    };
+    const rows = useMemo(() => {
+        const q = query.trim().toLowerCase();
+        return employees
+            .filter(e => e.status !== 'resigned' && !e.resignation_date)
+            .filter(e => !selectedDepartment || e.department_id === parseInt(selectedDepartment, 10))
+            .filter(e => !q || String(e.name || '').toLowerCase().includes(q) || String(e.employee_code || '').toLowerCase().includes(q));
+    }, [employees, selectedDepartment, query]);
 
-    const isToday = (date) => {
-        if (!date) return false;
-        const today = new Date();
-        return date.toDateString() === today.toDateString();
-    };
+    // Today's picture for the rows on screen.
+    const today = new Date();
+    const todayCounts = useMemo(() => {
+        let on = 0, off = 0, none = 0;
+        for (const e of rows) {
+            const c = cellFor(e, today);
+            if (c.kind === 'shift') on += 1; else if (c.kind === 'off') off += 1; else none += 1;
+        }
+        return { on, off, none };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [rows, schedules, shiftById]);
+    const shiftsInUse = new Set(schedules.map(s => s.shift_id)).size;
 
-    const filteredEmployees = selectedDepartment
-        ? employees.filter(e => e.department_id === parseInt(selectedDepartment))
-        : employees;
+    const weekend = (d) => d.getDay() === 0 || d.getDay() === 6;
 
-    const days = viewMode === 'month' ? getDaysInMonth(currentDate) : getWeekDays(currentDate);
-    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'];
+    // Open with today's column in view when the period includes it.
+    const gridRef = useRef(null);
+    useEffect(() => {
+        const cell = gridRef.current?.querySelector('[data-today="true"]');
+        if (cell && gridRef.current) {
+            const box = gridRef.current;
+            box.scrollLeft = Math.max(0, cell.offsetLeft - box.clientWidth / 2);
+        }
+    }, [days, rows.length, loading]);
 
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            <PageHeader
-                icon={CalendarDays}
-                title="Schedule Calendar"
-                subtitle="Who is on which shift, day by day"
-                actions={
-                    <>
-                        {/* Department Filter */}
-                        <div className="relative">
-                            <Filter size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 pointer-events-none" />
-                            <select
-                                value={selectedDepartment}
-                                onChange={(e) => setSelectedDepartment(e.target.value)}
-                                className="field pl-9 pr-3"
-                            >
-                                <option value="">All Departments</option>
-                                {departments.map(d => (
-                                    <option key={d.id} value={d.id}>{d.name}</option>
-                                ))}
-                            </select>
-                        </div>
-                        {/* View Mode Toggle */}
-                        <div className="inline-flex rounded-full p-1 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                            <button
-                                onClick={() => setViewMode('week')}
-                                className={`px-4 py-1 rounded-full text-xs font-semibold transition-colors ${viewMode === 'week'
-                                    ? 'bg-slate-600 text-white shadow-sm'
-                                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-600 dark:hover:text-slate-400'}`}
-                            >
-                                Week
-                            </button>
-                            <button
-                                onClick={() => setViewMode('month')}
-                                className={`px-4 py-1 rounded-full text-xs font-semibold transition-colors ${viewMode === 'month'
-                                    ? 'bg-slate-600 text-white shadow-sm'
-                                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-600 dark:hover:text-slate-400'}`}
-                            >
-                                Month
-                            </button>
-                        </div>
-                    </>
-                }
-            />
-
-            {/* Calendar Navigation */}
-            <div className="card-base !p-4">
-                <div className="flex items-center justify-between mb-4">
-                    <button
-                        onClick={() => navigateMonth(-1)}
-                        aria-label="Previous"
-                        className="p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-600 dark:hover:text-slate-400 transition-colors"
+        <ListPage
+            title="Schedule View"
+            count={rows.length}
+            tabs={
+                <ListTabs label="View" value={viewMode} onChange={setViewMode}
+                    items={[{ key: 'week', label: 'Week' }, { key: 'month', label: 'Month' }]} />
+            }
+            actions={
+                <Link to="/schedule/employee" className="inline-flex items-center h-8 px-3 rounded-lg text-[13px] font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200">
+                    Assign schedules
+                </Link>
+            }
+            toolbar={
+                <>
+                    <div className="flex items-center gap-1">
+                        <ListIconButton label={viewMode === 'month' ? 'Previous month' : 'Previous week'} icon={ChevronLeft} onClick={() => step(-1)} />
+                        <span className="min-w-[10rem] text-center text-sm font-semibold text-slate-900 dark:text-slate-100 tabular-nums">{periodLabel}</span>
+                        <ListIconButton label={viewMode === 'month' ? 'Next month' : 'Next week'} icon={ChevronRight} onClick={() => step(1)} />
+                        <Button variant="tonal" size="toolbar" onClick={() => setCurrentDate(new Date())}>Today</Button>
+                    </div>
+                    <select
+                        aria-label="Department"
+                        value={selectedDepartment}
+                        onChange={(e) => setSelectedDepartment(e.target.value)}
+                        className="field-sm !h-8 !py-0 !w-auto"
                     >
-                        <ChevronLeft size={18} />
-                    </button>
-                    <h2 className="text-sm font-bold uppercase tracking-[0.09em] text-slate-600 dark:text-slate-300 tabular-nums">
-                        {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
-                    </h2>
-                    <button
-                        onClick={() => navigateMonth(1)}
-                        aria-label="Next"
-                        className="p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-600 dark:hover:text-slate-400 transition-colors"
-                    >
-                        <ChevronRight size={18} />
-                    </button>
+                        <option value="">All departments</option>
+                        {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                    </select>
+                    <ListSearch label="Search employees" placeholder="Search name or code…" value={query} onChange={setQuery} />
+                    <div className="ml-auto">
+                        <ListIconButton label="Refresh" icon={RefreshCw} onClick={fetchData} disabled={loading} spin={loading} />
+                    </div>
+                </>
+            }
+            bodyClassName="!overflow-hidden flex flex-col"
+        >
+            {loading ? (
+                <div className="p-6 space-y-3">
+                    {Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />)}
                 </div>
-
-                {/* Shift Legend */}
-                <div className="flex flex-wrap gap-1.5 mb-4 pb-4 border-b border-slate-100 dark:border-slate-700">
-                    {shifts.map((shift, i) => (
-                        <span
-                            key={shift.id}
-                            className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide ${getShiftColor(i)}`}
-                        >
-                            {shift.name}
-                        </span>
-                    ))}
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300">
-                        WO = Week Off
-                    </span>
+            ) : error ? (
+                <div className="py-20 text-center px-6">
+                    <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
+                    <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-1">Could not load the schedule</h3>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{error}</p>
+                    <Button variant="tonal" icon={RefreshCw} onClick={fetchData}>Try again</Button>
                 </div>
-
-                {loading ? (
-                    <div className="space-y-3">
-                        {Array.from({ length: 6 }).map((_, i) => (
-                            <div key={i} className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
+            ) : (
+                <>
+                    {/* Today at a glance */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 border-b border-slate-200 dark:border-slate-800 divide-x divide-slate-200 dark:divide-slate-800 shrink-0">
+                        {[
+                            ['On a shift today', todayCounts.on],
+                            ['Week off today', todayCounts.off],
+                            ['No schedule today', todayCounts.none, todayCounts.none > 0 && 'text-amber-700 dark:text-amber-400'],
+                            ['Shifts in use', `${shiftsInUse} of ${shifts.length}`]
+                        ].map(([label, v, tone]) => (
+                            <div key={label} className="px-4 sm:px-6 py-3">
+                                <span className="block text-xs text-slate-600 dark:text-slate-400">{label}</span>
+                                <span className={`block mt-0.5 text-2xl font-semibold tabular-nums ${tone || 'text-slate-900 dark:text-slate-50'}`}>{v}</span>
+                            </div>
                         ))}
                     </div>
-                ) : error ? (
-                    <div className="py-16 text-center">
-                        <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
-                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load the calendar</h3>
-                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{error}</p>
-                        <Button variant="secondary" icon={RefreshCw} onClick={fetchData}>Try again</Button>
+
+                    {/* Legend */}
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 sm:px-6 py-2 border-b border-slate-200 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-400 shrink-0">
+                        {shifts.map(s => {
+                            const sh = shiftById[s.id];
+                            return (
+                                <span key={s.id} className="inline-flex items-center gap-1.5">
+                                    <span aria-hidden="true" className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: sh.tint }} />
+                                    <span className="font-medium text-slate-800 dark:text-slate-200">{sh.short}</span>
+                                    {s.name} {s.start_time && `${String(s.start_time).slice(0, 5)}–${String(s.end_time).slice(0, 5)}`}
+                                </span>
+                            );
+                        })}
+                        <span className="inline-flex items-center gap-1.5"><span className="font-medium text-slate-800 dark:text-slate-200">Off</span> Week off</span>
+                        <span className="inline-flex items-center gap-1.5"><span className="font-medium text-slate-800 dark:text-slate-200">·</span> No schedule</span>
+                        <span className="inline-flex items-center gap-1.5"><span className="font-medium text-slate-800 dark:text-slate-200">*</span> Temporary</span>
                     </div>
-                ) : filteredEmployees.length === 0 ? (
-                    <div className="py-16 text-center">
-                        <Users size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
-                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">
-                            {selectedDepartment ? 'No matching employees' : 'No employees yet'}
-                        </h3>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">
-                            {selectedDepartment
-                                ? 'No employees belong to the selected department.'
-                                : 'Add employees and they will appear here with their shifts.'}
-                        </p>
-                    </div>
-                ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full border-separate border-spacing-1">
-                            <thead>
-                                <tr>
-                                    <th className="p-2 rounded-lg ring-1 ring-black/5 dark:ring-white/10 bg-slate-50/70 dark:bg-slate-900/50 text-left min-w-[150px] sticky left-0 z-10 text-[11px] uppercase tracking-[0.06em] font-semibold text-slate-600 dark:text-slate-400">
-                                        Employee
-                                    </th>
-                                    {days.map((day, i) => (
-                                        <th
-                                            key={i}
-                                            className={`p-1.5 rounded-lg ring-1 ring-black/5 dark:ring-white/10 text-center min-w-[60px] ${day && isToday(day) ? 'bg-slate-100 dark:bg-slate-900/30' :
-                                                day && isWeekend(day) ? 'bg-slate-100 dark:bg-slate-700' : 'bg-slate-50/70 dark:bg-slate-900/50'
-                                                }`}
-                                        >
-                                            {day ? (
-                                                <>
-                                                    <div className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-600 dark:text-slate-400">{dayNames[day.getDay()]}</div>
-                                                    <div className={`text-xs tabular-nums ${isToday(day) ? 'text-slate-600 dark:text-slate-400 font-bold' : 'text-slate-600 dark:text-slate-300'}`}>
-                                                        {day.getDate()}
-                                                    </div>
-                                                </>
-                                            ) : null}
+
+                    {rows.length === 0 ? (
+                        <div className="py-20 text-center px-6">
+                            <Users size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
+                            <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-1">
+                                {selectedDepartment || query ? 'No matching employees' : 'No employees yet'}
+                            </h3>
+                            <p className="text-sm text-slate-600 dark:text-slate-400">
+                                {selectedDepartment || query ? 'Try another department or search.' : 'Add employees and they will appear here with their shifts.'}
+                            </p>
+                        </div>
+                    ) : (
+                        <div ref={gridRef} className="flex-1 min-h-0 overflow-auto custom-scrollbar">
+                            <table className="text-sm border-separate border-spacing-0 min-w-full">
+                                <thead>
+                                    <tr>
+                                        <th className="sticky top-0 left-0 z-30 bg-slate-50 dark:bg-slate-900 border-b border-r border-slate-200 dark:border-slate-800 pl-4 sm:pl-6 pr-4 py-2 text-left text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-600 dark:text-slate-400 min-w-[200px]">
+                                            Employee
                                         </th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filteredEmployees.slice(0, 15).map((emp) => (
-                                    <tr key={emp.id} className="group">
-                                        <td className="p-2 rounded-lg ring-1 ring-black/5 dark:ring-white/10 bg-app-surface sticky left-0 z-10 group-hover:bg-slate-50/50 dark:group-hover:bg-slate-700/40 transition-colors">
-                                            <div className="font-semibold text-sm text-slate-800 dark:text-slate-100">{emp.name || '—'}</div>
-                                            <div className="font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">{emp.employee_code || '—'}</div>
-                                        </td>
-                                        {days.map((day, i) => {
-                                            if (!day) return <td key={i} className="rounded-lg ring-1 ring-black/5 dark:ring-white/10 bg-slate-50/50 dark:bg-slate-900/40"></td>;
-
-                                            const schedule = getScheduleForEmployeeOnDate(emp.id, day);
-                                            const isWO = isWeekend(day);
-
+                                        {days.map(d => {
+                                            const isToday = sameDay(d, today);
                                             return (
-                                                <td
-                                                    key={i}
-                                                    className={`p-1 text-center rounded-lg ring-1 ring-black/5 dark:ring-white/10 ${isToday(day) ? 'bg-slate-50 dark:bg-slate-900/20' :
-                                                        isWO ? 'bg-slate-100 dark:bg-slate-700' : 'bg-app-surface'
-                                                        }`}
-                                                >
-                                                    {isWO ? (
-                                                        <span className="text-[11px] font-bold uppercase tracking-wide text-slate-600 dark:text-slate-400">WO</span>
-                                                    ) : schedule ? (
-                                                        <span
-                                                            className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide ${getShiftColor(shifts.findIndex(s => s.id === schedule.shift_id))
-                                                                }`}
-                                                            title={schedule.shift_name}
-                                                        >
-                                                            {schedule.shift_name?.substring(0, 3) || 'SCH'}
-                                                        </span>
-                                                    ) : (
-                                                        <span className="text-xs text-slate-300 dark:text-slate-500">—</span>
-                                                    )}
-                                                </td>
+                                                <th key={d.toISOString()} data-today={isToday ? 'true' : undefined}
+                                                    className={`sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 px-1 py-1.5 text-center ${weekend(d) ? 'bg-slate-100 dark:bg-slate-800' : 'bg-slate-50 dark:bg-slate-900'}`}
+                                                    style={{ minWidth: viewMode === 'week' ? 96 : 44 }}>
+                                                    <span className="block text-[11px] font-medium text-slate-600 dark:text-slate-400">{DOW[d.getDay()]}</span>
+                                                    <span className={`inline-grid place-items-center mt-0.5 w-6 h-6 rounded-full text-xs tabular-nums ${isToday ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 font-semibold' : 'text-slate-800 dark:text-slate-200'}`}>
+                                                        {d.getDate()}
+                                                    </span>
+                                                </th>
                                             );
                                         })}
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                        <div className="pt-3 mt-2 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-400">
-                            {filteredEmployees.length > 15
-                                ? `Showing 15 of ${filteredEmployees.length} employees`
-                                : `${filteredEmployees.length} employee${filteredEmployees.length === 1 ? '' : 's'}`}
+                                </thead>
+                                <tbody>
+                                    {rows.map(emp => (
+                                        <tr key={emp.id} className="group">
+                                            <td className="sticky left-0 z-10 bg-app-surface group-hover:bg-slate-50 dark:group-hover:bg-slate-800/60 border-b border-r border-slate-100 dark:border-slate-800 pl-4 sm:pl-6 pr-4 py-2">
+                                                <Link to={`/employees/${emp.id}`} className="block font-medium text-slate-900 dark:text-slate-100 truncate hover:underline underline-offset-2">{emp.name || '—'}</Link>
+                                                <span className="block font-mono text-xs text-slate-600 dark:text-slate-400">{emp.employee_code}{emp.department_name ? ` · ${emp.department_name}` : ''}</span>
+                                            </td>
+                                            {days.map(d => {
+                                                const c = cellFor(emp, d);
+                                                const isToday = sameDay(d, today);
+                                                const base = `border-b border-slate-100 dark:border-slate-800 px-1 py-1.5 text-center ${weekend(d) ? 'bg-slate-50 dark:bg-slate-800/40' : ''} ${isToday ? 'bg-slate-100/70 dark:bg-slate-800/70' : ''}`;
+                                                if (c.kind === 'shift' && c.shift) {
+                                                    return (
+                                                        <td key={d.toISOString()} className={base}>
+                                                            <span
+                                                                title={`${c.name || c.shift.name}${c.temporary ? ' (temporary)' : ''} · ${String(c.shift.start_time).slice(0, 5)}–${String(c.shift.end_time).slice(0, 5)}`}
+                                                                className="inline-flex items-center justify-center h-6 px-1.5 rounded text-[11px] font-semibold text-slate-900 dark:text-slate-50"
+                                                                style={{ backgroundColor: `${c.shift.tint}26`, boxShadow: `inset 2px 0 0 ${c.shift.tint}` }}
+                                                            >
+                                                                {viewMode === 'week' ? (c.name || c.shift.name) : c.shift.short}{c.temporary ? '*' : ''}
+                                                            </span>
+                                                        </td>
+                                                    );
+                                                }
+                                                return (
+                                                    <td key={d.toISOString()} className={base}>
+                                                        <span className="text-[11px] text-slate-500 dark:text-slate-400">{c.kind === 'off' ? 'Off' : '·'}</span>
+                                                    </td>
+                                                );
+                                            })}
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
-                    </div>
-                )}
-            </div>
-
-            {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-app-surface/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 hover:-translate-y-0.5 transition-transform">
-                    <div className="flex items-center gap-2 mb-2">
-                        <div className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-900/30 text-slate-600 dark:text-slate-400">
-                            <Users size={16} />
-                        </div>
-                        <h3 className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-600 dark:text-slate-400">Total Employees</h3>
-                    </div>
-                    <div className="text-3xl font-bold tabular-nums text-slate-600 dark:text-slate-400">{filteredEmployees.length}</div>
-                    <div className="text-sm text-slate-600 dark:text-slate-300">
-                        {selectedDepartment ? 'In selected department' : 'Across all departments'}
-                    </div>
-                </div>
-                <div className="bg-app-surface/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 hover:-translate-y-0.5 transition-transform">
-                    <div className="flex items-center gap-2 mb-2">
-                        <div className="p-1.5 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400">
-                            <Clock size={16} />
-                        </div>
-                        <h3 className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-600 dark:text-slate-400">Active Shifts</h3>
-                    </div>
-                    <div className="text-3xl font-bold tabular-nums text-emerald-700 dark:text-emerald-400">{shifts.length}</div>
-                    <div className="text-sm text-slate-600 dark:text-slate-300">Defined in system</div>
-                </div>
-                <div className="bg-app-surface/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 hover:-translate-y-0.5 transition-transform">
-                    <div className="flex items-center gap-2 mb-2">
-                        <div className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-900/30 text-slate-600 dark:text-slate-400">
-                            <Building2 size={16} />
-                        </div>
-                        <h3 className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-600 dark:text-slate-400">Departments</h3>
-                    </div>
-                    <div className="text-3xl font-bold tabular-nums text-slate-600 dark:text-slate-400">{departments.length}</div>
-                    <div className="text-sm text-slate-600 dark:text-slate-300">With employees</div>
-                </div>
-            </div>
-        </div>
+                    )}
+                </>
+            )}
+        </ListPage>
     );
 }
+
