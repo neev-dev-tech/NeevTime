@@ -12,6 +12,7 @@ export default function DeviceMessages() {
     const [devices, setDevices] = useState([]);
     const [form, setForm] = useState({ device_serial: '', message: '' });
     const [sending, setSending] = useState(false);
+    const [loading, setLoading] = useState(true);
 
     const fetchData = async () => {
         try {
@@ -23,6 +24,8 @@ export default function DeviceMessages() {
             setDevices(devRes.data || []);
         } catch (err) {
             toast.error(err.response?.data?.error || 'Failed to load messages');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -77,7 +80,7 @@ export default function DeviceMessages() {
             </form>
 
             <div className="bg-app-surface rounded-xl border dark:border-slate-700 shadow-sm overflow-hidden">
-                {messages.length > 0 && (
+                {!loading && messages.length > 0 && (
                     <TableToolbar controls={pager} placeholder="Search by device, message or status…" />
                 )}
                 <table className="w-full text-sm text-left">
@@ -90,16 +93,36 @@ export default function DeviceMessages() {
                         </tr>
                     </thead>
                     <tbody className="divide-y dark:divide-slate-700">
-                        {messages.length === 0 ? (
+                        {loading ? (
+                            <tr>
+                                <td colSpan={4} className="p-6">
+                                    <div className="space-y-3">
+                                        {Array.from({ length: 6 }).map((_, i) => (
+                                            <div key={i} className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
+                                        ))}
+                                    </div>
+                                </td>
+                            </tr>
+                        ) : messages.length === 0 ? (
                             <tr>
                                     <td colSpan={4} className="px-6 py-12 text-center">
-                                        <MessageSquare size={32} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                                        <MessageSquare size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
                                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No messages sent yet</h3>
                                         <p className="text-sm text-slate-500 dark:text-slate-400">
                                             Messages you push to a device appear here with their delivery status.
                                         </p>
                                     </td>
                                 </tr>
+                        ) : pager.matched === 0 ? (
+                            <tr>
+                                <td colSpan={4} className="px-6 py-12 text-center">
+                                    <MessageSquare size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                                    <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No matching messages</h3>
+                                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                                        Nothing matches the current search. Clear it to see every message.
+                                    </p>
+                                </td>
+                            </tr>
                         ) : pager.view.map((m, i) => (
                             <tr key={m.id || i} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
                                 <td className="px-6 py-3 font-mono text-xs">{m.device_name || m.device_serial}</td>
@@ -114,7 +137,7 @@ export default function DeviceMessages() {
                         ))}
                     </tbody>
                 </table>
-                {messages.length > 0 && <TablePager controls={pager} noun="message" />}
+                {!loading && messages.length > 0 && <TablePager controls={pager} noun="message" />}
             </div>
         </div>
     );

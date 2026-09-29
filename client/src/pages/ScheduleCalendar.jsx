@@ -233,7 +233,9 @@ export default function ScheduleCalendar() {
                 ) : filteredEmployees.length === 0 ? (
                     <div className="py-16 text-center">
                         <Users size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
-                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No employees to show</h3>
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">
+                            {selectedDepartment ? 'No matching employees' : 'No employees yet'}
+                        </h3>
                         <p className="text-sm text-slate-500 dark:text-slate-400">
                             {selectedDepartment
                                 ? 'No employees belong to the selected department.'

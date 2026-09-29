@@ -225,8 +225,17 @@ export default function DeviceCommands() {
                                                 {device.serial_number}
                                             </div>
                                         </div>
-                                        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${device.status === 'online' ? 'bg-green-400' : 'bg-slate-400'
-                                            }`} />
+                                        <span
+                                            className={`flex items-center gap-1.5 flex-shrink-0 text-[11px] font-semibold ${selectedDevice?.serial_number === device.serial_number
+                                                ? 'text-slate-200'
+                                                : 'text-slate-500 dark:text-slate-400'
+                                                }`}
+                                            title={device.status === 'online' ? 'Online' : 'Offline'}
+                                        >
+                                            <span aria-hidden="true" className={`w-2 h-2 rounded-full ${device.status === 'online' ? 'bg-green-400' : 'bg-slate-400'
+                                                }`} />
+                                            {device.status === 'online' ? 'Online' : 'Offline'}
+                                        </span>
                                     </button>
                                 ))}
                             </div>
@@ -340,7 +349,7 @@ export default function DeviceCommands() {
                                 {deviceCommands.slice(0, 20).map(cmd => (
                                     <div key={cmd.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
                                         <div className="flex items-center gap-3 min-w-0">
-                                            <div className={`w-2 h-2 rounded-full flex-shrink-0 ${cmd.status === 'success' ? 'bg-green-500' :
+                                            <div aria-hidden="true" title={cmd.status} className={`w-2 h-2 rounded-full flex-shrink-0 ${cmd.status === 'success' ? 'bg-green-500' :
                                                 cmd.status === 'pending' ? 'bg-yellow-500' :
                                                     cmd.status === 'sent' ? 'bg-slate-500' :
                                                         'bg-red-500'

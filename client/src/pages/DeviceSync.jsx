@@ -232,11 +232,19 @@ export default function DeviceSync() {
                     <div className="p-5 space-y-2">
                         {[...Array(3)].map((_, i) => <div key={i} className="h-12 rounded-lg bg-slate-100 dark:bg-slate-700/40 animate-pulse" />)}
                     </div>
+                ) : error ? (
+                    <div className="py-16 text-center">
+                        <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load stuck commands</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">{error}</p>
+                    </div>
                 ) : deadLetter.length === 0 ? (
-                    <div className="py-14 text-center">
-                        <CheckCircle size={30} className="mx-auto text-emerald-500 mb-2" />
-                        <p className="font-semibold text-slate-800 dark:text-slate-100">Nothing stuck</p>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">Every command has been delivered or is still in flight.</p>
+                    <div className="py-16 text-center">
+                        <CheckCircle size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Nothing stuck</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            Commands that run out of retries will appear here. Every command so far has been delivered or is still in flight.
+                        </p>
                     </div>
                 ) : (
                     <>

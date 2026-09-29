@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { TrendingUp, Building } from 'lucide-react';
+import { TrendingUp, Building, AlertCircle } from 'lucide-react';
 import {
     ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid,
 } from 'recharts';
@@ -23,12 +23,16 @@ export default function ReportsInsights() {
     const [departments, setDepartments] = useState(null);
     const [trends, setTrends] = useState(null);
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const [y, m] = month.split('-');
+        setLoading(true);
+        setError('');
         api.get(`/api/reports/department-monthly?year=${y}&month=${m}`)
             .then(r => setDepartments(r.data.data))
-            .catch(e => setError(e.response?.data?.error || 'Could not load the department summary'));
+            .catch(e => setError(e.response?.data?.error || 'Could not load the department summary'))
+            .finally(() => setLoading(false));
     }, [month]);
 
     useEffect(() => {
@@ -114,11 +118,39 @@ export default function ReportsInsights() {
                                     filename={`departments-${month}`} title={`Department summary ${month}`} />
                     </div>
                 </div>
-                {!departments ? (
-                    <div className="p-4"><div className="h-32 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" /></div>
+                {loading ? (
+                    <div className="p-4 space-y-3">
+                        {Array.from({ length: 6 }).map((_, i) => (
+                            <div key={i} className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
+                        ))}
+                    </div>
+                ) : !departments ? (
+                    <div className="py-16 text-center">
+                        <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load the department summary</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">{error || 'Try another month or reload the page.'}</p>
+                    </div>
+                ) : departments.length === 0 ? (
+                    <div className="py-16 text-center">
+                        <Building size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No department figures for this month</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            Department totals appear here once attendance for the month has been processed. Try another month.
+                        </p>
+                    </div>
                 ) : (
                     <>
                     <TableToolbar controls={pager} placeholder="Search departments…" />
+                    {pager.matched === 0 ? (
+                    <div className="py-16 text-center">
+                        <Building size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No matching departments</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            Nothing matches the current search. Clear it to see every department.
+                        </p>
+                    </div>
+                    ) : (
+                    <>
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm">
                             <thead className="bg-slate-50 dark:bg-slate-900/40 text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400">
@@ -139,6 +171,8 @@ export default function ReportsInsights() {
                         </table>
                     </div>
                     <TablePager controls={pager} noun="department" />
+                    </>
+                    )}
                     </>
                 )}
             </div>

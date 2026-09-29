@@ -120,6 +120,16 @@ export default function LeaveTypes() {
                 ) : (
                     <>
                     <TableToolbar controls={controls} placeholder="Search leave types…" />
+                    {controls.matched === 0 ? (
+                    <div className="py-16 text-center">
+                        <FileText size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No matching leave types</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            Nothing matches the current search. Clear it to see all leave types.
+                        </p>
+                    </div>
+                    ) : (
+                    <>
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
                             <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
@@ -180,6 +190,8 @@ export default function LeaveTypes() {
                         </table>
                     </div>
                     <TablePager controls={controls} noun="leave type" />
+                    </>
+                    )}
                     </>
                 )}
             </div>

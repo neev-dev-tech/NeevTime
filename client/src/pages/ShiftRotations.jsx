@@ -20,12 +20,14 @@ export default function ShiftRotations() {
     const [crew, setCrew] = useState([]);
     const [crewForm, setCrewForm] = useState({ employee_ids: [], slot_offset: 0, starts_on: '' });
     const [busy, setBusy] = useState(false);
+    const [loading, setLoading] = useState(true);
 
     const load = () => Promise.all([
         api.get('/api/rotations').then(r => setRotations(r.data)),
         api.get('/api/shifts').then(r => setShifts((r.data || []).filter(s => s.is_active !== false))),
         api.get('/api/employees').then(r => setEmployees((r.data || []).filter(e => (e.status || '').toLowerCase() !== 'resigned'))),
-    ]).catch(() => toast.error('Could not load rotations'));
+    ]).catch(() => toast.error('Could not load rotations'))
+      .finally(() => setLoading(false));
     useEffect(() => { load(); }, []);
 
     const saveRotation = async () => {
@@ -93,11 +95,21 @@ export default function ShiftRotations() {
             />
 
             <div className="bg-app-surface rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-                {rotations.length === 0 ? (
-                    <div className="p-10 text-center text-sm text-slate-500 dark:text-slate-400">
-                        No rotations yet. A rotation is an ordered list of shifts; each crew steps
-                        through it, offset so the shifts stay covered. The nightly generator keeps
-                        five weeks of schedule ahead.
+                {loading ? (
+                    <div className="p-6 space-y-3">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                            <div key={i} className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
+                        ))}
+                    </div>
+                ) : rotations.length === 0 ? (
+                    <div className="py-16 px-6 text-center">
+                        <RefreshCw size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No rotations yet</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 max-w-xl mx-auto">
+                            Use Add rotation to define an ordered list of shifts; each crew steps
+                            through it, offset so the shifts stay covered. The nightly generator keeps
+                            five weeks of schedule ahead.
+                        </p>
                     </div>
                 ) : (
                     <table className="w-full text-left text-sm">

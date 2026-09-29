@@ -84,6 +84,7 @@ export default function AuditTrail() {
     const page = Math.floor(offset / PAGE) + 1;
     const pages = Math.max(1, Math.ceil(total / PAGE));
     const when = (v) => formatDateTime(v);
+    const isFiltered = !!(filters.table || filters.action || filters.from || filters.to);
 
     return (
         <div className="space-y-6">
@@ -152,9 +153,13 @@ export default function AuditTrail() {
                 ) : entries.length === 0 ? (
                     <div className="py-16 text-center">
                         <Shield size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
-                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Nothing recorded yet</h3>
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">
+                            {isFiltered ? 'No matching changes' : 'Nothing recorded yet'}
+                        </h3>
                         <p className="text-sm text-slate-500 dark:text-slate-400">
-                            Changes to attendance, employees, users and settings appear here as they happen.
+                            {isFiltered
+                                ? 'Nothing matches the current filters. Clear them or widen the date range.'
+                                : 'Changes to attendance, employees, users and settings appear here as they happen.'}
                         </p>
                     </div>
                 ) : (
