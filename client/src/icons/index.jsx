@@ -147,6 +147,7 @@ import {
     WifiHigh as PWifiHigh,
     WifiSlash as PWifiSlash,
     X as PX,
+    Sparkle as PSparkle,
     XCircle as PXCircle,
     XSquare as PXSquare
 } from '@phosphor-icons/react';
@@ -303,6 +304,7 @@ export const BellRing = solid(PBellRinging, 'BellRing');
 export const Workflow = solid(PFlowArrow, 'Workflow');
 // Hamburger for the mobile navigation drawer.
 export const Menu = solid(PList, 'Menu');
+export const Sparkles = solid(PSparkle, 'Sparkles');
 export const X = solid(PX, 'X');
 export const XCircle = solid(PXCircle, 'XCircle');
 export const XSquare = solid(PXSquare, 'XSquare');

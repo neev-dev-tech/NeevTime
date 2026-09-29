@@ -649,6 +649,8 @@ app.use('/api', authenticateToken, require('./routes/approvers'));
 // Rotations: repeating shift patterns that generate the schedule ahead.
 // Mounted below /api/health like everything else authenticated.
 app.use('/api', authenticateToken, require('./routes/rotations'));
+// Import Wizard column suggestions (TypeSafe; inert without TYPESAFE_API_KEY)
+app.use('/api', authenticateToken, require('./routes/import_assist'));
 app.use('/api', authenticateToken, orgRouter);
 app.use('/api', authenticateToken, personnelRouter);
 app.use('/api', authenticateToken, schedulingRouter);

@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import api from '../api';
-import { Upload, Download, FileSpreadsheet, AlertCircle, CheckCircle, ArrowRight, RefreshCw } from 'lucide-react';
-import { Button, PageHeader } from '../components';
+import { Upload, Download, FileSpreadsheet, AlertCircle, CheckCircle, ArrowRight, RefreshCw, Sparkles } from 'lucide-react';
+import { Button, PageHeader, useToast } from '../components';
 
 const IMPORT_TYPES = [
     { id: 'employees', label: 'Employee Master', description: 'Import employee details, codes, and departments', endpoint: '/api/employees/import', templateColumns: ['employee_code', 'name', 'department_id'] },
@@ -9,7 +9,34 @@ const IMPORT_TYPES = [
     { id: 'holidays', label: 'Holidays', description: 'Upload annual holiday calendar list', endpoint: '/api/holidays/import', templateColumns: ['name', 'date', 'is_optional'] },
 ];
 
-const STEP_LABELS = ['Select Type', 'Upload File', 'Preview', 'Complete'];
+const STEP_LABELS = ['Select Type', 'Upload File', 'Match & Preview', 'Complete'];
+
+// What each field means (sent with an AI suggestion request) and the header
+// spellings code matches on its own. Headers are compared with case, spaces
+// and punctuation removed, so "Emp. Code" and "EMP_CODE" both read "empcode".
+const FIELD_INFO = {
+    employee_code: { meaning: "the employee's unique code or ID number", synonyms: ['employeecode', 'empcode', 'employeeid', 'empid', 'employeeno', 'empno', 'employeenumber', 'staffid', 'staffcode', 'code', 'pin', 'userid', 'badgeno'] },
+    name: { meaning: 'the name', synonyms: ['name', 'employeename', 'empname', 'fullname', 'staffname', 'holidayname', 'holiday', 'occasion'] },
+    department_id: { meaning: "the employee's department (its name or numeric ID)", synonyms: ['departmentid', 'department', 'dept', 'deptid', 'departmentname', 'deptname'] },
+    shift_id: { meaning: 'the shift to assign (ID, code or name)', synonyms: ['shiftid', 'shift', 'shiftcode', 'shiftname'] },
+    effective_from: { meaning: 'the date the shift assignment starts', synonyms: ['effectivefrom', 'fromdate', 'startdate', 'effectivedate', 'from', 'date'] },
+    date: { meaning: 'the date of the holiday', synonyms: ['date', 'holidaydate', 'day'] },
+    is_optional: { meaning: 'whether the holiday is optional (yes/no)', synonyms: ['isoptional', 'optional', 'restricted'] }
+};
+const norm = (h) => String(h || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+// Exact name first, then synonyms in order; each file column used once.
+function autoMatch(targets, headers) {
+    const used = new Set();
+    const mapping = {};
+    for (const t of targets) {
+        const wanted = [norm(t), ...(FIELD_INFO[t]?.synonyms || [])];
+        const hit = wanted.map(w => headers.find(h => !used.has(h) && norm(h) === w)).find(Boolean);
+        mapping[t] = hit || '';
+        if (hit) used.add(hit);
+    }
+    return mapping;
+}
 
 export default function ImportWizard() {
     const [step, setStep] = useState(1);
@@ -18,6 +45,54 @@ export default function ImportWizard() {
     const [parsedData, setParsedData] = useState([]);
     const [importing, setImporting] = useState(false);
     const [result, setResult] = useState(null);
+    const toast = useToast();
+    const [headers, setHeaders] = useState([]);   // the file's own column keys
+    const [mapping, setMapping] = useState({});   // target field -> file column
+    const [aiInfo, setAiInfo] = useState({});     // target field -> { confidence, apply }
+    const [aiAvailable, setAiAvailable] = useState(false);
+    const [suggesting, setSuggesting] = useState(false);
+
+    // Department names in a file are turned into IDs; the import endpoint
+    // stores department_id as a number and rejects a row carrying a name.
+    const [departments, setDepartments] = useState([]);
+    useEffect(() => {
+        if (importType !== 'employees') return;
+        api.get('/api/departments').then(r => setDepartments(r.data || [])).catch(() => setDepartments([]));
+    }, [importType]);
+
+    useEffect(() => {
+        api.get('/api/import/assist-status')
+            .then(r => setAiAvailable(Boolean(r.data?.available)))
+            .catch(() => setAiAvailable(false));
+    }, []);
+
+    const typeDef = IMPORT_TYPES.find(t => t.id === importType);
+    const targets = typeDef?.templateColumns || [];
+
+    // Rows as sent: every original column kept, plus each matched field under
+    // its expected name, so a file with other headings imports correctly.
+    const deptIdByName = useMemo(
+        () => Object.fromEntries(departments.map(d => [String(d.name || '').trim().toLowerCase(), d.id])),
+        [departments]
+    );
+    const { mappedData, unknownDepartments } = useMemo(() => {
+        const unknown = new Set();
+        const rows = parsedData.map(row => {
+            const out = { ...row };
+            for (const t of targets) {
+                if (mapping[t] && mapping[t] !== t) out[t] = row[mapping[t]];
+            }
+            if (importType === 'employees' && out.department_id !== undefined && out.department_id !== '') {
+                const v = String(out.department_id).trim();
+                if (!/^\d+$/.test(v)) {
+                    const id = deptIdByName[v.toLowerCase()];
+                    if (id === undefined) { unknown.add(v); out.department_id = ''; } else out.department_id = id;
+                }
+            }
+            return out;
+        });
+        return { mappedData: rows, unknownDepartments: [...unknown] };
+    }, [parsedData, mapping, targets, importType, deptIdByName]);
 
     const handleFileSelect = (e) => {
         const selectedFile = e.target.files[0];
@@ -36,6 +111,9 @@ export default function ImportWizard() {
                 return obj;
             });
             setParsedData(data);
+            setHeaders(headers || []);
+            setMapping(autoMatch(IMPORT_TYPES.find(t => t.id === importType)?.templateColumns || [], headers || []));
+            setAiInfo({});
             setStep(3);
         };
         reader.readAsText(selectedFile);
@@ -43,11 +121,16 @@ export default function ImportWizard() {
 
     const handleImport = async () => {
         if (!importType || parsedData.length === 0) return;
+        const unmatched = targets.filter(t => !mapping[t]);
+        if (unmatched.length) {
+            toast.warning(`Match a column for: ${unmatched.join(', ')}`);
+            return;
+        }
         setImporting(true);
         try {
             const endpoint = IMPORT_TYPES.find(t => t.id === importType)?.endpoint;
             // Support both payload structures depending on backend expectation
-            const res = await api.post(endpoint, { employees: parsedData, data: parsedData });
+            const res = await api.post(endpoint, { employees: mappedData, data: mappedData });
             // Report what the server actually wrote, not how many rows were sent —
             // rows can be skipped for validation reasons and the user needs to know.
             const imported = res.data?.imported ?? res.data?.count ?? parsedData.length;
@@ -85,6 +168,46 @@ export default function ImportWizard() {
         setFile(null);
         setParsedData([]);
         setResult(null);
+        setHeaders([]);
+        setMapping({});
+        setAiInfo({});
+    };
+
+    const suggestColumns = async () => {
+        setSuggesting(true);
+        try {
+            const columns = headers.map(h => ({
+                header: h,
+                samples: parsedData.map(r => r[h]).filter(v => v !== '' && v != null).slice(0, 2)
+            }));
+            const res = await api.post('/api/import/suggest-mapping', {
+                kind: typeDef?.label,
+                targets: targets.map(t => ({ key: t, meaning: FIELD_INFO[t]?.meaning || t })),
+                columns
+            });
+            const sugg = res.data?.suggestions || {};
+            const next = { ...mapping };
+            const info = {};
+            let applied = 0;
+            for (const t of targets) {
+                const sg = sugg[t];
+                if (!sg) continue;
+                info[t] = sg;
+                // Only fill fields code left empty, and only when confident;
+                // a user's or an exact match's choice is never overwritten.
+                if (!next[t] && sg.apply && !Object.values(next).includes(sg.column)) {
+                    next[t] = sg.column;
+                    applied += 1;
+                }
+            }
+            setMapping(next);
+            setAiInfo(info);
+            toast.success(applied ? `Matched ${applied} column${applied === 1 ? '' : 's'}` : 'No confident matches — pick the remaining columns');
+        } catch (err) {
+            toast.error(err.response?.data?.error || 'Could not suggest columns');
+        } finally {
+            setSuggesting(false);
+        }
     };
 
     return (
@@ -196,6 +319,65 @@ export default function ImportWizard() {
                             </div>
                         </div>
 
+                        {parsedData.length > 0 && targets.length > 0 && (
+                            <div className="card-base">
+                                <div className="flex items-start justify-between gap-3 flex-wrap">
+                                    <div>
+                                        <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Match columns</h3>
+                                        <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                                            Pick which column in your file holds each field. Matching names are filled in already.
+                                        </p>
+                                    </div>
+                                    {aiAvailable && targets.some(t => !mapping[t]) && (
+                                        <div className="text-right">
+                                            <Button variant="secondary" size="sm" icon={suggesting ? RefreshCw : Sparkles} disabled={suggesting} onClick={suggestColumns}>
+                                                {suggesting ? 'Matching…' : 'Suggest matches'}
+                                            </Button>
+                                            <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500 max-w-[240px]">
+                                                Sends column names and two sample values per column to TypeSafe.
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                                    {targets.map(t => (
+                                        <div key={t}>
+                                            <label htmlFor={`map-${t}`} className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                                                <span className="font-mono">{t}</span>
+                                                <span className="font-normal text-slate-400"> — {FIELD_INFO[t]?.meaning || t}</span>
+                                            </label>
+                                            <select
+                                                id={`map-${t}`}
+                                                className={`field-sm ${mapping[t] ? '' : 'border-amber-400 dark:border-amber-600'}`}
+                                                value={mapping[t] || ''}
+                                                onChange={e => setMapping(m => ({ ...m, [t]: e.target.value }))}
+                                            >
+                                                <option value="">— choose a column —</option>
+                                                {headers.map(h => <option key={h} value={h}>{h}</option>)}
+                                            </select>
+                                            {aiInfo[t] && (
+                                                <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+                                                    Suggested “{aiInfo[t].column}” · {Math.round(aiInfo[t].confidence * 100)}% sure
+                                                    {!aiInfo[t].apply && ' — not applied, please confirm'}
+                                                </p>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {unknownDepartments.length > 0 && (
+                            <div role="note" className="flex gap-2 p-3 rounded-xl border border-amber-200 bg-amber-50 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+                                <AlertCircle size={16} className="shrink-0 mt-0.5" />
+                                <span>
+                                    {unknownDepartments.length} department name{unknownDepartments.length === 1 ? '' : 's'} not found
+                                    ({unknownDepartments.slice(0, 5).join(', ')}{unknownDepartments.length > 5 ? '…' : ''}).
+                                    Those employees will import without a department. Add the departments first to keep them.
+                                </span>
+                            </div>
+                        )}
+
                         <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-app-surface/70 dark:bg-slate-800/70 overflow-hidden shadow-sm">
                             {parsedData.length === 0 ? (
                                 <div className="py-16 text-center">
@@ -212,13 +394,13 @@ export default function ImportWizard() {
                                             <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400 sticky top-0 z-10">
                                                 <tr>
                                                     <th className="px-4 py-3 font-semibold w-12 bg-slate-50 dark:bg-slate-900">#</th>
-                                                    {parsedData[0] && Object.keys(parsedData[0]).map(k => (
+                                                    {mappedData[0] && Object.keys(mappedData[0]).map(k => (
                                                         <th key={k} className="px-4 py-3 font-semibold whitespace-nowrap bg-slate-50 dark:bg-slate-900">{k}</th>
                                                     ))}
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                                {parsedData.slice(0, 50).map((row, i) => (
+                                                {mappedData.slice(0, 50).map((row, i) => (
                                                     <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
                                                         <td className="px-4 py-2.5 text-slate-400 dark:text-slate-500 tabular-nums">{i + 1}</td>
                                                         {Object.values(row).map((v, j) => (
