@@ -317,7 +317,6 @@ export default function Devices() {
         }, 8000);
     };
 
-    // Mock Form State (retained from original)
     const defaultForm = {
         serial_number: '', device_name: '', ip_address: '', port: 4370, area_id: '',
         transfer_mode: 'realtime', timezone: 'Etc/GMT+5:30', is_registration_device: true,
@@ -390,7 +389,6 @@ export default function Devices() {
             });
 
             socketRef.current.on('device_status', (data) => {
-                console.log('[Devices] Device status update:', data);
                 // Update device status in real-time when socket event is received
                 setDevices(prevDevices =>
                     prevDevices.map(device =>
@@ -443,7 +441,6 @@ export default function Devices() {
     };
 
     const handleDelete = (serial) => {
-        console.log('[Devices] handleDelete called with serial:', serial);
         setConfirmation({
             show: true,
             action: 'delete',
@@ -455,7 +452,6 @@ export default function Devices() {
 
     const processDataTransfer = async () => {
         const { action, target } = confirmation;
-        console.log('[Devices] processDataTransfer:', { action, target, confirmation });
 
         try {
             if (action === 'delete') {
@@ -513,7 +509,7 @@ export default function Devices() {
     const closeModal = () => { setShowModal(false); setEditingDevice(null); setForm(defaultForm); };
     const syncDevice = async (sn, cmd) => {
         setSyncing(prev => ({ ...prev, [sn]: cmd }));
-        try { await api.post('/api/device-commands', { device_serial: sn, command: cmd }); setTimeout(() => { fetchDevices(); setSyncing(p => ({ ...p, [sn]: null })); }, 2000); } catch (e) { console.error(e); setSyncing(p => ({ ...p, [sn]: null })); }
+        try { await api.post('/api/device-commands', { device_serial: sn, command: cmd }); setTimeout(() => { fetchDevices(); setSyncing(p => ({ ...p, [sn]: null })); }, 2000); } catch (e) { showToast(`Could not queue ${cmd} for ${sn}: ${e.response?.data?.error || e.message}`, 'error'); setSyncing(p => ({ ...p, [sn]: null })); }
     };
 
     // Helper functions
@@ -955,18 +951,52 @@ export default function Devices() {
                 size="lg"
             >
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    <input className="input-base" placeholder="Name" value={form.device_name} onChange={e => setForm({ ...form, device_name: e.target.value })} />
-                    <input className="input-base" placeholder="Serial" value={form.serial_number} onChange={e => setForm({ ...form, serial_number: e.target.value })} disabled={!!editingDevice} />
-                    <input className="input-base" placeholder="IP" value={form.ip_address} onChange={e => setForm({ ...form, ip_address: e.target.value })} />
-                    <select className="input-base" value={form.area_id} onChange={e => setForm({ ...form, area_id: e.target.value })}>
-                        <option value="">Select Area</option>
-                        {areas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-                    </select>
-                    <select className="input-base" value={form.device_direction} onChange={e => setForm({ ...form, device_direction: e.target.value })}>
-                        <option value="in">IN</option>
-                        <option value="out">OUT</option>
-                        <option value="both">Both</option>
-                    </select>
+                    {!editingDevice && (() => {
+                        // ADMS devices push to the server; nothing here dials the
+                        // device. What the installer needs is the address to type
+                        // into the device's Cloud Server screen — shown up front.
+                        const host = window.location.hostname;
+                        const local = host === 'localhost' || host === '127.0.0.1';
+                        return (
+                            <div className="p-3 rounded-lg border border-slate-200 bg-slate-50 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300">
+                                <p className="font-semibold text-slate-900 dark:text-slate-100">On the device: Comm. → Cloud Server Setting</p>
+                                <p className="mt-1">
+                                    Server address <span className="font-mono font-semibold">{local ? 'this server\'s LAN IP' : host}</span>,
+                                    port <span className="font-mono font-semibold">80</span>, HTTPS off.
+                                    Once it connects it appears here for approval; adding it below first is optional.
+                                </p>
+                            </div>
+                        );
+                    })()}
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <div>
+                            <label htmlFor="dev-name" className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">Name</label>
+                            <input id="dev-name" className="input-base" placeholder="e.g. Main gate IN" value={form.device_name} onChange={e => setForm({ ...form, device_name: e.target.value })} />
+                        </div>
+                        <div>
+                            <label htmlFor="dev-serial" className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">Serial number</label>
+                            <input id="dev-serial" className="input-base font-mono" placeholder="From the device's System Info screen" value={form.serial_number} onChange={e => setForm({ ...form, serial_number: e.target.value })} disabled={!!editingDevice} />
+                        </div>
+                        <div>
+                            <label htmlFor="dev-ip" className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">Device IP <span className="font-normal text-slate-400">(optional)</span></label>
+                            <input id="dev-ip" className="input-base font-mono" placeholder="e.g. 10.20.0.8" value={form.ip_address} onChange={e => setForm({ ...form, ip_address: e.target.value })} />
+                        </div>
+                        <div>
+                            <label htmlFor="dev-area" className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">Area</label>
+                            <select id="dev-area" className="input-base" value={form.area_id} onChange={e => setForm({ ...form, area_id: e.target.value })}>
+                                <option value="">Select Area</option>
+                                {areas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                            </select>
+                        </div>
+                        <div>
+                            <label htmlFor="dev-direction" className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">Direction</label>
+                            <select id="dev-direction" className="input-base" value={form.device_direction} onChange={e => setForm({ ...form, device_direction: e.target.value })}>
+                                <option value="in">IN</option>
+                                <option value="out">OUT</option>
+                                <option value="both">Both</option>
+                            </select>
+                        </div>
+                    </div>
                     <div className="flex justify-end gap-2 mt-4">
                         <Button variant="secondary" type="button" onClick={closeModal}>Cancel</Button>
                         <Button variant="primary" type="submit">Save</Button>
