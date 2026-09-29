@@ -5,7 +5,7 @@ import {
     Upload as UploadIcon, RefreshCw
 } from 'lucide-react';
 import api from '../api';
-import { Button, ExportMenu, ListPage, ListTabs, ListSearch, ListIconButton, LIST_THEAD, LIST_TH, LIST_EDGE_FIRST, LIST_EDGE_LAST } from '../components';
+import { Button, ExportMenu, ListPage, ListSearch, ListIconButton, LIST_THEAD, LIST_TH, LIST_EDGE_FIRST, LIST_EDGE_LAST } from '../components';
 import { formatDate, formatDateTime } from '../utils/dateFormat';
 import useTableControls from '../hooks/useTableControls';
 import { TablePager } from '../components/TableControls';
@@ -122,7 +122,7 @@ const VIEWS = {
 const VALID_VIEWS = Object.keys(VIEWS);
 
 export default function DeviceData() {
-    const [searchParams, setSearchParams] = useSearchParams();
+    const [searchParams] = useSearchParams();
     const viewParam = searchParams.get('view');
     const [activeSection, setActiveSection] = useState(
         VALID_VIEWS.includes(viewParam) ? viewParam : 'work-code'
@@ -135,6 +135,8 @@ export default function DeviceData() {
     useEffect(() => {
         if (VALID_VIEWS.includes(viewParam) && viewParam !== activeSection) {
             setActiveSection(viewParam);
+            // New view: clear its search and go back to page 1.
+            pager.reset();
         }
     }, [viewParam]);
 
@@ -169,33 +171,10 @@ export default function DeviceData() {
         pageSize: 50
     });
 
-    const switchView = (id) => {
-        setActiveSection(id);
-        setSearchParams({ view: id }, { replace: true });
-        pager.reset();
-    };
-
-    const groups = ['Data', 'Log'];
-
     return (
         <ListPage
             title={view.label}
             count={loading ? undefined : data.length}
-            tabs={
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-                    {groups.map(group => (
-                        <div key={group} className="flex items-center gap-1.5 flex-wrap">
-                            <span className="text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-500">{group}</span>
-                            <ListTabs
-                                label={`${group} views`}
-                                value={activeSection}
-                                onChange={switchView}
-                                items={VALID_VIEWS.filter(id => VIEWS[id].group === group).map(id => ({ key: id, label: VIEWS[id].label }))}
-                            />
-                        </div>
-                    ))}
-                </div>
-            }
             actions={
                 <ExportMenu
                     rows={exportRows}
