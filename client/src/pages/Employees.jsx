@@ -4,9 +4,9 @@ import {
     Plus, Trash2, Upload, Download,
     ChevronDown, Search, RefreshCw,
     Smartphone, ArrowRightLeft, Settings,
-    Fingerprint, ScanFace, Users, AlertCircle, SearchX
+    Fingerprint, ScanFace, Users, AlertCircle, SearchX, X
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import ResignationModal from '../components/ResignationModal';
 import { Button, PageHeader } from '../components';
 import Modal from '../components/Modal';
@@ -25,6 +25,15 @@ const CELL_MONO = 'font-mono text-xs tabular-nums text-slate-600 dark:text-slate
 const BIO_ON = 'text-emerald-500';
 const BIO_OFF = 'text-slate-300 dark:text-slate-600';
 
+// Quick filters: each is a predicate over one employee row.
+const QUICK_FILTERS = [
+    { key: 'all', label: 'All', test: () => true },
+    { key: 'active', label: 'Active', test: e => e.status === 'active' },
+    { key: 'inactive', label: 'Inactive', test: e => e.status !== 'active' },
+    { key: 'door', label: 'Door access only', test: e => e.attendance_required === false },
+    { key: 'unenrolled', label: 'No biometrics', test: e => !e.has_fingerprint && !e.has_face }
+];
+
 const dash = (v) => (v === null || v === undefined || v === '' ? '—' : v);
 const initialOf = (name) => (String(name || '').trim().charAt(0) || '?').toUpperCase();
 
@@ -33,10 +42,11 @@ export default function Employees() {
     const [filteredEmployees, setFilteredEmployees] = useState([]);
     const [selectedIds, setSelectedIds] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
+    // Quick filter chips above the table; composes with the search box.
+    const [quickFilter, setQuickFilter] = useState('all');
 
     // Menus
     const [showTransferMenu, setShowTransferMenu] = useState(false);
-    const [showImportMenu, setShowImportMenu] = useState(false);
     const [showAppMenu, setShowAppMenu] = useState(false);
     const [showMoreMenu, setShowMoreMenu] = useState(false);
 
@@ -115,7 +125,6 @@ export default function Employees() {
 
             if (!isClickInsideDropdown) {
                 setShowTransferMenu(false);
-                setShowImportMenu(false);
                 setShowAppMenu(false);
                 setShowMoreMenu(false);
             }
@@ -131,19 +140,20 @@ export default function Employees() {
     }, []);
 
     useEffect(() => {
-        if (!searchQuery) {
-            setFilteredEmployees(employees);
-        } else {
+        const quick = QUICK_FILTERS.find(f => f.key === quickFilter)?.test || (() => true);
+        let rows = employees.filter(quick);
+        if (searchQuery) {
             const lower = searchQuery.toLowerCase();
             // Every one of these is nullable. Two employees came across from
             // ERPNext with no name at all, and e.name.toLowerCase() took the
             // whole page down to the error boundary the moment anyone typed.
             const has = (v) => String(v ?? '').toLowerCase().includes(lower);
-            setFilteredEmployees(employees.filter(e =>
+            rows = rows.filter(e =>
                 has(e.name) || has(e.employee_code) || has(e.department_name)
-            ));
+            );
         }
-    }, [searchQuery, employees]);
+        setFilteredEmployees(rows);
+    }, [searchQuery, employees, quickFilter]);
 
     // Paginates the filtered list for display only; select-all, export and
     // the bulk actions still work on the whole filtered list as before.
@@ -155,9 +165,7 @@ export default function Employees() {
         try {
             setLoading(true);
             setError(null);
-            console.log('[Employees] fetchEmployees called');
             const res = await api.get('/api/employees');
-            console.log('[Employees] Fetched', res.data?.length || 0, 'employees');
             setEmployees(res.data);
             setFilteredEmployees(res.data);
             setSelectedIds([]);
@@ -182,7 +190,6 @@ export default function Employees() {
     };
 
     const toggleSelect = (id) => {
-        console.log('Toggling ID:', id);
         if (!id) {
             console.warn('Attempted to select undefined ID');
             return;
@@ -191,7 +198,6 @@ export default function Employees() {
             const newSelection = prev.includes(id)
                 ? prev.filter(i => i !== id)
                 : [...prev, id];
-            console.log('New Selection:', newSelection);
             return newSelection;
         });
     };
@@ -392,11 +398,11 @@ export default function Employees() {
                 onClick?.();
                 // Close all dropdowns after action
                 setShowTransferMenu(false);
-                setShowImportMenu(false);
                 setShowAppMenu(false);
                 setShowMoreMenu(false);
             }}
-            className={`block w-full text-left px-4 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-700 ${danger ? 'text-red-600 dark:text-red-400' : 'text-slate-700 dark:text-slate-300'}`}
+            role="menuitem"
+            className={`block w-full text-left px-3.5 py-2 text-[13px] hover:bg-slate-100 dark:hover:bg-slate-800 ${danger ? 'text-rose-600 dark:text-rose-400' : 'text-slate-700 dark:text-slate-200'}`}
         >
             {label}
         </button>
@@ -444,7 +450,6 @@ export default function Employees() {
     };
 
     const handleMoreSettings = (action) => {
-        console.log('HandleMoreSettings Action:', action, 'SelectedIds:', selectedIds);
         if (selectedIds.length === 0) return showToast('Please select at least one employee.', 'error');
 
         const messages = {
@@ -483,31 +488,76 @@ export default function Employees() {
         setConfirmMessage('');
     };
 
+    const allSelected = filteredEmployees.length > 0 && filteredEmployees.every(e => selectedIds.includes(e.id));
+    const someSelected = selectedIds.length > 0 && !allSelected;
+    const TH = 'px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400 whitespace-nowrap';
+
+    const closeMenus = () => {
+        setShowTransferMenu(false);
+        setShowAppMenu(false);
+        setShowMoreMenu(false);
+    };
+
+    // Bulk-action menu: button plus a panel of DropdownItems.
+    const BulkMenu = ({ label, icon: Icon, open, onToggle, width = 'w-56', children }) => (
+        <div className="relative dropdown-container">
+            <Button
+                variant="tonal"
+                size="sm"
+                icon={Icon}
+                aria-haspopup="menu"
+                aria-expanded={open}
+                onClick={(e) => { e.stopPropagation(); const was = open; closeMenus(); if (!was) onToggle(); }}
+            >
+                {label} <ChevronDown size={13} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
+            </Button>
+            {open && (
+                <div role="menu" className={`absolute top-full left-0 mt-1.5 ${width} bg-app-surface border border-slate-200 dark:border-slate-700 shadow-lg rounded-xl z-20 overflow-hidden py-1 dropdown-menu`}>
+                    {children}
+                </div>
+            )}
+        </div>
+    );
+
     const tableHead = (
-        <thead>
+        <thead className="sticky top-0 z-10 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
             <tr>
-                <th className="table-header w-12 text-center">
+                <th className="pl-5 pr-2 py-3 w-10">
                     <input
                         type="checkbox"
-                        className="rounded border-slate-300 dark:border-slate-700 text-saffron focus:ring-saffron"
+                        aria-label="Select all employees in this list"
+                        checked={allSelected}
+                        ref={el => { if (el) el.indeterminate = someSelected; }}
+                        disabled={filteredEmployees.length === 0}
+                        className="rounded border-slate-300 dark:border-slate-600"
                         onChange={(e) => {
-                            if (e.target.checked) setSelectedIds(filteredEmployees.map(e => e.id));
+                            if (e.target.checked) setSelectedIds(filteredEmployees.map(emp => emp.id));
                             else setSelectedIds([]);
                         }}
                     />
                 </th>
-                <th className="table-header">Employee Id</th>
-                <th className="table-header">Full Name</th>
-                <th className="table-header">Department</th>
-                <th className="table-header">Mobile</th>
-                <th className="table-header text-center">Status</th>
-                <th className="table-header text-center">Biometrics</th>
-                <th className="table-header text-center">App Access</th>
-                <th className="table-header">Position</th>
-                <th className="table-header">Area</th>
+                <th className={TH}>Employee</th>
+                <th className={TH}>Department</th>
+                <th className={TH}>Status</th>
+                <th className={`${TH} text-center`}>Biometrics</th>
+                <th className={TH}>App access</th>
+                <th className={TH}>Area</th>
+                <th className={TH}>Mobile</th>
             </tr>
         </thead>
     );
+
+    const refreshAll = async () => {
+        setRefreshing(true);
+        try {
+            await Promise.all([fetchEmployees(), fetchDepsAndAreas()]);
+            showToast('Data refreshed successfully', 'success');
+        } catch (err) {
+            showToast('Failed to refresh data', 'error');
+        } finally {
+            setRefreshing(false);
+        }
+    };
 
     return (
         <div className="relative">
@@ -515,324 +565,249 @@ export default function Employees() {
                 icon={Users}
                 title="Employees"
                 subtitle="Personnel records, biometric enrolment and app access"
+                actions={
+                    <>
+                        <Button variant="tonal" icon={Upload} onClick={() => setShowImportModal(true)}>Import</Button>
+                        <Button variant="tonal" icon={Download} onClick={handleExport}>Export</Button>
+                        <Button variant="successSolid" icon={Plus} onClick={() => setShowAddModal(true)}>Add employee</Button>
+                    </>
+                }
             />
 
-            <div className="flex flex-col h-[calc(100vh-210px)] card-base !p-0 overflow-hidden">
-            {/* Toolbar */}
-            <div className="flex items-center gap-2 px-5 py-3 border-b border-slate-200/80 dark:border-slate-700 text-sm flex-wrap">
-                <Button variant="successSolid" icon={Plus} onClick={() => setShowAddModal(true)}>
-                    Add Employee
-                </Button>
-                <div className="h-8 w-px bg-slate-200 dark:bg-slate-700 mx-2 hidden md:block"></div>
-                <Button variant="danger" icon={Trash2} onClick={handleDelete}>
-                    Delete
-                </Button>
-                <Button
-                    variant="secondary"
-                    disabled={refreshing}
-                    onClick={async (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        console.log('[Employees] Refresh button clicked');
-                        setRefreshing(true);
-                        try {
-                            await Promise.all([fetchEmployees(), fetchDepsAndAreas()]);
-                            showToast('Data refreshed successfully', 'success');
-                        } catch (err) {
-                            console.error('[Employees] Refresh error:', err);
-                            showToast('Failed to refresh data', 'error');
-                        } finally {
-                            setRefreshing(false);
-                        }
-                    }}
-                >
-                    <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} /> Refresh
-                </Button>
-                <Button variant="secondary" icon={Download} onClick={handleExport}>
-                    Export
-                </Button>
-
-                {/* Import Dropdown */}
-                <div className="relative dropdown-container">
-                    <Button
-                        variant="secondary"
-                        icon={Upload}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            setShowImportMenu(!showImportMenu);
-                            // Close other dropdowns
-                            setShowTransferMenu(false);
-                            setShowAppMenu(false);
-                            setShowMoreMenu(false);
-                        }}
-                    >
-                        Import <ChevronDown size={14} className={showImportMenu ? 'rotate-180 transition-transform' : ''} />
-                    </Button>
-                    {showImportMenu && (
-                        <>
-                            <div className="fixed inset-0 z-10" onClick={() => setShowImportMenu(false)}></div>
-                            <div className="absolute top-full left-0 mt-2 w-48 bg-app-surface border border-slate-100 dark:border-slate-700 shadow-xl rounded-2xl z-20 overflow-hidden dropdown-menu">
-                            <DropdownItem label="Import Employee (CSV)" onClick={() => setShowImportModal(true)} />
+            <div className="flex flex-col h-[calc(100vh-210px)] min-h-[420px] card-base !p-0 overflow-hidden">
+                {/* Toolbar: search + quick filters, or the bulk bar when rows are selected */}
+                {selectedIds.length === 0 ? (
+                    <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-200 dark:border-slate-700 flex-wrap">
+                        <div className="relative w-full sm:w-72">
+                            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true" />
+                            <input
+                                type="search"
+                                aria-label="Search employees"
+                                placeholder="Search name, code or department"
+                                value={searchQuery}
+                                onChange={e => setSearchQuery(e.target.value)}
+                                className="field-sm pl-9"
+                            />
                         </div>
-                        </>
+                        <div role="group" aria-label="Filter employees" className="flex items-center gap-1 flex-wrap">
+                            {QUICK_FILTERS.map(f => {
+                                const n = employees.filter(f.test).length;
+                                const on = quickFilter === f.key;
+                                return (
+                                    <button
+                                        key={f.key}
+                                        type="button"
+                                        aria-pressed={on}
+                                        onClick={() => setQuickFilter(f.key)}
+                                        className={`inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-[13px] font-medium transition-colors ${on
+                                            ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
+                                            : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'}`}
+                                    >
+                                        {f.label}
+                                        <span className={`tabular-nums text-xs ${on ? 'opacity-70' : 'text-slate-400'}`}>{n}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                        <button
+                            type="button"
+                            onClick={refreshAll}
+                            disabled={refreshing}
+                            className="ml-auto grid place-items-center w-9 h-9 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800 disabled:opacity-50 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+                            aria-label="Refresh"
+                            title="Refresh"
+                        >
+                            <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
+                        </button>
+                    </div>
+                ) : (
+                    <div className="flex items-center gap-2 px-4 py-2.5 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 flex-wrap">
+                        <span className="text-sm font-semibold text-slate-900 dark:text-slate-100 tabular-nums">{selectedIds.length} selected</span>
+                        <button
+                            type="button"
+                            onClick={() => { setSelectedIds([]); closeMenus(); }}
+                            className="inline-flex items-center gap-1 h-7 px-2 rounded-md text-xs font-medium text-slate-500 hover:bg-slate-200/70 hover:text-slate-800 dark:hover:bg-slate-700 dark:hover:text-slate-100"
+                        >
+                            <X size={13} /> Clear
+                        </button>
+                        <div className="h-5 w-px bg-slate-200 dark:bg-slate-700 mx-1" aria-hidden="true" />
+                        <BulkMenu label="Transfer" icon={ArrowRightLeft} open={showTransferMenu} onToggle={() => setShowTransferMenu(true)}>
+                            <DropdownItem label="Department Transfer" onClick={() => { closeMenus(); handleTransfer('Department'); }} />
+                            <DropdownItem label="Position Transfer" onClick={() => { closeMenus(); handleTransfer('Position'); }} />
+                            <DropdownItem label="Move to New Area" onClick={() => { closeMenus(); handleTransfer('Area'); }} />
+                            <DropdownItem label="Resignation" danger onClick={() => { closeMenus(); setShowResignationModal(true); }} />
+                        </BulkMenu>
+                        <BulkMenu label="App access" icon={Smartphone} open={showAppMenu} onToggle={() => setShowAppMenu(true)} width="w-44">
+                            <DropdownItem label="Enable Access" onClick={() => { closeMenus(); handleAppAccess(true); }} />
+                            <DropdownItem label="Disable Access" danger onClick={() => { closeMenus(); handleAppAccess(false); }} />
+                        </BulkMenu>
+                        <BulkMenu label="More" icon={Settings} open={showMoreMenu} onToggle={() => setShowMoreMenu(true)} width="w-60">
+                            <DropdownItem label="Resynchronize to device" onClick={() => { closeMenus(); handleMoreSettings('push'); }} />
+                            <DropdownItem label="Re-upload from device" onClick={() => { closeMenus(); handleMoreSettings('pull'); }} />
+                            <DropdownItem label="Delete Biometric Template" danger onClick={() => { closeMenus(); handleMoreSettings('delete-bio'); }} />
+                            <div className="my-1 border-t border-slate-100 dark:border-slate-700" />
+                            <DropdownItem label="Mark as door access only" onClick={() => { closeMenus(); handleDoorAccessOnly(true); }} />
+                            <DropdownItem label="Restore attendance tracking" onClick={() => { closeMenus(); handleDoorAccessOnly(false); }} />
+                        </BulkMenu>
+                        <Button variant="danger" size="sm" icon={Trash2} onClick={handleDelete} className="ml-auto">Delete</Button>
+                    </div>
+                )}
+
+                {/* Table */}
+                <div className="flex-1 overflow-auto custom-scrollbar">
+                    {loading ? (
+                        <table className="w-full text-left text-sm">
+                            {tableHead}
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                {Array.from({ length: 8 }).map((_, i) => (
+                                    <tr key={i}>
+                                        <td className="pl-5 pr-2 py-3"><div className="h-4 w-4 rounded bg-slate-100 dark:bg-slate-700 animate-pulse" /></td>
+                                        <td className="px-4 py-3">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 animate-pulse" />
+                                                <div className="space-y-1.5">
+                                                    <div className="h-3 w-32 rounded bg-slate-100 dark:bg-slate-700 animate-pulse" />
+                                                    <div className="h-2.5 w-14 rounded bg-slate-100 dark:bg-slate-700 animate-pulse" />
+                                                </div>
+                                            </div>
+                                        </td>
+                                        {Array.from({ length: 6 }).map((__, j) => (
+                                            <td key={j} className="px-4 py-3"><div className="h-3 w-20 rounded bg-slate-100 dark:bg-slate-700 animate-pulse" /></td>
+                                        ))}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    ) : error ? (
+                        <div className="py-20 text-center px-6">
+                            <AlertCircle size={40} className="mx-auto mb-3 text-rose-400" />
+                            <h3 className="font-semibold text-slate-800 dark:text-slate-100 mb-1">Could not load employees</h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                            <Button variant="secondary" icon={RefreshCw} onClick={fetchEmployees}>Try again</Button>
+                        </div>
+                    ) : filteredEmployees.length === 0 ? (
+                        employees.length > 0 ? (
+                            <div className="py-20 text-center px-6">
+                                <SearchX size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                                <h3 className="font-semibold text-slate-800 dark:text-slate-100 mb-1">No matching employees</h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+                                    {searchQuery ? <>Nothing matches &ldquo;{searchQuery}&rdquo; in this view.</> : 'Nobody fits this filter.'}
+                                </p>
+                                <Button variant="tonal" size="sm" onClick={() => { setSearchQuery(''); setQuickFilter('all'); }}>Clear search and filters</Button>
+                            </div>
+                        ) : (
+                            <div className="py-20 text-center px-6">
+                                <div className="mx-auto mb-4 grid place-items-center w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800">
+                                    <Users size={26} className="text-slate-400 dark:text-slate-500" />
+                                </div>
+                                <h3 className="font-semibold text-slate-900 dark:text-slate-100">No employees yet</h3>
+                                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
+                                    Add people one by one, import a CSV from your HR system, or let them appear as they enrol on a device.
+                                </p>
+                                <div className="mt-5 flex items-center justify-center gap-2">
+                                    <Button variant="tonal" icon={Upload} onClick={() => setShowImportModal(true)}>Import CSV</Button>
+                                    <Button variant="successSolid" icon={Plus} onClick={() => setShowAddModal(true)}>Add employee</Button>
+                                </div>
+                            </div>
+                        )
+                    ) : (
+                        <table className="w-full text-left text-sm">
+                            {tableHead}
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                {pager.view.map(emp => {
+                                    const isActive = emp.status === 'active';
+                                    const appOn = !!emp.app_login_enabled;
+                                    const selected = selectedIds.includes(emp.id);
+                                    const open = () => navigate(`/employees/${emp.id}`);
+                                    return (
+                                        <tr
+                                            key={emp.employee_code}
+                                            onClick={open}
+                                            className={`cursor-pointer transition-colors ${selected ? 'bg-slate-50 dark:bg-slate-800/60' : 'hover:bg-slate-50 dark:hover:bg-slate-800/40'}`}
+                                        >
+                                            <td className="pl-5 pr-2 py-3" onClick={e => e.stopPropagation()}>
+                                                <input
+                                                    type="checkbox"
+                                                    aria-label={`Select ${emp.name || emp.employee_code}`}
+                                                    checked={selected}
+                                                    onChange={() => toggleSelect(emp.id)}
+                                                    className="rounded border-slate-300 dark:border-slate-600"
+                                                />
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                <div className="flex items-center gap-3 min-w-0">
+                                                    <span
+                                                        aria-hidden="true"
+                                                        className="w-8 h-8 shrink-0 rounded-full grid place-items-center font-semibold text-xs bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                                                    >
+                                                        {initialOf(emp.name)}
+                                                    </span>
+                                                    <div className="min-w-0">
+                                                        <Link
+                                                            to={`/employees/${emp.id}`}
+                                                            onClick={e => e.stopPropagation()}
+                                                            className={`${CELL_STRONG} block truncate hover:underline underline-offset-2`}
+                                                        >
+                                                            {dash(emp.name)}
+                                                        </Link>
+                                                        <span className={CELL_CODE}>{dash(emp.employee_code)}</span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                <div className={CELL_SOFT}>{dash(emp.department_name)}</div>
+                                                {emp.designation && <div className="text-xs text-slate-400 dark:text-slate-500">{emp.designation}</div>}
+                                            </td>
+                                            <td className="px-4 py-3 whitespace-nowrap">
+                                                <span className={`inline-flex items-center gap-1.5 text-[13px] ${isActive ? 'text-slate-700 dark:text-slate-200' : 'text-slate-500 dark:text-slate-400'}`}>
+                                                    <span aria-hidden="true" className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'}`} />
+                                                    <span className="capitalize">{dash(emp.status)}</span>
+                                                </span>
+                                                {/* Door-access-only staff look identical to
+                                                    everyone else in this table otherwise,
+                                                    which is how eleven of them sat in the
+                                                    headcount unnoticed. */}
+                                                {emp.attendance_required === false && (
+                                                    <span
+                                                        className="ml-2 px-1.5 py-0.5 rounded-md text-[11px] font-medium bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300"
+                                                        title="Door access only — not counted as staff, not pushed to the HRMS"
+                                                    >
+                                                        Door only
+                                                    </span>
+                                                )}
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                <div className="flex items-center justify-center gap-2">
+                                                    <span className="inline-flex" title={emp.has_fingerprint ? 'Fingerprint enrolled' : 'No fingerprint enrolled'}>
+                                                        <Fingerprint size={17} className={emp.has_fingerprint ? BIO_ON : BIO_OFF} />
+                                                        <span className="sr-only">{emp.has_fingerprint ? 'Fingerprint enrolled' : 'No fingerprint'}</span>
+                                                    </span>
+                                                    <span className="inline-flex" title={emp.has_face ? 'Face enrolled' : 'No face enrolled'}>
+                                                        <ScanFace size={17} className={emp.has_face ? BIO_ON : BIO_OFF} />
+                                                        <span className="sr-only">{emp.has_face ? 'Face enrolled' : 'No face'}</span>
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td className="px-4 py-3 whitespace-nowrap">
+                                                <span className={`text-[13px] ${appOn ? 'text-slate-700 dark:text-slate-200' : 'text-slate-400 dark:text-slate-500'}`}>
+                                                    {appOn ? 'Enabled' : 'Off'}
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-3"><span className={CELL_SOFT}>{dash(emp.area_name)}</span></td>
+                                            <td className="px-4 py-3"><span className={CELL_MONO}>{dash(emp.mobile)}</span></td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
                     )}
                 </div>
 
-                {/* Personnel Transfer Dropdown */}
-                <div className="relative dropdown-container">
-                    <Button
-                        variant="secondary"
-                        icon={ArrowRightLeft}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            setShowTransferMenu(!showTransferMenu);
-                            // Close other dropdowns
-                            setShowImportMenu(false);
-                            setShowAppMenu(false);
-                            setShowMoreMenu(false);
-                        }}
-                    >
-                        Transfer <ChevronDown size={14} className={showTransferMenu ? 'rotate-180 transition-transform' : ''} />
-                    </Button>
-                    {
-                        showTransferMenu && (
-                            <>
-                                <div className="fixed inset-0 z-10" onClick={() => setShowTransferMenu(false)}></div>
-                                <div className="absolute top-full left-0 mt-2 w-56 bg-app-surface border border-slate-100 dark:border-slate-700 shadow-xl rounded-2xl z-20 overflow-hidden dropdown-menu">
-                            <DropdownItem label="Department Transfer" onClick={() => handleTransfer('Department')} />
-                            <DropdownItem label="Position Transfer" onClick={() => handleTransfer('Position')} />
-                            <DropdownItem label="Move to New Area" onClick={() => handleTransfer('Area')} />
-                            <DropdownItem
-                                label="Resignation"
-                                onClick={() => {
-                                    if (selectedIds.length === 0) return showToast('Select employees first', 'error');
-                                    setShowResignationModal(true);
-                                }}
-                                danger
-                            />
-                        </div>
-                            </>
-                        )
-                    }
-                </div >
-
-                {/* App Dropdown */}
-                <div className="relative dropdown-container">
-                    <Button
-                        variant="secondary"
-                        icon={Smartphone}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            setShowAppMenu(!showAppMenu);
-                            // Close other dropdowns
-                            setShowImportMenu(false);
-                            setShowTransferMenu(false);
-                            setShowMoreMenu(false);
-                        }}
-                    >
-                        App Access <ChevronDown size={14} className={showAppMenu ? 'rotate-180 transition-transform' : ''} />
-                    </Button>
-                    {
-                        showAppMenu && (
-                            <>
-                                <div className="fixed inset-0 z-10" onClick={() => setShowAppMenu(false)}></div>
-                                <div className="absolute top-full left-0 mt-2 w-40 bg-app-surface border border-slate-100 dark:border-slate-700 shadow-xl rounded-2xl z-20 overflow-hidden dropdown-menu">
-                            <DropdownItem label="Enable Access" onClick={() => handleAppAccess(true)} />
-                            <DropdownItem label="Disable Access" onClick={() => handleAppAccess(false)} danger />
-                        </div>
-                            </>
-                        )
-                    }
-                </div >
-
-                {/* More Settings Dropdown */}
-                < div className="relative dropdown-container" >
-                    <Button
-                        variant="secondary"
-                        icon={Settings}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            setShowMoreMenu(!showMoreMenu);
-                            // Close other dropdowns
-                            setShowImportMenu(false);
-                            setShowTransferMenu(false);
-                            setShowAppMenu(false);
-                        }}
-                    >
-                        More <ChevronDown size={14} className={showMoreMenu ? 'rotate-180 transition-transform' : ''} />
-                    </Button>
-                    {
-                        showMoreMenu && (
-                            <>
-                                <div className="fixed inset-0 z-10" onClick={() => setShowMoreMenu(false)}></div>
-                                <div className="absolute top-full left-0 mt-2 w-56 bg-app-surface border border-slate-100 dark:border-slate-700 shadow-xl rounded-2xl z-20 overflow-hidden dropdown-menu">
-                            <DropdownItem label="Resynchronize to device" onClick={() => handleMoreSettings('push')} />
-                            <DropdownItem label="Re-upload from device" onClick={() => handleMoreSettings('pull')} />
-                            <DropdownItem label="Delete Biometric Template" onClick={() => handleMoreSettings('delete-bio')} danger />
-                            <div className="my-1 border-t border-slate-100 dark:border-slate-700" />
-                            <DropdownItem label="Mark as door access only" onClick={() => { setShowMoreMenu(false); handleDoorAccessOnly(true); }} />
-                            <DropdownItem label="Restore attendance tracking" onClick={() => { setShowMoreMenu(false); handleDoorAccessOnly(false); }} />
-                        </div>
-                            </>
-                        )
-                    }
-                </div >
-
-                <div className="ml-auto w-72 relative">
-                    <input
-                        type="text"
-                        placeholder="Search employee by name, code..."
-                        value={searchQuery}
-                        onChange={e => setSearchQuery(e.target.value)}
-                        className="input-base pl-10 py-2 text-sm"
-                    />
-                    <Search size={16} className="absolute left-3.5 top-2.5 text-slate-grey dark:text-slate-400" />
-                </div>
-            </div >
-
-            {/* Table */}
-            <div className="flex-1 overflow-auto custom-scrollbar">
-                {loading ? (
-                    <table className="w-full text-left text-sm border-collapse">
-                        {tableHead}
-                        <tbody>
-                            {Array.from({ length: 8 }).map((_, i) => (
-                                <tr key={i} className="border-b border-slate-100 dark:border-slate-700/60">
-                                    <td className="px-6 py-4">
-                                        <div className="h-4 w-4 mx-auto rounded bg-slate-100 dark:bg-slate-700 animate-pulse" />
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="h-3 w-16 rounded bg-slate-100 dark:bg-slate-700 animate-pulse" />
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-700 animate-pulse" />
-                                            <div className="h-3 w-32 rounded bg-slate-100 dark:bg-slate-700 animate-pulse" />
-                                        </div>
-                                    </td>
-                                    {Array.from({ length: 7 }).map((__, j) => (
-                                        <td key={j} className="px-6 py-4">
-                                            <div className="h-3 w-20 rounded bg-slate-100 dark:bg-slate-700 animate-pulse" />
-                                        </td>
-                                    ))}
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                ) : error ? (
-                    <div className="py-20 text-center px-6">
-                        <AlertCircle size={40} className="mx-auto mb-3 text-rose-400" />
-                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load employees</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
-                        <Button variant="secondary" icon={RefreshCw} onClick={fetchEmployees}>Try again</Button>
+                <div className="border-t border-slate-200 dark:border-slate-700">
+                    <div className="[&>div]:border-t-0">
+                        <TablePager controls={pager} noun="employee" />
                     </div>
-                ) : filteredEmployees.length === 0 ? (
-                    searchQuery ? (
-                        <div className="py-20 text-center px-6">
-                            <SearchX size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
-                            <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No results match your search</h3>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">
-                                Nothing matches &ldquo;{searchQuery}&rdquo;. Try another name, employee id or department.
-                            </p>
-                        </div>
-                    ) : (
-                        <div className="py-20 text-center px-6">
-                            <Users size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
-                            <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No employees yet</h3>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">
-                                Add an employee with the button above, or import a CSV to bring your existing list in.
-                            </p>
-                        </div>
-                    )
-                ) : (
-                <table className="w-full text-left text-sm border-collapse">
-                    {tableHead}
-                    <tbody>
-                        {pager.view.map(emp => {
-                            const isActive = emp.status === 'active';
-                            const appOn = !!emp.app_login_enabled;
-                            return (
-                            <tr key={emp.employee_code} className="table-row group">
-                                <td className="px-6 py-4 text-center">
-                                    <input
-                                        type="checkbox"
-                                        checked={selectedIds.includes(emp.id)}
-                                        onChange={() => toggleSelect(emp.id)}
-                                        className="rounded border-slate-300 dark:border-slate-700 text-saffron focus:ring-saffron"
-                                    />
-                                </td>
-                                <td className="px-6 py-4 cursor-pointer" onClick={() => navigate(`/employees/${emp.id}`)}>
-                                    <span className={CELL_CODE}>{dash(emp.employee_code)}</span>
-                                </td>
-                                <td className="px-6 py-4 cursor-pointer" onClick={() => navigate(`/employees/${emp.id}`)}>
-                                    <div className="flex items-center gap-3 min-w-0">
-                                        <span
-                                            aria-hidden="true"
-                                            className="w-9 h-9 shrink-0 rounded-full grid place-items-center font-bold text-xs bg-slate-100 text-slate-700 border border-slate-200 dark:bg-slate-900/40 dark:text-slate-300 dark:border-slate-800/70"
-                                        >
-                                            {initialOf(emp.name)}
-                                        </span>
-                                        <span className={`${CELL_STRONG} truncate`}>{dash(emp.name)}</span>
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4"><span className={CELL_SOFT}>{dash(emp.department_name)}</span></td>
-                                <td className="px-6 py-4"><span className={CELL_MONO}>{dash(emp.mobile)}</span></td>
-                                <td className="px-6 py-4 text-center">
-                                    <span className={isActive ? BADGE_ON : BADGE_OFF}>
-                                        {dash(emp.status)}
-                                    </span>
-                                    {/* Door-access-only staff look identical to
-                                        everyone else in this table otherwise,
-                                        which is how eleven of them sat in the
-                                        headcount unnoticed. */}
-                                    {emp.attendance_required === false && (
-                                        <span
-                                            className="ml-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold
-                                                       bg-slate-100 text-slate-600 border border-slate-200
-                                                       dark:bg-slate-700 dark:text-slate-300 dark:border-slate-600"
-                                            title="Door access only — not counted as staff, not pushed to the HRMS"
-                                        >
-                                            door only
-                                        </span>
-                                    )}
-                                </td>
-                                <td className="px-6 py-4 text-center">
-                                    <div className="flex items-center justify-center gap-2">
-                                        <span
-                                            className="inline-flex"
-                                            title={emp.has_fingerprint ? 'Fingerprint enrolled' : 'No fingerprint enrolled'}
-                                        >
-                                            <Fingerprint size={18} className={emp.has_fingerprint ? BIO_ON : BIO_OFF} />
-                                        </span>
-                                        <span
-                                            className="inline-flex"
-                                            title={emp.has_face ? 'Face enrolled' : 'No face enrolled'}
-                                        >
-                                            <ScanFace size={18} className={emp.has_face ? BIO_ON : BIO_OFF} />
-                                        </span>
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4 text-center">
-                                    <span className={appOn ? BADGE_ON : BADGE_OFF}>
-                                        {appOn ? 'Enabled' : 'Disabled'}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4"><span className={CELL_SOFT}>{dash(emp.designation)}</span></td>
-                                <td className="px-6 py-4"><span className={CELL_SOFT}>{dash(emp.area_name)}</span></td>
-                            </tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
-                )}
-            </div>
-
-            <div className="border-t border-slate-200/80 dark:border-slate-700 flex justify-between items-center">
-                <div className="flex-1 min-w-0 [&>div]:border-t-0">
-                    <TablePager controls={pager} noun="employee" />
                 </div>
-                <span className="px-5 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">Selected: <span className="font-bold text-slate-600 dark:text-slate-400">{selectedIds.length}</span></span>
-            </div>
             </div>
 
             {/* Add Employee Modal */}
