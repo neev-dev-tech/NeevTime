@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
 import api from '../api';
 import {
-    RefreshCw, AlertTriangle, CheckCircle, Clock, Send, Trash2,
-    Fingerprint, Upload, Download, AlertCircle, Inbox
+    RefreshCw, CheckCircle, Trash2, Fingerprint, Upload, Download, AlertCircle, Inbox
 } from 'lucide-react';
 import { confirm } from '../components/ConfirmDialog';
-import { Button, PageHeader, useToast } from '../components';
+import { Button, useToast, ListIconButton, LIST_THEAD, LIST_TH, LIST_EDGE_FIRST, LIST_EDGE_LAST } from '../components';
 import { usePermissions } from '../hooks/usePermissions';
 
 /**
@@ -21,16 +20,16 @@ import { usePermissions } from '../hooks/usePermissions';
  * command queue works — 36,000+ commands have been delivered through it.
  */
 
-const CELL_MONO = 'font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold';
-const BADGE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide';
+const HAIRLINE = 'border-slate-200 dark:border-slate-800';
 
-const STAT_TONES = {
-    pending: { chip: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300', icon: Clock },
-    sent: { chip: 'bg-slate-100 text-slate-600 dark:bg-slate-900/40 dark:text-slate-300', icon: Send },
-    success: { chip: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300', icon: CheckCircle },
-    failed: { chip: 'bg-rose-100 text-rose-600 dark:bg-rose-900/40 dark:text-rose-300', icon: AlertCircle },
-    dead_letter: { chip: 'bg-rose-100 text-rose-600 dark:bg-rose-900/40 dark:text-rose-300', icon: AlertTriangle }
-};
+// Status colour lives only on a small dot; the word always sits beside it.
+const QUEUE = [
+    { key: 'pending', dot: 'bg-amber-400' },
+    { key: 'sent', dot: 'bg-slate-400' },
+    { key: 'success', dot: 'bg-emerald-500' },
+    { key: 'failed', dot: 'bg-rose-500' },
+    { key: 'dead_letter', dot: 'bg-rose-500' }
+];
 
 const LABELS = {
     pending: 'Pending', sent: 'Sent', success: 'Delivered',
@@ -131,77 +130,66 @@ export default function DeviceSync() {
     ];
 
     return (
-        <div className="space-y-6">
-            <PageHeader
-                icon={RefreshCw}
-                title="Device Sync"
-                subtitle="Command queue and fleet-wide sync actions"
-                actions={
-                    <Button variant="secondary" icon={RefreshCw} onClick={fetchAll} disabled={loading}>
-                        {loading ? 'Refreshing…' : 'Refresh'}
-                    </Button>
-                }
-            />
+        <div className="-m-4 sm:-m-6 min-h-[calc(100%+2rem)] sm:min-h-[calc(100%+3rem)] bg-app-surface">
+            {/* Title bar */}
+            <div className={`flex items-center gap-x-4 gap-y-1 px-4 sm:px-6 min-h-14 py-2.5 border-b ${HAIRLINE} flex-wrap`}>
+                <h1 className="text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-50">Device Sync</h1>
+                <span className="text-[13px] text-slate-600 dark:text-slate-400">Command queue and fleet-wide sync actions</span>
+                <div className="ml-auto">
+                    <ListIconButton label="Refresh" icon={RefreshCw} onClick={fetchAll} disabled={loading} spin={loading} />
+                </div>
+            </div>
 
             {error && (
-                <div className="card-base !p-4 flex items-center gap-3 border-l-4 border-rose-500">
-                    <AlertCircle size={18} className="text-rose-500 shrink-0" />
-                    <p className="text-sm text-slate-700 dark:text-slate-200 flex-1">{error}</p>
-                    <Button variant="secondary" size="sm" onClick={fetchAll}>Try again</Button>
+                <div role="alert" className={`flex items-center gap-3 flex-wrap px-4 sm:px-6 py-2.5 border-b ${HAIRLINE} bg-rose-50/60 dark:bg-rose-950/20`}>
+                    <AlertCircle size={15} className="text-rose-600 dark:text-rose-400 shrink-0" />
+                    <p className="text-sm text-rose-800 dark:text-rose-200 flex-1 min-w-0">{error}</p>
+                    <Button variant="tonal" size="toolbar" onClick={fetchAll}>Try again</Button>
                 </div>
             )}
 
-            {/* Queue health */}
-            {loading && !stats ? (
-                <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-                    {[...Array(5)].map((_, i) => <div key={i} className="h-24 rounded-xl bg-slate-100 dark:bg-slate-700/40 animate-pulse" />)}
-                </div>
-            ) : stats && (
-                <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-                    {['pending', 'sent', 'success', 'failed', 'dead_letter'].map(key => {
-                        const tone = STAT_TONES[key];
-                        const Icon = tone.icon;
-                        const value = stats[key] ?? 0;
-                        return (
-                            <div key={key} className="card-base !p-4 flex items-center gap-3">
-                                <div className={`shrink-0 w-11 h-11 rounded-xl flex items-center justify-center ${tone.chip}`}>
-                                    <Icon size={20} />
-                                </div>
-                                <div className="min-w-0">
-                                    <p className="text-[11px] font-bold uppercase tracking-[0.04em] text-slate-600 dark:text-slate-400 leading-tight">
-                                        {LABELS[key]}
-                                    </p>
-                                    <p className="text-[26px] leading-tight font-bold tabular-nums text-slate-900 dark:text-slate-50">
-                                        {Number(value).toLocaleString()}
-                                    </p>
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
-            )}
+            {/* Band 1: queue health */}
+            <section aria-label="Command queue" className={`grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 border-b ${HAIRLINE} divide-x divide-y lg:divide-y-0 divide-slate-200 dark:divide-slate-800`}>
+                {QUEUE.map(({ key, dot }) => (
+                    <div key={key} className="px-4 sm:px-6 py-4">
+                        <span className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
+                            <span aria-hidden="true" className={`w-1.5 h-1.5 rounded-full ${dot}`} />
+                            {LABELS[key]}
+                        </span>
+                        {loading && !stats ? (
+                            <span className="mt-1.5 block h-7 w-16 rounded bg-slate-100 dark:bg-slate-800 animate-pulse" />
+                        ) : (
+                            <span className="mt-1 block text-2xl font-semibold tabular-nums text-slate-900 dark:text-slate-50">
+                                {stats ? Number(stats[key] ?? 0).toLocaleString() : '–'}
+                            </span>
+                        )}
+                    </div>
+                ))}
+            </section>
 
-            {/* Fleet actions */}
-            <div className="card-base">
-                <div className="mb-1 flex items-center justify-between flex-wrap gap-2">
-                    <h2 className="font-semibold text-base text-slate-800 dark:text-slate-100">Fleet actions</h2>
+            {/* Band 2: fleet actions */}
+            <section className={`px-4 sm:px-6 py-5 border-b ${HAIRLINE}`}>
+                <div className="flex items-start justify-between gap-3 flex-wrap">
+                    <div className="min-w-0">
+                        <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Fleet actions</h2>
+                        <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400">
+                            Commands are queued, not sent immediately — each reader collects them on its next poll.
+                        </p>
+                    </div>
                     {canAdminister && (
-                        <Button variant="danger" size="sm" icon={Trash2} onClick={purge} disabled={busy === 'purge'}>
+                        <Button variant="danger" size="toolbar" icon={Trash2} onClick={purge} disabled={busy === 'purge'}>
                             {busy === 'purge' ? 'Purging…' : 'Purge history > 30 days'}
                         </Button>
                     )}
                 </div>
-                <p className="text-xs text-slate-600 dark:text-slate-400 mb-4">
-                    Commands are queued, not sent immediately — each reader collects them on its next poll.
-                </p>
                 {canEdit ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <div className="mt-4 flex flex-wrap gap-2">
                         {FLEET.map(a => (
                             <Button
                                 key={a.key}
-                                variant="secondary"
+                                variant="tonal"
+                                size="toolbar"
                                 icon={a.icon}
-                                className="justify-start"
                                 onClick={() => fleetAction(a.key, a.label, a.url)}
                                 disabled={busy === a.key}
                             >
@@ -210,117 +198,129 @@ export default function DeviceSync() {
                         ))}
                     </div>
                 ) : (
-                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                    <p className="mt-3 text-sm text-slate-600 dark:text-slate-400">
                         Your account has read-only access, so sync actions are disabled.
                     </p>
                 )}
-            </div>
+            </section>
 
-            {/* Dead letter — the reason this page exists */}
-            <div className="card-base !p-0 overflow-hidden">
-                <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900/50">
-                    <h2 className="font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                        <AlertTriangle size={18} className="text-rose-500" />
-                        Commands the devices never accepted
-                    </h2>
-                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-                        These exhausted their retries. Until now nothing surfaced them.
-                    </p>
+            {/* Band 3: dead letter — the reason this page exists */}
+            <section className={`border-b ${HAIRLINE}`}>
+                <div className="px-4 sm:px-6 pt-5 pb-3 flex items-baseline justify-between gap-3 flex-wrap">
+                    <div className="min-w-0">
+                        <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Commands the devices never accepted</h2>
+                        <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400">
+                            These exhausted their retries. Until now nothing surfaced them.
+                        </p>
+                    </div>
+                    {!loading && !error && deadLetter.length > 0 && (
+                        <span className="inline-flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 tabular-nums">
+                            <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                            {deadLetter.length} command{deadLetter.length === 1 ? '' : 's'} given up on
+                        </span>
+                    )}
                 </div>
 
                 {loading ? (
-                    <div className="p-5 space-y-2">
-                        {[...Array(3)].map((_, i) => <div key={i} className="h-12 rounded-lg bg-slate-100 dark:bg-slate-700/40 animate-pulse" />)}
+                    <div className="px-4 sm:px-6 pb-5 space-y-2">
+                        {[...Array(3)].map((_, i) => <div key={i} className="h-10 rounded-lg bg-slate-100 dark:bg-slate-800 animate-pulse" />)}
                     </div>
                 ) : error ? (
-                    <div className="py-16 text-center">
-                        <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
-                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load stuck commands</h3>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">{error}</p>
+                    <div className={`px-4 sm:px-6 py-12 text-center border-t ${HAIRLINE}`}>
+                        <AlertCircle size={28} className="mx-auto mb-2 text-rose-500 dark:text-rose-400" />
+                        <p className="text-sm font-medium text-slate-800 dark:text-slate-100">Could not load stuck commands</p>
+                        <p className="mt-1 text-[13px] text-slate-600 dark:text-slate-400">{error}</p>
                     </div>
                 ) : deadLetter.length === 0 ? (
-                    <div className="py-16 text-center">
-                        <CheckCircle size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
-                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Nothing stuck</h3>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">
+                    <div className={`px-4 sm:px-6 py-12 text-center border-t ${HAIRLINE}`}>
+                        <CheckCircle size={28} className="mx-auto mb-2 text-slate-300 dark:text-slate-600" />
+                        <p className="text-sm font-medium text-slate-800 dark:text-slate-100">Nothing stuck</p>
+                        <p className="mt-1 text-[13px] text-slate-600 dark:text-slate-400">
                             Commands that run out of retries will appear here. Every command so far has been delivered or is still in flight.
                         </p>
                     </div>
                 ) : (
-                    <>
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-sm">
-                                <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-600 dark:text-slate-400">
-                                    <tr>
-                                        <th className="text-left font-semibold px-5 py-3">#</th>
-                                        <th className="text-left font-semibold px-5 py-3">Device</th>
-                                        <th className="text-left font-semibold px-5 py-3">Command</th>
-                                        <th className="text-left font-semibold px-5 py-3">Last error</th>
-                                        <th className="text-left font-semibold px-5 py-3">Tries</th>
-                                        <th className="text-right font-semibold px-5 py-3">Actions</th>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left">
+                            <thead className={`${LIST_THEAD} border-t`}>
+                                <tr>
+                                    <th className={`${LIST_TH} ${LIST_EDGE_FIRST} w-12`}>#</th>
+                                    <th className={LIST_TH}>Device</th>
+                                    <th className={LIST_TH}>Command</th>
+                                    <th className={LIST_TH}>Last error</th>
+                                    <th className={`${LIST_TH} !text-right`}>Tries</th>
+                                    <th className={`${LIST_TH} ${LIST_EDGE_LAST} !text-right`}>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                {deadLetter.map((row, i) => (
+                                    <tr key={row.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                                        <td className={`${LIST_EDGE_FIRST} px-4 py-2.5 text-xs tabular-nums text-slate-600 dark:text-slate-400`}>{i + 1}</td>
+                                        <td className="px-4 py-2.5 font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400">{row.device_serial || '—'}</td>
+                                        <td className="px-4 py-2.5 max-w-[280px]">
+                                            <span className="font-mono text-xs text-slate-800 dark:text-slate-200 break-all">
+                                                {(row.command || '—').slice(0, 90)}
+                                            </span>
+                                        </td>
+                                        <td className="px-4 py-2.5 text-[13px] text-slate-700 dark:text-slate-300 max-w-[220px] truncate" title={row.last_error || ''}>
+                                            {row.last_error || '—'}
+                                        </td>
+                                        <td className="px-4 py-2.5 text-right tabular-nums text-[13px] font-medium text-rose-700 dark:text-rose-400">
+                                            {row.retry_count ?? 0}
+                                        </td>
+                                        <td className={`${LIST_EDGE_LAST} px-4 py-2 text-right`}>
+                                            {canEdit && (
+                                                <Button
+                                                    variant="tonal"
+                                                    size="toolbar"
+                                                    icon={RefreshCw}
+                                                    onClick={() => retryOne(row.id)}
+                                                    disabled={busy === `retry-${row.id}`}
+                                                >
+                                                    {busy === `retry-${row.id}` ? 'Retrying…' : 'Retry'}
+                                                </Button>
+                                            )}
+                                        </td>
                                     </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                    {deadLetter.map((row, i) => (
-                                        <tr key={row.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
-                                            <td className="px-5 py-3 text-slate-500 tabular-nums">{i + 1}</td>
-                                            <td className={`px-5 py-3 ${CELL_MONO}`}>{row.device_serial || '—'}</td>
-                                            <td className="px-5 py-3 max-w-[280px]">
-                                                <span className="font-mono text-xs text-slate-700 dark:text-slate-200 break-all">
-                                                    {(row.command || '—').slice(0, 90)}
-                                                </span>
-                                            </td>
-                                            <td className="px-5 py-3 text-slate-600 dark:text-slate-300 max-w-[220px] truncate" title={row.last_error || ''}>
-                                                {row.last_error || '—'}
-                                            </td>
-                                            <td className="px-5 py-3">
-                                                <span className={`${BADGE} bg-rose-50 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300`}>
-                                                    {row.retry_count ?? 0}
-                                                </span>
-                                            </td>
-                                            <td className="px-5 py-3 text-right">
-                                                {canEdit && (
-                                                    <div className="dv-quiet inline-flex">
-                                                        <Button
-                                                            variant="secondary"
-                                                            size="sm"
-                                                            icon={RefreshCw}
-                                                            onClick={() => retryOne(row.id)}
-                                                            disabled={busy === `retry-${row.id}`}
-                                                        >
-                                                            {busy === `retry-${row.id}` ? 'Retrying…' : 'Retry'}
-                                                        </Button>
-                                                    </div>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                        <div className="px-5 py-3 text-xs text-slate-600 dark:text-slate-400 border-t border-slate-100 dark:border-slate-700">
-                            {deadLetter.length} command{deadLetter.length === 1 ? '' : 's'} given up on
-                        </div>
-                    </>
-                )}
-            </div>
-
-            {biometrics && (
-                <div className="card-base">
-                    <h2 className="font-semibold text-base text-slate-800 dark:text-slate-100 mb-3 flex items-center gap-2">
-                        <Fingerprint size={18} className="text-slate-600" /> Biometric templates
-                    </h2>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                        {Object.entries(biometrics).filter(([, v]) => typeof v === 'number').map(([k, v]) => (
-                            <div key={k} className="rounded-xl bg-slate-50/70 dark:bg-slate-900/50 p-3">
-                                <p className="text-[11px] font-bold uppercase tracking-[0.04em] text-slate-600 dark:text-slate-400">
-                                    {k.replace(/_/g, ' ')}
-                                </p>
-                                <p className="text-xl font-bold tabular-nums text-slate-900 dark:text-slate-50">{v}</p>
-                            </div>
-                        ))}
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
-                </div>
+                )}
+            </section>
+
+            {/* Band 4: biometric totals */}
+            {biometrics && (
+                <section className="pb-6">
+                    <h2 className="px-4 sm:px-6 pt-5 pb-3 text-sm font-semibold text-slate-900 dark:text-slate-100">Biometric templates</h2>
+                    {/* The endpoint returns one row per enrolled employee, with counts
+                        as strings; the band shows totals across them. */}
+                    {(() => {
+                        const rows = Array.isArray(biometrics) ? biometrics : [];
+                        const sum = (k) => rows.reduce((n, r) => n + (Number(r[k]) || 0), 0);
+                        if (rows.length === 0) {
+                            return (
+                                <p className={`px-4 sm:px-6 pb-5 text-sm text-slate-600 dark:text-slate-400`}>
+                                    No templates collected yet. They arrive as employees enrol on a device, or with Pull biometrics above.
+                                </p>
+                            );
+                        }
+                        return (
+                            <div className={`grid grid-cols-3 border-y ${HAIRLINE} divide-x divide-slate-200 dark:divide-slate-800`}>
+                                {[
+                                    ['Employees enrolled', rows.length],
+                                    ['Fingerprint templates', sum('fingerprint_count')],
+                                    ['Face templates', sum('face_count')]
+                                ].map(([label, v]) => (
+                                    <div key={label} className="px-4 sm:px-6 py-3">
+                                        <span className="block text-xs text-slate-600 dark:text-slate-400">{label}</span>
+                                        <span className="mt-0.5 block text-2xl font-semibold tabular-nums text-slate-900 dark:text-slate-50">{v.toLocaleString()}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        );
+                    })()}
+                </section>
             )}
         </div>
     );

@@ -1,12 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import api from '../api';
 import {
     TabletSmartphone, Send, RefreshCw, Users, Fingerprint, Database,
-    Clock, Power, Trash2, Download, Upload, AlertTriangle, Wifi, WifiOff
+    Power, Trash2, Download, AlertTriangle, Wifi, WifiOff
 } from 'lucide-react';
-import { useToast, Button, PageHeader, ExportMenu } from '../components';
+import { useToast, ExportMenu, ListIconButton, LIST_THEAD, LIST_TH, LIST_EDGE_FIRST, LIST_EDGE_LAST } from '../components';
 import { confirm } from '../components/ConfirmDialog';
 import { formatDateTime } from '../utils/dateFormat';
+
+const HAIRLINE = 'border-slate-200 dark:border-slate-800';
+
+// Status colour only on the dot; the word always sits beside it.
+const STATUS_DOT = {
+    success: 'bg-emerald-500',
+    pending: 'bg-amber-400',
+    sent: 'bg-slate-400',
+    fail: 'bg-rose-500',
+    failed: 'bg-rose-500'
+};
 
 export default function DeviceCommands() {
     const toast = useToast();
@@ -46,14 +57,14 @@ export default function DeviceCommands() {
     };
 
     const commandList = [
-        { id: 'INFO', label: 'Get Info', icon: TabletSmartphone, description: 'Get device information', color: 'blue' },
-        { id: 'CHECK', label: 'Check Connection', icon: Wifi, description: 'Check device connection', color: 'green' },
-        { id: 'REBOOT', label: 'Restart Device', icon: Power, description: 'Reboot the device', color: 'amber', destructive: true },
-        { id: 'CLEAR LOG', label: 'Clear Logs', icon: Trash2, description: 'Clear attendance logs from device', color: 'red', destructive: true },
-        { id: 'DATA QUERY USERINFO', label: 'Get Users', icon: Users, description: 'Download user list from device', color: 'green' },
-        { id: 'DATA QUERY FINGERTMP', label: 'Get FP Templates', icon: Fingerprint, description: 'Download fingerprint templates', color: 'purple' },
-        { id: 'DATA QUERY ATTLOG', label: 'Get Logs', icon: Download, description: 'Fetch attendance logs', color: 'blue' },
-        { id: 'CLEAR DATA', label: 'Clear All Data', icon: Database, description: 'Factory reset device data', color: 'red', destructive: true },
+        { id: 'INFO', label: 'Get Info', icon: TabletSmartphone, description: 'Get device information' },
+        { id: 'CHECK', label: 'Check Connection', icon: Wifi, description: 'Check device connection' },
+        { id: 'REBOOT', label: 'Restart Device', icon: Power, description: 'Reboot the device', destructive: true },
+        { id: 'CLEAR LOG', label: 'Clear Logs', icon: Trash2, description: 'Clear attendance logs from device', destructive: true },
+        { id: 'DATA QUERY USERINFO', label: 'Get Users', icon: Users, description: 'Download user list from device' },
+        { id: 'DATA QUERY FINGERTMP', label: 'Get FP Templates', icon: Fingerprint, description: 'Download fingerprint templates' },
+        { id: 'DATA QUERY ATTLOG', label: 'Get Logs', icon: Download, description: 'Fetch attendance logs' },
+        { id: 'CLEAR DATA', label: 'Clear All Data', icon: Database, description: 'Factory reset device data', destructive: true },
     ];
 
     const sendCommand = async (commandId) => {
@@ -94,27 +105,6 @@ export default function DeviceCommands() {
         }
     };
 
-    const getStatusColor = (status) => {
-        switch (status) {
-            case 'success': return 'bg-green-100 text-green-800';
-            case 'pending': return 'bg-yellow-100 text-yellow-800';
-            case 'sent': return 'bg-slate-100 text-slate-800';
-            case 'fail': return 'bg-red-100 text-red-800';
-            default: return 'bg-slate-100 text-slate-800';
-        }
-    };
-
-    const getCommandColor = (color) => {
-        const colors = {
-            blue: 'bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-200 dark:bg-slate-900/30 dark:text-slate-300 dark:hover:bg-slate-900/50 dark:border-slate-800',
-            green: 'bg-green-50 text-green-600 hover:bg-green-100 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-900/50 dark:border-green-800',
-            amber: 'bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:hover:bg-amber-900/50 dark:border-amber-800',
-            red: 'bg-red-50 text-red-600 hover:bg-red-100 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50 dark:border-red-800',
-            purple: 'bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-200 dark:bg-slate-900/30 dark:text-slate-300 dark:hover:bg-slate-900/50 dark:border-slate-800'
-        };
-        return colors[color] || colors.blue;
-    };
-
     const formatTime = (timestamp) => {
         if (!timestamp) return '-';
         return formatDateTime(timestamp);
@@ -125,250 +115,244 @@ export default function DeviceCommands() {
         ? commands.filter(c => c.device_serial === selectedDevice.serial_number)
         : commands;
 
+    const onlineCount = devices.filter(d => d.status === 'online').length;
+
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            <PageHeader
-                icon={TabletSmartphone}
-                title="Device Commands"
-                actions={(
-                    <>
-                        <ExportMenu
-                            rows={deviceCommands}
-                            columns={[
-                                { key: 'device_serial', label: 'Device' },
-                                { key: 'command', label: 'Command' },
-                                { key: 'status', label: 'Status' },
-                                { key: 'created_at', label: 'Time' }
-                            ]}
-                            filename="device_commands"
-                            title="Device Commands"
-                        />
-                        <Button
-                            variant="secondary"
-                            type="button"
-                            onClick={async (e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                setRefreshing(true);
-                                try {
-                                    await Promise.all([fetchDevices(), fetchCommandHistory()]);
-                                } catch (err) {
-                                    console.error('Refresh error:', err);
-                                } finally {
-                                    setRefreshing(false);
-                                }
-                            }}
-                            disabled={refreshing}
-                        >
-                            <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
-                            Refresh
-                        </Button>
-                    </>
+        <div className="-m-4 sm:-m-6 min-h-[calc(100%+2rem)] sm:min-h-[calc(100%+3rem)] flex flex-col bg-app-surface">
+            {/* Title bar */}
+            <div className={`flex items-center gap-x-4 gap-y-2 px-4 sm:px-6 min-h-14 py-2.5 border-b ${HAIRLINE} flex-wrap`}>
+                <h1 className="text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-50">Device Commands</h1>
+                {!loading && devices.length > 0 && (
+                    <span className="text-[13px] text-slate-600 dark:text-slate-400 tabular-nums">
+                        {devices.length} device{devices.length === 1 ? '' : 's'} · {onlineCount} online
+                    </span>
                 )}
-            />
+                <div className="ml-auto flex items-center gap-2">
+                    <ExportMenu
+                        rows={deviceCommands}
+                        columns={[
+                            { key: 'device_serial', label: 'Device' },
+                            { key: 'command', label: 'Command' },
+                            { key: 'status', label: 'Status' },
+                            { key: 'created_at', label: 'Time' }
+                        ]}
+                        filename="device_commands"
+                        title="Device Commands"
+                    />
+                    <ListIconButton
+                        label="Refresh"
+                        icon={RefreshCw}
+                        spin={refreshing}
+                        disabled={refreshing}
+                        onClick={async (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setRefreshing(true);
+                            try {
+                                await Promise.all([fetchDevices(), fetchCommandHistory()]);
+                            } catch (err) {
+                                console.error('Refresh error:', err);
+                            } finally {
+                                setRefreshing(false);
+                            }
+                        }}
+                    />
+                </div>
+            </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Device Selection */}
-                <div className="lg:col-span-1">
-                    <div className="card-base p-4">
-                        <h3 className="font-semibold mb-3">Select Device</h3>
-                        {loading ? (
-                            <div className="space-y-2" aria-busy="true" aria-label="Loading devices">
-                                {Array.from({ length: 4 }).map((_, i) => (
-                                    <div key={i} className="h-12 rounded-lg bg-slate-100 dark:bg-slate-700/50 animate-pulse" />
-                                ))}
-                            </div>
-                        ) : devices.length === 0 ? (
-                            <div className="text-center py-4 text-slate-600 dark:text-slate-400">
-                                <WifiOff className="mx-auto mb-2 text-slate-300" size={32} />
-                                <p>No devices registered</p>
-                                <p className="text-xs mt-1">Add devices in Device Management</p>
-                            </div>
-                        ) : (
-                            <div className="space-y-2">
-                                {devices.map(device => (
-                                    <button
-                                        key={device.serial_number}
-                                        onClick={() => setSelectedDevice(device)}
-                                        className={`w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors ${selectedDevice?.serial_number === device.serial_number
-                                            ? 'bg-slate-600 text-white'
-                                            : 'bg-slate-50 dark:bg-slate-900/50 hover:bg-slate-100 dark:hover:bg-slate-700'
-                                            }`}
-                                    >
-                                        <div className={`p-2 rounded-lg ${selectedDevice?.serial_number === device.serial_number
-                                            ? 'bg-slate-500'
-                                            : device.status === 'online' ? 'bg-green-100' : 'bg-slate-200'
-                                            }`}>
-                                            {device.status === 'online' ? (
-                                                <Wifi size={18} className={
-                                                    selectedDevice?.serial_number === device.serial_number
-                                                        ? 'text-white'
-                                                        : 'text-green-600'
-                                                } />
-                                            ) : (
-                                                <WifiOff size={18} className={
-                                                    selectedDevice?.serial_number === device.serial_number
-                                                        ? 'text-white'
-                                                        : 'text-slate-600 dark:text-slate-400'
-                                                } />
-                                            )}
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="font-medium text-sm truncate">
-                                                {device.device_name || 'Unnamed Device'}
-                                            </div>
-                                            <div className={`text-xs truncate ${selectedDevice?.serial_number === device.serial_number
-                                                ? 'text-slate-200'
-                                                : 'text-slate-600 dark:text-slate-400'
-                                                }`}>
-                                                {device.serial_number}
-                                            </div>
-                                        </div>
-                                        <span
-                                            className={`flex items-center gap-1.5 flex-shrink-0 text-[11px] font-semibold ${selectedDevice?.serial_number === device.serial_number
-                                                ? 'text-slate-200'
-                                                : 'text-slate-600 dark:text-slate-400'
-                                                }`}
-                                            title={device.status === 'online' ? 'Online' : 'Offline'}
-                                        >
-                                            <span aria-hidden="true" className={`w-2 h-2 rounded-full ${device.status === 'online' ? 'bg-green-400' : 'bg-slate-400'
-                                                }`} />
-                                            {device.status === 'online' ? 'Online' : 'Offline'}
-                                        </span>
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-
-                        {/* Device Info */}
-                        {selectedDevice && (
-                            <div className="mt-4 pt-4 border-t dark:border-slate-700 space-y-2 text-sm">
-                                <div className="flex justify-between">
-                                    <span className="text-slate-600 dark:text-slate-400">Serial:</span>
-                                    <span className="font-medium">{selectedDevice.serial_number}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-slate-600 dark:text-slate-400">IP:</span>
-                                    <span className="font-medium">{selectedDevice.ip_address || 'N/A'}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-slate-600 dark:text-slate-400">Status:</span>
-                                    <span className={`px-2 py-0.5 rounded text-xs ${selectedDevice.status === 'online'
-                                        ? 'bg-green-100 text-green-800'
-                                        : 'bg-slate-100 text-slate-800'
-                                        }`}>
-                                        {selectedDevice.status || 'Unknown'}
-                                    </span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-slate-600 dark:text-slate-400">Users:</span>
-                                    <span className="font-medium">{selectedDevice.user_count || 0}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-slate-600 dark:text-slate-400">FP Count:</span>
-                                    <span className="font-medium">{selectedDevice.fingerprint_count || 0}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-slate-600 dark:text-slate-400">Face Count:</span>
-                                    <span className="font-medium">{selectedDevice.face_count || 0}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-slate-600 dark:text-slate-400">Transactions:</span>
-                                    <span className="font-medium">{selectedDevice.transaction_count || 0}</span>
-                                </div>
-                            </div>
-                        )}
+            <div className="flex-1 grid md:grid-cols-[300px_minmax(0,1fr)] min-h-0">
+                {/* Devices */}
+                <div className={`min-h-0 overflow-y-auto border-b md:border-b-0 md:border-r ${HAIRLINE}`}>
+                    <div className={`sticky top-0 z-10 px-4 py-2 bg-slate-50 dark:bg-slate-900 border-b ${HAIRLINE}`}>
+                        <span className="text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-600 dark:text-slate-400">
+                            Devices
+                        </span>
                     </div>
+                    {loading ? (
+                        <div className="p-4 space-y-2" aria-busy="true" aria-label="Loading devices">
+                            {Array.from({ length: 4 }).map((_, i) => (
+                                <div key={i} className="h-11 rounded-lg bg-slate-100 dark:bg-slate-800 animate-pulse" />
+                            ))}
+                        </div>
+                    ) : devices.length === 0 ? (
+                        <div className="px-4 py-10 text-center">
+                            <WifiOff className="mx-auto mb-2 text-slate-300 dark:text-slate-600" size={28} />
+                            <p className="text-sm font-medium text-slate-800 dark:text-slate-100">No devices registered</p>
+                            <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">Add devices in Device Management</p>
+                        </div>
+                    ) : (
+                        <ul>
+                            {devices.map(device => {
+                                const on = selectedDevice?.serial_number === device.serial_number;
+                                const online = device.status === 'online';
+                                return (
+                                    <li key={device.serial_number} className="relative">
+                                        {on && <span aria-hidden="true" className="absolute left-0 top-0 bottom-0 w-[3px] bg-[rgb(var(--brand))]" />}
+                                        <button
+                                            type="button"
+                                            onClick={() => setSelectedDevice(device)}
+                                            aria-current={on ? 'true' : undefined}
+                                            className={`w-full flex items-center gap-3 px-4 py-3 text-left border-b border-slate-100 dark:border-slate-800/70 ${on ? 'bg-slate-100 dark:bg-slate-800' : 'hover:bg-slate-50 dark:hover:bg-slate-800/40'}`}
+                                        >
+                                            <span className="flex-1 min-w-0">
+                                                <span className="block text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
+                                                    {device.device_name || 'Unnamed Device'}
+                                                </span>
+                                                <span className="block font-mono text-xs text-slate-600 dark:text-slate-400 truncate">
+                                                    {device.serial_number}
+                                                </span>
+                                            </span>
+                                            <span className="inline-flex items-center gap-1.5 shrink-0 text-xs text-slate-600 dark:text-slate-400">
+                                                <span aria-hidden="true" className={`w-1.5 h-1.5 rounded-full ${online ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+                                                {online ? 'Online' : 'Offline'}
+                                            </span>
+                                        </button>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    )}
                 </div>
 
-                {/* Commands Grid */}
-                <div className="lg:col-span-2 space-y-6">
-                    <div className="card-base p-4">
-                        <h3 className="font-semibold mb-4">Available Commands</h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-2.5">
+                {/* Selected device */}
+                <div className="min-h-0 overflow-y-auto">
+                    {selectedDevice && (
+                        <>
+                            <div className="px-4 sm:px-6 pt-5 pb-4">
+                                <h2 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-50 truncate">
+                                    {selectedDevice.device_name || 'Unnamed Device'}
+                                </h2>
+                                <p className="mt-0.5 flex items-center gap-x-2 gap-y-1 flex-wrap text-[13px] text-slate-600 dark:text-slate-400">
+                                    <span className="font-mono">{selectedDevice.serial_number}</span>
+                                    <span aria-hidden="true">·</span>
+                                    <span className="tabular-nums">IP {selectedDevice.ip_address || 'N/A'}</span>
+                                    <span aria-hidden="true">·</span>
+                                    <span className="inline-flex items-center gap-1.5 capitalize">
+                                        <span aria-hidden="true" className={`w-1.5 h-1.5 rounded-full ${selectedDevice.status === 'online' ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+                                        {selectedDevice.status || 'Unknown'}
+                                    </span>
+                                </p>
+                            </div>
+
+                            <div className={`grid grid-cols-2 sm:grid-cols-4 border-y ${HAIRLINE} divide-x divide-slate-200 dark:divide-slate-800`}>
+                                {[
+                                    ['Users', selectedDevice.user_count],
+                                    ['Fingerprints', selectedDevice.fingerprint_count],
+                                    ['Faces', selectedDevice.face_count],
+                                    ['Transactions', selectedDevice.transaction_count]
+                                ].map(([label, value]) => (
+                                    <div key={label} className="px-4 sm:px-6 py-3">
+                                        <span className="block text-xs text-slate-600 dark:text-slate-400">{label}</span>
+                                        <span className="block mt-0.5 text-2xl font-semibold tabular-nums text-slate-900 dark:text-slate-50">
+                                            {Number(value || 0).toLocaleString()}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        </>
+                    )}
+
+                    {/* Commands */}
+                    <section className={`border-b ${HAIRLINE}`}>
+                        <h3 className="px-4 sm:px-6 pt-5 pb-3 text-sm font-semibold text-slate-900 dark:text-slate-100">Commands</h3>
+                        <div className={`grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-px bg-slate-200 dark:bg-slate-800 border-t ${HAIRLINE}`}>
                             {commandList.map(cmd => (
                                 <button
                                     key={cmd.id}
+                                    type="button"
                                     onClick={() => sendCommand(cmd.id)}
                                     disabled={sending[cmd.id] || !selectedDevice}
                                     title={cmd.description}
-                                    className={`cmd-tile ${cmd.destructive ? 'cmd-tile--danger' : ''}`}
+                                    className="flex items-start gap-3 px-4 sm:px-6 py-3.5 text-left bg-app-surface hover:bg-slate-50 dark:hover:bg-slate-800/40 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 >
-                                    <span className={`cmd-tile__icon cmd-tile__icon--${cmd.color}`}>
+                                    <span className={`grid place-items-center w-8 h-8 rounded-lg shrink-0 ${cmd.destructive
+                                        ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400'
+                                        : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'}`}>
                                         {sending[cmd.id]
-                                            ? <RefreshCw size={17} className="animate-spin" />
-                                            : <cmd.icon size={17} />}
+                                            ? <RefreshCw size={16} className="animate-spin" />
+                                            : <cmd.icon size={16} />}
                                     </span>
-                                    <span className="min-w-0 text-left">
-                                        <span className="cmd-tile__label">{sending[cmd.id] ? 'Sending…' : cmd.label}</span>
-                                        <span className="cmd-tile__desc">{cmd.description}</span>
+                                    <span className="min-w-0">
+                                        <span className={`block text-sm font-medium ${cmd.destructive ? 'text-rose-700 dark:text-rose-400' : 'text-slate-900 dark:text-slate-100'}`}>
+                                            {sending[cmd.id] ? 'Sending…' : cmd.label}
+                                        </span>
+                                        <span className="block text-xs text-slate-600 dark:text-slate-400">{cmd.description}</span>
                                     </span>
                                 </button>
                             ))}
                         </div>
-                    </div>
+                        <p className={`flex items-start gap-2 px-4 sm:px-6 py-2.5 border-t ${HAIRLINE} bg-amber-50/60 dark:bg-amber-950/20 text-xs text-amber-800 dark:text-amber-300`}>
+                            <AlertTriangle size={14} className="mt-px shrink-0" aria-hidden="true" />
+                            <span>
+                                <strong className="font-semibold">Irreversible:</strong> Clear Logs, Clear All Data and Restart Device
+                                cannot be undone. Make sure the device is connected and use with caution.
+                            </span>
+                        </p>
+                    </section>
 
-                    {/* Warning */}
-                    <div className="bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4 flex items-start gap-3">
-                        <AlertTriangle className="text-amber-700 dark:text-amber-400 mt-0.5 flex-shrink-0" size={18} />
-                        <div className="text-sm text-amber-800 dark:text-amber-200">
-                            <strong>Warning:</strong> Commands like "Clear Logs", "Clear All Data", and "Restart"
-                            are irreversible. Ensure the device is connected and use with caution.
-                        </div>
-                    </div>
-
-                    {/* Command History */}
-                    <div className="card-base p-4">
-                        <div className="flex items-center justify-between mb-3">
-                            <h3 className="font-semibold">Command History</h3>
-                            <Button
-                                variant="ghost"
-                                size="sm"
+                    {/* Command history */}
+                    <section className="pb-6">
+                        <div className="px-4 sm:px-6 pt-5 pb-3 flex items-center justify-between gap-3">
+                            <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                                Command history
+                                {deviceCommands.length > 0 && (
+                                    <span className="ml-2 text-xs font-medium text-slate-600 dark:text-slate-400 tabular-nums">{deviceCommands.length}</span>
+                                )}
+                            </h3>
+                            <ListIconButton
+                                label="Refresh command history"
                                 icon={RefreshCw}
-                                type="button"
                                 onClick={async (e) => {
                                     e.preventDefault();
                                     e.stopPropagation();
                                     await fetchCommandHistory();
                                 }}
-                            >
-                                Refresh
-                            </Button>
+                            />
                         </div>
                         {deviceCommands.length === 0 ? (
-                            <div className="py-10 text-center">
-                                <Send size={32} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
-                                <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No commands sent yet</h3>
-                                <p className="text-sm text-slate-600 dark:text-slate-400">
-                                    Select a device above, then send it a command to see the history here.
+                            <div className={`px-4 sm:px-6 py-10 text-center border-t ${HAIRLINE}`}>
+                                <Send size={28} className="mx-auto mb-2 text-slate-300 dark:text-slate-600" />
+                                <p className="text-sm font-medium text-slate-800 dark:text-slate-100">No commands sent yet</p>
+                                <p className="mt-1 text-[13px] text-slate-600 dark:text-slate-400">
+                                    Select a device, then send it a command to see the history here.
                                 </p>
                             </div>
                         ) : (
-                            <div className="space-y-2 max-h-80 overflow-y-auto">
-                                {deviceCommands.slice(0, 20).map(cmd => (
-                                    <div key={cmd.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
-                                        <div className="flex items-center gap-3 min-w-0">
-                                            <div aria-hidden="true" title={cmd.status} className={`w-2 h-2 rounded-full flex-shrink-0 ${cmd.status === 'success' ? 'bg-green-500' :
-                                                cmd.status === 'pending' ? 'bg-yellow-500' :
-                                                    cmd.status === 'sent' ? 'bg-slate-500' :
-                                                        'bg-red-500'
-                                                }`} />
-                                            <div className="min-w-0">
-                                                <div className="font-medium text-sm truncate">{cmd.command}</div>
-                                                <div className="text-xs text-slate-600 dark:text-slate-400">
+                            <div className="max-h-96 overflow-y-auto custom-scrollbar">
+                                <table className="w-full text-sm text-left">
+                                    <thead className={`${LIST_THEAD} border-t`}>
+                                        <tr>
+                                            <th className={`${LIST_TH} ${LIST_EDGE_FIRST}`}>Command</th>
+                                            {!selectedDevice && <th className={LIST_TH}>Device</th>}
+                                            <th className={LIST_TH}>Status</th>
+                                            <th className={`${LIST_TH} ${LIST_EDGE_LAST} !text-right`}>Sent</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                        {deviceCommands.slice(0, 20).map(cmd => (
+                                            <tr key={cmd.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                                                <td className={`${LIST_EDGE_FIRST} px-4 py-2.5 font-mono text-xs text-slate-800 dark:text-slate-200 break-all`}>
+                                                    {cmd.command}
+                                                </td>
+                                                {!selectedDevice && (
+                                                    <td className="px-4 py-2.5 font-mono text-xs text-slate-600 dark:text-slate-400">{cmd.device_serial}</td>
+                                                )}
+                                                <td className="px-4 py-2.5 whitespace-nowrap">
+                                                    <span className="inline-flex items-center gap-1.5 text-[13px] capitalize text-slate-700 dark:text-slate-300">
+                                                        <span aria-hidden="true" className={`w-1.5 h-1.5 rounded-full ${STATUS_DOT[cmd.status] || 'bg-slate-400'}`} />
+                                                        {cmd.status}
+                                                    </span>
+                                                </td>
+                                                <td className={`${LIST_EDGE_LAST} px-4 py-2.5 text-right text-xs tabular-nums text-slate-600 dark:text-slate-400 whitespace-nowrap`}>
                                                     {formatTime(cmd.created_at)}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <span className={`px-2 py-1 rounded text-xs font-medium capitalize flex-shrink-0 ${getStatusColor(cmd.status)}`}>
-                                            {cmd.status}
-                                        </span>
-                                    </div>
-                                ))}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                             </div>
                         )}
-                    </div>
+                    </section>
                 </div>
             </div>
         </div>

@@ -720,11 +720,13 @@ export default function Devices() {
                                             ))}
                                         </div>
 
-                                        <dl className="grid sm:grid-cols-2 xl:grid-cols-3 gap-x-8 px-4 sm:px-6 py-2">
+                                        {/* Label above value, left-aligned, in the same four columns
+                                            as the counts above so everything lines up vertically. */}
+                                        <dl className="grid grid-cols-2 sm:grid-cols-4">
                                             {details.map(([label, value]) => (
-                                                <div key={label} className="flex items-baseline justify-between gap-4 py-2.5 border-b border-slate-100 dark:border-slate-800">
-                                                    <dt className="text-[13px] text-slate-600 dark:text-slate-400">{label}</dt>
-                                                    <dd className="text-[13px] font-medium text-slate-900 dark:text-slate-100 text-right truncate">{value}</dd>
+                                                <div key={label} className="min-w-0 px-4 sm:px-6 py-3 border-b border-slate-100 dark:border-slate-800">
+                                                    <dt className="text-xs text-slate-600 dark:text-slate-400">{label}</dt>
+                                                    <dd className="mt-0.5 text-sm font-medium text-slate-900 dark:text-slate-100 truncate" title={typeof value === 'string' ? value : undefined}>{value}</dd>
                                                 </div>
                                             ))}
                                         </dl>
