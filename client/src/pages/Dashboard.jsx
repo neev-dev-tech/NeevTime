@@ -16,6 +16,7 @@ import useReveal from '../hooks/useReveal';
 import useTilt from '../hooks/useTilt';
 import DonutCard from '../components/DonutCard';
 import { categoricalPalette } from '../utils/chartPalette';
+import SetupChecklist from '../components/SetupChecklist';
 
 export default function Dashboard() {
     const navigate = useNavigate();
@@ -553,6 +554,8 @@ export default function Dashboard() {
                     Refresh
                 </button>
             </div>
+
+            <SetupChecklist />
 
             {loadWarning && (
                 <div role="alert" className="flex items-center gap-3 flex-wrap p-3 rounded-xl border border-amber-200 bg-amber-50 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
