@@ -136,7 +136,7 @@ export default function LeaveBalances() {
             {accrualPreview && (
                 <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50" onClick={() => setAccrualPreview(null)}>
                     <div onClick={e => e.stopPropagation()}
-                         className="w-full max-w-xl bg-white dark:bg-slate-800 rounded-2xl p-6 space-y-4 max-h-[85vh] overflow-y-auto">
+                         className="w-full max-w-xl bg-app-surface rounded-2xl p-6 space-y-4 max-h-[85vh] overflow-y-auto">
                         <h3 className="font-bold text-slate-800 dark:text-slate-100">
                             Monthly accrual — {accrualPreview.year}-{String(accrualPreview.month).padStart(2, '0')}
                         </h3>

@@ -58,7 +58,7 @@ export default function Regularizations() {
                 subtitle="Review missed-punch correction requests from employees"
                 actions={
                     <>
-                        <div className="flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 px-2 py-1.5">
+                        <div className="flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-app-surface/70 dark:bg-slate-800/70 px-2 py-1.5">
                             <Filter size={14} className="text-slate-400 dark:text-slate-500" />
                             <select
                                 value={statusFilter}
@@ -171,7 +171,7 @@ export default function Regularizations() {
                                                             placeholder="Comment (optional)"
                                                             value={comment[req.id] || ''}
                                                             onChange={e => setComment(c => ({ ...c, [req.id]: e.target.value }))}
-                                                            className="text-xs w-40 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 px-2 py-1.5 focus:outline-none focus:border-slate-400 dark:focus:border-slate-500"
+                                                            className="text-xs w-40 rounded-lg border border-slate-200 dark:border-slate-600 bg-app-surface text-slate-700 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 px-2 py-1.5 focus:outline-none focus:border-slate-400 dark:focus:border-slate-500"
                                                         />
                                                         <Button variant="success" size="sm" icon={CheckCircle} onClick={() => review(req.id, 'approved')}>
                                                             Approve

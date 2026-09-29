@@ -112,7 +112,7 @@ export default function NotificationCenter() {
             </button>
 
             {open && (
-                <div ref={panelRef} className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-800 shadow-xl rounded-2xl overflow-hidden z-40 border border-slate-100 dark:border-slate-700">
+                <div ref={panelRef} className="absolute right-0 mt-2 w-80 bg-app-surface shadow-xl rounded-2xl overflow-hidden z-40 border border-slate-100 dark:border-slate-700">
                     <div className="px-4 py-3 border-b border-slate-50 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50 flex items-center justify-between">
                         <p className="text-sm font-bold text-slate-800 dark:text-slate-100">Notifications</p>
                         <button onClick={() => setOpen(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300" aria-label="Close">

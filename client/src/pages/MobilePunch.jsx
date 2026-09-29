@@ -301,7 +301,7 @@ const MobilePunch = () => {
                 subtitle="GPS geofenced attendance punch"
             />
             <div className="flex-1 flex flex-col items-center justify-center">
-                <div className="w-full max-w-md bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-3xl shadow-xl overflow-hidden border border-slate-200 dark:border-slate-700">
+                <div className="w-full max-w-md bg-app-surface/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-3xl shadow-xl overflow-hidden border border-slate-200 dark:border-slate-700">
 
                     {/* Location panel */}
                     <div className="h-48 bg-slate-50/70 dark:bg-slate-900/50 relative flex items-center justify-center border-b border-slate-100 dark:border-slate-700">

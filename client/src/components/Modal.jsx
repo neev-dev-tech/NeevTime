@@ -140,7 +140,7 @@ export default function Modal({
                 ref={panelRef}
                 tabIndex={-1}
                 className={`relative w-full ${SIZES[size] || SIZES.md} max-h-[85vh] flex flex-col
-                            bg-white dark:bg-slate-800 rounded-xl shadow-2xl
+                            bg-app-surface rounded-xl shadow-2xl
                             ring-1 ring-slate-900/[0.08] dark:ring-white/[0.08]
                             animate-slide-up focus:outline-none`}
             >

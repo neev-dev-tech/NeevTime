@@ -96,7 +96,7 @@ export default function ImportWizard() {
             />
 
             {/* Progress Steps */}
-            <div className="relative grid grid-cols-4 py-4 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm shadow-sm">
+            <div className="relative grid grid-cols-4 py-4 rounded-2xl border border-slate-200 dark:border-slate-700 bg-app-surface/70 dark:bg-slate-800/70 backdrop-blur-sm shadow-sm">
                 {/* Connector Line */}
                 <div className="absolute top-[36px] left-[12.5%] right-[12.5%] h-1 bg-slate-100 dark:bg-slate-700 rounded-full" />
                 <div
@@ -110,7 +110,7 @@ export default function ImportWizard() {
                             ? 'bg-emerald-500 text-white border-transparent'
                             : step === i + 1
                                 ? 'bg-slate-600 text-white border-transparent scale-110'
-                                : 'bg-white/80 dark:bg-slate-900/70 border-slate-200 dark:border-slate-600 text-slate-400 dark:text-slate-500'
+                                : 'bg-app-surface/80 dark:bg-slate-900/70 border-slate-200 dark:border-slate-600 text-slate-400 dark:text-slate-500'
                             }`}>
                             {step > i + 1 ? <CheckCircle size={18} /> : i + 1}
                         </div>
@@ -136,7 +136,7 @@ export default function ImportWizard() {
                                 <button
                                     key={type.id}
                                     onClick={() => { setImportType(type.id); setStep(2); }}
-                                    className="flex flex-col text-left p-6 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm hover:border-slate-400 dark:hover:border-slate-500 hover:shadow-md hover:bg-slate-50/40 dark:hover:bg-slate-700/60 transition-ui group"
+                                    className="flex flex-col text-left p-6 rounded-2xl border border-slate-200 dark:border-slate-700 bg-app-surface/70 dark:bg-slate-800/70 backdrop-blur-sm hover:border-slate-400 dark:hover:border-slate-500 hover:shadow-md hover:bg-slate-50/40 dark:hover:bg-slate-700/60 transition-ui group"
                                 >
                                     <div className="w-12 h-12 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 dark:bg-slate-900/40 dark:text-slate-300 dark:border-slate-800/70 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                                         <FileSpreadsheet size={24} />
@@ -163,7 +163,7 @@ export default function ImportWizard() {
                             </p>
                         </div>
 
-                        <div className="relative rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-600 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm p-12 text-center transition-ui group cursor-pointer hover:border-slate-400 dark:hover:border-slate-500 hover:bg-slate-50/40 dark:hover:bg-slate-700/50">
+                        <div className="relative rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-600 bg-app-surface/60 dark:bg-slate-800/60 backdrop-blur-sm p-12 text-center transition-ui group cursor-pointer hover:border-slate-400 dark:hover:border-slate-500 hover:bg-slate-50/40 dark:hover:bg-slate-700/50">
                             <input
                                 type="file"
                                 accept=".csv"
@@ -196,7 +196,7 @@ export default function ImportWizard() {
                             </div>
                         </div>
 
-                        <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 overflow-hidden shadow-sm">
+                        <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-app-surface/70 dark:bg-slate-800/70 overflow-hidden shadow-sm">
                             {parsedData.length === 0 ? (
                                 <div className="py-16 text-center">
                                     <FileSpreadsheet size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />

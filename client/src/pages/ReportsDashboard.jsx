@@ -186,7 +186,7 @@ export default function ReportsDashboard() {
                 <button
                     id={cardId}
                     onClick={onNavigate}
-                    className="report-card-button w-full p-5 rounded-[16px] cursor-pointer flex flex-col items-center justify-center gap-3 text-center relative overflow-hidden bg-white dark:bg-slate-800"
+                    className="report-card-button w-full p-5 rounded-[16px] cursor-pointer flex flex-col items-center justify-center gap-3 text-center relative overflow-hidden bg-app-surface"
                     style={{
                         ...currentStyle,
                         border: tier === 'primary' ? `1px solid rgba(0, 0, 0, 0.08)` : currentStyle.border,

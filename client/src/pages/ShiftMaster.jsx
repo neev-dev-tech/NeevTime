@@ -133,7 +133,7 @@ export default function ShiftMaster() {
                 <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {shifts.map(shift => (
-                            <div key={shift.id} className="bg-white/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 hover:-translate-y-0.5 transition-transform">
+                            <div key={shift.id} className="bg-app-surface/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 hover:-translate-y-0.5 transition-transform">
                                 <div className="flex justify-between items-start gap-3 mb-3">
                                     <div className="min-w-0">
                                         <h3 className="font-semibold text-slate-800 dark:text-slate-100 truncate">{shift.name || '—'}</h3>

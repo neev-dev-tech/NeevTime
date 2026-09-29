@@ -95,7 +95,7 @@ export default function MainLayout({ children }) {
       <motion.header
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="sticky top-0 z-50 border-b border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md"
+        className="sticky top-0 z-50 border-b border-slate-200 dark:border-slate-700 bg-app-surface/80 backdrop-blur-md"
         style={{
           boxShadow: '0 2px 8px rgba(249, 115, 22, 0.08)'
         }}
@@ -129,7 +129,7 @@ export default function MainLayout({ children }) {
                )}
             </div>
 
-            <nav className="hidden md:flex items-center gap-1 p-1 rounded-full border border-slate-200 bg-slate-50/30">
+            <nav className="hidden md:flex items-center gap-1 p-1 rounded-full border border-slate-200 bg-app-hover/40">
               {modules.map((mod) => {
                 const isActive = activeModule === mod.name;
                 return (
@@ -170,7 +170,7 @@ export default function MainLayout({ children }) {
               <button
                 ref={profileTriggerRef}
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
-                className="flex items-center gap-2 px-3 py-2 rounded-full hover:bg-slate-50 transition-colors"
+                className="flex items-center gap-2 px-3 py-2 rounded-full hover:bg-app-hover transition-colors"
               >
                 <div className="w-9 h-9 bg-slate-900 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm ring-2 ring-slate-200">
                   {auth?.username?.charAt(0).toUpperCase() || 'U'}
@@ -185,17 +185,17 @@ export default function MainLayout({ children }) {
                     initial={{ opacity: 0, scale: 0.95, y: 10 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                    className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-800 shadow-xl rounded-2xl overflow-hidden z-40 border border-slate-200 dark:border-slate-700"
+                    className="absolute right-0 mt-2 w-56 bg-app-surface shadow-xl rounded-2xl overflow-hidden z-40 border border-slate-200 dark:border-slate-700"
                   >
                     <div className="px-4 py-3 border-b border-slate-50 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/40">
                       <p className="text-sm font-bold text-slate-800 dark:text-slate-100">{auth?.username}</p>
                       <p className="text-xs text-slate-500 dark:text-slate-400">{auth?.role}</p>
                     </div>
                     <div className="py-2">
-                      <button onClick={() => { setShowProfileMenu(false); setShowAbout(true); }} className="w-full px-4 py-2 text-left text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-3">
+                      <button onClick={() => { setShowProfileMenu(false); setShowAbout(true); }} className="w-full px-4 py-2 text-left text-sm text-slate-600 dark:text-slate-300 hover:bg-app-hover dark:hover:bg-slate-700 flex items-center gap-3">
                         <Info size={16} /> <span>About</span>
                       </button>
-                      <button onClick={() => { setShowProfileMenu(false); setShowHelp(true); }} className="w-full px-4 py-2 text-left text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-3">
+                      <button onClick={() => { setShowProfileMenu(false); setShowHelp(true); }} className="w-full px-4 py-2 text-left text-sm text-slate-600 dark:text-slate-300 hover:bg-app-hover dark:hover:bg-slate-700 flex items-center gap-3">
                         <HelpCircle size={16} /> <span>Help</span>
                       </button>
                     </div>
@@ -224,12 +224,12 @@ export default function MainLayout({ children }) {
           pushes the row open again from the inside. */}
       <div className="flex flex-1 min-h-0 overflow-hidden">
         {activeModule !== 'Dashboard' && currentSidebar.length > 0 && (
-          <aside className="w-64 border-r border-slate-200 dark:border-slate-700 flex-shrink-0 overflow-y-auto pb-10 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl">
+          <aside className="w-64 border-r border-slate-200 dark:border-slate-700 flex-shrink-0 overflow-y-auto pb-10 bg-app-surface/80 backdrop-blur-xl">
             {currentSidebar.map((group, i) => (
               <div key={i} className="mb-2">
                 <button
                   onClick={() => toggleGroup(group.group)}
-                  className="w-full px-5 py-3 flex items-center justify-between hover:bg-slate-50/50 dark:hover:bg-slate-700/50"
+                  className="w-full px-5 py-3 flex items-center justify-between hover:bg-app-hover/50 dark:hover:bg-slate-700/50"
                 >
                   <div className="flex items-center gap-3 uppercase text-[10px] tracking-widest font-bold text-slate-400">
                     <group.icon size={16} style={{ color: group.iconColor || '#64748B' }} />
@@ -253,7 +253,7 @@ export default function MainLayout({ children }) {
                           <Link
                             key={j}
                             to={item.path}
-                            className={`flex items-center gap-3 px-4 py-2 rounded-xl text-sm transition-ui font-medium ${isActive ? 'bg-slate-900 text-white shadow-md shadow-slate-200 dark:shadow-none' : 'text-slate-600 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-slate-400'}`}
+                            className={`flex items-center gap-3 px-4 py-2 rounded-xl text-sm transition-ui font-medium ${isActive ? 'bg-slate-900 text-white shadow-md shadow-slate-200 dark:shadow-none' : 'text-slate-600 dark:text-slate-200 hover:bg-app-hover dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-slate-400'}`}
                           >
                             <item.icon size={18} />
                             {item.label}
@@ -269,7 +269,7 @@ export default function MainLayout({ children }) {
         )}
         {showAbout && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4" onClick={() => setShowAbout(false)}>
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-sm text-center" onClick={e => e.stopPropagation()}>
+            <div className="bg-app-surface rounded-2xl shadow-2xl p-6 w-full max-w-sm text-center" onClick={e => e.stopPropagation()}>
               <div className="text-3xl font-bold mb-2">
                 <span className="text-slate-800 dark:text-slate-100">Neev</span><span className="text-slate-900">Time</span>
               </div>
@@ -282,7 +282,7 @@ export default function MainLayout({ children }) {
 
         {showHelp && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4" onClick={() => setShowHelp(false)}>
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
+            <div className="bg-app-surface rounded-2xl shadow-2xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
               <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4">Quick Help</h3>
               <div className="space-y-3 text-sm text-slate-600 dark:text-slate-300">
                 <div className="flex items-center justify-between">

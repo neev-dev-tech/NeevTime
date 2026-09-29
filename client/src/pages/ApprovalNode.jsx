@@ -143,7 +143,7 @@ export default function ApprovalNode() {
             />
             <div className="flex flex-col flex-1 card-base overflow-hidden relative">
             {/* Toolbar */}
-            <div className="flex items-center gap-3 p-4 border-b border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm flex-wrap">
+            <div className="flex items-center gap-3 p-4 border-b border-slate-100 dark:border-slate-700 bg-app-surface text-sm flex-wrap">
                 <Button
                     variant="successSolid"
                     icon={Plus}
@@ -183,7 +183,7 @@ export default function ApprovalNode() {
             </div>
 
             {/* Table */}
-            <div className="flex-1 overflow-auto bg-white dark:bg-slate-800 custom-scrollbar">
+            <div className="flex-1 overflow-auto bg-app-surface custom-scrollbar">
                 {loading ? (
                     <div className="p-6 space-y-3">
                         {Array.from({ length: 8 }).map((_, i) => (
@@ -268,7 +268,7 @@ export default function ApprovalNode() {
                         <option value={50}>50</option>
                         <option value={100}>100</option>
                     </select>
-                    <div className="flex items-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
+                    <div className="flex items-center bg-app-surface border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
                         <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="p-1.5 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 transition-colors border-r border-slate-200 dark:border-slate-700">
                             <ChevronLeft size={16} />
                         </button>

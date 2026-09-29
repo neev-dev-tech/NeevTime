@@ -312,7 +312,7 @@ export default function Logs() {
                         onClick={() => setPhoto(null)}
                     >
                         <div
-                            className="max-w-lg w-full rounded-2xl bg-white dark:bg-slate-800 overflow-hidden"
+                            className="max-w-lg w-full rounded-2xl bg-app-surface overflow-hidden"
                             onClick={(e) => e.stopPropagation()}
                         >
                             <PunchPhoto

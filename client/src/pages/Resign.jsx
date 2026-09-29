@@ -257,7 +257,7 @@ export default function Resign() {
             />
             <div className="flex flex-col flex-1 card-base overflow-hidden relative">
             {/* Toolbar */}
-            <div className="flex items-center gap-3 p-4 border-b border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm flex-wrap">
+            <div className="flex items-center gap-3 p-4 border-b border-slate-100 dark:border-slate-700 bg-app-surface text-sm flex-wrap">
                 <Button variant="successSolid" icon={Plus} onClick={() => { resetForm(); setShowModal(true); }}>
                     Add Resignation
                 </Button>
@@ -305,7 +305,7 @@ export default function Resign() {
             </div>
 
             {/* Table */}
-            <div className="flex-1 overflow-auto bg-white dark:bg-slate-800 custom-scrollbar">
+            <div className="flex-1 overflow-auto bg-app-surface custom-scrollbar">
                 {loading ? (
                     <div className="p-6 space-y-3">
                         {Array.from({ length: 8 }).map((_, i) => (
@@ -387,7 +387,7 @@ export default function Resign() {
             <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between text-sm text-slate-500 dark:text-slate-400 bg-slate-50/70 dark:bg-slate-900/50">
                 {/* Left Side: Total Records */}
                 <div className="flex items-center gap-4">
-                    <span className="text-xs font-medium text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-1 rounded-full shadow-sm">
+                    <span className="text-xs font-medium text-slate-500 dark:text-slate-400 bg-app-surface border border-slate-200 dark:border-slate-700 px-3 py-1 rounded-full shadow-sm">
                         Total Records: <span className="text-slate-800 dark:text-slate-100 font-bold ml-1 tabular-nums">{filteredItems.length}</span>
                     </span>
                 </div>

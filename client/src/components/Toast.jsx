@@ -149,7 +149,7 @@ function Toast({
                 {dismissible && type !== 'loading' && (
                     <button
                         onClick={handleClose}
-                        className="flex-shrink-0 p-1 rounded-lg hover:bg-white/20 transition-colors"
+                        className="flex-shrink-0 p-1 rounded-lg hover:bg-app-surface/20 transition-colors"
                     >
                         <X size={16} />
                     </button>

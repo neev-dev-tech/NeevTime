@@ -565,7 +565,7 @@ export default function Employees() {
                     {showImportMenu && (
                         <>
                             <div className="fixed inset-0 z-10" onClick={() => setShowImportMenu(false)}></div>
-                            <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-xl rounded-2xl z-20 overflow-hidden dropdown-menu">
+                            <div className="absolute top-full left-0 mt-2 w-48 bg-app-surface border border-slate-100 dark:border-slate-700 shadow-xl rounded-2xl z-20 overflow-hidden dropdown-menu">
                             <DropdownItem label="Import Employee (CSV)" onClick={() => setShowImportModal(true)} />
                         </div>
                         </>
@@ -592,7 +592,7 @@ export default function Employees() {
                         showTransferMenu && (
                             <>
                                 <div className="fixed inset-0 z-10" onClick={() => setShowTransferMenu(false)}></div>
-                                <div className="absolute top-full left-0 mt-2 w-56 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-xl rounded-2xl z-20 overflow-hidden dropdown-menu">
+                                <div className="absolute top-full left-0 mt-2 w-56 bg-app-surface border border-slate-100 dark:border-slate-700 shadow-xl rounded-2xl z-20 overflow-hidden dropdown-menu">
                             <DropdownItem label="Department Transfer" onClick={() => handleTransfer('Department')} />
                             <DropdownItem label="Position Transfer" onClick={() => handleTransfer('Position')} />
                             <DropdownItem label="Move to New Area" onClick={() => handleTransfer('Area')} />
@@ -630,7 +630,7 @@ export default function Employees() {
                         showAppMenu && (
                             <>
                                 <div className="fixed inset-0 z-10" onClick={() => setShowAppMenu(false)}></div>
-                                <div className="absolute top-full left-0 mt-2 w-40 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-xl rounded-2xl z-20 overflow-hidden dropdown-menu">
+                                <div className="absolute top-full left-0 mt-2 w-40 bg-app-surface border border-slate-100 dark:border-slate-700 shadow-xl rounded-2xl z-20 overflow-hidden dropdown-menu">
                             <DropdownItem label="Enable Access" onClick={() => handleAppAccess(true)} />
                             <DropdownItem label="Disable Access" onClick={() => handleAppAccess(false)} danger />
                         </div>
@@ -659,7 +659,7 @@ export default function Employees() {
                         showMoreMenu && (
                             <>
                                 <div className="fixed inset-0 z-10" onClick={() => setShowMoreMenu(false)}></div>
-                                <div className="absolute top-full left-0 mt-2 w-56 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-xl rounded-2xl z-20 overflow-hidden dropdown-menu">
+                                <div className="absolute top-full left-0 mt-2 w-56 bg-app-surface border border-slate-100 dark:border-slate-700 shadow-xl rounded-2xl z-20 overflow-hidden dropdown-menu">
                             <DropdownItem label="Resynchronize to device" onClick={() => handleMoreSettings('push')} />
                             <DropdownItem label="Re-upload from device" onClick={() => handleMoreSettings('pull')} />
                             <DropdownItem label="Delete Biometric Template" onClick={() => handleMoreSettings('delete-bio')} danger />

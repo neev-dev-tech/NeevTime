@@ -218,7 +218,7 @@ api.get('/api/contractors').then(r => setContractors(r.data.filter(c => c.is_act
     if (loading) return (
         <div className="p-6 max-w-6xl mx-auto space-y-6">
             <div className="h-5 w-40 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+            <div className="bg-app-surface rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
                 <div className="flex flex-col md:flex-row items-start gap-6">
                     <div className="w-28 h-28 rounded-2xl bg-slate-100 dark:bg-slate-700 animate-pulse shrink-0" />
                     <div className="flex-1 w-full space-y-3">
@@ -233,7 +233,7 @@ api.get('/api/contractors').then(r => setContractors(r.data.filter(c => c.is_act
                 </div>
             </div>
             <div className="h-10 w-72 rounded-xl bg-slate-100 dark:bg-slate-700 animate-pulse" />
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 space-y-3">
+            <div className="bg-app-surface rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 space-y-3">
                 {Array.from({ length: 8 }).map((_, i) => (
                     <div key={i} className="h-6 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
                 ))}
@@ -246,7 +246,7 @@ api.get('/api/contractors').then(r => setContractors(r.data.filter(c => c.is_act
             <Link to="/employees" className="inline-flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:underline text-sm mb-4">
                 <ArrowLeft size={16} /> Back to Employees
             </Link>
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 py-16 text-center">
+            <div className="bg-app-surface rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 py-16 text-center">
                 <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
                 <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Employee not found</h3>
                 <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
@@ -265,7 +265,7 @@ api.get('/api/contractors').then(r => setContractors(r.data.filter(c => c.is_act
             </Link>
 
             {/* Profile Header — identity card */}
-            <div className="relative overflow-hidden bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 mb-6">
+            <div className="relative overflow-hidden bg-app-surface rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 mb-6">
                 <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-slate-50 to-transparent dark:from-slate-900/20 dark:to-transparent" />
                 <div className="relative flex flex-col md:flex-row items-start gap-6">
                     <div className="w-28 h-28 shrink-0 rounded-2xl bg-gradient-to-br from-slate-500 to-amber-600 flex items-center justify-center text-white text-4xl font-bold shadow-lg ring-4 ring-slate-100 dark:ring-slate-900/40">
@@ -324,7 +324,7 @@ api.get('/api/contractors').then(r => setContractors(r.data.filter(c => c.is_act
                         onClick={() => setActiveTab(tab)}
                         className={`px-4 py-1.5 rounded-lg text-xs font-semibold capitalize transition-colors ${activeTab === tab
                             ? 'bg-slate-600 text-white shadow-sm'
-                            : 'text-slate-600 dark:text-slate-300 hover:text-slate-600 dark:hover:text-slate-400 hover:bg-white/70 dark:hover:bg-slate-700/60'}`}
+                            : 'text-slate-600 dark:text-slate-300 hover:text-slate-600 dark:hover:text-slate-400 hover:bg-app-surface/70 dark:hover:bg-slate-700/60'}`}
                     >
                         {tab}
                     </button>
@@ -332,7 +332,7 @@ api.get('/api/contractors').then(r => setContractors(r.data.filter(c => c.is_act
             </div>
 
             {/* Tab Content */}
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 min-h-[400px]">
+            <div className="bg-app-surface rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 min-h-[400px]">
                 {activeTab === 'overview' && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
                         <div>
@@ -361,7 +361,7 @@ api.get('/api/contractors').then(r => setContractors(r.data.filter(c => c.is_act
                             {/* Self-service portal access */}
                             <div className="mt-6 p-4 bg-slate-50/60 dark:bg-slate-900/20 border border-slate-100 dark:border-slate-800 rounded-xl">
                                 <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-100 mb-1">Employee Portal Access</h4>
-                                <p className="text-xs text-slate-600 dark:text-slate-300 mb-3">So this employee can view their attendance and apply for leave at <code className="font-mono text-xs bg-white dark:bg-slate-800 px-1 rounded border border-slate-200 dark:border-slate-700">/portal/login</code>.</p>
+                                <p className="text-xs text-slate-600 dark:text-slate-300 mb-3">So this employee can view their attendance and apply for leave at <code className="font-mono text-xs bg-app-surface px-1 rounded border border-slate-200 dark:border-slate-700">/portal/login</code>.</p>
 
                                 {/* The recommended route. A password nobody
                                     else knows is what makes this person's

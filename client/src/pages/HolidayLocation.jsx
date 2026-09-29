@@ -206,7 +206,7 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
                     onClick={() => setActiveTab('locations')}
                     className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors border ${activeTab === 'locations'
                         ? 'bg-slate-600 text-white border-transparent shadow-sm'
-                        : 'bg-white/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300 hover:text-slate-600 dark:hover:text-slate-400'
+                        : 'bg-app-surface/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300 hover:text-slate-600 dark:hover:text-slate-400'
                         }`}
                 >
                     <MapPin size={13} />
@@ -216,7 +216,7 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
                     onClick={() => setActiveTab('holidays')}
                     className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors border ${activeTab === 'holidays'
                         ? 'bg-slate-600 text-white border-transparent shadow-sm'
-                        : 'bg-white/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300 hover:text-slate-600 dark:hover:text-slate-400'
+                        : 'bg-app-surface/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300 hover:text-slate-600 dark:hover:text-slate-400'
                         }`}
                 >
                     <Calendar size={13} />
@@ -226,13 +226,13 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
 
             {/* Upcoming Holidays Banner */}
             {upcomingHolidays.length > 0 && (
-                <div className="bg-white/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-4">
+                <div className="bg-app-surface/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-4">
                     <h3 className="text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-3 flex items-center gap-2">
                         <Calendar size={13} /> Upcoming Holidays
                     </h3>
                     <div className="flex flex-wrap gap-3">
                         {upcomingHolidays.map(h => (
-                            <div key={h.id} className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 hover:-translate-y-0.5 transition-transform">
+                            <div key={h.id} className="bg-app-surface/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 hover:-translate-y-0.5 transition-transform">
                                 <div className="font-semibold text-sm text-slate-800 dark:text-slate-100">{h.name || '—'}</div>
                                 <div className="text-xs tabular-nums text-slate-500 dark:text-slate-400">
                                     {formatDate(h.date)}
@@ -277,7 +277,7 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
                     <div className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {locations.map(loc => (
-                                <div key={loc.id} className="bg-white/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 hover:-translate-y-0.5 transition-transform">
+                                <div key={loc.id} className="bg-app-surface/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 hover:-translate-y-0.5 transition-transform">
                                     <div className="flex items-start justify-between gap-3">
                                         <div className="flex items-center gap-3 min-w-0">
                                             <div className="p-2 bg-slate-100 dark:bg-slate-900/30 text-slate-600 dark:text-slate-400 rounded-xl shrink-0">

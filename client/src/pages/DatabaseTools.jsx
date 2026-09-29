@@ -15,7 +15,7 @@ const BADGE_MANUAL = 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark
 
 const CELL_MONO = 'font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold';
 const CELL_STRONG = 'font-semibold text-slate-800 dark:text-slate-100';
-const FIELD ='text-sm rounded-lg px-3 py-2 border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-100 focus:outline-none focus:border-slate-400 dark:focus:border-slate-500';
+const FIELD ='text-sm rounded-lg px-3 py-2 border border-slate-200 dark:border-slate-600 bg-app-surface text-slate-700 dark:text-slate-100 focus:outline-none focus:border-slate-400 dark:focus:border-slate-500';
 const FIELD_LABEL = 'block text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-1';
 
 const dash = (v) => (v === null || v === undefined || v === '' ? '—' : v);
@@ -356,7 +356,7 @@ export default function DatabaseTools() {
                     return (
                         <div
                             key={stat.label}
-                            className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 p-4 shadow-sm"
+                            className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-app-surface/70 dark:bg-slate-800/70 p-4 shadow-sm"
                         >
                             <div className="flex items-center gap-2 mb-2">
                                 <div className={`w-8 h-8 shrink-0 rounded-lg grid place-items-center ${stat.ring} ${stat.tint}`}>

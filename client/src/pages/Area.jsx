@@ -240,7 +240,7 @@ export default function Area() {
 
             <div className="flex gap-6 h-[calc(100vh-12rem)]">
                 {/* Tree View Sidebar */}
-                <div className="w-64 bg-white/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl flex flex-col overflow-hidden shrink-0">
+                <div className="w-64 bg-app-surface/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl flex flex-col overflow-hidden shrink-0">
                     <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900/50">
                         <h3 className="text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">Area Structure</h3>
                     </div>
@@ -284,7 +284,7 @@ export default function Area() {
                 {/* Main Table Section */}
                 <div className="flex-1 flex flex-col card-base !p-0 overflow-hidden">
                     {/* Toolbar */}
-                    <div className="p-3 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between bg-white/70 dark:bg-slate-800/70 flex-wrap gap-3">
+                    <div className="p-3 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between bg-app-surface/70 dark:bg-slate-800/70 flex-wrap gap-3">
                         <div className="flex items-center gap-2">
                             <Button variant="successSolid" icon={Plus} onClick={() => { setFormData({}); setShowModal(true); }}>
                                 Add
@@ -468,7 +468,7 @@ export default function Area() {
                     </div>
                     <div className="bg-slate-50/50 dark:bg-slate-900/20 p-4 rounded-xl border border-slate-100 dark:border-slate-800 text-sm text-slate-grey dark:text-slate-400">
                         <p className="font-bold text-slate-600 dark:text-slate-400 mb-1">CSV Format:</p>
-                        <code className="block bg-white dark:bg-slate-800 p-2 rounded border border-slate-100 dark:border-slate-800 mb-2">Area Name, Area Code</code>
+                        <code className="block bg-app-surface p-2 rounded border border-slate-100 dark:border-slate-800 mb-2">Area Name, Area Code</code>
                         <Button variant="secondary" icon={Download} type="button" onClick={downloadTemplate}>
                             Download Template
                         </Button>

@@ -47,7 +47,7 @@ export default function ResetPassword() {
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-amber-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 p-4">
-            <div className="w-full max-w-sm bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 p-8">
+            <div className="w-full max-w-sm bg-app-surface rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 p-8">
                 <div className="flex flex-col items-center mb-6">
                     <div className="p-3 bg-slate-100 dark:bg-slate-900/30 rounded-2xl text-slate-600 dark:text-slate-300 mb-3">
                         <LockKeyhole size={28} />

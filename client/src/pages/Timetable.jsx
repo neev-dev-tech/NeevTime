@@ -223,7 +223,7 @@ export default function Timetable() {
                         {timetables.map(tt => (
                             <div
                                 key={tt.id}
-                                className="bg-white/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden hover:-translate-y-0.5 transition-transform"
+                                className="bg-app-surface/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden hover:-translate-y-0.5 transition-transform"
                             >
                                 {/* Header with color */}
                                 <div
@@ -501,7 +501,7 @@ export default function Timetable() {
                                 <p className="text-sm text-slate-500 dark:text-slate-400">Add a break below and it will be deducted from worked hours.</p>
                             </div>
                         ) : breaks.map(b => (
-                            <div key={b.id} className="flex items-center justify-between gap-3 p-3 bg-white/70 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl">
+                            <div key={b.id} className="flex items-center justify-between gap-3 p-3 bg-app-surface/70 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl">
                                 <div className="min-w-0">
                                     <div className="font-semibold text-slate-800 dark:text-slate-100 truncate">{b.name || '—'}</div>
                                     <div className="text-sm tabular-nums text-slate-600 dark:text-slate-300">

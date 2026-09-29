@@ -221,7 +221,7 @@ export default function StatutoryRegisters() {
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                                     {data.rows.map(r => (
                                         <tr key={r.employee_code} className="hover:bg-slate-50 dark:hover:bg-slate-700/40">
-                                            <td className="sticky left-0 z-10 bg-white dark:bg-slate-800 px-4 py-2 min-w-[13rem] border-r border-slate-100 dark:border-slate-700">
+                                            <td className="sticky left-0 z-10 bg-app-surface px-4 py-2 min-w-[13rem] border-r border-slate-100 dark:border-slate-700">
                                                 <span className="block font-semibold text-slate-800 dark:text-slate-100 truncate">{r.name || '—'}</span>
                                                 <span className="block text-xs text-slate-500 dark:text-slate-400 font-mono">
                                                     {r.employee_code}{r.designation ? ` · ${r.designation}` : ''}

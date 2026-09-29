@@ -309,7 +309,7 @@ export function ThemePanel({ isOpen, onClose }) {
             />
 
             {/* Panel */}
-            <div className="fixed right-0 top-0 bottom-0 w-80 bg-white dark:bg-slate-900 shadow-2xl z-50 
+            <div className="fixed right-0 top-0 bottom-0 w-80 bg-app-surface shadow-2xl z-50 
                 transform transition-transform duration-300 overflow-hidden flex flex-col">
 
                 {/* Header */}
@@ -348,7 +348,7 @@ export function ThemePanel({ isOpen, onClose }) {
                             onClick={() => setActiveTab('presets')}
                             className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors
                                 ${activeTab === 'presets'
-                                    ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-white shadow-sm'
+                                    ? 'bg-app-surface text-slate-800 dark:text-white shadow-sm'
                                     : 'text-slate-500'
                                 }`}
                         >
@@ -358,7 +358,7 @@ export function ThemePanel({ isOpen, onClose }) {
                             onClick={() => setActiveTab('custom')}
                             className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors
                                 ${activeTab === 'custom'
-                                    ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-white shadow-sm'
+                                    ? 'bg-app-surface text-slate-800 dark:text-white shadow-sm'
                                     : 'text-slate-500'
                                 }`}
                         >

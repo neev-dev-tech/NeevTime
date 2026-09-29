@@ -204,7 +204,7 @@ export default function DeviceData() {
                                         onClick={() => switchView(id)}
                                         className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors border ${active
                                             ? 'bg-slate-600 text-white border-transparent shadow-sm'
-                                            : 'bg-white/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300 hover:text-slate-600 dark:hover:text-slate-400'
+                                            : 'bg-app-surface/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300 hover:text-slate-600 dark:hover:text-slate-400'
                                             }`}
                                     >
                                         <Icon size={13} />

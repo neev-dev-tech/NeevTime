@@ -64,7 +64,7 @@ export default function ManualEntry() {
         setSubmitting(false);
     };
 
-    const fieldClass = 'w-full rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 pl-10 pr-4 py-2 focus:outline-none focus:border-slate-400 dark:focus:border-slate-500';
+    const fieldClass = 'w-full rounded-lg border border-slate-200 dark:border-slate-600 bg-app-surface text-sm text-slate-700 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 pl-10 pr-4 py-2 focus:outline-none focus:border-slate-400 dark:focus:border-slate-500';
     const labelClass = 'block text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-2';
 
     return (
@@ -113,7 +113,7 @@ export default function ManualEntry() {
                         />
                     </div>
                     {!selectedEmployee && searchTerm && (
-                        <div className="border border-slate-200 dark:border-slate-700 rounded-xl mt-1.5 max-h-40 overflow-auto bg-white dark:bg-slate-800 shadow-lg divide-y divide-slate-100 dark:divide-slate-700">
+                        <div className="border border-slate-200 dark:border-slate-700 rounded-xl mt-1.5 max-h-40 overflow-auto bg-app-surface shadow-lg divide-y divide-slate-100 dark:divide-slate-700">
                             {loading ? (
                                 <div className="p-3 space-y-2">
                                     {Array.from({ length: 3 }).map((_, i) => (

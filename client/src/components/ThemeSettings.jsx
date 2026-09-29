@@ -222,7 +222,7 @@ export default function ThemeSettings() {
             {/* ── Preview and reset ───────────────────────────────────────── */}
             <section className="space-y-3">
                 <h3 className="font-semibold text-slate-800 dark:text-slate-100">Preview</h3>
-                <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 space-y-3">
+                <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-app-surface space-y-3">
                     <div className="flex gap-2 flex-wrap">
                         <span className="px-3 py-1.5 rounded-lg text-sm font-semibold text-white" style={{ backgroundColor: themeColors.primary }}>Primary</span>
                         <span className="px-3 py-1.5 rounded-lg text-sm font-semibold text-white" style={{ backgroundColor: themeColors.success }}>Present</span>

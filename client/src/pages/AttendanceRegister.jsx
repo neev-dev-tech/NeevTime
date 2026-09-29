@@ -184,7 +184,7 @@ export default function AttendanceRegister() {
                 {stats.map(({ label, value, icon: Icon, tone }) => (
                     <div
                         key={label}
-                        className="bg-white/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 flex items-start justify-between gap-3"
+                        className="bg-app-surface/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 flex items-start justify-between gap-3"
                     >
                         <div className="min-w-0">
                             <div className={`text-[10px] font-bold uppercase tracking-[0.09em] mb-1 ${tone}`}>{label}</div>

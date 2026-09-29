@@ -61,7 +61,7 @@ export default function ReportsInsights() {
                 <div className="rounded-lg bg-rose-50 dark:bg-rose-900/20 border border-rose-100 dark:border-rose-800 px-4 py-3 text-sm text-rose-700 dark:text-rose-300">{error}</div>
             )}
 
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+            <div className="bg-app-surface rounded-xl border border-slate-200 dark:border-slate-700 p-4">
                 <h3 className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-3">
                     Late and overtime, last six months
                 </h3>
@@ -95,7 +95,7 @@ export default function ReportsInsights() {
                 )}
             </div>
 
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <div className="bg-app-surface rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
                 <div className="flex items-center justify-between gap-3 p-4 pb-2">
                     <h3 className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 flex items-center gap-2">
                         <Building size={14} /> Department summary

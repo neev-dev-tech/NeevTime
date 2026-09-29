@@ -37,7 +37,7 @@ export function EmptyState({
         <div className={`
             flex flex-col items-center justify-center text-center
             ${isCompact ? 'py-8 px-4' : 'py-16 px-6'}
-            ${isCard ? 'bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm' : ''}
+            ${isCard ? 'bg-app-surface rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm' : ''}
             ${className}
         `}>
             {/* Illustration or Icon */}

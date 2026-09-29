@@ -32,10 +32,10 @@ export function Card({
     const baseClasses = 'rounded-2xl transition-ui duration-200';
 
     const variantClasses = {
-        default: 'bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-sm',
-        elevated: 'bg-white dark:bg-slate-800 shadow-md hover:shadow-lg',
-        outlined: 'bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700',
-        glass: 'bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-white/20 shadow-lg',
+        default: 'bg-app-surface border border-slate-100 dark:border-slate-700 shadow-sm',
+        elevated: 'bg-app-surface shadow-md hover:shadow-lg',
+        outlined: 'bg-app-surface border-2 border-slate-200 dark:border-slate-700',
+        glass: 'bg-app-surface/80 dark:bg-slate-800/80 backdrop-blur-sm border border-white/20 shadow-lg',
         gradient: 'bg-gradient-to-br from-white to-slate-50 border border-slate-100 shadow-sm'
     };
 

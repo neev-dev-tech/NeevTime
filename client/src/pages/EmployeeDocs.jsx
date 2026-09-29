@@ -224,7 +224,7 @@ export default function EmployeeDocs() {
 
             <div className="flex flex-col h-[calc(100vh-210px)] card-base overflow-hidden">
             {/* Search Bar */}
-            <div className="p-4 border-b border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800">
+            <div className="p-4 border-b border-slate-100 dark:border-slate-700 bg-app-surface">
                 <div className="relative w-full max-w-md">
                     <input
                         type="text"
@@ -238,7 +238,7 @@ export default function EmployeeDocs() {
             </div>
 
             {/* Documents Table */}
-            <div className="flex-1 overflow-auto bg-white dark:bg-slate-800 custom-scrollbar">
+            <div className="flex-1 overflow-auto bg-app-surface custom-scrollbar">
                 {loading ? (
                     <div className="p-6 space-y-3">
                         {Array.from({ length: 8 }).map((_, i) => (

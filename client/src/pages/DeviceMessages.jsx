@@ -53,7 +53,7 @@ export default function DeviceMessages() {
                 actions={<Button variant="secondary" icon={RefreshCw} onClick={fetchData}>Refresh</Button>}
             />
 
-            <form onSubmit={handleSend} className="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm p-4 flex flex-wrap gap-3 items-end">
+            <form onSubmit={handleSend} className="bg-app-surface rounded-xl border dark:border-slate-700 shadow-sm p-4 flex flex-wrap gap-3 items-end">
                 <div className="min-w-[220px]">
                     <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Device</label>
                     <select value={form.device_serial} onChange={e => setForm(f => ({ ...f, device_serial: e.target.value }))} className="field" required>
@@ -68,7 +68,7 @@ export default function DeviceMessages() {
                 <Button type="submit" variant="primary" icon={Send} disabled={sending}>{sending ? 'Sending...' : 'Send'}</Button>
             </form>
 
-            <div className="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm overflow-hidden">
+            <div className="bg-app-surface rounded-xl border dark:border-slate-700 shadow-sm overflow-hidden">
                 <table className="w-full text-sm text-left">
                     <thead className="bg-slate-50 dark:bg-slate-900/50 text-xs uppercase text-slate-500 dark:text-slate-400">
                         <tr>

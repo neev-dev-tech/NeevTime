@@ -71,7 +71,7 @@ export default function HeroStat({
                 if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); }
             } : undefined}
             className={`reveal group relative rounded-xl p-4
-                        bg-white/75 dark:bg-slate-800/60 backdrop-blur-xl
+                        bg-app-surface/75 dark:bg-slate-800/60 backdrop-blur-xl
                         shadow-sm ring-1 ring-slate-900/[0.06] dark:ring-white/[0.07]
                         transition-[transform,box-shadow] duration-300
                         ${interactive

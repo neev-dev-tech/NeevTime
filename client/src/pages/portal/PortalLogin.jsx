@@ -157,7 +157,7 @@ export default function PortalLogin() {
             {/* Arrives from depth and leans gently toward the cursor — the
                 one place a flourish earns its keep, since sign-in is the first
                 thing anyone sees. Touch and reduced-motion get a plain card. */}
-            <div {...tilt} className="tilt-3d depth-in w-full max-w-sm bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 p-8">
+            <div {...tilt} className="tilt-3d depth-in w-full max-w-sm bg-app-surface rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 p-8">
                 <div className="flex flex-col items-center mb-6">
                     <div className="p-3 bg-slate-100 dark:bg-slate-900/30 rounded-2xl text-slate-600 dark:text-slate-300 mb-3">
                         <Fingerprint size={28} />

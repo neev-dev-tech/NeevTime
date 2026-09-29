@@ -311,7 +311,7 @@ export default function DepartmentSchedule() {
                                     onClick={() => toggleWeekOff(day)}
                                     className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide transition-colors border ${form.week_off_days.includes(day)
                                         ? 'bg-slate-600 text-white border-transparent shadow-sm'
-                                        : 'bg-white/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300 hover:text-slate-600 dark:hover:text-slate-400'
+                                        : 'bg-app-surface/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300 hover:text-slate-600 dark:hover:text-slate-400'
                                         }`}
                                 >
                                     {day.substring(0, 3)}

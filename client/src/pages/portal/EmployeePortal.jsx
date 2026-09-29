@@ -259,7 +259,7 @@ export default function EmployeePortal() {
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
             {/* Header */}
-            <header className="bg-white dark:bg-slate-800 border-b dark:border-slate-700 sticky top-0 z-10">
+            <header className="bg-app-surface border-b dark:border-slate-700 sticky top-0 z-10">
                 <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <div className="p-1.5 bg-slate-100 dark:bg-slate-900/30 rounded-lg text-slate-600 dark:text-slate-300"><Fingerprint size={18} /></div>
@@ -275,7 +275,7 @@ export default function EmployeePortal() {
             <main className="max-w-3xl mx-auto px-4 py-6 space-y-5">
                 {/* Profile card */}
                 {profile && (
-                    <div className="bg-white/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 p-4 flex items-center gap-4">
+                    <div className="bg-app-surface/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 p-4 flex items-center gap-4">
                         <div className="w-12 h-12 rounded-full bg-slate-600 text-white flex items-center justify-center font-bold text-lg shrink-0">
                             {/* Optional chaining throughout this card: it renders
                                 on every tab, so a null here takes the entire
@@ -312,7 +312,7 @@ export default function EmployeePortal() {
                     scrolled sideways and two tabs hung outside the card. The
                     portal's primary device is a phone; the punch card cannot
                     depend on nobody noticing a horizontal scrollbar. */}
-                <div className="flex overflow-x-auto bg-white/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 p-1 gap-1">
+                <div className="flex overflow-x-auto bg-app-surface/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 p-1 gap-1">
                     {TABS.filter(t => t.id !== 'approvals' || approvals?.is_approver)
                           .map(({ id, label, icon: Icon }) => (
                         <button
@@ -342,11 +342,11 @@ export default function EmployeePortal() {
                         last week — and asking them to scroll past a month of
                         records to reach the one button they came for is how a
                         feature goes unused. */}
-                    <div className="bg-white/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 p-1">
+                    <div className="bg-app-surface/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 p-1">
                         <PunchCard />
                     </div>
 
-                    <div className="bg-white/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+                    <div className="bg-app-surface/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
                         <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700 flex items-center gap-2 flex-wrap">
                             <input type="date" value={range.start} onChange={e => setRange(r => ({ ...r, start: e.target.value }))} className="field-sm tabular-nums" />
                             <span className="text-slate-400">→</span>
@@ -414,7 +414,7 @@ export default function EmployeePortal() {
                         {leave.balances.length > 0 && (
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                 {leave.balances.map(b => (
-                                    <div key={b.id} className="bg-white/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 p-3">
+                                    <div key={b.id} className="bg-app-surface/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 p-3">
                                         <p className="text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 truncate">{b.leave_type_name}</p>
                                         <p className="text-xl font-bold tabular-nums text-slate-800 dark:text-slate-100">
                                             {b.balance}<span className="text-xs text-slate-500 dark:text-slate-400 font-normal"> left</span>
@@ -435,7 +435,7 @@ export default function EmployeePortal() {
                         </Button>
 
                         {showApply && (
-                            <form onSubmit={applyLeave} className="bg-white/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 p-4 space-y-3">
+                            <form onSubmit={applyLeave} className="bg-app-surface/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 p-4 space-y-3">
                                 <select
                                     value={form.leave_type_id}
                                     onChange={e => setForm(f => ({ ...f, leave_type_id: e.target.value }))}
@@ -463,7 +463,7 @@ export default function EmployeePortal() {
                         )}
 
                         {/* Applications */}
-                        <div className="bg-white/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+                        <div className="bg-app-surface/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
                             {loading.leave ? (
                                 <ListSkeleton rows={4} />
                             ) : loadError.leave ? (
@@ -517,7 +517,7 @@ export default function EmployeePortal() {
                         </Button>
 
                         {showRegForm && (
-                            <form onSubmit={submitRegularization} className="bg-white/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 p-4 space-y-3">
+                            <form onSubmit={submitRegularization} className="bg-app-surface/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 p-4 space-y-3">
                                 <div>
                                     <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Date</label>
                                     <input type="date" value={regForm.date} max={today()} onChange={e => setRegForm(f => ({ ...f, date: e.target.value }))} className="field" required />
@@ -546,7 +546,7 @@ export default function EmployeePortal() {
                             </form>
                         )}
 
-                        <div className="bg-white/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+                        <div className="bg-app-surface/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
                             {loading.requests ? (
                                 <ListSkeleton rows={4} />
                             ) : loadError.requests ? (
@@ -588,7 +588,7 @@ export default function EmployeePortal() {
                         {/* Shift swaps: agree with a colleague, management
                             countersigns. The counterpart must accept before any
                             approver sees it. */}
-                        <div className="bg-white/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 p-4 space-y-3">
+                        <div className="bg-app-surface/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 p-4 space-y-3">
                             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">Shift swap</h3>
                             <div className="grid grid-cols-2 gap-2">
                                 <input className="field col-span-2" placeholder="Colleague's employee code"
@@ -636,14 +636,14 @@ export default function EmployeePortal() {
                         {!approvals ? (
                             <ListSkeleton rows={3} />
                         ) : (approvals.leaves.length + approvals.regularizations.length + (approvals.swaps?.length || 0)) === 0 ? (
-                            <div className="bg-white/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700">
+                            <div className="bg-app-surface/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700">
                                 <EmptyRow icon={CheckSquare} title="Nothing waiting on you"
                                           hint="Leave and correction requests from your team appear here." />
                             </div>
                         ) : (
                             [...approvals.leaves, ...approvals.regularizations, ...(approvals.swaps || [])].map(item => (
                                 <div key={`${item.type}-${item.id}`}
-                                     className="bg-white/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+                                     className="bg-app-surface/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
                                     <div className="flex items-start justify-between gap-3">
                                         <div className="min-w-0">
                                             <p className="font-semibold text-slate-800 dark:text-slate-100">
@@ -708,7 +708,7 @@ export default function EmployeePortal() {
 
                 {tab === 'schedule' && (
                     <div className="space-y-4">
-                        <div className="bg-white/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+                        <div className="bg-app-surface/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
                             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">My shift</h3>
                             {!schedule ? (
                                 <div className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
@@ -730,7 +730,7 @@ export default function EmployeePortal() {
                             )}
                         </div>
 
-                        <div className="bg-white/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+                        <div className="bg-app-surface/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
                             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 px-4 pt-4 pb-2">Holidays</h3>
                             {!schedule ? (
                                 <ListSkeleton rows={3} />
@@ -765,7 +765,7 @@ export default function EmployeePortal() {
 
                 {tab === 'profile' && (
                     <div className="space-y-4">
-                        <div className="bg-white/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+                        <div className="bg-app-surface/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
                             {!profileDetail ? (
                                 <ListSkeleton rows={5} />
                             ) : (

@@ -152,7 +152,7 @@ export default function AttendanceRules() {
     const weekDays = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
 
     const RuleCard = ({ rule }) => (
-        <div className="bg-white/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 hover:-translate-y-0.5 transition-transform">
+        <div className="bg-app-surface/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 hover:-translate-y-0.5 transition-transform">
             <div className="flex items-start justify-between gap-3 mb-3">
                 <div className="min-w-0">
                     <h3 className="font-semibold text-slate-800 dark:text-slate-100 truncate">{rule.name || '—'}</h3>
@@ -170,28 +170,28 @@ export default function AttendanceRules() {
             </div>
 
             <dl className="grid grid-cols-2 gap-2 mb-3">
-                <div className="bg-white/60 dark:bg-slate-900/50 rounded-xl px-3 py-2 border border-slate-100 dark:border-slate-700">
+                <div className="bg-app-surface/60 dark:bg-slate-900/50 rounded-xl px-3 py-2 border border-slate-100 dark:border-slate-700">
                     <dt className="text-[10px] uppercase tracking-[0.09em] font-bold text-slate-500 dark:text-slate-400 mb-0.5">Late Threshold</dt>
                     <dd className="font-semibold text-slate-800 dark:text-slate-100 tabular-nums flex items-center gap-1.5">
                         <Clock size={13} className="text-amber-500 dark:text-amber-400" />
                         {rule.late_threshold_minutes ?? '—'} min
                     </dd>
                 </div>
-                <div className="bg-white/60 dark:bg-slate-900/50 rounded-xl px-3 py-2 border border-slate-100 dark:border-slate-700">
+                <div className="bg-app-surface/60 dark:bg-slate-900/50 rounded-xl px-3 py-2 border border-slate-100 dark:border-slate-700">
                     <dt className="text-[10px] uppercase tracking-[0.09em] font-bold text-slate-500 dark:text-slate-400 mb-0.5">Early Leave</dt>
                     <dd className="font-semibold text-slate-800 dark:text-slate-100 tabular-nums flex items-center gap-1.5">
                         <Clock size={13} className="text-rose-500 dark:text-rose-400" />
                         {rule.early_leave_threshold_minutes ?? '—'} min
                     </dd>
                 </div>
-                <div className="bg-white/60 dark:bg-slate-900/50 rounded-xl px-3 py-2 border border-slate-100 dark:border-slate-700">
+                <div className="bg-app-surface/60 dark:bg-slate-900/50 rounded-xl px-3 py-2 border border-slate-100 dark:border-slate-700">
                     <dt className="text-[10px] uppercase tracking-[0.09em] font-bold text-slate-500 dark:text-slate-400 mb-0.5">Grace Period</dt>
                     <dd className="font-semibold text-slate-800 dark:text-slate-100 tabular-nums flex items-center gap-1.5">
                         <CheckCircle size={13} className="text-emerald-500 dark:text-emerald-400" />
                         {rule.grace_period_minutes ?? '—'} min
                     </dd>
                 </div>
-                <div className="bg-white/60 dark:bg-slate-900/50 rounded-xl px-3 py-2 border border-slate-100 dark:border-slate-700">
+                <div className="bg-app-surface/60 dark:bg-slate-900/50 rounded-xl px-3 py-2 border border-slate-100 dark:border-slate-700">
                     <dt className="text-[10px] uppercase tracking-[0.09em] font-bold text-slate-500 dark:text-slate-400 mb-0.5">Half Day</dt>
                     <dd className="font-semibold text-slate-800 dark:text-slate-100 tabular-nums flex items-center gap-1.5">
                         <AlertTriangle size={13} className="text-slate-500 dark:text-slate-400" />
@@ -245,7 +245,7 @@ export default function AttendanceRules() {
                     onClick={() => setActiveTab('global')}
                     className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors border ${activeTab === 'global'
                         ? 'bg-slate-600 text-white border-transparent shadow-sm'
-                        : 'bg-white/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300 hover:text-slate-600 dark:hover:text-slate-400'}`}
+                        : 'bg-app-surface/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300 hover:text-slate-600 dark:hover:text-slate-400'}`}
                 >
                     <Globe size={13} />
                     Global Rules ({globalRules.length})
@@ -254,7 +254,7 @@ export default function AttendanceRules() {
                     onClick={() => setActiveTab('department')}
                     className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors border ${activeTab === 'department'
                         ? 'bg-slate-600 text-white border-transparent shadow-sm'
-                        : 'bg-white/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300 hover:text-slate-600 dark:hover:text-slate-400'}`}
+                        : 'bg-app-surface/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300 hover:text-slate-600 dark:hover:text-slate-400'}`}
                 >
                     <Building2 size={13} />
                     Department Rules ({departmentRules.length})
@@ -262,7 +262,7 @@ export default function AttendanceRules() {
             </div>
 
             {/* Info Banner */}
-            <div className="bg-white/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 flex items-start gap-3">
+            <div className="bg-app-surface/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 flex items-start gap-3">
                 <div className="p-2 rounded-xl bg-slate-100 dark:bg-slate-900/30 text-slate-600 dark:text-slate-300 shrink-0">
                     <AlertTriangle size={16} />
                 </div>
@@ -403,7 +403,7 @@ export default function AttendanceRules() {
                                     type="number"
                                     value={form.late_threshold_minutes || ''}
                                     onChange={e => setForm({ ...form, late_threshold_minutes: e.target.value ? parseInt(e.target.value) || 0 : 0 })}
-                                    className="input-premium bg-white dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                    className="input-premium bg-app-surface dark:border-slate-600 dark:text-slate-100"
                                 />
                             </div>
                             <div className="space-y-1">
@@ -412,7 +412,7 @@ export default function AttendanceRules() {
                                     type="number"
                                     value={form.early_leave_threshold_minutes || ''}
                                     onChange={e => setForm({ ...form, early_leave_threshold_minutes: e.target.value ? parseInt(e.target.value) || 0 : 0 })}
-                                    className="input-premium bg-white dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                    className="input-premium bg-app-surface dark:border-slate-600 dark:text-slate-100"
                                 />
                             </div>
                             <div className="space-y-1">
@@ -421,7 +421,7 @@ export default function AttendanceRules() {
                                     type="number"
                                     value={form.half_day_threshold_minutes || ''}
                                     onChange={e => setForm({ ...form, half_day_threshold_minutes: e.target.value ? parseInt(e.target.value) || 0 : 0 })}
-                                    className="input-premium bg-white dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                    className="input-premium bg-app-surface dark:border-slate-600 dark:text-slate-100"
                                 />
                             </div>
                             <div className="space-y-1">
@@ -430,7 +430,7 @@ export default function AttendanceRules() {
                                     type="number"
                                     value={form.absent_threshold_minutes || ''}
                                     onChange={e => setForm({ ...form, absent_threshold_minutes: e.target.value ? parseInt(e.target.value) || 0 : 0 })}
-                                    className="input-premium bg-white dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                    className="input-premium bg-app-surface dark:border-slate-600 dark:text-slate-100"
                                 />
                             </div>
                         </div>
@@ -448,7 +448,7 @@ export default function AttendanceRules() {
                                     type="number"
                                     value={form.grace_period_minutes || ''}
                                     onChange={e => setForm({ ...form, grace_period_minutes: e.target.value ? parseInt(e.target.value) || 0 : 0 })}
-                                    className="input-premium bg-white dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                    className="input-premium bg-app-surface dark:border-slate-600 dark:text-slate-100"
                                 />
                             </div>
                             <div className="space-y-1">
@@ -457,7 +457,7 @@ export default function AttendanceRules() {
                                     type="number"
                                     value={form.grace_late_allowed_per_month || ''}
                                     onChange={e => setForm({ ...form, grace_late_allowed_per_month: e.target.value ? parseInt(e.target.value) || 0 : 0 })}
-                                    className="input-premium bg-white dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                    className="input-premium bg-app-surface dark:border-slate-600 dark:text-slate-100"
                                 />
                             </div>
                         </div>
@@ -477,7 +477,7 @@ export default function AttendanceRules() {
                                     className="sr-only"
                                 />
                                 <div className={`w-11 h-6 rounded-full transition-colors flex items-center px-0.5 ${form.overtime_enabled ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'}`}>
-                                    <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${form.overtime_enabled ? 'translate-x-5' : 'translate-x-0'}`}></div>
+                                    <div className={`w-5 h-5 bg-app-surface rounded-full shadow transition-transform ${form.overtime_enabled ? 'translate-x-5' : 'translate-x-0'}`}></div>
                                 </div>
                             </label>
                         </div>
@@ -489,7 +489,7 @@ export default function AttendanceRules() {
                                         type="number"
                                         value={form.overtime_threshold_minutes || ''}
                                         onChange={e => setForm({ ...form, overtime_threshold_minutes: e.target.value ? parseInt(e.target.value) || 0 : 0 })}
-                                        className="input-premium bg-white dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                        className="input-premium bg-app-surface dark:border-slate-600 dark:text-slate-100"
                                     />
                                 </div>
                                 <div className="space-y-1">
@@ -499,7 +499,7 @@ export default function AttendanceRules() {
                                         step="0.1"
                                         value={form.overtime_multiplier || ''}
                                         onChange={e => setForm({ ...form, overtime_multiplier: e.target.value ? parseFloat(e.target.value) || 0 : 0 })}
-                                        className="input-premium bg-white dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                                        className="input-premium bg-app-surface dark:border-slate-600 dark:text-slate-100"
                                     />
                                 </div>
                             </div>
@@ -517,7 +517,7 @@ export default function AttendanceRules() {
                                     onClick={() => toggleWeekOff(day)}
                                     className={`px-3.5 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide transition-colors border ${form.week_off_days.includes(day)
                                         ? 'bg-slate-600 text-white border-transparent shadow-sm'
-                                        : 'bg-white/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300 hover:text-slate-600 dark:hover:text-slate-400'
+                                        : 'bg-app-surface/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300 hover:text-slate-600 dark:hover:text-slate-400'
                                         }`}
                                 >
                                     {day.substring(0, 3)}
@@ -535,7 +535,7 @@ export default function AttendanceRules() {
                                     onChange={e => setForm({ ...form, alternate_saturday: e.target.checked })}
                                     className="sr-only peer"
                                 />
-                                <div className="w-11 h-6 bg-slate-200 dark:bg-slate-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-slate-100 dark:peer-focus:ring-slate-900/40 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-ui peer-checked:bg-slate-600"></div>
+                                <div className="w-11 h-6 bg-slate-200 dark:bg-slate-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-slate-100 dark:peer-focus:ring-slate-900/40 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-app-surface after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-ui peer-checked:bg-slate-600"></div>
                             </div>
                             <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Alternate Saturday Off</span>
                         </label>

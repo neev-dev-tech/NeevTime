@@ -78,7 +78,7 @@ export const FormInput = ({
                             ? 'border-red-400 bg-red-50/50 dark:bg-red-900/20 focus:border-red-500 focus:ring-2 focus:ring-red-200'
                             : isValid
                                 ? 'border-green-400 bg-green-50/30 dark:bg-green-900/20 focus:border-green-500 focus:ring-2 focus:ring-green-200'
-                                : 'border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 focus:border-slate-400 focus:ring-2 focus:ring-slate-100'
+                                : 'border-slate-200 dark:border-slate-600 bg-app-surface focus:border-slate-400 focus:ring-2 focus:ring-slate-100'
                         }
                         ${disabled ? 'bg-slate-100 dark:bg-slate-700 cursor-not-allowed opacity-60' : ''}
                         focus:outline-none
@@ -179,7 +179,7 @@ export const FormSelect = ({
                             ? 'border-red-400 bg-red-50/50 dark:bg-red-900/20 focus:border-red-500'
                             : isValid
                                 ? 'border-green-400 bg-green-50/30 dark:bg-green-900/20 focus:border-green-500'
-                                : 'border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 focus:border-slate-400'
+                                : 'border-slate-200 dark:border-slate-600 bg-app-surface focus:border-slate-400'
                         }
                         ${disabled ? 'bg-slate-100 dark:bg-slate-700 cursor-not-allowed opacity-60' : ''}
                         focus:outline-none focus:ring-2 
@@ -261,7 +261,7 @@ export const FormTextarea = ({
                         ? 'border-red-400 bg-red-50/50 dark:bg-red-900/20 focus:border-red-500'
                         : isValid
                             ? 'border-green-400 bg-green-50/30 dark:bg-green-900/20 focus:border-green-500'
-                            : 'border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 focus:border-slate-400'
+                            : 'border-slate-200 dark:border-slate-600 bg-app-surface focus:border-slate-400'
                     }
                     ${disabled ? 'bg-slate-100 dark:bg-slate-700 cursor-not-allowed opacity-60' : ''}
                     focus:outline-none focus:ring-2 
@@ -364,7 +364,7 @@ export const FormToggle = ({
                     peer-focus:ring-2 peer-focus:ring-green-200
                     transition-ui duration-300
                     after:content-[''] after:absolute after:top-0.5 after:left-0.5
-                    after:bg-white after:rounded-full after:h-5 after:w-5
+                    after:bg-app-surface after:rounded-full after:h-5 after:w-5
                     after:transition-ui after:duration-300 after:shadow-md
                     peer-checked:after:translate-x-5"
                 />

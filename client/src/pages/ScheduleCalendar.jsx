@@ -263,7 +263,7 @@ export default function ScheduleCalendar() {
                             <tbody>
                                 {filteredEmployees.slice(0, 15).map((emp) => (
                                     <tr key={emp.id} className="group">
-                                        <td className="p-2 rounded-lg ring-1 ring-black/5 dark:ring-white/10 bg-white dark:bg-slate-800 sticky left-0 z-10 group-hover:bg-slate-50/50 dark:group-hover:bg-slate-700/40 transition-colors">
+                                        <td className="p-2 rounded-lg ring-1 ring-black/5 dark:ring-white/10 bg-app-surface sticky left-0 z-10 group-hover:bg-slate-50/50 dark:group-hover:bg-slate-700/40 transition-colors">
                                             <div className="font-semibold text-sm text-slate-800 dark:text-slate-100">{emp.name || '—'}</div>
                                             <div className="font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">{emp.employee_code || '—'}</div>
                                         </td>
@@ -277,7 +277,7 @@ export default function ScheduleCalendar() {
                                                 <td
                                                     key={i}
                                                     className={`p-1 text-center rounded-lg ring-1 ring-black/5 dark:ring-white/10 ${isToday(day) ? 'bg-slate-50 dark:bg-slate-900/20' :
-                                                        isWO ? 'bg-slate-100 dark:bg-slate-700' : 'bg-white dark:bg-slate-800'
+                                                        isWO ? 'bg-slate-100 dark:bg-slate-700' : 'bg-app-surface'
                                                         }`}
                                                 >
                                                     {isWO ? (
@@ -311,7 +311,7 @@ export default function ScheduleCalendar() {
 
             {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-white/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 hover:-translate-y-0.5 transition-transform">
+                <div className="bg-app-surface/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 hover:-translate-y-0.5 transition-transform">
                     <div className="flex items-center gap-2 mb-2">
                         <div className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-900/30 text-slate-600 dark:text-slate-400">
                             <Users size={16} />
@@ -323,7 +323,7 @@ export default function ScheduleCalendar() {
                         {selectedDepartment ? 'In selected department' : 'Across all departments'}
                     </div>
                 </div>
-                <div className="bg-white/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 hover:-translate-y-0.5 transition-transform">
+                <div className="bg-app-surface/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 hover:-translate-y-0.5 transition-transform">
                     <div className="flex items-center gap-2 mb-2">
                         <div className="p-1.5 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
                             <Clock size={16} />
@@ -333,7 +333,7 @@ export default function ScheduleCalendar() {
                     <div className="text-3xl font-bold tabular-nums text-emerald-600 dark:text-emerald-400">{shifts.length}</div>
                     <div className="text-sm text-slate-600 dark:text-slate-300">Defined in system</div>
                 </div>
-                <div className="bg-white/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 hover:-translate-y-0.5 transition-transform">
+                <div className="bg-app-surface/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 hover:-translate-y-0.5 transition-transform">
                     <div className="flex items-center gap-2 mb-2">
                         <div className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-900/30 text-slate-600 dark:text-slate-400">
                             <Building2 size={16} />

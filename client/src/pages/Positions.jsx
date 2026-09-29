@@ -205,7 +205,7 @@ export default function Positions() {
             />
 
             {/* Toolbar */}
-            <div className="flex items-center gap-2 p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 text-sm flex-wrap">
+            <div className="flex items-center gap-2 p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-app-surface/70 dark:bg-slate-800/70 text-sm flex-wrap">
                 <Button variant="danger" icon={Trash2} onClick={handleBulkDelete}>
                     Delete
                 </Button>

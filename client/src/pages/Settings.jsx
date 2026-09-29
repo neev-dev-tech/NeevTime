@@ -478,7 +478,7 @@ export default function Settings() {
                             <div key={cat.id} className="h-9 w-28 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
                         ))}
                     </div>
-                    <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6 bg-white/70 dark:bg-slate-800/70">
+                    <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6 bg-app-surface/70 dark:bg-slate-800/70">
                         {Array.from({ length: 8 }).map((_, i) => (
                             <div key={i} className="h-16 rounded-xl bg-slate-100 dark:bg-slate-700 animate-pulse" />
                         ))}
@@ -531,7 +531,7 @@ export default function Settings() {
                                 onClick={() => setActiveTab(cat.id)}
                                 className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors border ${isActive
                                     ? 'bg-slate-600 text-white border-transparent shadow-sm'
-                                    : 'bg-white/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300 hover:text-slate-600 dark:hover:text-slate-400'
+                                    : 'bg-app-surface/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300 hover:text-slate-600 dark:hover:text-slate-400'
                                     }`}
                             >
                                 <Icon size={15} className={isActive ? 'text-white' : cat.iconClass} />
@@ -542,7 +542,7 @@ export default function Settings() {
                 </div>
 
                 {/* Tab Content */}
-                <div className="p-6 bg-white/70 dark:bg-slate-800/70">
+                <div className="p-6 bg-app-surface/70 dark:bg-slate-800/70">
                     {activeTab === 'appearance' ? (
                         <ThemeSettings />
                     ) : sortedSettings.length === 0 ? (

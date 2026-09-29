@@ -11,7 +11,7 @@ const BADGE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] fon
 const CELL_MONO = 'font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold';
 const CELL_STRONG = 'font-semibold text-slate-800 dark:text-slate-100';
 const CELL_SOFT = 'text-slate-600 dark:text-slate-300';
-const FIELD = 'w-full text-sm rounded-lg px-3 py-1.5 border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-100 focus:outline-none focus:border-slate-400 dark:focus:border-slate-500';
+const FIELD = 'w-full text-sm rounded-lg px-3 py-1.5 border border-slate-200 dark:border-slate-600 bg-app-surface text-slate-700 dark:text-slate-100 focus:outline-none focus:border-slate-400 dark:focus:border-slate-500';
 
 const dash = (v) => (v === null || v === undefined || v === '' ? '—' : v);
 
@@ -157,7 +157,7 @@ export default function SystemLogs() {
                     return (
                         <div
                             key={kpi.label}
-                            className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 p-4 shadow-sm flex items-center gap-3"
+                            className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-app-surface/70 dark:bg-slate-800/70 p-4 shadow-sm flex items-center gap-3"
                         >
                             <div className={`w-10 h-10 shrink-0 rounded-xl grid place-items-center ${kpi.ring} ${kpi.tint}`}>
                                 <Icon size={18} />

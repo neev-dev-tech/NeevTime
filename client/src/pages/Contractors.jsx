@@ -98,7 +98,7 @@ export default function Contractors() {
                 </div>
             )}
 
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <div className="bg-app-surface rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
                 {loading ? (
                     <div className="p-6 space-y-3">
                         {[0, 1, 2].map(i => <div key={i} className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />)}
@@ -168,7 +168,7 @@ export default function Contractors() {
             {editing && (
                 <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50" onClick={() => setEditing(null)}>
                     <form onSubmit={save} onClick={e => e.stopPropagation()}
-                          className="w-full max-w-lg bg-white dark:bg-slate-800 rounded-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+                          className="w-full max-w-lg bg-app-surface rounded-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
                         <h3 className="font-bold text-slate-800 dark:text-slate-100">
                             {editing.id ? 'Edit contractor' : 'Add contractor'}
                         </h3>
@@ -206,7 +206,7 @@ export default function Contractors() {
             {summary && (
                 <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50" onClick={() => setSummary(null)}>
                     <div onClick={e => e.stopPropagation()}
-                         className="w-full max-w-2xl bg-white dark:bg-slate-800 rounded-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+                         className="w-full max-w-2xl bg-app-surface rounded-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
                         <div className="flex items-center justify-between gap-3">
                             <h3 className="font-bold text-slate-800 dark:text-slate-100">
                                 {summary.contractor?.name}

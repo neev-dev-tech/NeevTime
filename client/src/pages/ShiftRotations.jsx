@@ -90,7 +90,7 @@ export default function ShiftRotations() {
                 }
             />
 
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <div className="bg-app-surface rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
                 {rotations.length === 0 ? (
                     <div className="p-10 text-center text-sm text-slate-500 dark:text-slate-400">
                         No rotations yet. A rotation is an ordered list of shifts; each crew steps
@@ -131,7 +131,7 @@ export default function ShiftRotations() {
 
             {form && (
                 <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50" onClick={() => setForm(null)}>
-                    <div onClick={e => e.stopPropagation()} className="w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl p-6 space-y-4">
+                    <div onClick={e => e.stopPropagation()} className="w-full max-w-md bg-app-surface rounded-2xl p-6 space-y-4">
                         <h3 className="font-bold text-slate-800 dark:text-slate-100">Add rotation</h3>
                         <input className="field w-full" placeholder="Name, e.g. AB Weekly" value={form.name}
                                onChange={e => setForm({ ...form, name: e.target.value })} />
@@ -172,7 +172,7 @@ export default function ShiftRotations() {
 
             {crewOf && (
                 <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50" onClick={() => setCrewOf(null)}>
-                    <div onClick={e => e.stopPropagation()} className="w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl p-6 space-y-4 max-h-[85vh] overflow-y-auto">
+                    <div onClick={e => e.stopPropagation()} className="w-full max-w-md bg-app-surface rounded-2xl p-6 space-y-4 max-h-[85vh] overflow-y-auto">
                         <h3 className="font-bold text-slate-800 dark:text-slate-100">Crew — {crewOf.name}</h3>
                         {crew.length > 0 && (
                             <div className="text-sm divide-y divide-slate-100 dark:divide-slate-700">

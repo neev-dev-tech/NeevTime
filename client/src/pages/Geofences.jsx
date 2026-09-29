@@ -145,7 +145,7 @@ const Geofences = () => {
                         <input
                             type="text"
                             placeholder="Search locations..."
-                            className="input-base pl-10 bg-white dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100"
+                            className="input-base pl-10 bg-app-surface dark:border-slate-600 dark:text-slate-100"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />

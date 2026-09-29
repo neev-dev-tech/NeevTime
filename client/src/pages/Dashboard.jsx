@@ -473,7 +473,7 @@ export default function Dashboard() {
         const tilt = useTilt(3);
         return (
             <div ref={revealRef} {...tilt} className="tilt-3d group relative overflow-hidden rounded-xl !p-3 flex items-center gap-3
-                            bg-white/70 dark:bg-slate-800/60 backdrop-blur-xl
+                            bg-app-surface/70 dark:bg-slate-800/60 backdrop-blur-xl
                             shadow-sm ring-1 ring-slate-900/[0.06] dark:ring-white/[0.07]
                             transition-ui duration-300">
                 {/* A hairline that lights up on hover, so the row still has
@@ -935,7 +935,7 @@ export default function Dashboard() {
                                             {recent.map((log, i) => (
                                                 <div
                                                     key={i}
-                                                    className={`flex items-center justify-between py-3 px-4 rounded-lg transition-ui mb-2 ${i === 0 ? 'bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 animate-pulse' : 'bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}
+                                                    className={`flex items-center justify-between py-3 px-4 rounded-lg transition-ui mb-2 ${i === 0 ? 'bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 animate-pulse' : 'bg-app-surface border border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}
                                                     style={i === 0 ? { animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' } : {}}
                                                 >
                                                     <div className="flex items-center gap-3">
@@ -967,7 +967,7 @@ export default function Dashboard() {
                                             {older.map((log, i) => (
                                                 <div
                                                     key={i + recent.length}
-                                                    className="flex items-center justify-between py-3 px-4 rounded-lg transition-ui mb-2 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50"
+                                                    className="flex items-center justify-between py-3 px-4 rounded-lg transition-ui mb-2 bg-app-surface border border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50"
                                                 >
                                                     <div className="flex items-center gap-3">
                                                         <div className={`p-1.5 rounded-lg ${log.punch_type === 'IN' ? 'bg-green-100 dark:bg-green-900/30' : 'bg-red-100 dark:bg-red-900/30'}`}>
