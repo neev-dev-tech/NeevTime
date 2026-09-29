@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ChevronDown, ChevronRight, LogOut, Info, HelpCircle, Search, Menu, X } from 'lucide-react';
+import { ChevronDown, LogOut, Info, HelpCircle, Search, Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import PropTypes from 'prop-types';
 import { modules, personnelSidebar, deviceSidebar, attendanceSidebar, systemSidebar } from '../config/navigation';
@@ -15,6 +15,18 @@ import VersionDisplay from '../components/VersionDisplay';
 import useStore from '../store/useStore';
 import { usePermissions } from '../hooks/usePermissions';
 
+// Which navigation module a route belongs to.
+const MODULE_PREFIXES = [
+  ['Device', ['/devices', '/device-commands', '/device-messages', '/device-sync']],
+  ['Attendance', ['/logs', '/shifts', '/shift-rotations', '/timetables', '/break-times', '/schedule', '/rules', '/holidays', '/leaves', '/leave-types', '/leave-balance', '/attendance', '/reports', '/export', '/import', '/geofences', '/holiday-locations', '/mobile', '/regularizations']],
+  ['System', ['/settings', '/users', '/database', '/system-logs', '/integrations', '/api-access', '/advanced-reports', '/audit']]
+];
+function moduleForPath(path) {
+  if (path === '/' || path === '/dashboard') return 'Dashboard';
+  const hit = MODULE_PREFIXES.find(([, prefixes]) => prefixes.some(p => path.startsWith(p)));
+  return hit ? hit[0] : 'Personnel';
+}
+
 export default function MainLayout({ children }) {
   const { logo, hasLogo, name } = useBranding();
   const location = useLocation();
@@ -25,13 +37,6 @@ export default function MainLayout({ children }) {
   // the server, so other roles are not shown a module that only bounces them.
   const visibleModules = modules.filter(m => m.name !== 'System' || canAdminister);
   const [activeModule, setActiveModule] = useState('Dashboard');
-  // Remembered per browser so the groups someone works in stay open.
-  const [expandedGroups, setExpandedGroups] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('nav-expanded-groups')) || {}; } catch { return {}; }
-  });
-  useEffect(() => {
-    try { localStorage.setItem('nav-expanded-groups', JSON.stringify(expandedGroups)); } catch { /* storage unavailable */ }
-  }, [expandedGroups]);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const profileMenuRef = useRef(null);
   const profileTriggerRef = useRef(null);
@@ -51,13 +56,6 @@ export default function MainLayout({ children }) {
     return () => window.removeEventListener('keydown', onKey);
   }, [navOpen]);
 
-  const toggleGroup = (groupName) => {
-    setExpandedGroups(prev => ({
-      ...prev,
-      [groupName]: !prev[groupName]
-    }));
-  };
-
   const currentSidebar = useMemo(() => {
     switch (activeModule) {
       case 'Personnel': return personnelSidebar;
@@ -68,33 +66,11 @@ export default function MainLayout({ children }) {
     }
   }, [activeModule]);
 
+  // Re-applied whenever the drawer closes, so browsing another module's pages
+  // in the drawer without picking one leaves the rail matching the page on screen.
   useEffect(() => {
-    const path = location.pathname;
-    if (path === '/' || path === '/dashboard') {
-      setActiveModule('Dashboard');
-    } else if (['/devices', '/device-commands', '/device-messages', '/device-sync'].some(p => path.startsWith(p))) {
-      setActiveModule('Device');
-    } else if (['/logs', '/shifts', '/shift-rotations', '/timetables', '/break-times', '/schedule', '/rules', '/holidays', '/leaves', '/leave-types', '/leave-balance', '/attendance', '/reports', '/export', '/import', '/geofences', '/holiday-locations', '/mobile', '/regularizations'].some(p => path.startsWith(p))) {
-      setActiveModule('Attendance');
-    } else if (['/settings', '/users', '/database', '/system-logs', '/integrations', '/api-access', '/advanced-reports', '/audit'].some(p => path.startsWith(p))) {
-      setActiveModule('System');
-    } else {
-      setActiveModule('Personnel');
-    }
-  }, [location.pathname]);
-
-  useEffect(() => {
-    currentSidebar.forEach(group => {
-      if (group.items.some(item => {
-        if (item.path.includes('?')) {
-          return (location.pathname + location.search) === item.path;
-        }
-        return location.pathname === item.path;
-      })) {
-        setExpandedGroups(prev => ({ ...prev, [group.group]: true }));
-      }
-    });
-  }, [location.pathname, location.search, currentSidebar]);
+    if (!navOpen) setActiveModule(moduleForPath(location.pathname));
+  }, [location.pathname, navOpen]);
 
   return (
     <div className="app-shell flex h-screen font-sans overflow-hidden">
@@ -110,103 +86,100 @@ export default function MainLayout({ children }) {
         />
       )}
 
-      {/* ── Left sidebar: persistent from lg, off-canvas drawer below ──── */}
+      {/* ── Left navigation: module rail + the active module's pages ──────
+          Persistent from lg; below that the pair slides in as one drawer. */}
       <aside
         id="app-sidebar"
-        className={`fixed inset-y-0 left-0 z-50 w-64 flex flex-col border-r border-slate-200 dark:border-slate-700 bg-app-surface
+        className={`fixed inset-y-0 left-0 z-50 flex border-r border-slate-200 dark:border-slate-800 bg-app-surface
                     transition-transform duration-200 ease-out lg:static lg:z-auto lg:translate-x-0 lg:flex-shrink-0
                     ${navOpen ? 'translate-x-0 shadow-xl' : '-translate-x-full'}`}
       >
-        {/* Logo */}
-        <div className="h-16 flex items-center gap-2.5 px-5 border-b border-slate-200 dark:border-slate-700 flex-shrink-0">
-          {hasLogo ? (
-            <img src={logo} alt={name} className="h-8 w-auto max-w-[180px] object-contain" />
-          ) : (
-            <>
-              <img src="/logo.png" alt="" aria-hidden="true" className="w-8 h-8" />
-              <span className="text-xl font-bold">
-                <span className="text-slate-800 dark:text-slate-100">Neev</span><span className="text-slate-900 dark:text-slate-100">Time</span>
-              </span>
-            </>
-          )}
-          <button
-            type="button"
-            onClick={() => setNavOpen(false)}
-            className="ml-auto grid place-items-center w-9 h-9 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 lg:hidden"
-            aria-label="Close menu"
-          >
-            <X size={18} />
-          </button>
-        </div>
-
-        {/* Nav: modules, with the active one expanded to its groups/items */}
-        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
-          <p className="px-3 mb-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-400 dark:text-slate-500">Main</p>
-          {visibleModules.map((mod) => {
-            const isActive = activeModule === mod.name;
-            return (
-              <div key={mod.name}>
+        {/* Rail: one icon per module */}
+        <nav aria-label="Modules" className="w-[72px] flex-shrink-0 flex flex-col items-center border-r border-slate-200 dark:border-slate-800">
+          <div className="h-16 w-full flex items-center justify-center border-b border-slate-200 dark:border-slate-800">
+            <img
+              src={hasLogo ? logo : '/logo.png'}
+              alt={name}
+              className="w-9 h-9 object-contain"
+            />
+          </div>
+          <div className="flex-1 w-full overflow-y-auto py-3 px-2 space-y-1">
+            {visibleModules.map((mod) => {
+              const isActive = activeModule === mod.name;
+              return (
                 <button
-                  onClick={() => { setActiveModule(mod.name); if (mod.path !== '#') navigate(mod.path); }}
-                  className={`w-full flex items-center gap-3 px-3 h-9 rounded-lg text-sm font-medium transition-ui ${isActive
+                  key={mod.name}
+                  type="button"
+                  onClick={() => {
+                    setActiveModule(mod.name);
+                    // In the phone drawer, a module tap only switches the pages
+                    // panel so the user can pick one; navigating would close the
+                    // drawer first. Dashboard has no pages, so it navigates.
+                    if (navOpen && mod.name !== 'Dashboard') return;
+                    if (mod.path !== '#') navigate(mod.path);
+                  }}
+                  aria-current={isActive ? 'page' : undefined}
+                  title={mod.name}
+                  className={`w-full flex flex-col items-center gap-1 py-2 rounded-xl transition-ui focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 ${isActive
                     ? 'bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-white'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 hover:text-slate-900 dark:hover:bg-slate-800/60 dark:hover:text-slate-100'}`}
+                    : 'text-slate-400 hover:bg-slate-50 hover:text-slate-800 dark:text-slate-500 dark:hover:bg-slate-800/60 dark:hover:text-slate-200'}`}
                 >
-                  <mod.icon size={17} className={isActive ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'} />
-                  <span className="flex-1 text-left">{mod.name}</span>
-                  {currentSidebar.length > 0 && isActive && <ChevronDown size={14} />}
+                  <mod.icon size={20} />
+                  <span className={`text-[11px] leading-none ${isActive ? 'font-semibold' : 'font-medium'}`}>{mod.name}</span>
                 </button>
-
-                {isActive && currentSidebar.length > 0 && (
-                  <div className="mt-1 mb-2 ml-4 pl-3 border-l border-slate-200 dark:border-slate-700 space-y-0.5">
-                    {currentSidebar.map((group, i) => (
-                      <div key={i}>
-                        <button
-                          onClick={() => toggleGroup(group.group)}
-                          className="w-full px-2 pt-2 pb-1 flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
-                        >
-                          <span>{group.group}</span>
-                          {expandedGroups[group.group] ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-                        </button>
-                        <AnimatePresence>
-                          {expandedGroups[group.group] && (
-                            <motion.nav
-                              initial={{ height: 0, opacity: 0 }}
-                              animate={{ height: 'auto', opacity: 1 }}
-                              exit={{ height: 0, opacity: 0 }}
-                              className="overflow-hidden space-y-0.5 pb-1"
-                            >
-                              {group.items.map((item, j) => {
-                                const itemActive = item.path.includes('?')
-                                  ? (location.pathname + location.search) === item.path
-                                  : location.pathname === item.path;
-                                return (
-                                  <Link
-                                    key={j}
-                                    to={item.path}
-                                    className={`flex items-center gap-2.5 px-2 h-8 rounded-md text-[13px] transition-ui ${itemActive
-                                      ? 'bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-white font-medium'
-                                      : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 hover:text-slate-900 dark:hover:bg-slate-800/60 dark:hover:text-slate-200'}`}
-                                  >
-                                    <item.icon size={15} className="shrink-0" />
-                                    {item.label}
-                                  </Link>
-                                );
-                              })}
-                            </motion.nav>
-                          )}
-                        </AnimatePresence>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </nav>
 
-        <div className="px-5 py-3 border-t border-slate-200 dark:border-slate-700 flex-shrink-0">
-          <VersionDisplay />
+        {/* Panel: the active module's pages under plain headings. Dashboard has
+            no pages, so the panel steps aside and the content gets the room. */}
+        <div className={`${currentSidebar.length > 0 ? 'flex' : 'hidden'} w-60 flex-col`}>
+          <div className="h-16 flex items-center justify-between gap-2 px-5 border-b border-slate-200 dark:border-slate-800 flex-shrink-0">
+            <h2 className="text-[15px] font-semibold tracking-tight text-slate-900 dark:text-slate-100">{activeModule}</h2>
+            <button
+              type="button"
+              onClick={() => setNavOpen(false)}
+              className="grid place-items-center w-9 h-9 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 lg:hidden"
+              aria-label="Close menu"
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          <nav aria-label={`${activeModule} pages`} className="flex-1 overflow-y-auto px-3 py-3">
+            {currentSidebar.map((group, i) => (
+              <div key={group.group} className={i === 0 ? '' : 'mt-5'}>
+                <p className="px-3 mb-1 text-xs font-medium text-slate-400 dark:text-slate-500">{group.group}</p>
+                <ul className="space-y-0.5">
+                  {group.items.map((item) => {
+                    const itemActive = item.path.includes('?')
+                      ? (location.pathname + location.search) === item.path
+                      : location.pathname === item.path;
+                    return (
+                      <li key={item.path}>
+                        <Link
+                          to={item.path}
+                          aria-current={itemActive ? 'page' : undefined}
+                          className={`relative flex items-center gap-2.5 px-3 h-8 rounded-lg text-[13px] transition-ui focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 ${itemActive
+                            ? 'bg-slate-100 text-slate-900 font-medium dark:bg-slate-800 dark:text-white'
+                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100'}`}
+                        >
+                          {itemActive && <span aria-hidden="true" className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-[rgb(var(--brand))]" />}
+                          <item.icon size={15} className={`shrink-0 ${itemActive ? '' : 'text-slate-400 dark:text-slate-500'}`} />
+                          <span className="truncate">{item.label}</span>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))}
+          </nav>
+
+          <div className="px-5 py-3 border-t border-slate-200 dark:border-slate-800 flex-shrink-0">
+            <VersionDisplay />
+          </div>
         </div>
       </aside>
 

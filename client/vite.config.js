@@ -36,6 +36,9 @@ export default defineConfig({
     chunkSizeWarningLimit: 900
   },
   server: {
+    // A launcher that assigns a free port passes it as PORT; plain `npm run dev`
+    // keeps Vite's default.
+    ...(process.env.PORT ? { port: Number(process.env.PORT), strictPort: true } : {}),
     proxy: {
       '/api': target,
       '/socket.io': {
