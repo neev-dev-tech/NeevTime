@@ -251,7 +251,7 @@ api.get('/api/contractors').then(r => setContractors(r.data.filter(c => c.is_act
             <div className="bg-app-surface rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 py-16 text-center">
                 <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
                 <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Employee not found</h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+                <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
                     {error || 'This employee record no longer exists or was removed.'}
                 </p>
                 <Button variant="secondary" icon={RefreshCw} onClick={fetchEmployee}>Try again</Button>
@@ -280,7 +280,7 @@ api.get('/api/contractors').then(r => setContractors(r.data.filter(c => c.is_act
                                 <p className="text-sm text-slate-600 dark:text-slate-300 mt-0.5">{employee.designation || 'Employee'}</p>
                                 <div className="flex flex-wrap items-center gap-2 mt-2.5">
                                     <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-slate-50 dark:bg-slate-900/30 border border-slate-100 dark:border-slate-800">
-                                        <span className="text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400 font-bold">ID</span>
+                                        <span className="text-[11px] uppercase tracking-[0.06em] text-slate-600 dark:text-slate-400 font-bold">ID</span>
                                         <span className="font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">{employee.employee_code || '—'}</span>
                                     </span>
                                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide border ${employee.status === 'active'
@@ -298,19 +298,19 @@ api.get('/api/contractors').then(r => setContractors(r.data.filter(c => c.is_act
                         </div>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-5 border-t border-slate-100 dark:border-slate-700">
                             <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 min-w-0">
-                                <Building size={16} className="text-slate-400 dark:text-slate-500 shrink-0" />
+                                <Building size={16} className="text-slate-500 dark:text-slate-400 shrink-0" />
                                 <span className="truncate">{employee.department_name || '—'}</span>
                             </div>
                             <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 min-w-0">
-                                <Mail size={16} className="text-slate-400 dark:text-slate-500 shrink-0" />
+                                <Mail size={16} className="text-slate-500 dark:text-slate-400 shrink-0" />
                                 <span className="truncate">{employee.email || '—'}</span>
                             </div>
                             <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 min-w-0">
-                                <Phone size={16} className="text-slate-400 dark:text-slate-500 shrink-0" />
+                                <Phone size={16} className="text-slate-500 dark:text-slate-400 shrink-0" />
                                 <span className="truncate">{employee.mobile || '—'}</span>
                             </div>
                             <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 min-w-0">
-                                <Calendar size={16} className="text-slate-400 dark:text-slate-500 shrink-0" />
+                                <Calendar size={16} className="text-slate-500 dark:text-slate-400 shrink-0" />
                                 <span className="truncate">Joined {formatDate(employee.joining_date)}</span>
                             </div>
                         </div>
@@ -338,26 +338,26 @@ api.get('/api/contractors').then(r => setContractors(r.data.filter(c => c.is_act
                 {activeTab === 'overview' && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
                         <div>
-                            <h3 className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400 mb-4 flex items-center gap-2"><User size={14} /> Personal Details</h3>
+                            <h3 className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-600 dark:text-slate-400 mb-4 flex items-center gap-2"><User size={14} /> Personal Details</h3>
                             <dl className="space-y-3 text-sm">
-                                <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-500 dark:text-slate-400">Employee ID</dt><dd className="col-span-2 font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">{employee.employee_code || '—'}</dd></div>
-                                <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-500 dark:text-slate-400">Full Name</dt><dd className="col-span-2 font-semibold text-slate-800 dark:text-slate-100">{employee.name || '—'}</dd></div>
-                                <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-500 dark:text-slate-400">Gender</dt><dd className="col-span-2 text-slate-600 dark:text-slate-300">{employee.gender || '—'}</dd></div>
-                                <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-500 dark:text-slate-400">Date of Birth</dt><dd className="col-span-2 text-slate-600 dark:text-slate-300">{formatDate(employee.dob)}</dd></div>
-                                <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-500 dark:text-slate-400">Mobile</dt><dd className="col-span-2 text-slate-600 dark:text-slate-300">{employee.mobile || '—'}</dd></div>
-                                <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-500 dark:text-slate-400">Address</dt><dd className="col-span-2 text-slate-600 dark:text-slate-300">{employee.address || '—'}</dd></div>
+                                <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-600 dark:text-slate-400">Employee ID</dt><dd className="col-span-2 font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">{employee.employee_code || '—'}</dd></div>
+                                <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-600 dark:text-slate-400">Full Name</dt><dd className="col-span-2 font-semibold text-slate-800 dark:text-slate-100">{employee.name || '—'}</dd></div>
+                                <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-600 dark:text-slate-400">Gender</dt><dd className="col-span-2 text-slate-600 dark:text-slate-300">{employee.gender || '—'}</dd></div>
+                                <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-600 dark:text-slate-400">Date of Birth</dt><dd className="col-span-2 text-slate-600 dark:text-slate-300">{formatDate(employee.dob)}</dd></div>
+                                <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-600 dark:text-slate-400">Mobile</dt><dd className="col-span-2 text-slate-600 dark:text-slate-300">{employee.mobile || '—'}</dd></div>
+                                <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-600 dark:text-slate-400">Address</dt><dd className="col-span-2 text-slate-600 dark:text-slate-300">{employee.address || '—'}</dd></div>
                             </dl>
                         </div>
                         <div>
-                            <h3 className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400 mb-4 flex items-center gap-2"><Briefcase size={14} /> Work Details</h3>
+                            <h3 className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-600 dark:text-slate-400 mb-4 flex items-center gap-2"><Briefcase size={14} /> Work Details</h3>
                             <dl className="space-y-3 text-sm">
-                                <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-500 dark:text-slate-400">Department</dt><dd className="col-span-2 font-semibold text-slate-800 dark:text-slate-100">{employee.department_name || '—'}</dd></div>
-                                <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-500 dark:text-slate-400">Designation</dt><dd className="col-span-2 text-slate-600 dark:text-slate-300">{employee.designation || '—'}</dd></div>
-                                <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-500 dark:text-slate-400">Area</dt><dd className="col-span-2 text-slate-600 dark:text-slate-300">{employee.area_name || '—'}</dd></div>
-                                <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-500 dark:text-slate-400">Joining Date</dt><dd className="col-span-2 text-slate-600 dark:text-slate-300">{formatDate(employee.joining_date)}</dd></div>
-                                <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-500 dark:text-slate-400">Employment Type</dt><dd className="col-span-2 text-slate-600 dark:text-slate-300">{employee.employment_type || 'Permanent'}</dd></div>
-                                <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-500 dark:text-slate-400">Contractor</dt><dd className="col-span-2 text-slate-600 dark:text-slate-300">{employee.contractor_name || '—'}</dd></div>
-                                <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-500 dark:text-slate-400">App Access</dt><dd className="col-span-2 text-slate-600 dark:text-slate-300">{employee.app_login_enabled ? 'Enabled' : 'Disabled'}</dd></div>
+                                <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-600 dark:text-slate-400">Department</dt><dd className="col-span-2 font-semibold text-slate-800 dark:text-slate-100">{employee.department_name || '—'}</dd></div>
+                                <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-600 dark:text-slate-400">Designation</dt><dd className="col-span-2 text-slate-600 dark:text-slate-300">{employee.designation || '—'}</dd></div>
+                                <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-600 dark:text-slate-400">Area</dt><dd className="col-span-2 text-slate-600 dark:text-slate-300">{employee.area_name || '—'}</dd></div>
+                                <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-600 dark:text-slate-400">Joining Date</dt><dd className="col-span-2 text-slate-600 dark:text-slate-300">{formatDate(employee.joining_date)}</dd></div>
+                                <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-600 dark:text-slate-400">Employment Type</dt><dd className="col-span-2 text-slate-600 dark:text-slate-300">{employee.employment_type || 'Permanent'}</dd></div>
+                                <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-600 dark:text-slate-400">Contractor</dt><dd className="col-span-2 text-slate-600 dark:text-slate-300">{employee.contractor_name || '—'}</dd></div>
+                                <div className="grid grid-cols-3 border-b border-slate-100 dark:border-slate-700 pb-2"><dt className="text-slate-600 dark:text-slate-400">App Access</dt><dd className="col-span-2 text-slate-600 dark:text-slate-300">{employee.app_login_enabled ? 'Enabled' : 'Disabled'}</dd></div>
                             </dl>
 
                             {/* Self-service portal access */}
@@ -372,7 +372,7 @@ api.get('/api/contractors').then(r => setContractors(r.data.filter(c => c.is_act
                                     <div className="flex items-center justify-between gap-3">
                                         <div>
                                             <p className="text-xs font-semibold text-slate-700 dark:text-slate-200">Send an activation code</p>
-                                            <p className="text-xs text-slate-500 dark:text-slate-400">
+                                            <p className="text-xs text-slate-600 dark:text-slate-400">
                                                 They choose their own password. Emailed if an address is on file,
                                                 otherwise shown here once to hand over.
                                             </p>
@@ -408,7 +408,7 @@ api.get('/api/contractors').then(r => setContractors(r.data.filter(c => c.is_act
                                 {/* Kept for the person standing at the desk who
                                     needs access now. The employee is forced to
                                     replace it before they can use the portal. */}
-                                <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
+                                <p className="text-xs text-slate-600 dark:text-slate-400 mb-2">
                                     Or set a temporary password — the employee must change it at first sign-in.
                                 </p>
                                 <div className="flex gap-2">
@@ -434,12 +434,12 @@ api.get('/api/contractors').then(r => setContractors(r.data.filter(c => c.is_act
 
                 {activeTab === 'attendance' && (
                     <div>
-                        <h3 className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400 mb-4 flex items-center gap-2"><Clock size={14} /> Recent Attendance</h3>
+                        <h3 className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-600 dark:text-slate-400 mb-4 flex items-center gap-2"><Clock size={14} /> Recent Attendance</h3>
                         {attendance.length === 0 ? (
                             <div className="py-16 text-center">
-                                <Clock size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                                <Clock size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                                 <h4 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No attendance yet</h4>
-                                <p className="text-sm text-slate-500 dark:text-slate-400">
+                                <p className="text-sm text-slate-600 dark:text-slate-400">
                                     Nothing has been recorded for this employee in the last 30 days.
                                 </p>
                             </div>
@@ -458,7 +458,7 @@ api.get('/api/contractors').then(r => setContractors(r.data.filter(c => c.is_act
                 {activeTab === 'documents' && (
                     <div className="space-y-4">
                         <div className="flex items-center justify-between flex-wrap gap-2">
-                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                            <p className="text-sm text-slate-600 dark:text-slate-400">
                                 Contracts and ID proofs for this employee. Maximum 5 MB per file.
                             </p>
                             <div className="relative inline-block">
@@ -482,9 +482,9 @@ api.get('/api/contractors').then(r => setContractors(r.data.filter(c => c.is_act
                             </div>
                         ) : docs.length === 0 ? (
                             <div className="text-center py-16 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl">
-                                <FileText className="mx-auto text-slate-300 dark:text-slate-600 mb-3" size={40} />
+                                <FileText className="mx-auto text-slate-300 dark:text-slate-500 mb-3" size={40} />
                                 <h4 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No documents uploaded</h4>
-                                <p className="text-sm text-slate-500 dark:text-slate-400">
+                                <p className="text-sm text-slate-600 dark:text-slate-400">
                                     Use Upload Document to add the first one.
                                 </p>
                             </div>
@@ -493,10 +493,10 @@ api.get('/api/contractors').then(r => setContractors(r.data.filter(c => c.is_act
                                 {docs.map(doc => (
                                     <li key={doc.id} className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/60">
                                         <div className="flex items-center gap-3 min-w-0">
-                                            <FileText size={18} className="text-slate-500 dark:text-slate-400 shrink-0" />
+                                            <FileText size={18} className="text-slate-600 dark:text-slate-400 shrink-0" />
                                             <div className="min-w-0">
                                                 <p className="font-semibold text-slate-800 dark:text-slate-100 truncate">{doc.doc_name}</p>
-                                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                                <p className="text-xs text-slate-600 dark:text-slate-400">
                                                     {formatDate(doc.uploaded_at)}
                                                 </p>
                                             </div>
@@ -517,7 +517,7 @@ api.get('/api/contractors').then(r => setContractors(r.data.filter(c => c.is_act
                                 ))}
                             </ul>
                         )}
-                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                        <p className="text-xs text-slate-600 dark:text-slate-400">
                             {docs.length} {docs.length === 1 ? 'document' : 'documents'}
                         </p>
                     </div>
@@ -536,7 +536,7 @@ api.get('/api/contractors').then(r => setContractors(r.data.filter(c => c.is_act
                     <Trash2 className="text-rose-600 dark:text-rose-400" size={24} />
                 </div>
                 <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-2">Delete Employee?</h3>
-                <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">Are you sure you want to delete <span className="font-semibold text-slate-800 dark:text-slate-100">{employee.name}</span>? This action cannot be undone.</p>
+                <p className="text-slate-600 dark:text-slate-400 text-sm mb-6">Are you sure you want to delete <span className="font-semibold text-slate-800 dark:text-slate-100">{employee.name}</span>? This action cannot be undone.</p>
                 <div className="flex justify-center gap-3">
                     <Button variant="secondary" onClick={() => setDeleteModalOpen(false)}>Cancel</Button>
                     <Button variant="dangerSolid" onClick={confirmDelete}>Delete</Button>
@@ -555,38 +555,38 @@ api.get('/api/contractors').then(r => setContractors(r.data.filter(c => c.is_act
                     {/* Similar Form Fields to Add Modal */}
                     <div className="col-span-1 md:col-span-3 font-semibold text-slate-600 dark:text-slate-400 border-b dark:border-slate-700 pb-1 mb-2">Personal Details</div>
 
-                    <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Employee ID</label><input disabled type="text" className="field-sm font-mono tabular-nums" value={editForm.employee_code} /></div>
-                    <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Name</label><input type="text" className="field-sm" value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} /></div>
+                    <div><label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">Employee ID</label><input disabled type="text" className="field-sm font-mono tabular-nums" value={editForm.employee_code} /></div>
+                    <div><label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">Name</label><input type="text" className="field-sm" value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} /></div>
                     <div>
-                        <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Gender</label>
+                        <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">Gender</label>
                         <select className="field-sm" value={editForm.gender} onChange={e => setEditForm({ ...editForm, gender: e.target.value })}>
                             <option value="Male">Male</option>
                             <option value="Female">Female</option>
                             <option value="Other">Other</option>
                         </select>
                     </div>
-                    <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">DOB</label><input type="date" className="field-sm" value={toDateOnly(editForm.dob)} onChange={e => setEditForm({ ...editForm, dob: e.target.value })} /></div>
-                    <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Mobile</label><input type="text" className="field-sm" value={editForm.mobile} onChange={e => setEditForm({ ...editForm, mobile: e.target.value })} /></div>
-                    <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Email</label><input type="email" className="field-sm" value={editForm.email} onChange={e => setEditForm({ ...editForm, email: e.target.value })} /></div>
-                    <div className="col-span-1 md:col-span-3"><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Address</label><textarea rows={2} className="field-sm" value={editForm.address} onChange={e => setEditForm({ ...editForm, address: e.target.value })} /></div>
+                    <div><label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">DOB</label><input type="date" className="field-sm" value={toDateOnly(editForm.dob)} onChange={e => setEditForm({ ...editForm, dob: e.target.value })} /></div>
+                    <div><label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">Mobile</label><input type="text" className="field-sm" value={editForm.mobile} onChange={e => setEditForm({ ...editForm, mobile: e.target.value })} /></div>
+                    <div><label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">Email</label><input type="email" className="field-sm" value={editForm.email} onChange={e => setEditForm({ ...editForm, email: e.target.value })} /></div>
+                    <div className="col-span-1 md:col-span-3"><label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">Address</label><textarea rows={2} className="field-sm" value={editForm.address} onChange={e => setEditForm({ ...editForm, address: e.target.value })} /></div>
 
                     <div className="col-span-1 md:col-span-3 font-semibold text-slate-600 dark:text-slate-400 border-b dark:border-slate-700 pb-1 mb-2 mt-2">Work Details</div>
                     <div>
-                        <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Department</label>
+                        <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">Department</label>
                         <select className="field-sm" value={editForm.department_id} onChange={e => setEditForm({ ...editForm, department_id: e.target.value })}>
                             <option value="">Select</option>
                             {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                         </select>
                     </div>
-                    <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Designation</label><input type="text" className="field-sm" value={editForm.designation} onChange={e => setEditForm({ ...editForm, designation: e.target.value })} /></div>
+                    <div><label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">Designation</label><input type="text" className="field-sm" value={editForm.designation} onChange={e => setEditForm({ ...editForm, designation: e.target.value })} /></div>
                     <div>
-                        <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Area</label>
+                        <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">Area</label>
                         <select className="field-sm" value={editForm.area_id} onChange={e => setEditForm({ ...editForm, area_id: e.target.value })}>
                             <option value="">Select</option>
                             {areas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                         </select>
                     </div>
-                    <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Contractor</label>
+                    <div><label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">Contractor</label>
                         <select className="field-sm" value={editForm.contractor_id || ''} onChange={e => setEditForm({ ...editForm, contractor_id: e.target.value })}>
                             {/* Blank means own staff, which is most people. An
                                 agency is the exception and has to be chosen. */}
@@ -594,9 +594,9 @@ api.get('/api/contractors').then(r => setContractors(r.data.filter(c => c.is_act
                             {contractors.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                         </select>
                     </div>
-                    <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Joining Date</label><input type="date" className="field-sm" value={toDateOnly(editForm.joining_date)} onChange={e => setEditForm({ ...editForm, joining_date: e.target.value })} /></div>
+                    <div><label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">Joining Date</label><input type="date" className="field-sm" value={toDateOnly(editForm.joining_date)} onChange={e => setEditForm({ ...editForm, joining_date: e.target.value })} /></div>
                     <div>
-                        <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Status</label>
+                        <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">Status</label>
                         <select className="field-sm" value={editForm.status} onChange={e => setEditForm({ ...editForm, status: e.target.value })}>
                             <option value="active">Active</option>
                             <option value="inactive">Inactive</option>
@@ -622,7 +622,7 @@ api.get('/api/contractors').then(r => setContractors(r.data.filter(c => c.is_act
                                 <span className="block text-sm font-medium text-slate-800 dark:text-slate-100">
                                     Door access only — no attendance
                                 </span>
-                                <span className="block text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                <span className="block text-xs text-slate-600 dark:text-slate-400 mt-0.5">
                                     For drivers, security, housekeeping and staff of the co-located company.
                                     Biometric entry is unaffected; they are not counted, never marked absent,
                                     and their punches are not sent to the HRMS.

@@ -246,16 +246,16 @@ export default function Positions() {
                     <div className="py-20 text-center px-6">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load positions</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchPositions}>Try again</Button>
                     </div>
                 ) : filteredPositions.length === 0 ? (
                     <div className="py-20 text-center px-6">
-                        <Briefcase size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <Briefcase size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">
                             {searchQuery ? 'No matching positions' : 'No positions yet'}
                         </h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
                             {searchQuery
                                 ? `Nothing matches “${searchQuery}”. Try a different search.`
                                 : 'Add a position to define the job titles employees can hold.'}
@@ -289,7 +289,7 @@ export default function Positions() {
                                                 onChange={() => toggleSelect(pos.id)}
                                             />
                                         </td>
-                                        <td className="px-4 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{(pager.page - 1) * pager.pageSize + idx + 1}</td>
+                                        <td className="px-4 py-3 text-slate-500 dark:text-slate-400 tabular-nums">{(pager.page - 1) * pager.pageSize + idx + 1}</td>
                                         <td className="px-4 py-3">
                                             <span className="font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">
                                                 {pos.id ?? '—'}
@@ -428,7 +428,7 @@ export default function Positions() {
                             htmlFor="import-positions-file"
                             className="cursor-pointer flex flex-col items-center gap-2"
                         >
-                            <Upload size={32} className="text-slate-400" />
+                            <Upload size={32} className="text-slate-500" />
                             <span className="text-sm text-slate-600 dark:text-slate-400">
                                 {importing ? 'Importing...' : 'Click to select CSV file'}
                             </span>
@@ -440,7 +440,7 @@ export default function Positions() {
                         <div className={`p-4 rounded-lg ${importResult.failed > 0 ? 'bg-amber-50 border border-amber-200 dark:bg-amber-900/30 dark:border-amber-800' : 'bg-green-50 border border-green-200 dark:bg-green-900/30 dark:border-green-800'}`}>
                             <div className="flex items-start gap-3">
                                 {importResult.failed > 0 ? (
-                                    <AlertCircle size={20} className="text-amber-600 dark:text-amber-400 mt-0.5" />
+                                    <AlertCircle size={20} className="text-amber-700 dark:text-amber-400 mt-0.5" />
                                 ) : (
                                     <CheckCircle size={20} className="text-green-600 dark:text-green-400 mt-0.5" />
                                 )}

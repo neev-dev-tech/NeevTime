@@ -91,12 +91,12 @@ export default function SetupChecklist() {
             <div className="flex items-start justify-between gap-3">
                 <div>
                     <h2 id="setup-title" className="text-sm font-semibold text-slate-900 dark:text-slate-100">Finish setting up</h2>
-                    <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400 tabular-nums">{done} of {steps.length} done</p>
+                    <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400 tabular-nums">{done} of {steps.length} done</p>
                 </div>
                 <button
                     type="button"
                     onClick={dismiss}
-                    className="grid place-items-center w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+                    className="grid place-items-center w-8 h-8 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
                     aria-label="Hide setup checklist"
                 >
                     <X size={16} />
@@ -114,8 +114,8 @@ export default function SetupChecklist() {
                         >
                             {step.done
                                 ? <CheckCircle size={16} className="shrink-0 text-emerald-500" aria-label="Done" />
-                                : <Circle size={16} className="shrink-0 text-slate-300 dark:text-slate-600" aria-label="Not done" />}
-                            <span className={step.done ? 'text-slate-400 line-through dark:text-slate-500' : 'text-slate-700 dark:text-slate-200'}>
+                                : <Circle size={16} className="shrink-0 text-slate-300 dark:text-slate-500" aria-label="Not done" />}
+                            <span className={step.done ? 'text-slate-500 line-through dark:text-slate-400' : 'text-slate-700 dark:text-slate-200'}>
                                 {step.label}
                             </span>
                         </Link>

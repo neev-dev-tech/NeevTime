@@ -31,12 +31,12 @@ export default function ForgotPassword() {
                         <KeyRound size={28} />
                     </div>
                     <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">Forgot Password</h1>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 text-center">Enter your username and we'll email you a reset link</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 text-center">Enter your username and we'll email you a reset link</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Username</label>
+                        <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">Username</label>
                         <input
                             type="text"
                             value={username}
@@ -57,7 +57,7 @@ export default function ForgotPassword() {
                     </Button>
                 </form>
 
-                <p className="text-center text-xs text-slate-400 mt-6">
+                <p className="text-center text-xs text-slate-500 mt-6">
                     <Link to="/login" className="text-slate-600 font-semibold hover:underline">Back to sign in</Link>
                 </p>
             </div>

@@ -318,14 +318,14 @@ export function ThemePanel({ isOpen, onClose }) {
                 <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <Palette size={20} className="text-slate-500" />
+                            <Palette size={20} className="text-slate-600" />
                             <h2 className="font-semibold text-slate-800 dark:text-white">Theme Settings</h2>
                         </div>
                         <button
                             onClick={onClose}
                             className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                         >
-                            <span className="text-xl text-slate-500">&times;</span>
+                            <span className="text-xl text-slate-600">&times;</span>
                         </button>
                     </div>
                 </div>
@@ -337,7 +337,7 @@ export function ThemePanel({ isOpen, onClose }) {
                     <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-xl">
                         <div>
                             <p className="font-medium text-slate-800 dark:text-white">Dark Mode</p>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                            <p className="text-sm text-slate-600 dark:text-slate-400">
                                 {isDarkMode ? 'Currently dark' : 'Currently light'}
                             </p>
                         </div>
@@ -351,7 +351,7 @@ export function ThemePanel({ isOpen, onClose }) {
                             className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors
                                 ${activeTab === 'presets'
                                     ? 'bg-app-surface text-slate-800 dark:text-white shadow-sm'
-                                    : 'text-slate-500'
+                                    : 'text-slate-600'
                                 }`}
                         >
                             Presets
@@ -361,7 +361,7 @@ export function ThemePanel({ isOpen, onClose }) {
                             className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors
                                 ${activeTab === 'custom'
                                     ? 'bg-app-surface text-slate-800 dark:text-white shadow-sm'
-                                    : 'text-slate-500'
+                                    : 'text-slate-600'
                                 }`}
                         >
                             Custom
@@ -514,7 +514,7 @@ export function ThemeButton({ className = '' }) {
                     className="w-5 h-5 rounded-full shadow-inner"
                     style={{ backgroundColor: themeColors.primary }}
                 />
-                <Palette size={16} className="text-slate-500" />
+                <Palette size={16} className="text-slate-600" />
             </button>
             <ThemePanel isOpen={isOpen} onClose={() => setIsOpen(false)} />
         </>

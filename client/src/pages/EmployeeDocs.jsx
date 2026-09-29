@@ -238,14 +238,14 @@ export default function EmployeeDocs() {
                     <div className="py-20 px-6 text-center">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load documents</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchDocuments}>Try again</Button>
                     </div>
                 ) : filteredDocuments.length === 0 ? (
                     <div className="py-20 px-6 text-center">
-                        <FileText size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <FileText size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No documents found</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
                             {searchQuery
                                 ? 'No document matches that search term.'
                                 : 'Nothing has been uploaded for any employee yet.'}
@@ -275,7 +275,7 @@ export default function EmployeeDocs() {
                                     <td className="px-4 py-3 font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">{doc.employee_code || '—'}</td>
                                     <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
                                         <div className="flex items-center gap-2">
-                                            <Calendar size={14} className="text-slate-400 dark:text-slate-500" />
+                                            <Calendar size={14} className="text-slate-500 dark:text-slate-400" />
                                             {formatDate(doc.uploaded_at)}
                                         </div>
                                     </td>
@@ -359,15 +359,15 @@ export default function EmployeeDocs() {
                                 htmlFor="file-upload"
                                 className="cursor-pointer flex flex-col items-center justify-center"
                             >
-                                <Upload size={32} className="text-slate-500 dark:text-slate-400 mb-2" />
+                                <Upload size={32} className="text-slate-600 dark:text-slate-400 mb-2" />
                                 <span className="text-sm text-slate-grey dark:text-slate-400">
                                     {selectedFile ? selectedFile.name : 'Click to select file'}
                                 </span>
-                                <span className="text-xs text-slate-400 mt-1">PDF, DOC, DOCX, JPG, PNG (Max 10MB)</span>
+                                <span className="text-xs text-slate-500 mt-1">PDF, DOC, DOCX, JPG, PNG (Max 10MB)</span>
                             </label>
                         </div>
                         {selectedFile && (
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                            <p className="text-xs text-slate-600 dark:text-slate-400 mt-2">
                                 Selected: {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
                             </p>
                         )}

@@ -122,9 +122,9 @@ export default function SystemLogs() {
 
     const KPIS = [
         { label: 'Total Logs', value: filteredLogs.length, icon: Activity, tint: 'text-slate-600 dark:text-slate-400', ring: 'bg-slate-50 dark:bg-slate-900/30' },
-        { label: 'Logins', value: filteredLogs.filter(l => l.action === 'LOGIN').length, icon: User, tint: 'text-emerald-600 dark:text-emerald-400', ring: 'bg-emerald-50 dark:bg-emerald-900/30' },
+        { label: 'Logins', value: filteredLogs.filter(l => l.action === 'LOGIN').length, icon: User, tint: 'text-emerald-700 dark:text-emerald-400', ring: 'bg-emerald-50 dark:bg-emerald-900/30' },
         { label: 'Data Changes', value: filteredLogs.filter(l => ['CREATE', 'UPDATE', 'DELETE'].includes(l.action)).length, icon: Database, tint: 'text-slate-600 dark:text-slate-400', ring: 'bg-slate-50 dark:bg-slate-900/30' },
-        { label: 'Active Users', value: uniqueUsers.length, icon: Users, tint: 'text-amber-600 dark:text-amber-400', ring: 'bg-amber-50 dark:bg-amber-900/30' }
+        { label: 'Active Users', value: uniqueUsers.length, icon: Users, tint: 'text-amber-700 dark:text-amber-400', ring: 'bg-amber-50 dark:bg-amber-900/30' }
     ];
 
     return (
@@ -180,7 +180,7 @@ export default function SystemLogs() {
                                 <option value="">All Users</option>
                                 {uniqueUsers.map(u => <option key={u} value={u}>{u}</option>)}
                             </select>
-                            <label className="text-xs text-slate-500 dark:text-slate-400">From</label>
+                            <label className="text-xs text-slate-600 dark:text-slate-400">From</label>
                             <input
                                 type="date"
                                 aria-label="From Date"
@@ -188,7 +188,7 @@ export default function SystemLogs() {
                                 value={filters.dateFrom}
                                 onChange={e => setFilters({ ...filters, dateFrom: e.target.value })}
                             />
-                            <label className="text-xs text-slate-500 dark:text-slate-400">to</label>
+                            <label className="text-xs text-slate-600 dark:text-slate-400">to</label>
                             <input
                                 type="date"
                                 aria-label="To Date"
@@ -218,7 +218,7 @@ export default function SystemLogs() {
                                     <Icon size={16} />
                                 </div>
                                 <div className="min-w-0">
-                                    <div className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">
+                                    <div className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-600 dark:text-slate-400">
                                         {kpi.label}
                                     </div>
                                     <div className="text-xl font-bold tabular-nums text-slate-800 dark:text-slate-100">{kpi.value}</div>
@@ -239,16 +239,16 @@ export default function SystemLogs() {
                     <div className="py-20 text-center px-6">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load system logs</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchLogs}>Try again</Button>
                     </div>
                 ) : filteredLogs.length === 0 ? (
                     <div className="py-20 text-center px-6">
-                        <Activity size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <Activity size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">
                             {hasActiveFilters ? 'No logs match these filters' : 'No system logs yet'}
                         </h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
                             {hasActiveFilters
                                 ? 'Widen the date range or clear a filter to see more activity.'
                                 : 'Actions taken in the app will be recorded here.'}
@@ -270,11 +270,11 @@ export default function SystemLogs() {
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                                 {pager.view.map((log, idx) => (
                                     <tr key={log.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
-                                        <td className={`${LIST_EDGE_FIRST} pr-4 py-3 text-slate-400 dark:text-slate-500 tabular-nums`}>{(pager.page - 1) * pager.pageSize + idx + 1}</td>
+                                        <td className={`${LIST_EDGE_FIRST} pr-4 py-3 text-slate-500 dark:text-slate-400 tabular-nums`}>{(pager.page - 1) * pager.pageSize + idx + 1}</td>
                                         <td className="px-4 py-3">
                                             <div className="flex items-center gap-2">
                                                 <div className="p-1.5 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700">
-                                                    <Monitor size={14} className="text-slate-500 dark:text-slate-400" />
+                                                    <Monitor size={14} className="text-slate-600 dark:text-slate-400" />
                                                 </div>
                                                 <span className={CELL_SOFT}>Success</span>
                                             </div>
@@ -313,7 +313,7 @@ export default function SystemLogs() {
                                                 <span className={CELL_STRONG}>
                                                     {formatDate(log.created_at)}
                                                 </span>
-                                                <span className="text-xs text-slate-400 dark:text-slate-500 tabular-nums">
+                                                <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">
                                                     {log.created_at ? formatTime(log.created_at) : ''}
                                                 </span>
                                             </div>

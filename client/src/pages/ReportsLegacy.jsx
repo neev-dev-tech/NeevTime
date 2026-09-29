@@ -16,9 +16,9 @@ import { formatDate, toLocalDateString, toDateOnly, formatDateTime, formatTime }
 // Stat tile tones — written out in full so Tailwind's scanner keeps the classes
 const STAT_TONES = {
     orange: 'bg-slate-50 border-slate-100 text-slate-600 dark:bg-slate-900/30 dark:border-slate-800 dark:text-slate-400',
-    emerald: 'bg-emerald-50 border-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:border-emerald-800 dark:text-emerald-400',
+    emerald: 'bg-emerald-50 border-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:border-emerald-800 dark:text-emerald-400',
     rose: 'bg-rose-50 border-rose-100 text-rose-600 dark:bg-rose-900/30 dark:border-rose-800 dark:text-rose-400',
-    amber: 'bg-amber-50 border-amber-100 text-amber-600 dark:bg-amber-900/30 dark:border-amber-800 dark:text-amber-400'
+    amber: 'bg-amber-50 border-amber-100 text-amber-700 dark:bg-amber-900/30 dark:border-amber-800 dark:text-amber-400'
 };
 
 const CODE_CELL = 'font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold';
@@ -164,7 +164,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                                 <span className="text-sm font-semibold tabular-nums text-slate-800 dark:text-slate-100">
                                     {row.punch_time ? formatTime(row.punch_time) : '—'}
                                 </span>
-                                <span className="text-xs tabular-nums text-slate-500 dark:text-slate-400">
+                                <span className="text-xs tabular-nums text-slate-600 dark:text-slate-400">
                                     {formatDate(row.punch_time)}
                                 </span>
                             </div>
@@ -186,7 +186,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                         label: 'Mode',
                         render: (row) => (
                             <div className="flex items-center gap-1.5 text-xs tabular-nums text-slate-600 dark:text-slate-300">
-                                <Fingerprint size={12} className="text-slate-500" />
+                                <Fingerprint size={12} className="text-slate-600" />
                                 {row.verification_mode || '15'}
                             </div>
                         )
@@ -212,7 +212,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                     ...commonEmployeeCols,
                     { key: 'scheduled_in', label: 'Shift Start', type: 'time' },
                     { key: 'actual_in', label: 'Actual In', type: 'time' },
-                    { key: 'late_minutes', label: 'Late (Min)', type: 'number', className: 'text-amber-600 font-bold' },
+                    { key: 'late_minutes', label: 'Late (Min)', type: 'number', className: 'text-amber-700 font-bold' },
                     statusCol
                 ];
 
@@ -264,7 +264,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                     dateCol,
                     ...commonEmployeeCols,
                     { key: 'shift', label: 'Shift' },
-                    { key: 'remarks', label: 'Remarks', className: 'text-slate-500 dark:text-slate-400 italic' },
+                    { key: 'remarks', label: 'Remarks', className: 'text-slate-600 dark:text-slate-400 italic' },
                     statusCol
                 ];
 
@@ -276,7 +276,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                     dateCol,
                     ...commonEmployeeCols,
                     { key: 'regular_hours', label: 'Regular Hrs' },
-                    { key: 'overtime_hours', label: 'OT Hrs', className: 'text-emerald-600 font-bold' },
+                    { key: 'overtime_hours', label: 'OT Hrs', className: 'text-emerald-700 font-bold' },
                     { key: 'total_hours', label: 'Total Hrs', font: 'bold' }
                 ];
 
@@ -288,9 +288,9 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
             case 'att_status':
                 return [
                     ...commonEmployeeCols, // monthly doesn't show single date normally, or has range
-                    { key: 'present_days', label: 'Present', className: 'text-emerald-600 font-bold' },
+                    { key: 'present_days', label: 'Present', className: 'text-emerald-700 font-bold' },
                     { key: 'absent_days', label: 'Absent', className: 'text-rose-600 font-bold' },
-                    { key: 'late_count', label: 'Late', className: 'text-amber-600' },
+                    { key: 'late_count', label: 'Late', className: 'text-amber-700' },
                     { key: 'total_hours', label: 'Total Hrs' },
                     { key: 'overtime_hours', label: 'OT Hrs' }
                 ];
@@ -299,13 +299,13 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                 return [
                     ...commonEmployeeCols,
                     { key: 'designation', label: 'Designation' },
-                    { key: 'present_days', label: 'Present', type: 'number', className: 'text-emerald-600 font-bold' },
+                    { key: 'present_days', label: 'Present', type: 'number', className: 'text-emerald-700 font-bold' },
                     { key: 'absent_days', label: 'Absent', type: 'number', className: 'text-rose-600 font-bold' },
                     { key: 'leave_days', label: 'Leave', type: 'number' },
-                    { key: 'late_count', label: 'Late', type: 'number', className: 'text-amber-600' },
+                    { key: 'late_count', label: 'Late', type: 'number', className: 'text-amber-700' },
                     { key: 'late_minutes', label: 'Late (Min)', type: 'number' },
                     { key: 'total_hours', label: 'Hours', type: 'number' },
-                    { key: 'overtime_hours', label: 'OT Hrs', type: 'number', className: 'text-emerald-600 font-bold' }
+                    { key: 'overtime_hours', label: 'OT Hrs', type: 'number', className: 'text-emerald-700 font-bold' }
                 ];
 
             case 'device_health':
@@ -625,7 +625,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                     </div>
                     <div className="min-w-0">
                         <h1 className="text-xl font-bold text-slate-800 truncate dark:text-slate-100">{getReportTitle()}</h1>
-                        <p className="text-sm text-slate-500 truncate dark:text-slate-400">Comprehensive data view and analysis</p>
+                        <p className="text-sm text-slate-600 truncate dark:text-slate-400">Comprehensive data view and analysis</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
@@ -646,14 +646,14 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
             {/* Filters */}
             <div className="card-base !p-4 flex flex-wrap items-center gap-x-6 gap-y-3">
                 <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">Range</span>
+                    <span className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-600 dark:text-slate-400">Range</span>
                     <input
                         type="date"
                         value={dateFrom}
                         onChange={e => setDateFrom(e.target.value)}
                         className="input-base !py-1.5 !w-auto text-sm tabular-nums"
                     />
-                    <span className="text-slate-400">&rarr;</span>
+                    <span className="text-slate-500">&rarr;</span>
                     <input
                         type="date"
                         value={dateTo}
@@ -662,7 +662,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                     />
                 </div>
                 <div className="flex items-center gap-2 min-w-[220px]">
-                    <span className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">Dept</span>
+                    <span className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-600 dark:text-slate-400">Dept</span>
                     <select
                         value={department}
                         onChange={e => setDepartment(e.target.value)}
@@ -683,7 +683,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                                 <stat.icon size={20} />
                             </div>
                             <div className="min-w-0">
-                                <p className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 truncate">{stat.label}</p>
+                                <p className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-600 dark:text-slate-400 truncate">{stat.label}</p>
                                 <p className="text-xl font-bold tabular-nums text-slate-800 dark:text-slate-100 truncate">{stat.value}</p>
                             </div>
                         </div>
@@ -703,29 +703,29 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                     <div className="py-16 text-center">
                         <AlertTriangle size={40} className="mx-auto mb-3 text-rose-400" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not generate the report</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={generateReport}>Try again</Button>
                     </div>
                 ) : !generated ? (
                     <div className="py-16 text-center">
-                        <FileBarChart size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <FileBarChart size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No report yet</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
                             Choose a range and department, then press Generate Report.
                         </p>
                     </div>
                 ) : reportData.length === 0 ? (
                     <div className="py-16 text-center">
-                        <FileText size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <FileText size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No records found</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
                             Nothing matched {dateFrom} to {dateTo} for this report.
                         </p>
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
-                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
+                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-600 dark:text-slate-400">
                                 <tr>
                                     <th className="px-5 py-3 font-semibold w-12">#</th>
                                     {columns
@@ -740,7 +740,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                                 {reportData.map((row, i) => (
                                     <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
-                                        <td className="px-5 py-3 text-slate-400 tabular-nums">{i + 1}</td>
+                                        <td className="px-5 py-3 text-slate-500 tabular-nums">{i + 1}</td>
                                         {columns
                                             ? columns.map((col, j) => (
                                                 <td key={j} className="px-5 py-3 whitespace-nowrap">
@@ -760,7 +760,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                 )}
 
                 {!loading && !error && generated && reportData.length > 0 && (
-                    <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
+                    <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-400">
                         {reportData.length} record{reportData.length === 1 ? '' : 's'}
                     </div>
                 )}

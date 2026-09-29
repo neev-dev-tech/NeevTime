@@ -19,7 +19,7 @@ export function TableToolbar({ controls, placeholder = 'Search…', children }) 
     return (
         <div className="flex items-center gap-2 flex-wrap px-5 py-3 border-b border-slate-100 dark:border-slate-700">
             <div className="relative flex-1 min-w-[200px]">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
                 <input
                     type="search"
                     className="field-sm pl-8"
@@ -36,7 +36,7 @@ export function TableToolbar({ controls, placeholder = 'Search…', children }) 
                 and a Clear button with nothing to clear is worse. */}
             {isFiltered && (
                 <>
-                    <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums whitespace-nowrap">
+                    <span className="text-xs text-slate-600 dark:text-slate-400 tabular-nums whitespace-nowrap">
                         {matched} of {total}
                     </span>
                     <button
@@ -101,7 +101,7 @@ export function TablePager({ controls, noun = 'record' }) {
 
     return (
         <div className="flex items-center justify-between gap-3 px-5 py-3 border-t border-slate-100 dark:border-slate-700">
-            <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">
+            <span className="text-xs text-slate-600 dark:text-slate-400 tabular-nums">
                 {matched === 0
                     ? `No ${noun}s`
                     : `${from}–${to} of ${matched} ${noun}${matched === 1 ? '' : 's'}`}

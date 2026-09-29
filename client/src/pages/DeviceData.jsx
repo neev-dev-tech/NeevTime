@@ -185,7 +185,7 @@ export default function DeviceData() {
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
                     {groups.map(group => (
                         <div key={group} className="flex items-center gap-1.5 flex-wrap">
-                            <span className="text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-400">{group}</span>
+                            <span className="text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-500">{group}</span>
                             <ListTabs
                                 label={`${group} views`}
                                 value={activeSection}
@@ -223,14 +223,14 @@ export default function DeviceData() {
                     <div className="py-20 px-6 text-center">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load records</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchData}>Try again</Button>
                     </div>
                 ) : data.length === 0 ? (
                     <div className="py-20 px-6 text-center">
-                        <view.icon size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <view.icon size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No records yet</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
                             Nothing has been reported for {view.label.toLowerCase()}.
                         </p>
                     </div>
@@ -247,7 +247,7 @@ export default function DeviceData() {
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                                 {pager.view.map((row, idx) => (
                                     <tr key={row.id ?? idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
-                                        <td className={`${LIST_EDGE_FIRST} pr-4 py-3 text-slate-400 tabular-nums`}>{(pager.page - 1) * pager.pageSize + idx + 1}</td>
+                                        <td className={`${LIST_EDGE_FIRST} pr-4 py-3 text-slate-500 tabular-nums`}>{(pager.page - 1) * pager.pageSize + idx + 1}</td>
                                         {view.columns.map((col, ci) => {
                                             const value = col.render ? col.render(row) : (row[col.key] ?? '—');
                                             return (

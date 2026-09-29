@@ -154,14 +154,14 @@ export default function DepartmentSchedule() {
                     <div className="py-20 text-center px-6">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load schedules</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchData}>Try again</Button>
                     </div>
                 ) : schedules.length === 0 ? (
                     <div className="py-20 text-center px-6">
-                        <Calendar size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <Calendar size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No department schedules yet</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
                             Assign a shift to a department and everyone in it inherits those hours.
                         </p>
                     </div>
@@ -182,7 +182,7 @@ export default function DepartmentSchedule() {
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                             {pager.view.map((schedule, idx) => (
                                 <tr key={schedule.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
-                                    <td className={`${LIST_EDGE_FIRST} pr-4 py-3 text-slate-400 dark:text-slate-500 tabular-nums`}>{(pager.page - 1) * pager.pageSize + idx + 1}</td>
+                                    <td className={`${LIST_EDGE_FIRST} pr-4 py-3 text-slate-500 dark:text-slate-400 tabular-nums`}>{(pager.page - 1) * pager.pageSize + idx + 1}</td>
                                     <td className="px-4 py-3 font-semibold text-slate-800 dark:text-slate-100">
                                         {schedule.department_name || '—'}
                                     </td>

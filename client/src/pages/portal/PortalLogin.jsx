@@ -145,7 +145,7 @@ export default function PortalLogin() {
 
     const back = (
         <button type="button" onClick={() => { setView('signin'); setError(''); setNotice(''); }}
-                className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700 mb-4">
+                className="flex items-center gap-1 text-xs text-slate-600 hover:text-slate-700 mb-4">
             <ArrowLeft size={12} /> Back to sign in
         </button>
     );
@@ -163,7 +163,7 @@ export default function PortalLogin() {
                         <Fingerprint size={28} />
                     </div>
                     <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">Employee Portal</h1>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">NeevTime self-service</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">NeevTime self-service</p>
                 </div>
 
                 {notice && (
@@ -179,7 +179,7 @@ export default function PortalLogin() {
 
                         {view !== 'change' && (
                             <div>
-                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Employee Code</label>
+                                <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">Employee Code</label>
                                 <input type="text" value={identifier} onChange={e => setIdentifier(e.target.value)}
                                        className="field" placeholder="e.g. INT089" required />
                             </div>
@@ -187,17 +187,17 @@ export default function PortalLogin() {
 
                         {view === 'activate' && (
                             <div>
-                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Activation code</label>
+                                <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">Activation code</label>
                                 <input type="text" value={activation} onChange={e => setActivation(e.target.value.toUpperCase())}
                                        className="field tracking-[0.3em] font-mono" placeholder="XXXXXXXX"
                                        autoCapitalize="characters" required />
-                                <p className="text-xs text-slate-400 mt-1">From HR, or the email you were sent. Valid for 24 hours.</p>
+                                <p className="text-xs text-slate-500 mt-1">From HR, or the email you were sent. Valid for 24 hours.</p>
                             </div>
                         )}
 
                         {view === 'change' && (
                             <div>
-                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Current password</label>
+                                <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">Current password</label>
                                 <input type="password" value={password} onChange={e => setPassword(e.target.value)}
                                        className="field" autoComplete="current-password" required />
                             </div>
@@ -205,7 +205,7 @@ export default function PortalLogin() {
 
                         {view !== 'forgot' && (
                             <div>
-                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
+                                <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">
                                     {view === 'change' ? 'New password' : 'Choose a password'}
                                 </label>
                                 <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)}
@@ -213,7 +213,7 @@ export default function PortalLogin() {
                                 {/* Said plainly, because the reason people
                                     accept a password step is understanding what
                                     it buys them. */}
-                                <p className="text-xs text-slate-400 mt-1">Only you will know this. HR cannot see it.</p>
+                                <p className="text-xs text-slate-500 mt-1">Only you will know this. HR cannot see it.</p>
                             </div>
                         )}
 
@@ -243,7 +243,7 @@ export default function PortalLogin() {
                         {(modes.local || modes.ldap) && (
                             <div className="flex items-center gap-3 my-5">
                                 <span className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
-                                <span className="text-xs text-slate-400">or</span>
+                                <span className="text-xs text-slate-500">or</span>
                                 <span className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
                             </div>
                         )}
@@ -262,7 +262,7 @@ export default function PortalLogin() {
                                 onClick={() => { setMethod(id); setError(''); }}
                                 className={`flex-1 rounded-lg px-3 py-2 border ${method === id
                                     ? 'border-slate-400 bg-slate-50 dark:bg-slate-900/20 text-slate-700 dark:text-slate-300'
-                                    : 'border-slate-200 dark:border-slate-700 text-slate-500'}`}
+                                    : 'border-slate-200 dark:border-slate-700 text-slate-600'}`}
                             >
                                 {label}
                             </button>
@@ -273,7 +273,7 @@ export default function PortalLogin() {
                 {view === 'signin' && (modes?.local || modes?.ldap) && (
                     <form onSubmit={submit} className="space-y-4">
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
+                            <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">
                                 {ldap ? 'Company username' : 'Employee Code'}
                             </label>
                             <input
@@ -287,7 +287,7 @@ export default function PortalLogin() {
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
+                            <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">
                                 {ldap ? 'Company password' : 'Password'}
                             </label>
                             <input
@@ -337,13 +337,13 @@ export default function PortalLogin() {
                             First time here?
                         </button>
                         <button type="button" onClick={() => { setView('forgot'); setError(''); setNotice(''); }}
-                                className="text-slate-500 hover:underline">
+                                className="text-slate-600 hover:underline">
                             Forgot password
                         </button>
                     </div>
                 )}
 
-                <p className="text-center text-xs text-slate-400 mt-6">
+                <p className="text-center text-xs text-slate-500 mt-6">
                     Admin or HR? <Link to="/login" className="text-slate-600 font-semibold hover:underline">Sign in here</Link>
                 </p>
             </div>

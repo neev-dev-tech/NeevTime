@@ -251,16 +251,16 @@ export default function LeaveApplications() {
                     <div className="py-20 text-center px-6">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load leave applications</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchData}>Try again</Button>
                     </div>
                 ) : filteredApps.length === 0 ? (
                     <div className="py-20 text-center px-6">
-                        <Calendar size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <Calendar size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">
                             {isFiltered ? 'No matching applications' : 'No leave applications yet'}
                         </h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
                             {isFiltered
                                 ? 'Nothing matches the current filters. Clear the search or pick another status.'
                                 : 'Apply for leave on behalf of an employee to see requests here.'}
@@ -283,7 +283,7 @@ export default function LeaveApplications() {
                                             />
                                         )}
                                     </td>
-                                    <td className="px-4 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{(pager.page - 1) * pager.pageSize + idx + 1}</td>
+                                    <td className="px-4 py-3 text-slate-500 dark:text-slate-400 tabular-nums">{(pager.page - 1) * pager.pageSize + idx + 1}</td>
                                     <td className="px-4 py-3 font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">
                                         {app.employee_name || '—'}
                                     </td>
@@ -317,11 +317,11 @@ export default function LeaveApplications() {
                                                     <Button variant="danger" size="sm" icon={X} aria-label="Reject" title="Reject" onClick={() => openReview([app.id], 'Rejected')} />
                                                 </div>
                                             ) : app.status === 'Rejected' && app.rejection_reason ? (
-                                                <span className="text-xs text-slate-500 dark:text-slate-400 max-w-[200px] truncate" title={app.rejection_reason}>
+                                                <span className="text-xs text-slate-600 dark:text-slate-400 max-w-[200px] truncate" title={app.rejection_reason}>
                                                     {app.rejection_reason}
                                                 </span>
                                             ) : (
-                                                <span className="text-slate-400 dark:text-slate-500">—</span>
+                                                <span className="text-slate-500 dark:text-slate-400">—</span>
                                             )}
                                         </div>
                                     </td>
@@ -345,11 +345,11 @@ export default function LeaveApplications() {
                                 <li key={a.id} className="px-3 py-2.5 text-sm">
                                     <div className="flex items-center justify-between gap-3">
                                         <span className="font-semibold text-slate-800 dark:text-slate-100">{a.employee_name || a.employee_code}</span>
-                                        <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums whitespace-nowrap">
+                                        <span className="text-xs text-slate-600 dark:text-slate-400 tabular-nums whitespace-nowrap">
                                             {formatDate(a.from_date)} – {formatDate(a.to_date)} · {a.total_days ?? '—'} day{Number(a.total_days) === 1 ? '' : 's'}
                                         </span>
                                     </div>
-                                    <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                                    <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400">
                                         {a.leave_type_name || 'Leave'}{a.reason ? ` — “${a.reason}”` : ''}
                                     </p>
                                 </li>

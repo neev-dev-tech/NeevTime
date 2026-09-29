@@ -55,7 +55,7 @@ export function EmptyState({
                 `}>
                     {React.cloneElement(icon, {
                         size: isCompact ? 28 : 40,
-                        className: 'text-slate-500 dark:text-slate-400'
+                        className: 'text-slate-600 dark:text-slate-400'
                     })}
                 </div>
             ) : null}
@@ -73,7 +73,7 @@ export function EmptyState({
             {/* Description */}
             {description && (
                 <p className={`
-                    text-slate-500 dark:text-slate-400 max-w-md
+                    text-slate-600 dark:text-slate-400 max-w-md
                     ${isCompact ? 'text-sm mb-4' : 'text-base mb-6'}
                 `}>
                     {description}
@@ -405,7 +405,7 @@ export function EmptyLoading({ message = 'Loading...', ...props }) {
             <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-900/30 flex items-center justify-center mb-4 animate-pulse">
                 <div className="w-8 h-8 border-[3px] border-slate-400 dark:border-slate-300 border-t-transparent rounded-full animate-spin" />
             </div>
-            <p className="text-slate-500 dark:text-slate-400">{message}</p>
+            <p className="text-slate-600 dark:text-slate-400">{message}</p>
         </div>
     );
 }

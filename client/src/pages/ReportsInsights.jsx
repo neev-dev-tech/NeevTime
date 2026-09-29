@@ -73,7 +73,7 @@ export default function ReportsInsights() {
             )}
 
             <div className="bg-app-surface rounded-xl border border-slate-200 dark:border-slate-700 p-4">
-                <h3 className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-3">
+                <h3 className="text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-slate-400 mb-3">
                     Late and overtime, last six months
                 </h3>
                 {!trends ? (
@@ -81,7 +81,7 @@ export default function ReportsInsights() {
                 ) : trends.length < 2 ? (
                     /* One month of history draws a dot, not a trend. Say so
                        instead of rendering a chart that looks broken. */
-                    <p className="text-sm text-slate-500 dark:text-slate-400 py-8 text-center">
+                    <p className="text-sm text-slate-600 dark:text-slate-400 py-8 text-center">
                         Trends need at least two months of attendance history — this installation
                         has {trends.length}. The chart appears as months accumulate.
                     </p>
@@ -108,7 +108,7 @@ export default function ReportsInsights() {
 
             <div className="bg-app-surface rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
                 <div className="flex items-center justify-between gap-3 p-4 pb-2">
-                    <h3 className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                    <h3 className="text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-slate-400 flex items-center gap-2">
                         <Building size={14} /> Department summary
                     </h3>
                     <div className="flex items-center gap-2">
@@ -128,13 +128,13 @@ export default function ReportsInsights() {
                     <div className="py-16 text-center">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load the department summary</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">{error || 'Try another month or reload the page.'}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400">{error || 'Try another month or reload the page.'}</p>
                     </div>
                 ) : departments.length === 0 ? (
                     <div className="py-16 text-center">
-                        <Building size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <Building size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No department figures for this month</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
                             Department totals appear here once attendance for the month has been processed. Try another month.
                         </p>
                     </div>
@@ -143,9 +143,9 @@ export default function ReportsInsights() {
                     <TableToolbar controls={pager} placeholder="Search departments…" />
                     {pager.matched === 0 ? (
                     <div className="py-16 text-center">
-                        <Building size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <Building size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No matching departments</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
                             Nothing matches the current search. Clear it to see every department.
                         </p>
                     </div>
@@ -153,7 +153,7 @@ export default function ReportsInsights() {
                     <>
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm">
-                            <thead className="bg-slate-50 dark:bg-slate-900/40 text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400">
+                            <thead className="bg-slate-50 dark:bg-slate-900/40 text-[11px] uppercase tracking-[0.06em] font-bold text-slate-600 dark:text-slate-400">
                                 <tr>{columns.map(c => (
                                     <th key={c.key} className={`px-4 py-3 ${c.key === 'department' ? '' : 'text-right'}`}>{c.label}</th>
                                 ))}</tr>

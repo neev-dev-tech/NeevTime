@@ -153,7 +153,7 @@ export default function Modal({
                                 </h2>
                             )}
                             {description && (
-                                <p className="text-xs text-slate-500 dark:text-slate-400">{description}</p>
+                                <p className="text-xs text-slate-600 dark:text-slate-400">{description}</p>
                             )}
                         </div>
                         {!hideClose && (
@@ -162,7 +162,7 @@ export default function Modal({
                                 onClick={close}
                                 data-modal-close=""
                                 aria-label="Close"
-                                className="shrink-0 p-1.5 -m-1 rounded-lg text-slate-400
+                                className="shrink-0 p-1.5 -m-1 rounded-lg text-slate-500
                                            hover:text-slate-600 dark:hover:text-slate-200
                                            hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
                             >

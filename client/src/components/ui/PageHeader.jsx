@@ -45,7 +45,7 @@ export default function PageHeader({ icon: Icon, title, subtitle, actions, tone,
         <div className={`flex items-end justify-between flex-wrap gap-4 mb-6 pb-5 border-b border-slate-200/70 dark:border-slate-800 ${className}`}>
             <div className="min-w-0">
                 {trail && (
-                    <nav aria-label="Breadcrumb" className="flex items-center gap-1 mb-2 text-xs font-medium text-slate-400 dark:text-slate-500">
+                    <nav aria-label="Breadcrumb" className="flex items-center gap-1 mb-2 text-xs font-medium text-slate-500 dark:text-slate-400">
                         <span>{trail[0]}</span>
                         <ChevronRight size={12} aria-hidden="true" />
                         <span>{trail[1]}</span>
@@ -59,7 +59,7 @@ export default function PageHeader({ icon: Icon, title, subtitle, actions, tone,
                     )}
                     <div className="min-w-0">
                         <h1 className="text-[22px] leading-tight font-semibold tracking-tight text-slate-900 truncate dark:text-slate-50">{title}</h1>
-                        {subtitle && <p className="mt-0.5 text-sm text-slate-500 sm:truncate dark:text-slate-400">{subtitle}</p>}
+                        {subtitle && <p className="mt-0.5 text-sm text-slate-600 sm:truncate dark:text-slate-400">{subtitle}</p>}
                     </div>
                 </div>
             </div>

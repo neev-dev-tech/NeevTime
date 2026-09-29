@@ -117,23 +117,23 @@ export default function LeaveTypes() {
                     <div className="py-20 text-center px-6">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load leave types</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchTypes}>Try again</Button>
                     </div>
                 ) : types.length === 0 ? (
                     <div className="py-20 text-center px-6">
-                        <FileText size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <FileText size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No leave types defined</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
                             Add a leave type to set the annual quota employees can draw from.
                         </p>
                         <Button mutating variant="primary" icon={Plus} onClick={() => setShowModal(true)}>Add Leave Type</Button>
                     </div>
                 ) : controls.matched === 0 ? (
                     <div className="py-20 text-center px-6">
-                        <FileText size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <FileText size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No matching leave types</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
                             Nothing matches the current search. Clear it to see all leave types.
                         </p>
                     </div>
@@ -153,7 +153,7 @@ export default function LeaveTypes() {
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                             {controls.view.map((t, idx) => (
                                 <tr key={t.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
-                                    <td className={`${LIST_EDGE_FIRST} pr-4 py-3 text-slate-400 dark:text-slate-500 tabular-nums`}>{(controls.page - 1) * controls.pageSize + idx + 1}</td>
+                                    <td className={`${LIST_EDGE_FIRST} pr-4 py-3 text-slate-500 dark:text-slate-400 tabular-nums`}>{(controls.page - 1) * controls.pageSize + idx + 1}</td>
                                     <td className="px-4 py-3 whitespace-nowrap">
                                         <span className="font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">
                                             {t.code || '—'}

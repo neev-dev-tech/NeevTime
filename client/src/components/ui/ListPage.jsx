@@ -31,7 +31,7 @@ export default function ListPage({ title, count, tabs, actions, toolbar, toolbar
                 <h1 className="flex items-baseline gap-2 text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-50">
                     {title}
                     {count !== undefined && count !== null && (
-                        <span className="text-sm font-medium text-slate-400 tabular-nums">{count}</span>
+                        <span className="text-sm font-medium text-slate-500 dark:text-slate-400 tabular-nums">{count}</span>
                     )}
                 </h1>
                 {tabs}
@@ -80,10 +80,10 @@ export function ListTabs({ items, value, onChange, label = 'Filter' }) {
                         onClick={() => onChange(t.key)}
                         className={`inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-[13px] font-medium transition-colors ${on
                             ? 'bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-white'
-                            : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-200'}`}
+                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-200'}`}
                     >
                         {t.label}
-                        {t.count !== undefined && <span className="tabular-nums text-xs text-slate-400">{t.count}</span>}
+                        {t.count !== undefined && <span className={`tabular-nums text-xs ${on ? 'text-slate-700 dark:text-slate-300' : 'text-slate-500 dark:text-slate-400'}`}>{t.count}</span>}
                     </button>
                 );
             })}
@@ -102,7 +102,7 @@ ListTabs.propTypes = {
 export function ListSearch({ value, onChange, placeholder = 'Search…', label = 'Search' }) {
     return (
         <div className="relative w-full sm:w-64">
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true" />
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" aria-hidden="true" />
             <input
                 type="search"
                 aria-label={label}
@@ -131,7 +131,7 @@ export function ListSelection({ count, onClear }) {
             <button
                 type="button"
                 onClick={onClear}
-                className="h-7 px-2 rounded-md text-xs font-medium text-slate-500 hover:bg-slate-200/70 hover:text-slate-800 dark:hover:bg-slate-700 dark:hover:text-slate-100"
+                className="h-7 px-2 rounded-md text-xs font-medium text-slate-600 hover:bg-slate-200/70 hover:text-slate-800 dark:hover:bg-slate-700 dark:hover:text-slate-100"
             >
                 Clear
             </button>
@@ -174,7 +174,7 @@ export function ListMenu({ label, icon, emptyHint, width = 'w-56', align = 'righ
                     className={`absolute top-full ${align === 'right' ? 'right-0' : 'left-0'} mt-1.5 ${width} bg-app-surface border border-slate-200 dark:border-slate-700 shadow-lg rounded-xl z-30 overflow-hidden py-1`}
                 >
                     {emptyHint
-                        ? <p className="px-3.5 py-2.5 text-[13px] text-slate-500 dark:text-slate-400">{emptyHint}</p>
+                        ? <p className="px-3.5 py-2.5 text-[13px] text-slate-600 dark:text-slate-400">{emptyHint}</p>
                         : children}
                 </div>
             )}
@@ -219,7 +219,7 @@ export function ListIconButton({ label, icon: Icon, onClick, disabled = false, s
             disabled={disabled}
             aria-label={label}
             title={label}
-            className="grid place-items-center w-8 h-8 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800 disabled:opacity-50 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+            className="grid place-items-center w-8 h-8 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-slate-800 disabled:opacity-50 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
         >
             <Icon size={15} className={spin ? 'animate-spin' : ''} />
         </button>
@@ -236,7 +236,7 @@ ListIconButton.propTypes = {
 
 /** Table header styling shared by list pages. */
 export const LIST_THEAD = 'sticky top-0 z-10 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700';
-export const LIST_TH = 'px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400 whitespace-nowrap text-left';
+export const LIST_TH = 'px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-600 dark:text-slate-400 whitespace-nowrap text-left';
 /** First/last cell padding so table content lines up with the bars above. */
 export const LIST_EDGE_FIRST = 'pl-4 sm:pl-6';
 export const LIST_EDGE_LAST = 'pr-4 sm:pr-6';

@@ -281,16 +281,16 @@ export default function Departments() {
                     <div className="py-20 text-center px-6">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load departments</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchDepartments}>Try again</Button>
                     </div>
                 ) : filteredDepartments.length === 0 ? (
                     <div className="py-20 text-center px-6">
-                        <Building2 size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <Building2 size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">
                             {searchQuery ? 'No matching departments' : 'No departments yet'}
                         </h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
                             {searchQuery
                                 ? `Nothing matches “${searchQuery}”. Try a different search.`
                                 : 'Add a department to start grouping employees by team.'}
@@ -323,7 +323,7 @@ export default function Departments() {
                                                 onChange={() => toggleSelect(dept.id)}
                                             />
                                         </td>
-                                        <td className="px-4 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{(pager.page - 1) * pager.pageSize + idx + 1}</td>
+                                        <td className="px-4 py-3 text-slate-500 dark:text-slate-400 tabular-nums">{(pager.page - 1) * pager.pageSize + idx + 1}</td>
                                         <td className="px-4 py-3">
                                             <span className="font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">
                                                 {dept.id ?? '—'}
@@ -457,7 +457,7 @@ export default function Departments() {
                             htmlFor="import-file"
                             className="cursor-pointer flex flex-col items-center gap-2"
                         >
-                            <Upload size={32} className="text-slate-400" />
+                            <Upload size={32} className="text-slate-500" />
                             <span className="text-sm text-slate-600 dark:text-slate-400">
                                 {importing ? 'Importing...' : 'Click to select CSV file'}
                             </span>
@@ -469,7 +469,7 @@ export default function Departments() {
                         <div className={`p-4 rounded-lg ${importResult.failed > 0 ? 'bg-amber-50 border border-amber-200 dark:bg-amber-900/30 dark:border-amber-800' : 'bg-green-50 border border-green-200 dark:bg-green-900/30 dark:border-green-800'}`}>
                             <div className="flex items-start gap-3">
                                 {importResult.failed > 0 ? (
-                                    <AlertCircle size={20} className="text-amber-600 dark:text-amber-400 mt-0.5" />
+                                    <AlertCircle size={20} className="text-amber-700 dark:text-amber-400 mt-0.5" />
                                 ) : (
                                     <CheckCircle size={20} className="text-green-600 dark:text-green-400 mt-0.5" />
                                 )}
@@ -513,7 +513,7 @@ export default function Departments() {
                     size="md"
                 >
                     <div className="space-y-4">
-                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                        <p className="text-xs text-slate-600 dark:text-slate-400">
                             These people can approve leave and attendance corrections for anyone in
                             this department — alongside reporting managers and HR, per the approval
                             chain in Settings. More than one is normal: a deputy covers absences.
@@ -527,7 +527,7 @@ export default function Departments() {
                                     <option key={e.id} value={e.id}>{e.employee_code} — {e.name}</option>
                                 ))}
                         </select>
-                        <p className="text-xs text-slate-400">Hold Ctrl/Cmd to pick several. Empty means requests fall through to HR.</p>
+                        <p className="text-xs text-slate-500">Hold Ctrl/Cmd to pick several. Empty means requests fall through to HR.</p>
                         <div className="flex justify-end gap-2">
                             <Button variant="secondary" onClick={() => setApproverDept(null)}>Cancel</Button>
                             <Button variant="primary" onClick={saveApprovers} disabled={savingApprovers}>

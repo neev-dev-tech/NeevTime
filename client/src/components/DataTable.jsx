@@ -290,10 +290,10 @@ export default function DataTable({
             return <ChevronsUpDown size={14} className="text-slate-300 group-hover:text-slate-400" />;
         }
         if (sortOrder === SORT_ORDER.ASC) {
-            return <ChevronUp size={14} className="text-slate-500" />;
+            return <ChevronUp size={14} className="text-slate-600" />;
         }
         if (sortOrder === SORT_ORDER.DESC) {
-            return <ChevronDown size={14} className="text-slate-500" />;
+            return <ChevronDown size={14} className="text-slate-600" />;
         }
         return <ChevronsUpDown size={14} className="text-slate-300" />;
     };
@@ -308,7 +308,7 @@ export default function DataTable({
                 {/* Search */}
                 {searchable && (
                     <div className="relative flex-1 max-w-sm">
-                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
                         <input
                             type="text"
                             placeholder={searchPlaceholder}
@@ -322,7 +322,7 @@ export default function DataTable({
                         {searchTerm && (
                             <button
                                 onClick={() => setSearchTerm('')}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
                             >
                                 <X size={14} />
                             </button>
@@ -333,7 +333,7 @@ export default function DataTable({
                 <div className="flex items-center gap-2">
                     {/* Row count */}
                     {showRowCount && (
-                        <span className="text-sm text-slate-500 dark:text-slate-400">
+                        <span className="text-sm text-slate-600 dark:text-slate-400">
                             {processedData.length} record{processedData.length !== 1 ? 's' : ''}
                             {selectedRows.size > 0 && ` (${selectedRows.size} selected)`}
                         </span>
@@ -348,7 +348,7 @@ export default function DataTable({
                                 className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
                                 title="Toggle columns"
                             >
-                                <Columns3 size={18} className="text-slate-500 dark:text-slate-400" />
+                                <Columns3 size={18} className="text-slate-600 dark:text-slate-400" />
                             </button>
 
                             {showColumnMenu && (
@@ -356,7 +356,7 @@ export default function DataTable({
                                     ref={columnMenuRef}
                                     className="absolute right-0 top-full mt-2 w-56 bg-app-surface border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg z-20 py-2"
                                 >
-                                    <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b dark:border-slate-700">
+                                    <div className="px-3 py-2 text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider border-b dark:border-slate-700">
                                         Visible Columns
                                     </div>
                                     <div className="max-h-64 overflow-y-auto">
@@ -369,7 +369,7 @@ export default function DataTable({
                                                     type="checkbox"
                                                     checked={visibleColumns[col.key]}
                                                     onChange={() => toggleColumn(col.key)}
-                                                    className="rounded border-slate-300 dark:border-slate-600 text-slate-500 focus:ring-slate-400"
+                                                    className="rounded border-slate-300 dark:border-slate-600 text-slate-600 focus:ring-slate-400"
                                                 />
                                                 <span className="text-sm text-slate-700 dark:text-slate-300">{col.label}</span>
                                             </label>
@@ -409,7 +409,7 @@ export default function DataTable({
                                         type="checkbox"
                                         checked={paginatedData.length > 0 && selectedRows.size === paginatedData.length}
                                         onChange={handleSelectAll}
-                                        className="rounded border-slate-300 dark:border-slate-600 text-slate-500 focus:ring-slate-400"
+                                        className="rounded border-slate-300 dark:border-slate-600 text-slate-600 focus:ring-slate-400"
                                     />
                                 </th>
                             )}
@@ -457,11 +457,11 @@ export default function DataTable({
                             <tr>
                                 <td
                                     colSpan={renderColumns.length + (selectable ? 1 : 0)}
-                                    className="px-4 py-12 text-center text-slate-500 dark:text-slate-400"
+                                    className="px-4 py-12 text-center text-slate-600 dark:text-slate-400"
                                 >
                                     <div className="flex flex-col items-center gap-2">
                                         <div className="w-12 h-12 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center">
-                                            <Search size={24} className="text-slate-400" />
+                                            <Search size={24} className="text-slate-500" />
                                         </div>
                                         <span>{searchTerm ? 'No matching records found' : emptyMessage}</span>
                                     </div>
@@ -491,7 +491,7 @@ export default function DataTable({
                                                     type="checkbox"
                                                     checked={isSelected}
                                                     onChange={() => handleSelectRow(rowId)}
-                                                    className="rounded border-slate-300 dark:border-slate-600 text-slate-500 focus:ring-slate-400"
+                                                    className="rounded border-slate-300 dark:border-slate-600 text-slate-600 focus:ring-slate-400"
                                                 />
                                             </td>
                                         )}

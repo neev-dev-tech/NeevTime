@@ -181,18 +181,18 @@ export default function ApprovalRole() {
                 </>
             }
             footer={
-                <div className="px-4 sm:px-6 py-2 flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
+                <div className="px-4 sm:px-6 py-2 flex items-center justify-between text-sm text-slate-600 dark:text-slate-400">
                     <div className="flex items-center gap-3">
                         <select value={itemsPerPage} onChange={e => setItemsPerPage(Number(e.target.value))} className="field-sm font-semibold">
                             <option value={50}>50</option>
                             <option value={100}>100</option>
                         </select>
                         <div className="flex items-center bg-app-surface border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
-                            <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="p-1.5 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 transition-colors border-r border-slate-200 dark:border-slate-700">
+                            <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="p-1.5 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 transition-colors border-r border-slate-200 dark:border-slate-700">
                                 <ChevronLeft size={16} />
                             </button>
                             <span className="px-3 py-1 font-bold bg-slate-600 text-white text-xs tabular-nums">{currentPage}</span>
-                            <button onClick={() => setCurrentPage(p => Math.min(totalPages || 1, p + 1))} disabled={currentPage === totalPages} className="p-1.5 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 transition-colors border-l border-slate-200 dark:border-slate-700">
+                            <button onClick={() => setCurrentPage(p => Math.min(totalPages || 1, p + 1))} disabled={currentPage === totalPages} className="p-1.5 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 transition-colors border-l border-slate-200 dark:border-slate-700">
                                 <ChevronRight size={16} />
                             </button>
                         </div>
@@ -211,16 +211,16 @@ export default function ApprovalRole() {
                     <div className="py-20 px-6 text-center">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load roles</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchRoles}>Try again</Button>
                     </div>
                 ) : paginatedItems.length === 0 ? (
                     <div className="py-20 px-6 text-center">
-                        <Shield size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <Shield size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">
                             {searchQuery ? 'No matching roles' : 'No approval roles yet'}
                         </h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
                             {searchQuery
                                 ? 'No role matches that search.'
                                 : 'Add a role to describe who can approve requests.'}
@@ -302,7 +302,7 @@ export default function ApprovalRole() {
                                         <option key={emp.id} value={emp.id}>{emp.employee_code} — {emp.name}</option>
                                     ))}
                                 </select>
-                                <p className="text-xs text-slate-400">Hold Ctrl/Cmd to pick several. These people approve wherever a flow step names this role.</p>
+                                <p className="text-xs text-slate-500">Hold Ctrl/Cmd to pick several. These people approve wherever a flow step names this role.</p>
                                 <textarea value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })}
                                     className="flex-1 input-base py-2 text-sm resize-none" rows={3} />
                             </div>

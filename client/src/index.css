@@ -211,7 +211,7 @@ body {
     transition: var(--transition-props) var(--transition-fast) var(--ease-snappy);
   }
 
-  .input-base::placeholder { color: rgb(var(--text-muted) / 0.7); }
+  .input-base::placeholder { color: rgb(var(--text-muted) / 0.85); }
 
   .input-base:focus {
     outline: none;
@@ -1054,7 +1054,7 @@ body {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #94A3B8;
+  color: rgb(var(--text-muted));
 }
 
 .device-info-value {
@@ -2983,7 +2983,7 @@ body {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 10.5px;
   letter-spacing: 0.04em;
-  color: #94A3B8;
+  color: rgb(var(--text-muted));
   margin-top: 1px;
 }
 
@@ -3066,7 +3066,7 @@ body {
   font-weight: 700;
   letter-spacing: 0.09em;
   text-transform: uppercase;
-  color: #94A3B8;
+  color: rgb(var(--text-muted));
 }
 
 .dv-value {
@@ -3164,7 +3164,7 @@ tr:focus-within .dv-quiet { opacity: 1; transform: none; }
 .cmd-tile__desc {
   display: block;
   font-size: 10.5px; font-weight: 500;
-  color: #94A3B8;
+  color: rgb(var(--text-muted));
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
@@ -3446,7 +3446,7 @@ code, kbd, samp, .font-mono, .employee-code, .device-serial {
   .field-sm { padding: 6px 10px;  font-size: 13px; }
 
   .field::placeholder,
-  .field-sm::placeholder { color: #94A3B8; }
+  .field-sm::placeholder { color: #64748B; }
 
   .field:focus,
   .field-sm:focus {
@@ -3470,7 +3470,7 @@ code, kbd, samp, .font-mono, .employee-code, .device-serial {
   }
 
   .dark .field::placeholder,
-  .dark .field-sm::placeholder { color: #64748B; }
+  .dark .field-sm::placeholder { color: #94A3B8; }
 
   .dark .field:disabled,
   .dark .field-sm:disabled {
@@ -3564,4 +3564,15 @@ code, kbd, samp, .font-mono, .employee-code, .device-serial {
   }
   input[type="checkbox"]:focus-visible { outline: 2px solid rgb(var(--brand) / 0.4); outline-offset: 2px; }
   input[type="checkbox"]:disabled { opacity: 0.45; cursor: not-allowed; }
+}
+
+/* Dark-mode safety net for text coloured for light backgrounds only. A grey
+   like text-slate-600 with no dark: counterpart reads ~2:1 on the black
+   theme; lift it to a readable tone. Classes that set their own dark:text-*
+   are left alone. */
+.dark :is(.text-slate-500, .text-slate-600, .text-slate-700):not([class*="dark:text-"]) {
+  color: rgb(148 163 184);
+}
+.dark :is(.text-slate-800, .text-slate-900, .text-charcoal):not([class*="dark:text-"]) {
+  color: rgb(226 232 240);
 }

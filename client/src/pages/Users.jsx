@@ -164,7 +164,7 @@ export default function UsersPage() {
                 <>
                     <ListSearch label="Search users" placeholder="Search users…" value={pager.query} onChange={pager.setQuery} />
                     {pager.isFiltered && (
-                        <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums whitespace-nowrap">
+                        <span className="text-xs text-slate-600 dark:text-slate-400 tabular-nums whitespace-nowrap">
                             {pager.matched} of {pager.total}
                         </span>
                     )}
@@ -195,14 +195,14 @@ export default function UsersPage() {
                     <div className="py-20 text-center px-6">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load users</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{loadError}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{loadError}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchUsers}>Try again</Button>
                     </div>
                 ) : users.length === 0 ? (
                     <div className="py-20 text-center px-6">
-                        <Users size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <Users size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No users yet</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
                             Add a user to give someone access to the system.
                         </p>
                     </div>
@@ -222,7 +222,7 @@ export default function UsersPage() {
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                                 {pager.view.map((user, idx) => (
                                     <tr key={user.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
-                                        <td className={`${LIST_EDGE_FIRST} pr-4 py-3 text-slate-400 dark:text-slate-500 tabular-nums`}>{(pager.page - 1) * pager.pageSize + idx + 1}</td>
+                                        <td className={`${LIST_EDGE_FIRST} pr-4 py-3 text-slate-500 dark:text-slate-400 tabular-nums`}>{(pager.page - 1) * pager.pageSize + idx + 1}</td>
                                         <td className="px-4 py-3">
                                             <span className={CELL_MONO}>{dash(user.id)}</span>
                                         </td>
@@ -335,7 +335,7 @@ export default function UsersPage() {
                                 <option key={role} value={role}>{role}</option>
                             ))}
                         </select>
-                        <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
+                        <p className="mt-1.5 text-xs text-slate-600 dark:text-slate-400">
                             {ROLE_HELP[formData.role]}
                         </p>
                     </div>

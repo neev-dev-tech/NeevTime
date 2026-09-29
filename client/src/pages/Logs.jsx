@@ -48,7 +48,7 @@ const PunchPhoto = ({ name, alt, className }) => {
 
     // Retention deletes the file and clears photo_path, so a missing image
     // usually means the row is mid-purge rather than that anything is broken.
-    if (failed) return <span className="text-xs text-slate-400 dark:text-slate-500">gone</span>;
+    if (failed) return <span className="text-xs text-slate-500 dark:text-slate-400">gone</span>;
     if (!src) return <span className={`${className} block animate-pulse bg-slate-100 dark:bg-slate-700`} />;
     return <img src={src} alt={alt} className={className} />;
 };
@@ -212,14 +212,14 @@ export default function Logs() {
                     <div className="py-20 text-center px-6">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load logs</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={refresh}>Try again</Button>
                     </div>
                 ) : logs.length === 0 ? (
                     <div className="py-20 text-center px-6">
-                        <Inbox size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <Inbox size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No logs found</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
                             No attendance records are available at the moment.
                         </p>
                     </div>
@@ -245,7 +245,7 @@ export default function Logs() {
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                             {pager.view.map((log, i) => (
                                 <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
-                                    <td className={`${LIST_EDGE_FIRST} pr-4 py-3 text-slate-400 dark:text-slate-500 tabular-nums`}>{(pager.page - 1) * pager.pageSize + i + 1}</td>
+                                    <td className={`${LIST_EDGE_FIRST} pr-4 py-3 text-slate-500 dark:text-slate-400 tabular-nums`}>{(pager.page - 1) * pager.pageSize + i + 1}</td>
                                     <td className="px-4 py-3 font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">
                                         {log.emp_name || 'Unknown'}
                                     </td>
@@ -299,7 +299,7 @@ export default function Logs() {
                                                 />
                                             </button>
                                         ) : (
-                                            <span className="text-xs text-slate-400 dark:text-slate-500">—</span>
+                                            <span className="text-xs text-slate-500 dark:text-slate-400">—</span>
                                         )}
                                     </td>
                                 </tr>
@@ -326,12 +326,12 @@ export default function Logs() {
                         <div className="p-4 space-y-1">
                             <p className="font-semibold text-slate-800 dark:text-slate-100">
                                 {photo.emp_name || 'Unknown'}{' '}
-                                <span className="font-mono text-xs text-slate-500">{photo.employee_code}</span>
+                                <span className="font-mono text-xs text-slate-600">{photo.employee_code}</span>
                             </p>
                             <p className="text-sm text-slate-600 dark:text-slate-300 tabular-nums">
                                 {formatTimestamp(photo.punch_time).datetime}
                             </p>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">
+                            <p className="text-xs text-slate-600 dark:text-slate-400">
                                 {photo.is_geofence_verified
                                     ? 'Inside an approved work location'
                                     : 'Location was not verified'}

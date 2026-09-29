@@ -87,7 +87,7 @@ export default function GenericCrud({ title, endpoint, columns }) {
                 <>
                     <ListSearch label={`Search ${title.toLowerCase()}`} placeholder={`Search ${title.toLowerCase()}…`} value={pager.query} onChange={pager.setQuery} />
                     {pager.isFiltered && (
-                        <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums whitespace-nowrap">
+                        <span className="text-xs text-slate-600 dark:text-slate-400 tabular-nums whitespace-nowrap">
                             {pager.matched} of {pager.total}
                         </span>
                     )}

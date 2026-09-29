@@ -114,14 +114,14 @@ export default function ShiftMaster() {
                     <div className="py-16 text-center">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load shifts</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchShifts}>Try again</Button>
                     </div>
                 ) : shifts.length === 0 ? (
                     <div className="py-16 text-center">
-                        <Clock size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <Clock size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No shifts yet</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
                             A shift defines the start and end of a working day before schedules can use it.
                         </p>
                     </div>
@@ -146,8 +146,8 @@ export default function ShiftMaster() {
                                         </div>
                                     </div>
                                     <div className="flex gap-1 shrink-0">
-                                        <button onClick={() => handleEdit(shift)} aria-label="Edit shift" className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg transition-colors"><Edit2 size={16} /></button>
-                                        <button onClick={() => handleDelete(shift.id)} aria-label="Delete shift" className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-lg transition-colors"><Trash2 size={16} /></button>
+                                        <button onClick={() => handleEdit(shift)} aria-label="Edit shift" className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg transition-colors"><Edit2 size={16} /></button>
+                                        <button onClick={() => handleDelete(shift.id)} aria-label="Delete shift" className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-lg transition-colors"><Trash2 size={16} /></button>
                                     </div>
                                 </div>
 
@@ -156,24 +156,24 @@ export default function ShiftMaster() {
                                         <Sun size={14} className="text-amber-500 dark:text-amber-400" />
                                         {shift.start_time?.substring(0, 5) || '—'}
                                     </span>
-                                    <span className="text-slate-400 dark:text-slate-500">→</span>
+                                    <span className="text-slate-500 dark:text-slate-400">→</span>
                                     <span className="inline-flex items-center gap-1.5 text-slate-800 dark:text-slate-100 font-semibold tabular-nums">
-                                        <Moon size={14} className="text-slate-500 dark:text-slate-400" />
+                                        <Moon size={14} className="text-slate-600 dark:text-slate-400" />
                                         {shift.end_time?.substring(0, 5) || '—'}
                                     </span>
                                 </div>
 
                                 <dl className="grid grid-cols-3 gap-2 pt-3 border-t border-slate-100 dark:border-slate-700 text-center">
                                     <div>
-                                        <dt className="text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400 font-bold">Grace</dt>
+                                        <dt className="text-[11px] uppercase tracking-[0.06em] text-slate-600 dark:text-slate-400 font-bold">Grace</dt>
                                         <dd className="text-sm font-semibold text-slate-800 dark:text-slate-100 tabular-nums">{shift.grace_in_minutes || 0}m</dd>
                                     </div>
                                     <div>
-                                        <dt className="text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400 font-bold">Late After</dt>
+                                        <dt className="text-[11px] uppercase tracking-[0.06em] text-slate-600 dark:text-slate-400 font-bold">Late After</dt>
                                         <dd className="text-sm font-semibold text-slate-800 dark:text-slate-100 tabular-nums">{shift.late_threshold_minutes || 15}m</dd>
                                     </div>
                                     <div>
-                                        <dt className="text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400 font-bold">Break</dt>
+                                        <dt className="text-[11px] uppercase tracking-[0.06em] text-slate-600 dark:text-slate-400 font-bold">Break</dt>
                                         <dd className="text-sm font-semibold text-slate-800 dark:text-slate-100 tabular-nums">
                                             {shift.break_duration_minutes > 0 ? `${shift.break_duration_minutes}m` : '—'}
                                         </dd>

@@ -49,11 +49,11 @@ function ModeCard({ active, icon: Icon, title, subtitle, onClick }) {
             }`}
         >
             <div className="flex items-center justify-between mb-1">
-                <Icon size={20} className={active ? 'text-slate-500' : 'text-slate-400'} />
-                {active && <Check size={16} className="text-slate-500" />}
+                <Icon size={20} className={active ? 'text-slate-600' : 'text-slate-500'} />
+                {active && <Check size={16} className="text-slate-600" />}
             </div>
             <p className="font-semibold text-slate-800 dark:text-slate-100">{title}</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400">{subtitle}</p>
+            <p className="text-xs text-slate-600 dark:text-slate-400">{subtitle}</p>
         </button>
     );
 }
@@ -108,7 +108,7 @@ export default function ThemeSettings() {
             <section className="space-y-3">
                 <div>
                     <h3 className="font-semibold text-slate-800 dark:text-slate-100">Appearance</h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                    <p className="text-xs text-slate-600 dark:text-slate-400">
                         A per-browser choice — it will not change the app for anyone else.
                     </p>
                 </div>
@@ -130,7 +130,7 @@ export default function ThemeSettings() {
                     />
                 </div>
 
-                <p className="flex items-center gap-2 text-xs text-slate-400 dark:text-slate-500">
+                <p className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                     <Monitor size={13} />
                     Without a saved choice the app follows your operating system.
                 </p>
@@ -140,7 +140,7 @@ export default function ThemeSettings() {
             <section className="space-y-3">
                 <div>
                     <h3 className="font-semibold text-slate-800 dark:text-slate-100">Colour scheme</h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                    <p className="text-xs text-slate-600 dark:text-slate-400">
                         Used across buttons, charts and status badges. Preview here, then apply it to the
                         whole company at the bottom of this tab.
                     </p>
@@ -186,7 +186,7 @@ export default function ThemeSettings() {
             <section className="space-y-3">
                 <div>
                     <h3 className="font-semibold text-slate-800 dark:text-slate-100">Custom colours</h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                    <p className="text-xs text-slate-600 dark:text-slate-400">
                         Match the app to your own branding. Changing any colour switches the scheme to Custom.
                     </p>
                 </div>
@@ -209,9 +209,9 @@ export default function ThemeSettings() {
                             />
                             <div className="min-w-0">
                                 <p className="text-sm font-medium text-slate-700 dark:text-slate-200">{label}</p>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{hint}</p>
+                                <p className="text-xs text-slate-600 dark:text-slate-400 truncate">{hint}</p>
                             </div>
-                            <code className="ml-auto text-[11px] font-mono text-slate-400 dark:text-slate-500 shrink-0">
+                            <code className="ml-auto text-[11px] font-mono text-slate-500 dark:text-slate-400 shrink-0">
                                 {(themeColors[key] || '').toUpperCase()}
                             </code>
                         </label>
@@ -254,7 +254,7 @@ export default function ThemeSettings() {
                         Reset to defaults
                     </button>
                 </div>
-                <p className="flex items-start gap-2 text-xs text-slate-500 dark:text-slate-400">
+                <p className="flex items-start gap-2 text-xs text-slate-600 dark:text-slate-400">
                     <Users size={13} className="mt-0.5 shrink-0" />
                     Colour changes preview in this browser straight away. Press <strong>Apply to everyone</strong> to
                     make them the company&apos;s colours — the same scheme will then load on every machine and for
@@ -262,7 +262,7 @@ export default function ThemeSettings() {
                 </p>
             </section>
 
-            <p className="flex items-start gap-2 text-xs text-slate-400 dark:text-slate-500 pt-2 border-t border-slate-100 dark:border-slate-700">
+            <p className="flex items-start gap-2 text-xs text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-100 dark:border-slate-700">
                 <Palette size={13} className="mt-0.5 shrink-0" />
                 Light and dark stay a per-browser choice — someone working at night should not darken the
                 app for the whole company. The colour scheme, once applied, is shared by everyone.

@@ -134,13 +134,13 @@ export default function PayrollExport() {
             toolbar={
                 <>
                     <ListSearch label="Search payroll rows" placeholder="Search by name or code…" value={pager.query} onChange={pager.setQuery} />
-                    <label htmlFor="pay-from" className="text-xs text-slate-500 dark:text-slate-400">From</label>
+                    <label htmlFor="pay-from" className="text-xs text-slate-600 dark:text-slate-400">From</label>
                     <input id="pay-from" type="date" className="field-sm !h-8 !py-0 w-auto" value={range.from}
                            onChange={e => setRange(r => ({ ...r, from: e.target.value }))} />
-                    <label htmlFor="pay-to" className="text-xs text-slate-500 dark:text-slate-400">to</label>
+                    <label htmlFor="pay-to" className="text-xs text-slate-600 dark:text-slate-400">to</label>
                     <input id="pay-to" type="date" className="field-sm !h-8 !py-0 w-auto" value={range.to}
                            onChange={e => setRange(r => ({ ...r, to: e.target.value }))} />
-                    <label htmlFor="pay-template" className="text-xs text-slate-500 dark:text-slate-400">Format</label>
+                    <label htmlFor="pay-template" className="text-xs text-slate-600 dark:text-slate-400">Format</label>
                     <select id="pay-template" className="field-sm !h-8 !py-0 w-auto min-w-[12rem]" value={template} onChange={e => setTemplate(e.target.value)}>
                         {templates.map(t => <option key={t.key} value={t.key}>{t.name}</option>)}
                     </select>
@@ -154,7 +154,7 @@ export default function PayrollExport() {
             {(selected || readiness || totalUncollected > 0) && (
                 <div className="m-4 sm:mx-6 space-y-4">
                     {selected && (
-                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                        <p className="text-xs text-slate-600 dark:text-slate-400">
                             {selected.description}
                             <span className="block mt-1 font-mono text-[11px]">{selected.columns.join(' · ')}</span>
                         </p>
@@ -222,14 +222,14 @@ export default function PayrollExport() {
                     <div className="py-20 text-center px-6">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not build the summary</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchSummary}>Try again</Button>
                     </div>
                 ) : !data || data.rows.length === 0 ? (
                     <div className="py-20 text-center px-6">
-                        <Calculator size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <Calculator size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Nothing to export</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
                             No attendance for {range.from} to {range.to}.
                         </p>
                     </div>
@@ -266,7 +266,7 @@ export default function PayrollExport() {
                                 ))}
                             </tbody>
                         </table>
-                        <p className="px-4 sm:px-6 py-3 text-xs text-slate-500 dark:text-slate-400">
+                        <p className="px-4 sm:px-6 py-3 text-xs text-slate-600 dark:text-slate-400">
                             {data.rows.length} employee(s) · {range.from} to {range.to} · figures come from the same
                             computation as the muster roll, so the register and this file cannot disagree.
                         </p>

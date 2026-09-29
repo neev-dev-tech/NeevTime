@@ -16,7 +16,7 @@ const BADGE_MANUAL = 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark
 const CELL_MONO = 'font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold';
 const CELL_STRONG = 'font-semibold text-slate-800 dark:text-slate-100';
 const FIELD ='text-sm rounded-lg px-3 py-2 border border-slate-200 dark:border-slate-600 bg-app-surface text-slate-700 dark:text-slate-100 focus:outline-none focus:border-slate-400 dark:focus:border-slate-500';
-const FIELD_LABEL = 'block text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-1';
+const FIELD_LABEL = 'block text-[11px] font-bold uppercase tracking-[0.09em] text-slate-600 dark:text-slate-400 mb-1';
 
 const dash = (v) => (v === null || v === undefined || v === '' ? '—' : v);
 
@@ -311,15 +311,15 @@ export default function DatabaseTools() {
 
     const STATS = [
         { label: 'DB Size', value: dbStats?.database_size || '—', icon: Database, tint: 'text-slate-600 dark:text-slate-400', ring: 'bg-slate-50 dark:bg-slate-900/30', breakAll: true },
-        { label: 'Employees', value: dbStats?.total_employees ?? 0, icon: FileText, tint: 'text-emerald-600 dark:text-emerald-400', ring: 'bg-emerald-50 dark:bg-emerald-900/30' },
+        { label: 'Employees', value: dbStats?.total_employees ?? 0, icon: FileText, tint: 'text-emerald-700 dark:text-emerald-400', ring: 'bg-emerald-50 dark:bg-emerald-900/30' },
         { label: 'Departments', value: dbStats?.total_departments ?? 0, icon: HardDrive, tint: 'text-slate-600 dark:text-slate-400', ring: 'bg-slate-50 dark:bg-slate-900/30' },
-        { label: 'Logs', value: dbStats?.total_attendance_logs ?? 0, icon: Clock, tint: 'text-amber-600 dark:text-amber-400', ring: 'bg-amber-50 dark:bg-amber-900/30' },
+        { label: 'Logs', value: dbStats?.total_attendance_logs ?? 0, icon: Clock, tint: 'text-amber-700 dark:text-amber-400', ring: 'bg-amber-50 dark:bg-amber-900/30' },
         { label: 'Holidays', value: dbStats?.total_holidays ?? 0, icon: Calendar, tint: 'text-rose-600 dark:text-rose-400', ring: 'bg-rose-50 dark:bg-rose-900/30' },
         {
             label: 'Last Backup',
             value: dbStats?.last_backup ? formatDate(dbStats.last_backup) : 'Never',
             icon: CheckCircle,
-            tint: 'text-slate-500 dark:text-slate-400',
+            tint: 'text-slate-600 dark:text-slate-400',
             ring: 'bg-slate-100 dark:bg-slate-700',
             small: true
         }
@@ -362,7 +362,7 @@ export default function DatabaseTools() {
                                 <div className={`w-8 h-8 shrink-0 rounded-lg grid place-items-center ${stat.ring} ${stat.tint}`}>
                                     <Icon size={16} />
                                 </div>
-                                <div className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">
+                                <div className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-600 dark:text-slate-400">
                                     {stat.label}
                                 </div>
                             </div>
@@ -376,7 +376,7 @@ export default function DatabaseTools() {
 
             {/* Warning */}
             <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 flex items-start gap-3">
-                <div className="p-2 bg-amber-100 dark:bg-amber-900/50 rounded-lg text-amber-600 dark:text-amber-400 flex-shrink-0">
+                <div className="p-2 bg-amber-100 dark:bg-amber-900/50 rounded-lg text-amber-700 dark:text-amber-400 flex-shrink-0">
                     <AlertTriangle size={20} />
                 </div>
                 <div>
@@ -391,10 +391,10 @@ export default function DatabaseTools() {
             <div className="card-base !p-0 overflow-hidden">
                 <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900/50">
                     <h3 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                        <Clock size={18} className="text-slate-500 dark:text-slate-400" />
+                        <Clock size={18} className="text-slate-600 dark:text-slate-400" />
                         Backup History
                     </h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
                         Every snapshot stored on the server, newest first.
                     </p>
                 </div>
@@ -409,21 +409,21 @@ export default function DatabaseTools() {
                     <div className="py-16 text-center">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load backups</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchData}>Try again</Button>
                     </div>
                 ) : backups.length === 0 ? (
                     <div className="py-16 text-center">
-                        <Database size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <Database size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No backups available</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
                             Create your first backup to secure your data.
                         </p>
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
-                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
+                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-600 dark:text-slate-400">
                                 <tr>
                                     <th className="px-5 py-3 font-semibold w-12">#</th>
                                     <th className="px-5 py-3 font-semibold whitespace-nowrap">Backup Name</th>
@@ -436,7 +436,7 @@ export default function DatabaseTools() {
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                                 {backups.map((backup, idx) => (
                                     <tr key={backup.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
-                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{idx + 1}</td>
+                                        <td className="px-5 py-3 text-slate-500 dark:text-slate-400 tabular-nums">{idx + 1}</td>
                                         <td className="px-5 py-3">
                                             <div className="flex items-center gap-3 min-w-0">
                                                 <span
@@ -463,7 +463,7 @@ export default function DatabaseTools() {
                                                 <span className={CELL_STRONG}>
                                                     {formatDate(backup.created_at)}
                                                 </span>
-                                                <span className="text-xs text-slate-400 dark:text-slate-500 tabular-nums">
+                                                <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">
                                                     {backup.created_at ? formatTime(backup.created_at) : ''}
                                                 </span>
                                             </div>
@@ -506,7 +506,7 @@ export default function DatabaseTools() {
                 )}
 
                 {!loading && !error && backups.length > 0 && (
-                    <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
+                    <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-400">
                         {backups.length} backup{backups.length === 1 ? '' : 's'}
                     </div>
                 )}
@@ -516,10 +516,10 @@ export default function DatabaseTools() {
             <div className="card-base !p-0 overflow-hidden">
                 <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900/50">
                     <h3 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                        <RefreshCw size={18} className="text-slate-500 dark:text-slate-400" />
+                        <RefreshCw size={18} className="text-slate-600 dark:text-slate-400" />
                         Recompute Attendance Summaries
                     </h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
                         Rebuilds daily summaries from raw punches for a date range — run after imports, device re-syncs or rule changes. Manual entries and regularizations may be recalculated.
                     </p>
                 </div>
@@ -552,10 +552,10 @@ export default function DatabaseTools() {
             <div className="card-base !p-0 overflow-hidden">
                 <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900/50">
                     <h3 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                        <Clock size={18} className="text-slate-500 dark:text-slate-400" />
+                        <Clock size={18} className="text-slate-600 dark:text-slate-400" />
                         Automatic Backup Settings
                     </h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
                         Schedule for the unattended snapshots the server takes on its own.
                     </p>
                 </div>
@@ -613,7 +613,7 @@ export default function DatabaseTools() {
                                     {Array.from({ length: 31 }, (_, i) => i + 1)
                                         .map((d) => <option key={d} value={String(d)}>{d}</option>)}
                                 </select>
-                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                <p className="text-xs text-slate-600 dark:text-slate-400">
                                     A date that does not exist in a short month runs on the last day
                                     instead of being skipped.
                                 </p>
@@ -637,13 +637,13 @@ export default function DatabaseTools() {
                                 onChange={(e) => setAutoBackup(p => ({ ...p, backup_retention_count: Number(e.target.value) }))}
                                 className={`${FIELD} w-full`}
                             />
-                            <p className="text-xs text-slate-500 dark:text-slate-400">
+                            <p className="text-xs text-slate-600 dark:text-slate-400">
                                 Older automatic backups are deleted once this many exist.
                             </p>
                         </div>
                         <div className="space-y-3 md:col-span-2">
                             <label className={FIELD_LABEL}>Second copy — where backups also go</label>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">
+                            <p className="text-xs text-slate-600 dark:text-slate-400">
                                 A dump beside the database survives a bad migration. It does not survive the
                                 disk, the machine, or the room. Pick somewhere else for a copy of every backup.
                             </p>
@@ -661,7 +661,7 @@ export default function DatabaseTools() {
 
                             {destinations.filter((d) => d.key === destKey).map((d) => (
                                 <div key={d.key} className="space-y-3 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
-                                    <p className="text-xs text-slate-500 dark:text-slate-400">{d.description}</p>
+                                    <p className="text-xs text-slate-600 dark:text-slate-400">{d.description}</p>
 
                                     {d.fields.map((f) => (
                                         <div key={f.key} className="space-y-1">
@@ -681,10 +681,10 @@ export default function DatabaseTools() {
                                                 autoComplete={f.secret ? 'new-password' : 'off'}
                                             />
                                             {f.help && (
-                                                <p className="text-[11px] text-slate-500 dark:text-slate-400">{f.help}</p>
+                                                <p className="text-[11px] text-slate-600 dark:text-slate-400">{f.help}</p>
                                             )}
                                             {f.secret && (
-                                                <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                                                <p className="text-[11px] text-slate-600 dark:text-slate-400">
                                                     Stored encrypted. Leave the dots as they are to keep the saved value.
                                                 </p>
                                             )}
@@ -709,7 +709,7 @@ export default function DatabaseTools() {
                                         </Button>
                                     </div>
 
-                                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                                    <p className="text-[11px] text-slate-600 dark:text-slate-400">
                                         Test writes a small file, reads it back and deletes it. Listing a folder
                                         proves less: read access without write access passes a listing and then
                                         fails every backup.

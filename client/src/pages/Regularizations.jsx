@@ -93,16 +93,16 @@ export default function Regularizations() {
                     <div className="py-20 text-center px-6">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load requests</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchRequests}>Try again</Button>
                     </div>
                 ) : requests.length === 0 ? (
                     <div className="py-20 text-center px-6">
-                        <Clock size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <Clock size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">
                             {filterLabel ? `No ${filterLabel} requests` : 'No requests yet'}
                         </h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
                             {filterLabel
                                 ? `Nothing is currently ${filterLabel}. Switch the filter to see other requests.`
                                 : 'Employees have not submitted any missed-punch corrections.'}
@@ -127,7 +127,7 @@ export default function Regularizations() {
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                             {pager.view.map((req, idx) => (
                                 <tr key={req.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
-                                    <td className={`${LIST_EDGE_FIRST} pr-4 py-3 text-slate-400 dark:text-slate-500 tabular-nums`}>{(pager.page - 1) * pager.pageSize + idx + 1}</td>
+                                    <td className={`${LIST_EDGE_FIRST} pr-4 py-3 text-slate-500 dark:text-slate-400 tabular-nums`}>{(pager.page - 1) * pager.pageSize + idx + 1}</td>
                                     <td className="px-4 py-3 font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">
                                         {req.employee_name || '—'}
                                     </td>
@@ -157,7 +157,7 @@ export default function Regularizations() {
                                             {req.reason ? `“${req.reason}”` : '—'}
                                         </span>
                                         {req.review_comment && (
-                                            <span className="block text-xs text-slate-500 dark:text-slate-400 mt-0.5 not-italic">
+                                            <span className="block text-xs text-slate-600 dark:text-slate-400 mt-0.5 not-italic">
                                                 Review note: {req.review_comment}
                                             </span>
                                         )}
@@ -174,7 +174,7 @@ export default function Regularizations() {
                                                         placeholder="Comment (optional)"
                                                         value={comment[req.id] || ''}
                                                         onChange={e => setComment(c => ({ ...c, [req.id]: e.target.value }))}
-                                                        className="text-xs w-40 rounded-lg border border-slate-200 dark:border-slate-600 bg-app-surface text-slate-700 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 px-2 py-1.5 focus:outline-none focus:border-slate-400 dark:focus:border-slate-500"
+                                                        className="text-xs w-40 rounded-lg border border-slate-200 dark:border-slate-600 bg-app-surface text-slate-700 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 px-2 py-1.5 focus:outline-none focus:border-slate-400 dark:focus:border-slate-500"
                                                     />
                                                     <Button variant="success" size="sm" icon={CheckCircle} onClick={() => review(req.id, 'approved')}>
                                                         Approve
@@ -184,7 +184,7 @@ export default function Regularizations() {
                                                     </Button>
                                                 </div>
                                             ) : (
-                                                <span className="text-slate-400 dark:text-slate-500">—</span>
+                                                <span className="text-slate-500 dark:text-slate-400">—</span>
                                             )}
                                         </div>
                                     </td>

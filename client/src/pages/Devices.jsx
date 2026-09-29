@@ -191,9 +191,9 @@ const DataView = ({ title, endpoint, columns }) => {
                     </div>
                 ) : pager.matched === 0 ? (
                     <div className="py-20 px-6 text-center">
-                        <Inbox size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <Inbox size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No records found</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
                             There are no {title.toLowerCase()} to display at this time.
                         </p>
                     </div>
@@ -547,7 +547,7 @@ export default function Devices() {
                                     <p className="text-sm font-mono text-slate-600 dark:text-slate-300 mt-0.5 break-all">
                                         {awaitingApproval.map(d => d.serial_number).join(', ')}
                                     </p>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
                                         While device approval is enforced, punches from an unapproved reader are
                                         refused and cannot be recovered afterwards. Approve it below, or retire it
                                         if you do not recognise the serial.
@@ -613,7 +613,7 @@ export default function Devices() {
                                         reader nobody installed does not blend into the fleet. */}
                                     {device.approval_status === 'pending' && (
                                         <div className="flex items-center gap-2 flex-wrap px-2.5 py-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
-                                            <ShieldAlert size={14} className="text-amber-600 dark:text-amber-400 shrink-0" />
+                                            <ShieldAlert size={14} className="text-amber-700 dark:text-amber-400 shrink-0" />
                                             <span className="text-xs text-amber-800 dark:text-amber-300 flex-1 min-w-0">
                                                 New device — not yet approved
                                             </span>
@@ -829,7 +829,7 @@ export default function Devices() {
                             <input id="dev-serial" className="input-base font-mono" placeholder="From the device's System Info screen" value={form.serial_number} onChange={e => setForm({ ...form, serial_number: e.target.value })} disabled={!!editingDevice} />
                         </div>
                         <div>
-                            <label htmlFor="dev-ip" className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">Device IP <span className="font-normal text-slate-400">(optional)</span></label>
+                            <label htmlFor="dev-ip" className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">Device IP <span className="font-normal text-slate-500">(optional)</span></label>
                             <input id="dev-ip" className="input-base font-mono" placeholder="e.g. 10.20.0.8" value={form.ip_address} onChange={e => setForm({ ...form, ip_address: e.target.value })} />
                         </div>
                         <div>
@@ -862,7 +862,7 @@ export default function Devices() {
             >
                 <div className="text-center">
                     <h3 className="font-semibold text-slate-800 dark:text-slate-100">{confirmation.title}</h3>
-                    <p className="my-2 text-sm text-slate-500 dark:text-slate-400">{confirmation.message}</p>
+                    <p className="my-2 text-sm text-slate-600 dark:text-slate-400">{confirmation.message}</p>
                     <div className="flex justify-center gap-2 mt-4">
                         <Button variant="secondary" onClick={() => setConfirmation({ show: false, action: null })}>Cancel</Button>
                         <Button variant={confirmation.action === 'delete' ? 'dangerSolid' : 'primary'} onClick={processDataTransfer}>Confirm</Button>

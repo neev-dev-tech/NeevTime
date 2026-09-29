@@ -82,7 +82,7 @@ export default function ManualEntry() {
         setSubmitting(false);
     };
 
-    const fieldClass = 'w-full rounded-lg border border-slate-200 dark:border-slate-600 bg-app-surface text-sm text-slate-700 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 pl-10 pr-4 py-2 focus:outline-none focus:border-slate-400 dark:focus:border-slate-500';
+    const fieldClass = 'w-full rounded-lg border border-slate-200 dark:border-slate-600 bg-app-surface text-sm text-slate-700 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 pl-10 pr-4 py-2 focus:outline-none focus:border-slate-400 dark:focus:border-slate-500';
     const labelClass = 'block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5';
     const MODES = [
         { key: 'both', label: 'IN and OUT' },
@@ -112,7 +112,7 @@ export default function ManualEntry() {
                     <AlertCircle size={20} className="text-rose-500 dark:text-rose-400" />
                     <div className="min-w-0">
                         <p className="font-bold text-slate-800 dark:text-slate-100 text-sm">Could not load employees</p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">{error}</p>
+                        <p className="text-xs text-slate-600 dark:text-slate-400">{error}</p>
                     </div>
                     <div className="ml-auto">
                         <Button variant="secondary" size="sm" icon={RefreshCw} onClick={fetchEmployees}>Try again</Button>
@@ -125,7 +125,7 @@ export default function ManualEntry() {
                 <div>
                     <label htmlFor="me-employee" className={labelClass}>Employee *</label>
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={18} />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400" size={18} />
                         <input
                             id="me-employee"
                             type="text"
@@ -148,14 +148,14 @@ export default function ManualEntry() {
                             ) : filteredEmployees.length === 0 ? (
                                 <div className="p-4 text-center">
                                     <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">No matching employees</p>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                                    <p className="text-xs text-slate-600 dark:text-slate-400">
                                         Nothing matches “{searchTerm}”. Try a different name or code.
                                     </p>
                                 </div>
                             ) : filteredEmployees.slice(0, 8).map(emp => (
                                 <button key={emp.id} type="button" onClick={() => { setSelectedEmployee(emp); setSearchTerm(''); }}
                                     className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors flex items-center gap-2">
-                                    <User size={16} className="text-slate-400 dark:text-slate-500" />
+                                    <User size={16} className="text-slate-500 dark:text-slate-400" />
                                     <span className="font-semibold text-slate-800 dark:text-slate-100">{emp.name || '—'}</span>
                                     <span className="ml-auto font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">
                                         {emp.employee_code || '—'}
@@ -163,7 +163,7 @@ export default function ManualEntry() {
                                 </button>
                             ))}
                             {!loading && filteredEmployees.length > 8 && (
-                                <p className="px-4 py-2 text-xs text-slate-500 dark:text-slate-400">
+                                <p className="px-4 py-2 text-xs text-slate-600 dark:text-slate-400">
                                     {filteredEmployees.length - 8} more — keep typing to narrow down
                                 </p>
                             )}
@@ -184,13 +184,13 @@ export default function ManualEntry() {
                                 onClick={() => setMode(m.key)}
                                 className={`px-3 h-8 rounded-md text-sm font-medium transition-colors ${mode === m.key
                                     ? 'bg-app-surface text-slate-900 dark:text-white shadow-sm'
-                                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'}`}
+                                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'}`}
                             >
                                 {m.label}
                             </button>
                         ))}
                     </div>
-                    <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
+                    <p className="mt-1.5 text-xs text-slate-600 dark:text-slate-400">
                         {mode === 'both'
                             ? 'Replaces both times for the day.'
                             : `Keeps the ${mode === 'in' ? 'OUT' : 'IN'} already recorded for the day and sets only the ${mode === 'in' ? 'IN' : 'OUT'}.`}
@@ -201,7 +201,7 @@ export default function ManualEntry() {
                 <div>
                     <label htmlFor="me-date" className={labelClass}>Date *</label>
                     <div className="relative">
-                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={18} />
+                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400" size={18} />
                         <input id="me-date" type="date" className={`${fieldClass} tabular-nums`} value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} required />
                     </div>
                 </div>
@@ -212,7 +212,7 @@ export default function ManualEntry() {
                         <div>
                             <label htmlFor="me-in" className={labelClass}>IN time *</label>
                             <div className="relative">
-                                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={18} />
+                                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400" size={18} />
                                 <input id="me-in" type="time" className={`${fieldClass} tabular-nums`} value={form.in_time} onChange={e => setForm({ ...form, in_time: e.target.value })} required />
                             </div>
                         </div>
@@ -221,7 +221,7 @@ export default function ManualEntry() {
                         <div>
                             <label htmlFor="me-out" className={labelClass}>OUT time *</label>
                             <div className="relative">
-                                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={18} />
+                                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400" size={18} />
                                 <input id="me-out" type="time" className={`${fieldClass} tabular-nums`} value={form.out_time} onChange={e => setForm({ ...form, out_time: e.target.value })} required />
                             </div>
                             <label className="mt-2 inline-flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300 cursor-pointer">
@@ -246,7 +246,7 @@ export default function ManualEntry() {
                     />
                 </div>
 
-                <p className="text-xs text-slate-500 dark:text-slate-400">
+                <p className="text-xs text-slate-600 dark:text-slate-400">
                     A corrected day is locked: device punches that arrive later for this date won't change it. Use OUT only to add the out-time afterwards.
                 </p>
 

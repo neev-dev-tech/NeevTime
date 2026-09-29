@@ -55,7 +55,7 @@ export const FormInput = ({
             )}
             <div className="relative">
                 {prefix && (
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">
                         {prefix}
                     </span>
                 )}
@@ -71,7 +71,7 @@ export const FormInput = ({
                     className={`
                         w-full border rounded-[10px] px-4 py-2.5 text-sm dark:text-slate-100
                         transition-ui duration-200 ease-in-out
-                        placeholder:text-slate-400
+                        placeholder:text-slate-500
                         ${prefix ? 'pl-10' : ''}
                         ${suffix || isPassword ? 'pr-10' : ''}
                         ${hasError
@@ -91,12 +91,12 @@ export const FormInput = ({
                     <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
                     >
                         {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
                 ) : suffix ? (
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">
                         {suffix}
                     </span>
                 ) : null}
@@ -122,12 +122,12 @@ export const FormInput = ({
                         {error}
                     </span>
                 ) : hint ? (
-                    <span className="text-xs text-slate-400">{hint}</span>
+                    <span className="text-xs text-slate-500">{hint}</span>
                 ) : (
                     <span></span>
                 )}
                 {showCharCount && maxLength && (
-                    <span className={`text-xs ${value?.length >= maxLength ? 'text-red-500' : 'text-slate-400'}`}>
+                    <span className={`text-xs ${value?.length >= maxLength ? 'text-red-500' : 'text-slate-500'}`}>
                         {value?.length || 0}/{maxLength}
                     </span>
                 )}
@@ -199,7 +199,7 @@ export const FormSelect = ({
                 </select>
                 {/* Dropdown arrow */}
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                    <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                     </svg>
                 </div>
@@ -256,7 +256,7 @@ export const FormTextarea = ({
                 className={`
                     w-full border rounded-[10px] px-4 py-2.5 text-sm dark:text-slate-100 resize-none
                     transition-ui duration-200 ease-in-out
-                    placeholder:text-slate-400
+                    placeholder:text-slate-500
                     ${hasError
                         ? 'border-red-400 bg-red-50/50 dark:bg-red-900/20 focus:border-red-500'
                         : isValid
@@ -276,7 +276,7 @@ export const FormTextarea = ({
                     <span></span>
                 )}
                 {showCharCount && maxLength && (
-                    <span className={`text-xs ${value?.length >= maxLength ? 'text-red-500' : 'text-slate-400'}`}>
+                    <span className={`text-xs ${value?.length >= maxLength ? 'text-red-500' : 'text-slate-500'}`}>
                         {value?.length || 0}/{maxLength}
                     </span>
                 )}
@@ -347,7 +347,7 @@ export const FormToggle = ({
         <div className={`flex items-center justify-between ${className}`}>
             <div>
                 {label && <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{label}</span>}
-                {description && <p className="text-xs text-slate-400 mt-0.5">{description}</p>}
+                {description && <p className="text-xs text-slate-500 mt-0.5">{description}</p>}
             </div>
             <label className={`relative inline-flex items-center cursor-pointer ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`}>
                 <input
@@ -412,7 +412,7 @@ export const FormRadioGroup = ({
                             checked={value === (opt.value ?? opt)}
                             onChange={onChange}
                             disabled={disabled}
-                            className="w-4 h-4 text-slate-500 border-slate-300 dark:border-slate-600 focus:ring-slate-400"
+                            className="w-4 h-4 text-slate-600 border-slate-300 dark:border-slate-600 focus:ring-slate-400"
                         />
                         <span className="text-sm text-slate-700 dark:text-slate-300">{opt.label ?? opt}</span>
                     </label>

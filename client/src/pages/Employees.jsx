@@ -23,7 +23,7 @@ const CELL_STRONG = 'font-semibold text-slate-800 dark:text-slate-100';
 const CELL_SOFT = 'text-slate-600 dark:text-slate-300';
 const CELL_MONO = 'font-mono text-xs tabular-nums text-slate-600 dark:text-slate-300';
 const BIO_ON = 'text-emerald-500';
-const BIO_OFF = 'text-slate-300 dark:text-slate-600';
+const BIO_OFF = 'text-slate-300 dark:text-slate-500';
 
 // Quick filters: each is a predicate over one employee row.
 const QUICK_FILTERS = [
@@ -446,7 +446,7 @@ export default function Employees() {
 
     const allSelected = filteredEmployees.length > 0 && filteredEmployees.every(e => selectedIds.includes(e.id));
     const someSelected = selectedIds.length > 0 && !allSelected;
-    const TH = 'px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400 whitespace-nowrap';
+    const TH = 'px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-600 dark:text-slate-400 whitespace-nowrap';
 
     const pickFirst = selectedIds.length ? null : 'Tick one or more employees in the list first.';
 
@@ -569,15 +569,15 @@ export default function Employees() {
                         <div className="py-20 text-center px-6">
                             <AlertCircle size={40} className="mx-auto mb-3 text-rose-400" />
                             <h3 className="font-semibold text-slate-800 dark:text-slate-100 mb-1">Could not load employees</h3>
-                            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                            <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{error}</p>
                             <Button variant="secondary" icon={RefreshCw} onClick={fetchEmployees}>Try again</Button>
                         </div>
                     ) : filteredEmployees.length === 0 ? (
                         employees.length > 0 ? (
                             <div className="py-20 text-center px-6">
-                                <SearchX size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                                <SearchX size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                                 <h3 className="font-semibold text-slate-800 dark:text-slate-100 mb-1">No matching employees</h3>
-                                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+                                <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
                                     {searchQuery ? <>Nothing matches &ldquo;{searchQuery}&rdquo; in this view.</> : 'Nobody fits this filter.'}
                                 </p>
                                 <Button variant="tonal" size="sm" onClick={() => { setSearchQuery(''); setQuickFilter('all'); }}>Clear search and filters</Button>
@@ -585,10 +585,10 @@ export default function Employees() {
                         ) : (
                             <div className="py-20 text-center px-6">
                                 <div className="mx-auto mb-4 grid place-items-center w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800">
-                                    <Users size={26} className="text-slate-400 dark:text-slate-500" />
+                                    <Users size={26} className="text-slate-500 dark:text-slate-400" />
                                 </div>
                                 <h3 className="font-semibold text-slate-900 dark:text-slate-100">No employees yet</h3>
-                                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
+                                <p className="mt-1 text-sm text-slate-600 dark:text-slate-400 max-w-sm mx-auto">
                                     Add people one by one, import a CSV from your HR system, or let them appear as they enrol on a device.
                                 </p>
                                 <div className="mt-5 flex items-center justify-center gap-2">
@@ -643,10 +643,10 @@ export default function Employees() {
                                             </td>
                                             <td className="px-4 py-3">
                                                 <div className={CELL_SOFT}>{dash(emp.department_name)}</div>
-                                                {emp.designation && <div className="text-xs text-slate-400 dark:text-slate-500">{emp.designation}</div>}
+                                                {emp.designation && <div className="text-xs text-slate-500 dark:text-slate-400">{emp.designation}</div>}
                                             </td>
                                             <td className="px-4 py-3 whitespace-nowrap">
-                                                <span className={`inline-flex items-center gap-1.5 text-[13px] ${isActive ? 'text-slate-700 dark:text-slate-200' : 'text-slate-500 dark:text-slate-400'}`}>
+                                                <span className={`inline-flex items-center gap-1.5 text-[13px] ${isActive ? 'text-slate-700 dark:text-slate-200' : 'text-slate-600 dark:text-slate-400'}`}>
                                                     <span aria-hidden="true" className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'}`} />
                                                     <span className="capitalize">{dash(emp.status)}</span>
                                                 </span>
@@ -676,7 +676,7 @@ export default function Employees() {
                                                 </div>
                                             </td>
                                             <td className="px-4 py-3 whitespace-nowrap">
-                                                <span className={`text-[13px] ${appOn ? 'text-slate-700 dark:text-slate-200' : 'text-slate-400 dark:text-slate-500'}`}>
+                                                <span className={`text-[13px] ${appOn ? 'text-slate-700 dark:text-slate-200' : 'text-slate-500 dark:text-slate-400'}`}>
                                                     {appOn ? 'Enabled' : 'Off'}
                                                 </span>
                                             </td>
@@ -825,7 +825,7 @@ export default function Employees() {
                                 <span className="block text-sm font-medium text-slate-800 dark:text-slate-100">
                                     Door access only — no attendance
                                 </span>
-                                <span className="block text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                <span className="block text-xs text-slate-600 dark:text-slate-400 mt-0.5">
                                     Biometric entry works as normal. They are not counted in the headcount,
                                     never marked absent, and their punches are not sent to the HRMS.
                                 </span>
@@ -869,7 +869,7 @@ export default function Employees() {
                 <div className="p-8 text-center">
                     <div className="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl p-8 hover:bg-slate-50/50 dark:hover:bg-slate-700/50 hover:border-saffron/50 transition-ui cursor-pointer group">
                         <div className="w-16 h-16 bg-slate-50 dark:bg-slate-900/30 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                            <Upload className="text-slate-500 dark:text-slate-400" size={28} />
+                            <Upload className="text-slate-600 dark:text-slate-400" size={28} />
                         </div>
                         <h4 className="text-lg font-bold text-charcoal dark:text-slate-100 mb-2">Upload CSV File</h4>
                         <p className="text-sm text-slate-grey dark:text-slate-400 mb-6">Format: ID, Name, DeptID</p>

@@ -442,11 +442,11 @@ export default function Dashboard() {
             {/* Title bar */}
             <div className="flex items-center gap-x-4 gap-y-1 px-4 sm:px-6 min-h-14 py-2.5 border-b border-slate-200 dark:border-slate-800 flex-wrap">
                 <h1 className="text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-50">Dashboard</h1>
-                <span className="text-[13px] text-slate-500 dark:text-slate-400">
+                <span className="text-[13px] text-slate-600 dark:text-slate-400">
                     {new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })}
                 </span>
                 {minsAgo !== null && (
-                    <span className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                    <span className="inline-flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
                         <Circle size={6} className="text-emerald-500 fill-emerald-500" aria-hidden="true" />
                         Live · updated {minsAgo === 0 ? 'just now' : `${minsAgo} min${minsAgo === 1 ? '' : 's'} ago`}
                     </span>
@@ -454,7 +454,7 @@ export default function Dashboard() {
                 <button
                     type="button"
                     onClick={fetchAllData}
-                    className="ml-auto grid place-items-center w-8 h-8 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+                    className="ml-auto grid place-items-center w-8 h-8 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
                     aria-label="Refresh"
                     title="Refresh"
                 >
@@ -477,13 +477,13 @@ export default function Dashboard() {
             {/* Band 1: today at a glance + what needs attention */}
             <section className="grid lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] border-b border-slate-200 dark:border-slate-800">
                 <div className="px-4 sm:px-6 py-5 lg:border-r border-slate-200 dark:border-slate-800">
-                    <h2 className="text-[13px] font-medium text-slate-500 dark:text-slate-400">Present today</h2>
+                    <h2 className="text-[13px] font-medium text-slate-600 dark:text-slate-400">Present today</h2>
                     {loading ? (
                         <div className="mt-3 h-12 w-48 rounded-lg bg-slate-100 dark:bg-slate-800 animate-pulse" />
                     ) : (
                         <div className="mt-1 flex items-baseline gap-3 flex-wrap">
                             <span className="text-5xl font-semibold tracking-tight text-slate-900 dark:text-slate-50">{stats.present}</span>
-                            <span className="text-lg text-slate-400">of {stats.employees}</span>
+                            <span className="text-lg text-slate-500 dark:text-slate-400">of {stats.employees}</span>
                             <span className="text-sm font-medium text-slate-700 dark:text-slate-200">{stats.attendanceRate}% attendance</span>
                             {yesterdayStats.attendanceRate > 0 && presentDelta !== 0 && (
                                 <span className={`text-xs font-medium ${presentDelta > 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>
@@ -507,7 +507,7 @@ export default function Dashboard() {
                                 <li key={p.key}>
                                     <button type="button" onClick={() => navigate(p.to)}
                                         className="w-full text-left rounded-lg px-2.5 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/60">
-                                        <span className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                                        <span className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
                                             <span aria-hidden="true" className={`w-2 h-2 rounded-full ${p.bar}`} />{p.label}
                                         </span>
                                         <span className="mt-0.5 block text-xl font-semibold tabular-nums text-slate-900 dark:text-slate-100">{p.value}</span>
@@ -519,7 +519,7 @@ export default function Dashboard() {
                 </div>
 
                 <div className="px-4 sm:px-6 py-5 border-t lg:border-t-0 border-slate-200 dark:border-slate-800">
-                    <h2 className="text-[13px] font-medium text-slate-500 dark:text-slate-400">Needs attention</h2>
+                    <h2 className="text-[13px] font-medium text-slate-600 dark:text-slate-400">Needs attention</h2>
                     {attention.length === 0 ? (
                         <div className="mt-4 flex items-center gap-3 text-sm text-slate-700 dark:text-slate-200">
                             <CheckCircle size={18} className="text-emerald-500 shrink-0" />
@@ -536,9 +536,9 @@ export default function Dashboard() {
                                         </span>
                                         <span className="flex-1 min-w-0">
                                             <span className="block text-sm font-medium text-slate-800 dark:text-slate-100">{item.label}</span>
-                                            {item.hint && <span className="block text-xs text-slate-500 dark:text-slate-400">{item.hint}</span>}
+                                            {item.hint && <span className="block text-xs text-slate-600 dark:text-slate-400">{item.hint}</span>}
                                         </span>
-                                        <ChevronRight size={15} className="text-slate-300 dark:text-slate-600 shrink-0" />
+                                        <ChevronRight size={15} className="text-slate-300 dark:text-slate-500 shrink-0" />
                                     </button>
                                 </li>
                             ))}
@@ -559,9 +559,9 @@ export default function Dashboard() {
                 ].map(k => (
                     <button key={k.label} type="button" onClick={() => navigate(k.to)}
                         className="text-left px-4 sm:px-6 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/40">
-                        <span className="block text-xs text-slate-500 dark:text-slate-400">{k.label}</span>
+                        <span className="block text-xs text-slate-600 dark:text-slate-400">{k.label}</span>
                         <span className="mt-1 block text-2xl font-semibold tabular-nums text-slate-900 dark:text-slate-50">{loading ? '–' : k.value}</span>
-                        <span className={`mt-0.5 block text-xs ${k.bad ? 'text-rose-600 dark:text-rose-400 font-medium' : 'text-slate-400 dark:text-slate-500'}`}>{k.hint}</span>
+                        <span className={`mt-0.5 block text-xs ${k.bad ? 'text-rose-600 dark:text-rose-400 font-medium' : 'text-slate-500 dark:text-slate-400'}`}>{k.hint}</span>
                     </button>
                 ))}
             </section>
@@ -571,7 +571,7 @@ export default function Dashboard() {
                 <div className="px-4 sm:px-6 py-5 lg:border-r border-slate-200 dark:border-slate-800">
                     <div className="flex items-baseline justify-between gap-3">
                         <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Exceptions, last 7 days</h2>
-                        <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+                        <div className="flex items-center gap-3 text-xs text-slate-600 dark:text-slate-400">
                             <span className="inline-flex items-center gap-1.5"><span className="w-2 h-2 rounded-sm bg-rose-500" aria-hidden="true" />Absent</span>
                             <span className="inline-flex items-center gap-1.5"><span className="w-2 h-2 rounded-sm bg-amber-400" aria-hidden="true" />Late</span>
                         </div>
@@ -582,43 +582,43 @@ export default function Dashboard() {
                             const total = (d.absent || 0) + (d.late || 0);
                             return (
                                 <div key={d.fullDate} className="flex flex-col items-center justify-end h-full group" title={`${d.date}: ${d.absent} absent, ${d.late} late`}>
-                                    <span className="mb-1 text-[11px] tabular-nums text-slate-500 dark:text-slate-400 opacity-0 group-hover:opacity-100">{total}</span>
+                                    <span className="mb-1 text-[11px] tabular-nums text-slate-600 dark:text-slate-400 opacity-0 group-hover:opacity-100">{total}</span>
                                     <div className="w-full max-w-[36px] flex flex-col justify-end gap-[2px]" style={{ height: `${(total / trendMax) * 100}%` }}>
                                         {d.late > 0 && <div className="bg-amber-400 rounded-t-[4px]" style={{ flex: d.late }} />}
                                         {d.absent > 0 && <div className={`bg-rose-500 ${d.late > 0 ? '' : 'rounded-t-[4px]'}`} style={{ flex: d.absent }} />}
                                     </div>
                                     <div className="w-full max-w-[36px] h-px bg-slate-200 dark:bg-slate-700" />
-                                    <span className="mt-1.5 text-[11px] text-slate-500 dark:text-slate-400">{d.date}</span>
+                                    <span className="mt-1.5 text-[11px] text-slate-600 dark:text-slate-400">{d.date}</span>
                                 </div>
                             );
                         })}
                     </div>
                     {attendanceTrends.every(d => !d.absent && !d.late) && (
-                        <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">No absences or late arrivals recorded in the last 7 days.</p>
+                        <p className="mt-2 text-xs text-slate-600 dark:text-slate-400">No absences or late arrivals recorded in the last 7 days.</p>
                     )}
                 </div>
 
                 <div className="px-4 sm:px-6 py-5 border-t lg:border-t-0 border-slate-200 dark:border-slate-800">
                     <div className="flex items-baseline justify-between gap-3">
                         <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Latest punches</h2>
-                        <button type="button" onClick={() => navigate('/logs')} className="text-xs font-medium text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100">View all</button>
+                        <button type="button" onClick={() => navigate('/logs')} className="text-xs font-medium text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100">View all</button>
                     </div>
                     {recentLogs.length === 0 ? (
-                        <p className="mt-6 text-sm text-slate-500 dark:text-slate-400">No punches yet today. They appear here as employees check in.</p>
+                        <p className="mt-6 text-sm text-slate-600 dark:text-slate-400">No punches yet today. They appear here as employees check in.</p>
                     ) : (
                         <ul className="mt-2 divide-y divide-slate-100 dark:divide-slate-800">
                             {recentLogs.slice(0, 7).map((log, i) => {
                                 const isIn = String(log.punch_type).toUpperCase() === 'IN';
                                 return (
                                     <li key={log.id || i} className="flex items-center gap-3 py-2">
-                                        <span className={`grid place-items-center w-7 h-7 rounded-full shrink-0 ${isIn ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'}`}>
+                                        <span className={`grid place-items-center w-7 h-7 rounded-full shrink-0 ${isIn ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'}`}>
                                             {isIn ? <LogIn size={13} /> : <LogOutIcon size={13} />}
                                         </span>
                                         <span className="flex-1 min-w-0">
                                             <span className="block text-sm font-medium text-slate-800 dark:text-slate-100 truncate">{log.employee_name}</span>
-                                            <span className="block text-xs text-slate-400 truncate">{isIn ? 'In' : 'Out'} · {log.device_name || '—'}</span>
+                                            <span className="block text-xs text-slate-500 truncate">{isIn ? 'In' : 'Out'} · {log.device_name || '—'}</span>
                                         </span>
-                                        <span className="text-xs tabular-nums text-slate-500 dark:text-slate-400">{formatTimeShort(log.punch_time || log.timestamp)}</span>
+                                        <span className="text-xs tabular-nums text-slate-600 dark:text-slate-400">{formatTimeShort(log.punch_time || log.timestamp)}</span>
                                     </li>
                                 );
                             })}
@@ -631,17 +631,17 @@ export default function Dashboard() {
             <section className="pb-6">
                 <div className="px-4 sm:px-6 pt-5 pb-3 flex items-baseline justify-between gap-3">
                     <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Today by department</h2>
-                    <button type="button" onClick={() => navigate('/attendance-register')} className="text-xs font-medium text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100">Open register</button>
+                    <button type="button" onClick={() => navigate('/attendance-register')} className="text-xs font-medium text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100">Open register</button>
                 </div>
                 {byDepartment.length === 0 ? (
-                    <p className="px-4 sm:px-6 text-sm text-slate-500 dark:text-slate-400">No attendance rows for today yet.</p>
+                    <p className="px-4 sm:px-6 text-sm text-slate-600 dark:text-slate-400">No attendance rows for today yet.</p>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
                             <thead className="bg-slate-50 dark:bg-slate-900 border-y border-slate-200 dark:border-slate-800">
                                 <tr>
                                     {['Department', 'Staff', 'Present', 'Late', 'Not in', 'Attendance'].map((h, i) => (
-                                        <th key={h} className={`px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400 ${i === 0 ? 'pl-4 sm:pl-6' : 'text-right'} ${i === 5 ? 'pr-4 sm:pr-6 w-56' : ''}`}>{h}</th>
+                                        <th key={h} className={`px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-600 dark:text-slate-400 ${i === 0 ? 'pl-4 sm:pl-6' : 'text-right'} ${i === 5 ? 'pr-4 sm:pr-6 w-56' : ''}`}>{h}</th>
                                     ))}
                                 </tr>
                             </thead>
@@ -678,6 +678,6 @@ export default function Dashboard() {
 // Icon chip tones for the attention list; status colours only where they mean status.
 const TONE = {
     critical: 'bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400',
-    warning: 'bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400',
-    neutral: 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
+    warning: 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400',
+    neutral: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
 };

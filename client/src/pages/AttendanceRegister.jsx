@@ -149,9 +149,9 @@ export default function AttendanceRegister() {
     const isFiltered = Boolean(filters.status || filters.department || filters.late);
 
     const stats = [
-        { label: 'Present', value: summary.present, icon: CheckCircle, tone: 'text-emerald-600 dark:text-emerald-400' },
+        { label: 'Present', value: summary.present, icon: CheckCircle, tone: 'text-emerald-700 dark:text-emerald-400' },
         { label: 'Absent', value: summary.absent, icon: XCircle, tone: 'text-rose-600 dark:text-rose-400' },
-        { label: 'Late Arrival', value: summary.late, icon: Clock, tone: 'text-amber-600 dark:text-amber-400' },
+        { label: 'Late Arrival', value: summary.late, icon: Clock, tone: 'text-amber-700 dark:text-amber-400' },
         { label: 'Miss Punch', value: summary.missPunch, icon: AlertTriangle, tone: 'text-slate-600 dark:text-slate-400' }
     ];
 
@@ -240,16 +240,16 @@ export default function AttendanceRegister() {
                     <div className="py-20 text-center px-6">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load attendance</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchData}>Try again</Button>
                     </div>
                 ) : data.length === 0 ? (
                     <div className="py-20 text-center px-6">
-                        <Calendar size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <Calendar size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">
                             {isFiltered ? 'No matching records' : 'No attendance records'}
                         </h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
                             {isFiltered
                                 ? 'Nothing matches the current filters. Clear them or pick another date.'
                                 : 'Change the date or check your shifts configuration.'}
@@ -277,7 +277,7 @@ export default function AttendanceRegister() {
                                 recycling the wrong rows on filter changes. */}
                             {pager.view.map((row, idx) => (
                                 <tr key={`${row.employee_code}-${row.date}`} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
-                                    <td className={`${LIST_EDGE_FIRST} pr-4 py-3 text-slate-400 dark:text-slate-500 tabular-nums`}>{(pager.page - 1) * pager.pageSize + idx + 1}</td>
+                                    <td className={`${LIST_EDGE_FIRST} pr-4 py-3 text-slate-500 dark:text-slate-400 tabular-nums`}>{(pager.page - 1) * pager.pageSize + idx + 1}</td>
                                     <td className="px-4 py-3 font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">
                                         {row.name || '—'}
                                     </td>
@@ -310,7 +310,7 @@ export default function AttendanceRegister() {
                                                 {row.late_minutes} min
                                             </span>
                                         ) : (
-                                            <span className="text-slate-400 dark:text-slate-500">—</span>
+                                            <span className="text-slate-500 dark:text-slate-400">—</span>
                                         )}
                                     </td>
                                     <td className={`pl-4 ${LIST_EDGE_LAST} py-3 whitespace-nowrap`}>

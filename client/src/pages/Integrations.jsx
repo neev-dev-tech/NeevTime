@@ -249,7 +249,7 @@ const Integrations = () => {
                         <span className="text-2xl leading-none" aria-hidden="true">{typeInfo.icon}</span>
                         <div className="min-w-0">
                             <h3 className="font-semibold text-slate-900 dark:text-slate-100 truncate">{integration.name}</h3>
-                            <p className="text-sm text-slate-500 dark:text-slate-400 truncate">{typeInfo.name}</p>
+                            <p className="text-sm text-slate-600 dark:text-slate-400 truncate">{typeInfo.name}</p>
                         </div>
                     </div>
                     <Pill tone={integration.is_active ? 'good' : 'neutral'}>
@@ -258,7 +258,7 @@ const Integrations = () => {
                 </div>
 
                 {integration.base_url && (
-                    <p className="mt-3 text-sm text-slate-500 dark:text-slate-400 break-all">{integration.base_url}</p>
+                    <p className="mt-3 text-sm text-slate-600 dark:text-slate-400 break-all">{integration.base_url}</p>
                 )}
 
                 <div className="mt-3 flex flex-wrap gap-1.5">
@@ -268,7 +268,7 @@ const Integrations = () => {
                 </div>
 
                 <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between gap-2">
-                    <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">
+                    <span className="text-xs text-slate-600 dark:text-slate-400 tabular-nums">
                         Last sync: {integration.last_sync_at ? formatDateTime(integration.last_sync_at) : 'Never'}
                     </span>
                     {integration.last_sync_status && (
@@ -329,9 +329,9 @@ const Integrations = () => {
                 </div>
             ) : integrations.length === 0 ? (
                 <div className="py-20 text-center">
-                    <Network size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                    <Network size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                     <h3 className="font-semibold text-slate-800 dark:text-slate-100">No integrations configured</h3>
-                    <p className="mt-1 mb-5 text-sm text-slate-500 dark:text-slate-400">Connect your attendance system with an external HRMS</p>
+                    <p className="mt-1 mb-5 text-sm text-slate-600 dark:text-slate-400">Connect your attendance system with an external HRMS</p>
                     <Button mutating variant="primary" icon={Plus} onClick={() => handleOpenDialog()}>Add your first integration</Button>
                 </div>
             ) : (
@@ -365,7 +365,7 @@ const Integrations = () => {
                             onClick={() => setTabValue(i)}
                             className={`px-3 h-8 rounded-md text-sm font-medium transition-colors ${tabValue === i
                                 ? 'bg-app-surface text-slate-900 dark:text-white shadow-sm'
-                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'}`}
+                                : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'}`}
                         >
                             {t}
                         </button>
@@ -429,7 +429,7 @@ const Integrations = () => {
 
                                 return (
                                     <div className="mt-2">
-                                        <p className="text-xs text-slate-500 dark:text-slate-400">{typeInfo.description}</p>
+                                        <p className="text-xs text-slate-600 dark:text-slate-400">{typeInfo.description}</p>
                                         <div className="mt-2 flex flex-wrap gap-1.5">
                                             {has.map(c => <Pill key={c} tone="good">{LABELS[c] || c}</Pill>)}
                                             {missing.map(c => <Pill key={c}>{`No ${(LABELS[c] || c).toLowerCase()}`}</Pill>)}
@@ -459,7 +459,7 @@ const Integrations = () => {
 
                 {tabValue === 1 && (() => {
                     const typeInfo = integrationTypes.find(t => t.type === formData.type);
-                    if (!typeInfo) return <Loader2 size={20} className="animate-spin text-slate-400" />;
+                    if (!typeInfo) return <Loader2 size={20} className="animate-spin text-slate-500" />;
 
                     const requiredFields = typeInfo.required_fields || [];
                     const optionalFields = typeInfo.optional_fields || [];
@@ -607,11 +607,11 @@ const Integrations = () => {
                 }
             >
                 {syncLogs.length === 0 ? (
-                    <p className="py-8 text-center text-sm text-slate-500 dark:text-slate-400">No sync runs recorded yet.</p>
+                    <p className="py-8 text-center text-sm text-slate-600 dark:text-slate-400">No sync runs recorded yet.</p>
                 ) : (
                     <div className="overflow-x-auto -mx-1">
                         <table className="w-full text-sm text-left">
-                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
+                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-600 dark:text-slate-400">
                                 <tr>
                                     {['Time', 'Type', 'Direction', 'Status', 'Processed', 'Success', 'Failed', 'Message'].map(h => (
                                         <th key={h} className="px-3 py-2.5 font-semibold whitespace-nowrap">{h}</th>
@@ -672,7 +672,7 @@ function IconAction({ label, icon: Icon, onClick, disabled, spin, danger }) {
             aria-label={label}
             className={`grid place-items-center w-9 h-9 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${danger
                 ? 'text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/40'
-                : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100'}`}
+                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100'}`}
         >
             <Icon size={17} className={spin ? 'animate-spin' : ''} />
         </button>
@@ -708,7 +708,7 @@ function Field({ id, label, helper, value, onChange, multiline, required, ...res
                     {...rest}
                 />
             )}
-            {helper && <p id={helperId} className="mt-1 text-xs text-slate-500 dark:text-slate-400">{helper}</p>}
+            {helper && <p id={helperId} className="mt-1 text-xs text-slate-600 dark:text-slate-400">{helper}</p>}
         </div>
     );
 }

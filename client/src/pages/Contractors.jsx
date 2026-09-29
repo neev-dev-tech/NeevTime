@@ -75,7 +75,7 @@ export default function Contractors() {
 
     const field = (label, key, type = 'text', placeholder = '') => (
         <div>
-            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">{label}</label>
+            <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">{label}</label>
             <input type={type} className="field" placeholder={placeholder}
                    value={editing?.[key] ?? ''}
                    onChange={e => setEditing({ ...editing, [key]: e.target.value })} />
@@ -114,9 +114,9 @@ export default function Contractors() {
                     </div>
                 ) : rows.length === 0 ? (
                     <div className="py-20 px-6 text-center">
-                        <Building2 size={28} className="mx-auto text-slate-300 dark:text-slate-600 mb-2" />
+                        <Building2 size={28} className="mx-auto text-slate-300 dark:text-slate-500 mb-2" />
                         <h3 className="font-semibold text-slate-800 dark:text-slate-100">No contractors yet</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
                             Add the agencies that supply staff here — drivers, security, housekeeping —
                             then set each person's contractor on their profile.
                         </p>
@@ -138,8 +138,8 @@ export default function Contractors() {
                                 <tr key={row.id} className={`hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors ${row.is_active ? '' : 'opacity-50'}`}>
                                     <td className={`${LIST_EDGE_FIRST} pr-4 py-3`}>
                                         <p className="font-semibold text-slate-800 dark:text-slate-100">{row.name}</p>
-                                        {row.code && <p className="text-xs font-mono text-slate-500">{row.code}</p>}
-                                        {!row.is_active && <span className="text-[11px] uppercase font-bold text-slate-400">Inactive</span>}
+                                        {row.code && <p className="text-xs font-mono text-slate-600">{row.code}</p>}
+                                        {!row.is_active && <span className="text-[11px] uppercase font-bold text-slate-500">Inactive</span>}
                                     </td>
                                     <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
                                         {row.contact_person || '—'}
@@ -153,11 +153,11 @@ export default function Contractors() {
                                     <td className={`pl-4 ${LIST_EDGE_LAST} py-3`}>
                                         <div className="flex gap-1 justify-end">
                                             <button onClick={() => openSummary(row)} title="Hours this month"
-                                                    className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500">
+                                                    className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600">
                                                 <FileText size={15} />
                                             </button>
                                             <button onClick={() => setEditing(row)} title="Edit"
-                                                    className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500">
+                                                    className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600">
                                                 <Edit2 size={15} />
                                             </button>
                                             <button onClick={() => remove(row)} title="Delete"
@@ -242,7 +242,7 @@ export default function Contractors() {
                                         ['Overtime (min)', summary.totals.overtime_minutes],
                                     ].map(([label, value]) => (
                                         <div key={label} className="rounded-xl border border-slate-200 dark:border-slate-700 p-3">
-                                            <p className="text-[11px] uppercase tracking-wide font-bold text-slate-500">{label}</p>
+                                            <p className="text-[11px] uppercase tracking-wide font-bold text-slate-600">{label}</p>
                                             <p className="text-xl font-bold tabular-nums text-slate-800 dark:text-slate-100">{value}</p>
                                         </div>
                                     ))}
@@ -257,7 +257,7 @@ export default function Contractors() {
                                         <span className="font-bold tabular-nums"> {summary.totals.billable.toLocaleString()}</span>
                                     </p>
                                 ) : (
-                                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                                    <p className="text-xs text-slate-600 dark:text-slate-400">
                                         No hourly rate set, so no amount is shown. Hours are what this reports.
                                     </p>
                                 )}
@@ -265,13 +265,13 @@ export default function Contractors() {
                                 {/* Headers with no rows read as a rendering
                                     fault, not as an empty month. Say which it is. */}
                                 {summary.employees.length === 0 ? (
-                                    <p className="text-sm text-slate-500 dark:text-slate-400 py-4 text-center">
+                                    <p className="text-sm text-slate-600 dark:text-slate-400 py-4 text-center">
                                         Nobody is billed to this contractor yet. Set an employee's
                                         contractor on their profile and they appear here.
                                     </p>
                                 ) : (
                                 <table className="w-full text-left text-sm">
-                                    <thead className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500">
+                                    <thead className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-600">
                                         <tr>
                                             <th className="py-2">Employee</th>
                                             <th className="py-2 text-right">Days</th>
@@ -284,7 +284,7 @@ export default function Contractors() {
                                             <tr key={e.employee_code}>
                                                 <td className="py-2">
                                                     <span className="font-semibold text-slate-800 dark:text-slate-100">{e.name}</span>
-                                                    <span className="ml-2 font-mono text-xs text-slate-500">{e.employee_code}</span>
+                                                    <span className="ml-2 font-mono text-xs text-slate-600">{e.employee_code}</span>
                                                 </td>
                                                 <td className="py-2 text-right tabular-nums">{e.days_present}</td>
                                                 <td className="py-2 text-right tabular-nums">{(Number(e.minutes_worked) / 60).toFixed(1)}</td>
@@ -295,7 +295,7 @@ export default function Contractors() {
                                 </table>
                                 )}
 
-                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                <p className="text-xs text-slate-600 dark:text-slate-400">
                                     Hours come from the same daily attendance the registers and payroll use.
                                 </p>
                             </>

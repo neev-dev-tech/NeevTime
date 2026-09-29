@@ -184,7 +184,7 @@ export default function Login({ setAuth }) {
                         <div className="space-y-2">
                             <label htmlFor="login-username" className="text-sm font-medium text-charcoal">Username</label>
                             <div className="relative">
-                                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                                 <input
                                     id="login-username"
                                     type="text"
@@ -201,7 +201,7 @@ export default function Login({ setAuth }) {
                         <div className="space-y-2">
                             <label htmlFor="login-password" className="text-sm font-medium text-charcoal">Password</label>
                             <div className="relative">
-                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                                 <input
                                     id="login-password"
                                     type="password"
@@ -243,7 +243,7 @@ export default function Login({ setAuth }) {
                         <div className="space-y-2">
                             <label htmlFor="login-new" className="text-sm font-medium text-charcoal">New password</label>
                             <div className="relative">
-                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                                 <input
                                     id="login-new"
                                     type="password"
@@ -260,7 +260,7 @@ export default function Login({ setAuth }) {
                         <div className="space-y-2">
                             <label htmlFor="login-confirm" className="text-sm font-medium text-charcoal">Confirm new password</label>
                             <div className="relative">
-                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                                 <input
                                     id="login-confirm"
                                     type="password"

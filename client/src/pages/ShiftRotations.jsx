@@ -103,9 +103,9 @@ export default function ShiftRotations() {
                     </div>
                 ) : rotations.length === 0 ? (
                     <div className="py-20 px-6 text-center">
-                        <RefreshCw size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <RefreshCw size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No rotations yet</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 max-w-xl mx-auto">
+                        <p className="text-sm text-slate-600 dark:text-slate-400 max-w-xl mx-auto">
                             Use Add rotation to define an ordered list of shifts; each crew steps
                             through it, offset so the shifts stay covered. The nightly generator keeps
                             five weeks of schedule ahead.
@@ -149,17 +149,17 @@ export default function ShiftRotations() {
                         <input className="field w-full" placeholder="Name, e.g. AB Weekly" value={form.name}
                                onChange={e => setForm({ ...form, name: e.target.value })} />
                         <div className="grid grid-cols-2 gap-3">
-                            <label className="text-xs text-slate-500">Days per slot
+                            <label className="text-xs text-slate-600">Days per slot
                                 <input type="number" min="1" className="field mt-1" value={form.period_days}
                                        onChange={e => setForm({ ...form, period_days: Number(e.target.value) || 7 })} /></label>
-                            <label className="text-xs text-slate-500">Pattern starts (a slot-1 day)
+                            <label className="text-xs text-slate-600">Pattern starts (a slot-1 day)
                                 <input type="date" className="field mt-1" value={form.anchor_date}
                                        onChange={e => setForm({ ...form, anchor_date: e.target.value })} /></label>
                         </div>
                         <div className="space-y-2">
                             {form.shift_sequence.map((v, i) => (
                                 <div key={i} className="flex gap-2 items-center">
-                                    <span className="text-xs w-12 text-slate-500">Slot {i + 1}</span>
+                                    <span className="text-xs w-12 text-slate-600">Slot {i + 1}</span>
                                     <select className="field flex-1" value={v}
                                             onChange={e => setForm({ ...form, shift_sequence: form.shift_sequence.map((x, j) => j === i ? e.target.value : x) })}>
                                         <option value="">Pick a shift…</option>
@@ -191,7 +191,7 @@ export default function ShiftRotations() {
                                 {crew.map(m => (
                                     <p key={m.id} className="py-1.5 text-slate-600 dark:text-slate-300">
                                         <span className="font-mono text-xs">{m.employee_code}</span> {m.name}
-                                        <span className="text-xs text-slate-400"> · offset {m.slot_offset}, from {toDateOnly(m.starts_on)}</span>
+                                        <span className="text-xs text-slate-500"> · offset {m.slot_offset}, from {toDateOnly(m.starts_on)}</span>
                                     </p>
                                 ))}
                             </div>
@@ -201,10 +201,10 @@ export default function ShiftRotations() {
                             {employees.map(e => <option key={e.id} value={e.id}>{e.employee_code} — {e.name}</option>)}
                         </select>
                         <div className="grid grid-cols-2 gap-3">
-                            <label className="text-xs text-slate-500">Slot offset (staggers crews)
+                            <label className="text-xs text-slate-600">Slot offset (staggers crews)
                                 <input type="number" min="0" className="field mt-1" value={crewForm.slot_offset}
                                        onChange={e => setCrewForm({ ...crewForm, slot_offset: Number(e.target.value) || 0 })} /></label>
-                            <label className="text-xs text-slate-500">Starts on
+                            <label className="text-xs text-slate-600">Starts on
                                 <input type="date" className="field mt-1" value={crewForm.starts_on}
                                        onChange={e => setCrewForm({ ...crewForm, starts_on: e.target.value })} /></label>
                         </div>

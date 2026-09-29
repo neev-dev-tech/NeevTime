@@ -156,16 +156,16 @@ const Geofences = () => {
                     <div className="py-20 text-center px-6">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load locations</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{loadError}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{loadError}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchGeofences}>Try again</Button>
                     </div>
                 ) : filteredGeofences.length === 0 ? (
                     <div className="py-20 text-center px-6">
-                        <MapPin size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <MapPin size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">
                             {searchTerm ? 'No matching locations' : 'No locations yet'}
                         </h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
                             {searchTerm
                                 ? 'No geofence matches that name or address.'
                                 : 'Add a geofence to limit mobile punches to a GPS boundary.'}
@@ -186,7 +186,7 @@ const Geofences = () => {
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                             {pager.view.map((fence, idx) => (
                                 <tr key={fence.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
-                                    <td className={`${LIST_EDGE_FIRST} pr-4 py-3 text-slate-400 dark:text-slate-500 tabular-nums`}>{(pager.page - 1) * pager.pageSize + idx + 1}</td>
+                                    <td className={`${LIST_EDGE_FIRST} pr-4 py-3 text-slate-500 dark:text-slate-400 tabular-nums`}>{(pager.page - 1) * pager.pageSize + idx + 1}</td>
                                     <td className="px-4 py-3 font-semibold text-slate-800 dark:text-slate-100">{fence.name || '—'}</td>
                                     <td className="px-4 py-3 font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold whitespace-nowrap">
                                         {Number(fence.latitude).toFixed(5)}, {Number(fence.longitude).toFixed(5)}

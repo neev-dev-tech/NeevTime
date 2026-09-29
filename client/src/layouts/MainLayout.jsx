@@ -122,7 +122,7 @@ export default function MainLayout({ children }) {
                   title={mod.name}
                   className={`w-full flex flex-col items-center gap-1 py-2 rounded-xl transition-ui focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 ${isActive
                     ? 'bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-white'
-                    : 'text-slate-400 hover:bg-slate-50 hover:text-slate-800 dark:text-slate-500 dark:hover:bg-slate-800/60 dark:hover:text-slate-200'}`}
+                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-200'}`}
                 >
                   <mod.icon size={20} />
                   <span className={`text-[11px] leading-none ${isActive ? 'font-semibold' : 'font-medium'}`}>{mod.name}</span>
@@ -140,7 +140,7 @@ export default function MainLayout({ children }) {
             <button
               type="button"
               onClick={() => setNavOpen(false)}
-              className="grid place-items-center w-9 h-9 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 lg:hidden"
+              className="grid place-items-center w-9 h-9 rounded-lg text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 lg:hidden"
               aria-label="Close menu"
             >
               <X size={18} />
@@ -150,7 +150,7 @@ export default function MainLayout({ children }) {
           <nav aria-label={`${activeModule} pages`} className="flex-1 overflow-y-auto px-3 py-3">
             {currentSidebar.map((group, i) => (
               <div key={group.group} className={i === 0 ? '' : 'mt-5'}>
-                <p className="px-3 mb-1 text-xs font-medium text-slate-400 dark:text-slate-500">{group.group}</p>
+                <p className="px-3 mb-1 text-xs font-medium text-slate-500 dark:text-slate-400">{group.group}</p>
                 <ul className="space-y-0.5">
                   {group.items.map((item) => {
                     const itemActive = item.path.includes('?')
@@ -166,7 +166,7 @@ export default function MainLayout({ children }) {
                             : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100'}`}
                         >
                           {itemActive && <span aria-hidden="true" className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-[rgb(var(--brand))]" />}
-                          <item.icon size={15} className={`shrink-0 ${itemActive ? '' : 'text-slate-400 dark:text-slate-500'}`} />
+                          <item.icon size={15} className={`shrink-0 ${itemActive ? '' : 'text-slate-500 dark:text-slate-400'}`} />
                           <span className="truncate">{item.label}</span>
                         </Link>
                       </li>
@@ -206,12 +206,12 @@ export default function MainLayout({ children }) {
           <button
             type="button"
             onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true }))}
-            className="flex items-center justify-center sm:justify-start gap-2.5 w-10 sm:w-full min-w-0 max-w-md h-10 px-0 sm:px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-app-hover/60 text-sm text-slate-400 hover:border-slate-300 dark:hover:border-slate-600 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer"
+            className="flex items-center justify-center sm:justify-start gap-2.5 w-10 sm:w-full min-w-0 max-w-md h-10 px-0 sm:px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-app-hover/60 text-sm text-slate-500 hover:border-slate-300 dark:hover:border-slate-600 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer"
             aria-label="Search employees, devices and pages"
           >
             <Search size={16} aria-hidden="true" />
             <span className="hidden sm:block flex-1 min-w-0 text-left truncate whitespace-nowrap">Search employees, devices, pages…</span>
-            <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded-md border border-slate-200 dark:border-slate-600 bg-app-surface text-[11px] font-medium text-slate-500">⌘K</kbd>
+            <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded-md border border-slate-200 dark:border-slate-600 bg-app-surface text-[11px] font-medium text-slate-600">⌘K</kbd>
           </button>
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
             <DarkModeToggle />
@@ -228,7 +228,7 @@ export default function MainLayout({ children }) {
                 <div className="w-9 h-9 bg-slate-900 dark:bg-slate-100 dark:text-slate-900 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm">
                   {auth?.username?.charAt(0).toUpperCase() || 'U'}
                 </div>
-                <ChevronDown size={14} className={`text-slate-400 transition-transform ${showProfileMenu ? 'rotate-180' : ''}`} />
+                <ChevronDown size={14} className={`text-slate-500 transition-transform ${showProfileMenu ? 'rotate-180' : ''}`} />
               </button>
               <AnimatePresence>
                 {showProfileMenu && (
@@ -241,7 +241,7 @@ export default function MainLayout({ children }) {
                   >
                     <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700 bg-app-hover/50 dark:bg-slate-900/40">
                       <p className="text-sm font-bold text-slate-800 dark:text-slate-100">{auth?.username}</p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">{auth?.role}</p>
+                      <p className="text-xs text-slate-600 dark:text-slate-400">{auth?.role}</p>
                     </div>
                     <div className="py-2">
                       <button onClick={() => { setShowProfileMenu(false); setShowAbout(true); }} className="w-full px-4 py-2 text-left text-sm text-slate-600 dark:text-slate-300 hover:bg-app-hover dark:hover:bg-slate-700 flex items-center gap-3">
@@ -279,7 +279,7 @@ export default function MainLayout({ children }) {
             <div className="text-3xl font-bold mb-2">
               <span className="text-slate-800 dark:text-slate-100">Neev</span><span className="text-slate-900 dark:text-slate-100">Time</span>
             </div>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Simplicity Attendance — biometric attendance management</p>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">Simplicity Attendance — biometric attendance management</p>
             <div className="flex justify-center mb-4"><VersionDisplay /></div>
             <button onClick={() => setShowAbout(false)} className="w-full py-2 bg-slate-900 hover:bg-slate-700 text-white text-sm font-semibold rounded-lg">Close</button>
           </div>

@@ -233,15 +233,15 @@ export default function ImportWizard() {
                             ? 'bg-emerald-500 text-white border-transparent'
                             : step === i + 1
                                 ? 'bg-slate-600 text-white border-transparent scale-110'
-                                : 'bg-app-surface/80 dark:bg-slate-900/70 border-slate-200 dark:border-slate-600 text-slate-400 dark:text-slate-500'
+                                : 'bg-app-surface/80 dark:bg-slate-900/70 border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400'
                             }`}>
                             {step > i + 1 ? <CheckCircle size={18} /> : i + 1}
                         </div>
                         <span className={`text-[11px] font-bold uppercase tracking-[0.09em] text-center ${step === i + 1
                             ? 'text-slate-600 dark:text-slate-400'
                             : step > i + 1
-                                ? 'text-emerald-600 dark:text-emerald-400'
-                                : 'text-slate-400 dark:text-slate-500'
+                                ? 'text-emerald-700 dark:text-emerald-400'
+                                : 'text-slate-500 dark:text-slate-400'
                             }`}>
                             {label}
                         </span>
@@ -297,7 +297,7 @@ export default function ImportWizard() {
                                 <Upload size={30} />
                             </div>
                             <h3 className="font-semibold text-slate-800 dark:text-slate-100">Click to upload or drag and drop</h3>
-                            <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">CSV files only (Max 5MB)</p>
+                            <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">CSV files only (Max 5MB)</p>
                         </div>
 
                         <div className="flex justify-center gap-4">
@@ -324,7 +324,7 @@ export default function ImportWizard() {
                                 <div className="flex items-start justify-between gap-3 flex-wrap">
                                     <div>
                                         <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Match columns</h3>
-                                        <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                                        <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400">
                                             Pick which column in your file holds each field. Matching names are filled in already.
                                         </p>
                                     </div>
@@ -333,7 +333,7 @@ export default function ImportWizard() {
                                             <Button variant="secondary" size="sm" icon={suggesting ? RefreshCw : Sparkles} disabled={suggesting} onClick={suggestColumns}>
                                                 {suggesting ? 'Matching…' : 'Suggest matches'}
                                             </Button>
-                                            <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500 max-w-[240px]">
+                                            <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400 max-w-[240px]">
                                                 Sends column names and two sample values per column to TypeSafe.
                                             </p>
                                         </div>
@@ -344,7 +344,7 @@ export default function ImportWizard() {
                                         <div key={t}>
                                             <label htmlFor={`map-${t}`} className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
                                                 <span className="font-mono">{t}</span>
-                                                <span className="font-normal text-slate-400"> — {FIELD_INFO[t]?.meaning || t}</span>
+                                                <span className="font-normal text-slate-500"> — {FIELD_INFO[t]?.meaning || t}</span>
                                             </label>
                                             <select
                                                 id={`map-${t}`}
@@ -356,7 +356,7 @@ export default function ImportWizard() {
                                                 {headers.map(h => <option key={h} value={h}>{h}</option>)}
                                             </select>
                                             {aiInfo[t] && (
-                                                <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+                                                <p className="mt-1 text-[11px] text-slate-600 dark:text-slate-400">
                                                     Suggested “{aiInfo[t].column}” · {Math.round(aiInfo[t].confidence * 100)}% sure
                                                     {!aiInfo[t].apply && ' — not applied, please confirm'}
                                                 </p>
@@ -381,9 +381,9 @@ export default function ImportWizard() {
                         <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-app-surface/70 dark:bg-slate-800/70 overflow-hidden shadow-sm">
                             {parsedData.length === 0 ? (
                                 <div className="py-16 text-center">
-                                    <FileSpreadsheet size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                                    <FileSpreadsheet size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                                     <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No rows found in this file</h3>
-                                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                                    <p className="text-sm text-slate-600 dark:text-slate-400">
                                         The file needs a header row followed by at least one data row.
                                     </p>
                                 </div>
@@ -391,7 +391,7 @@ export default function ImportWizard() {
                                 <>
                                     <div className="max-h-[400px] overflow-auto custom-scrollbar">
                                         <table className="w-full text-sm text-left">
-                                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400 sticky top-0 z-10">
+                                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-600 dark:text-slate-400 sticky top-0 z-10">
                                                 <tr>
                                                     <th className="px-4 py-3 font-semibold w-12 bg-slate-50 dark:bg-slate-900">#</th>
                                                     {mappedData[0] && Object.keys(mappedData[0]).map(k => (
@@ -402,7 +402,7 @@ export default function ImportWizard() {
                                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                                                 {mappedData.slice(0, 50).map((row, i) => (
                                                     <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
-                                                        <td className="px-4 py-2.5 text-slate-400 dark:text-slate-500 tabular-nums">{i + 1}</td>
+                                                        <td className="px-4 py-2.5 text-slate-500 dark:text-slate-400 tabular-nums">{i + 1}</td>
                                                         {Object.values(row).map((v, j) => (
                                                             <td key={j} className="px-4 py-2.5 text-slate-600 dark:text-slate-300 whitespace-nowrap">
                                                                 {v === '' || v === null || v === undefined ? '—' : v}
@@ -413,7 +413,7 @@ export default function ImportWizard() {
                                             </tbody>
                                         </table>
                                     </div>
-                                    <div className="px-4 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
+                                    <div className="px-4 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-400">
                                         Showing {Math.min(50, parsedData.length)} of {parsedData.length} row{parsedData.length === 1 ? '' : 's'}
                                     </div>
                                 </>
@@ -421,7 +421,7 @@ export default function ImportWizard() {
                         </div>
 
                         <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-700">
-                            <div className="text-xs text-slate-500 dark:text-slate-400">Displaying first 50 rows only</div>
+                            <div className="text-xs text-slate-600 dark:text-slate-400">Displaying first 50 rows only</div>
                             <div className="flex items-center gap-3">
                                 <Button variant="secondary" onClick={() => setStep(2)}>Back</Button>
                                 <Button variant="primary" onClick={handleImport} disabled={importing}>
@@ -437,7 +437,7 @@ export default function ImportWizard() {
                 {step === 4 && result && (
                     <div className="max-w-md mx-auto text-center py-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
                         <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 border ${result.success
-                            ? 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800'
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800'
                             : 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-900/30 dark:text-rose-400 dark:border-rose-800'
                             }`}>
                             {result.success ? <CheckCircle size={40} /> : <AlertCircle size={40} />}

@@ -12,7 +12,7 @@ export default function VersionDisplay({ className = '' }) {
     const buildDate = formatDate(BUILD_DATE);
 
     return (
-        <div className={`flex items-center gap-2 text-sm text-slate-500 ${className}`}>
+        <div className={`flex items-center gap-2 text-sm text-slate-600 ${className}`}>
             <Info size={14} aria-hidden="true" />
             <span>Version {APP_VERSION}</span>
             {BUILD_DATE && (

@@ -7,9 +7,9 @@ import LogoUpload from '../components/LogoUpload';
 import ThemeSettings from '../components/ThemeSettings';
 
 const CATEGORIES = [
-    { id: 'company', label: 'Company', icon: Building, iconClass: 'text-slate-500 dark:text-slate-400' },
-    { id: 'attendance', label: 'Attendance Rules', icon: Timer, iconClass: 'text-slate-500 dark:text-slate-400' },
-    { id: 'weekend', label: 'Weekend Rules', icon: CalendarDays, iconClass: 'text-slate-500 dark:text-slate-400' },
+    { id: 'company', label: 'Company', icon: Building, iconClass: 'text-slate-600 dark:text-slate-400' },
+    { id: 'attendance', label: 'Attendance Rules', icon: Timer, iconClass: 'text-slate-600 dark:text-slate-400' },
+    { id: 'weekend', label: 'Weekend Rules', icon: CalendarDays, iconClass: 'text-slate-600 dark:text-slate-400' },
     { id: 'notifications', label: 'Email/SMTP', icon: Mail, iconClass: 'text-emerald-500 dark:text-emerald-400' },
     { id: 'security', label: 'Security', icon: ShieldCheck, iconClass: 'text-rose-500 dark:text-rose-400' },
     // Employee sign-in: single sign-on and directory settings. The rows were
@@ -20,7 +20,7 @@ const CATEGORIES = [
     // The client secret and LDAP bind password are deliberately NOT here. They
     // come from the environment, so this tab shows what an administrator may
     // safely see on a screen someone else might be standing behind.
-    { id: 'auth', label: 'Employee Sign-in', icon: KeyRound, iconClass: 'text-slate-500 dark:text-slate-400' },
+    { id: 'auth', label: 'Employee Sign-in', icon: KeyRound, iconClass: 'text-slate-600 dark:text-slate-400' },
     // Fields render generically from app_settings, so this tab needed only the
     // entry. Placed next to Email/SMTP because it depends on it: alerting is
     // email-only, and a broken SMTP means no alerts at all.
@@ -30,13 +30,13 @@ const CATEGORIES = [
     // is where people look — the controls previously existed only in a slide-over
     // panel behind a palette icon in the header, which is why the theme toggle
     // was reported as not working when it worked fine.
-    { id: 'appearance', label: 'Appearance', icon: Palette, iconClass: 'text-slate-500 dark:text-slate-400' },
+    { id: 'appearance', label: 'Appearance', icon: Palette, iconClass: 'text-slate-600 dark:text-slate-400' },
     // SMS and WhatsApp tabs removed — the server has no provider integration for
     // either, so every field on them was saved and never read by anything.
     { id: 'reports', label: 'Auto Reports', icon: BarChart3, iconClass: 'text-emerald-500 dark:text-emerald-400' },
     { id: 'pdf', label: 'PDF Settings', icon: FileCheck, iconClass: 'text-amber-500 dark:text-amber-400' },
-    { id: 'database', label: 'Database', icon: DatabaseIcon, iconClass: 'text-slate-500 dark:text-slate-400' },
-    { id: 'timezone', label: 'Timezone', icon: Globe, iconClass: 'text-slate-500 dark:text-slate-400' },
+    { id: 'database', label: 'Database', icon: DatabaseIcon, iconClass: 'text-slate-600 dark:text-slate-400' },
+    { id: 'timezone', label: 'Timezone', icon: Globe, iconClass: 'text-slate-600 dark:text-slate-400' },
 ];
 
 // Zones the app is realistically deployed in. Kept short deliberately — the
@@ -270,19 +270,19 @@ export default function Settings() {
         const isSecret = key.toLowerCase().includes('password') || key.toLowerCase().includes('api_key');
         let shown;
         if (key === 'company_logo') {
-            shown = value ? <img src={value} alt="logo" className="h-10 rounded" /> : <span className="text-slate-400">Not set</span>;
+            shown = value ? <img src={value} alt="logo" className="h-10 rounded" /> : <span className="text-slate-500">Not set</span>;
         } else if (config?.data_type === 'boolean' || value === 'true' || value === 'false') {
-            shown = <span className={`text-xs font-bold uppercase px-2 py-0.5 rounded-full ${String(value) === 'true' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400'}`}>{String(value) === 'true' ? 'On' : 'Off'}</span>;
+            shown = <span className={`text-xs font-bold uppercase px-2 py-0.5 rounded-full ${String(value) === 'true' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400'}`}>{String(value) === 'true' ? 'On' : 'Off'}</span>;
         } else if (isSecret && value) {
-            shown = <span className="font-mono text-slate-500">••••••••</span>;
+            shown = <span className="font-mono text-slate-600">••••••••</span>;
         } else if (value === '' || value === null || value === undefined) {
-            shown = <span className="text-slate-400 dark:text-slate-500 italic">Not set</span>;
+            shown = <span className="text-slate-500 dark:text-slate-400 italic">Not set</span>;
         } else {
             shown = <span className="text-slate-800 dark:text-slate-100 break-words">{String(value)}</span>;
         }
         return (
             <div key={key} className="py-2.5 border-b border-slate-100 dark:border-slate-700/60 grid grid-cols-3 gap-3">
-                <dt className="text-sm text-slate-500 dark:text-slate-400">{labelFor(key)}</dt>
+                <dt className="text-sm text-slate-600 dark:text-slate-400">{labelFor(key)}</dt>
                 <dd className="col-span-2 text-sm">{shown}</dd>
             </div>
         );
@@ -322,7 +322,7 @@ export default function Settings() {
                     <div className="flex-1">
                         <span className="font-medium block mb-1 text-slate-700 dark:text-slate-300 group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors">{label}</span>
                         {config.description && (
-                            <p className="text-xs text-slate-500 dark:text-slate-400">{config.description}</p>
+                            <p className="text-xs text-slate-600 dark:text-slate-400">{config.description}</p>
                         )}
                     </div>
                     <div className={`toggle-switch ml-4 ${value === true || value === 'true' ? 'active' : ''}`}>
@@ -349,7 +349,7 @@ export default function Settings() {
                         className="input-premium transition-ui duration-200"
                     />
                     {config.description && (
-                        <p className="text-xs text-slate-500 dark:text-slate-400 ml-1">{config.description}</p>
+                        <p className="text-xs text-slate-600 dark:text-slate-400 ml-1">{config.description}</p>
                     )}
                 </div>
             );
@@ -377,7 +377,7 @@ export default function Settings() {
                         placeholder="Not set — configure it in Database Tools"
                         className="input-premium opacity-60 cursor-not-allowed"
                     />
-                    <p className="text-xs text-slate-500 dark:text-slate-400 ml-1">
+                    <p className="text-xs text-slate-600 dark:text-slate-400 ml-1">
                         Set this in <a href="/database/backup" className="underline font-medium">System &rarr; Database &rarr; Backup</a>, under &ldquo;Second copy&rdquo; —
                         which can also send to a Windows share, S3, SFTP or SharePoint — and tests
                         the destination before saving.
@@ -401,7 +401,7 @@ export default function Settings() {
                         className="input-premium transition-ui duration-200"
                     />
                     {config.description && (
-                        <p className="text-xs text-slate-500 dark:text-slate-400 ml-1">{config.description}</p>
+                        <p className="text-xs text-slate-600 dark:text-slate-400 ml-1">{config.description}</p>
                     )}
                 </div>
             );
@@ -421,7 +421,7 @@ export default function Settings() {
                         {TIMEZONES.map(tz => <option key={tz} value={tz}>{tz}</option>)}
                     </select>
                     {config.description && (
-                        <p className="text-xs text-slate-500 dark:text-slate-400 ml-1">{config.description}</p>
+                        <p className="text-xs text-slate-600 dark:text-slate-400 ml-1">{config.description}</p>
                     )}
                 </div>
             );
@@ -442,7 +442,7 @@ export default function Settings() {
                         className="input-premium resize-y min-h-[100px] transition-ui duration-200"
                     />
                     {config.description && (
-                        <p className="text-xs text-slate-500 dark:text-slate-400 ml-1">{config.description}</p>
+                        <p className="text-xs text-slate-600 dark:text-slate-400 ml-1">{config.description}</p>
                     )}
                 </div>
             );
@@ -458,7 +458,7 @@ export default function Settings() {
                     className="input-premium transition-ui duration-200"
                 />
                 {config.description && (
-                    <p className="text-xs text-slate-500 dark:text-slate-400 ml-1">{config.description}</p>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 ml-1">{config.description}</p>
                 )}
             </div>
         );
@@ -500,7 +500,7 @@ export default function Settings() {
                     <div className="py-16 text-center">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load settings</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchSettings}>Try again</Button>
                     </div>
                 </div>
@@ -547,9 +547,9 @@ export default function Settings() {
                         <ThemeSettings />
                     ) : sortedSettings.length === 0 ? (
                         <div className="py-12 text-center">
-                            <SettingsIcon size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                            <SettingsIcon size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                             <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Nothing to configure here</h3>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                            <p className="text-sm text-slate-600 dark:text-slate-400">
                                 This section has no settings defined yet.
                             </p>
                         </div>
@@ -563,12 +563,12 @@ export default function Settings() {
                             <div className="space-y-8">
                                 {authStatus && (
                                     <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-4">
-                                        <p className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-3">Sign-in methods — live status</p>
+                                        <p className="text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-slate-400 mb-3">Sign-in methods — live status</p>
                                         <div className="flex flex-wrap gap-2">
                                             {[['local', 'Employee code + password'], ['oidc', 'Single sign-on (SSO)'], ['ldap', 'Active Directory (LDAP)']].map(([mode, label]) => (
                                                 <span key={mode} className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${authStatus[mode]
                                                     ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
-                                                    : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400'}`}>
+                                                    : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400'}`}>
                                                     <span className={`w-1.5 h-1.5 rounded-full ${authStatus[mode] ? 'bg-emerald-500' : 'bg-slate-400'}`} />
                                                     {label}: {authStatus[mode] ? 'working' : 'off'}
                                                 </span>
@@ -581,7 +581,7 @@ export default function Settings() {
                                                 ))}
                                             </div>
                                         )}
-                                        <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">
+                                        <p className="mt-3 text-xs text-slate-600 dark:text-slate-400">
                                             The portal login page offers exactly the methods shown green here.
                                             Client secrets live in <code className="font-mono">.env</code>
                                             {' '}(<code className="font-mono">OIDC_CLIENT_SECRET</code>, <code className="font-mono">LDAP_BIND_PASSWORD</code>) —
@@ -603,7 +603,7 @@ export default function Settings() {
                                     return (
                                         <div key={section.title}>
                                             <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">{section.title}</h3>
-                                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">{section.hint}</p>
+                                            <p className="text-xs text-slate-600 dark:text-slate-400 mb-4">{section.hint}</p>
                                             {viewMode ? (
                                                 <dl>{fields.map(([key, config]) => renderReadonly(key, config))}</dl>
                                             ) : (
@@ -634,7 +634,7 @@ export default function Settings() {
                     {activeTab === 'alerts' && (
                         <div className="mt-6 p-4 bg-slate-50/70 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl">
                             <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 mb-1">Send a test alert</p>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
+                            <p className="text-xs text-slate-600 dark:text-slate-400 mb-3">
                                 Goes to the recipients above, through the same path a real alert takes.
                                 Expect two messages: the alert, then confirmation it cleared. Save your
                                 settings first.
@@ -653,7 +653,7 @@ export default function Settings() {
                             <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 mb-1 mt-5">
                                 Fire drill: the no-attendance alert
                             </p>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
+                            <p className="text-xs text-slate-600 dark:text-slate-400 mb-3">
                                 Runs the real "no punches recorded today" check with the verdict forced,
                                 so the exact alert a collection outage would send is seen once on purpose.
                                 The subject is prefixed [DRILL].
@@ -668,7 +668,7 @@ export default function Settings() {
                     {activeTab === 'notifications' && (
                         <div className="mt-6 p-4 bg-slate-50/70 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl">
                             <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 mb-1">Test email delivery</p>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">Save your SMTP settings first, then send a test message.</p>
+                            <p className="text-xs text-slate-600 dark:text-slate-400 mb-3">Save your SMTP settings first, then send a test message.</p>
                             <div className="flex gap-2 flex-wrap">
                                 <input
                                     type="email"

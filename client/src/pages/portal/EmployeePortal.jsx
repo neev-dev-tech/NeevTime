@@ -42,21 +42,21 @@ const LoadError = ({ message, onRetry }) => (
     <div className="py-12 text-center">
         <AlertCircle size={36} className="mx-auto mb-3 text-rose-400" />
         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Something went wrong</h3>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{message}</p>
+        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{message}</p>
         <Button variant="secondary" size="sm" icon={RefreshCw} onClick={onRetry}>Try again</Button>
     </div>
 );
 
 const EmptyRow = ({ icon: Icon = Inbox, title, hint }) => (
     <div className="py-12 text-center">
-        <Icon size={36} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+        <Icon size={36} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">{title}</h3>
-        {hint && <p className="text-sm text-slate-500 dark:text-slate-400">{hint}</p>}
+        {hint && <p className="text-sm text-slate-600 dark:text-slate-400">{hint}</p>}
     </div>
 );
 
 const RowCount = ({ n, noun }) => (
-    <div className="px-4 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
+    <div className="px-4 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-400">
         {n} {noun}{n === 1 ? '' : 's'}
     </div>
 );
@@ -300,11 +300,11 @@ export default function EmployeePortal() {
                         </div>
                         <div className="text-right hidden sm:block">
                             <p className="text-lg font-bold tabular-nums text-slate-800 dark:text-slate-100">{presentDays}</p>
-                            <p className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400">Days present</p>
+                            <p className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-600 dark:text-slate-400">Days present</p>
                         </div>
                         <div className="text-right">
                             <p className="text-lg font-bold tabular-nums text-slate-800 dark:text-slate-100">{Math.floor(totalMinutes / 60)}h</p>
-                            <p className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400">Hours worked</p>
+                            <p className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-600 dark:text-slate-400">Hours worked</p>
                         </div>
                     </div>
                 )}
@@ -352,7 +352,7 @@ export default function EmployeePortal() {
                     <div className="bg-app-surface/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
                         <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700 flex items-center gap-2 flex-wrap">
                             <input type="date" value={range.start} onChange={e => setRange(r => ({ ...r, start: e.target.value }))} className="field-sm tabular-nums" />
-                            <span className="text-slate-400">→</span>
+                            <span className="text-slate-500">→</span>
                             <input type="date" value={range.end} onChange={e => setRange(r => ({ ...r, end: e.target.value }))} className="field-sm tabular-nums" />
                         </div>
 
@@ -370,7 +370,7 @@ export default function EmployeePortal() {
                             <>
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-left text-sm">
-                                        <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
+                                        <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-600 dark:text-slate-400">
                                             <tr>
                                                 <th className="px-4 py-3 font-semibold whitespace-nowrap">Date</th>
                                                 <th className="px-4 py-3 font-semibold whitespace-nowrap">In</th>
@@ -384,7 +384,7 @@ export default function EmployeePortal() {
                                                 <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
                                                     <td className="px-4 py-3 whitespace-nowrap">
                                                         <span className="font-semibold tabular-nums text-slate-800 dark:text-slate-100">{row.date || '—'}</span>
-                                                        <span className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400 ml-1.5">
+                                                        <span className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-600 dark:text-slate-400 ml-1.5">
                                                             {(row.weekday || '').trim().slice(0, 3)}
                                                         </span>
                                                     </td>
@@ -394,7 +394,7 @@ export default function EmployeePortal() {
                                                         {row.duration_minutes != null ? (row.duration_minutes / 60).toFixed(1) : '—'}
                                                     </td>
                                                     <td className="px-4 py-3">
-                                                        <span className={`inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border ${row.status === 'Present' ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' : 'bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'}`}>
+                                                        <span className={`inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border ${row.status === 'Present' ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' : 'bg-slate-50 dark:bg-slate-900/50 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'}`}>
                                                             {row.status === 'Present' ? <CheckCircle size={10} /> : <XCircle size={10} />}
                                                             {row.status || '—'}
                                                         </span>
@@ -418,9 +418,9 @@ export default function EmployeePortal() {
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                 {leave.balances.map(b => (
                                     <div key={b.id} className="bg-app-surface/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 p-3">
-                                        <p className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 truncate">{b.leave_type_name}</p>
+                                        <p className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-600 dark:text-slate-400 truncate">{b.leave_type_name}</p>
                                         <p className="text-xl font-bold tabular-nums text-slate-800 dark:text-slate-100">
-                                            {b.balance}<span className="text-xs text-slate-500 dark:text-slate-400 font-normal"> left</span>
+                                            {b.balance}<span className="text-xs text-slate-600 dark:text-slate-400 font-normal"> left</span>
                                         </p>
                                     </div>
                                 ))}
@@ -522,16 +522,16 @@ export default function EmployeePortal() {
                         {showRegForm && (
                             <form onSubmit={submitRegularization} className="bg-app-surface/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 p-4 space-y-3">
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Date</label>
+                                    <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">Date</label>
                                     <input type="date" value={regForm.date} max={today()} onChange={e => setRegForm(f => ({ ...f, date: e.target.value }))} className="field" required />
                                 </div>
                                 <div className="flex gap-2">
                                     <div className="flex-1">
-                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Correct In Time</label>
+                                        <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">Correct In Time</label>
                                         <input type="time" value={regForm.requested_in_time} onChange={e => setRegForm(f => ({ ...f, requested_in_time: e.target.value }))} className="field" />
                                     </div>
                                     <div className="flex-1">
-                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Correct Out Time</label>
+                                        <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">Correct Out Time</label>
                                         <input type="time" value={regForm.requested_out_time} onChange={e => setRegForm(f => ({ ...f, requested_out_time: e.target.value }))} className="field" />
                                     </div>
                                 </div>
@@ -574,7 +574,7 @@ export default function EmployeePortal() {
                                                         {' — '}{reg.reason || '—'}
                                                     </p>
                                                     {reg.review_comment && (
-                                                        <p className="text-xs text-slate-500 dark:text-slate-400 italic">"{reg.review_comment}"</p>
+                                                        <p className="text-xs text-slate-600 dark:text-slate-400 italic">"{reg.review_comment}"</p>
                                                     )}
                                                 </div>
                                                 <span className={`text-[11px] font-bold uppercase tracking-wide px-2 py-1 rounded-full border ${statusBadge(reg.status)}`}>
@@ -592,15 +592,15 @@ export default function EmployeePortal() {
                             countersigns. The counterpart must accept before any
                             approver sees it. */}
                         <div className="bg-app-surface/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 p-4 space-y-3">
-                            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">Shift swap</h3>
+                            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-slate-400">Shift swap</h3>
                             <div className="grid grid-cols-2 gap-2">
                                 <input className="field col-span-2" placeholder="Colleague's employee code"
                                        value={swapForm.counterpart_code}
                                        onChange={e => setSwapForm(f => ({ ...f, counterpart_code: e.target.value.trim() }))} />
-                                <label className="text-xs text-slate-500">My date
+                                <label className="text-xs text-slate-600">My date
                                     <input type="date" className="field mt-1" value={swapForm.requester_date}
                                            onChange={e => setSwapForm(f => ({ ...f, requester_date: e.target.value }))} /></label>
-                                <label className="text-xs text-slate-500">Their date
+                                <label className="text-xs text-slate-600">Their date
                                     <input type="date" className="field mt-1" value={swapForm.counterpart_date}
                                            onChange={e => setSwapForm(f => ({ ...f, counterpart_date: e.target.value }))} /></label>
                                 <input className="field col-span-2" placeholder="Reason (optional)"
@@ -617,7 +617,7 @@ export default function EmployeePortal() {
                                             ? `You ↔ ${sw.counterpart_name}`
                                             : `${sw.requester_name} ↔ you`}
                                         {' · '}{formatDate(sw.requester_date)} / {formatDate(sw.counterpart_date)}
-                                        <span className="ml-2 text-xs uppercase font-bold text-slate-500">{sw.status}
+                                        <span className="ml-2 text-xs uppercase font-bold text-slate-600">{sw.status}
                                             {sw.status === 'pending' && sw.counterpart_accepted === null && ' — awaiting colleague'}
                                             {sw.status === 'pending' && sw.counterpart_accepted === true && ' — awaiting approval'}
                                         </span>
@@ -651,7 +651,7 @@ export default function EmployeePortal() {
                                         <div className="min-w-0">
                                             <p className="font-semibold text-slate-800 dark:text-slate-100">
                                                 {item.employee_name}
-                                                <span className="ml-2 font-mono text-xs text-slate-500">{item.employee_code}</span>
+                                                <span className="ml-2 font-mono text-xs text-slate-600">{item.employee_code}</span>
                                             </p>
                                             {item.type === 'swap' ? (
                                                 <p className="text-sm text-slate-600 dark:text-slate-300">
@@ -670,11 +670,11 @@ export default function EmployeePortal() {
                                                     {item.requested_out_time && ` · out ${String(item.requested_out_time).slice(0, 5)}`}
                                                 </p>
                                             )}
-                                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{item.reason || 'No reason given'}</p>
+                                            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{item.reason || 'No reason given'}</p>
                                             {/* Which hat they are wearing. Somebody who
                                                 is both a manager and a department
                                                 approver should know which one this is. */}
-                                            <span className="mt-2 inline-block text-[11px] uppercase tracking-wide font-bold px-2 py-0.5 rounded-full border border-slate-300 dark:border-slate-600 text-slate-500">
+                                            <span className="mt-2 inline-block text-[11px] uppercase tracking-wide font-bold px-2 py-0.5 rounded-full border border-slate-300 dark:border-slate-600 text-slate-600">
                                                 as {item.via}
                                             </span>
                                         </div>
@@ -712,7 +712,7 @@ export default function EmployeePortal() {
                 {tab === 'schedule' && (
                     <div className="space-y-4">
                         <div className="bg-app-surface/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
-                            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">My shift</h3>
+                            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-slate-400 mb-2">My shift</h3>
                             {!schedule ? (
                                 <div className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
                             ) : schedule.shift ? (
@@ -726,7 +726,7 @@ export default function EmployeePortal() {
                                 /* Said, not hidden. Somebody with no shift assigned is
                                    measured against the default rules, and should know
                                    rather than assume the page is broken. */
-                                <p className="text-sm text-slate-500 dark:text-slate-400">
+                                <p className="text-sm text-slate-600 dark:text-slate-400">
                                     No shift is assigned to you. Your hours are measured against the
                                     company default — ask HR if that is not right.
                                 </p>
@@ -734,7 +734,7 @@ export default function EmployeePortal() {
                         </div>
 
                         <div className="bg-app-surface/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-                            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 px-4 pt-4 pb-2">Holidays</h3>
+                            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-slate-400 px-4 pt-4 pb-2">Holidays</h3>
                             {!schedule ? (
                                 <ListSkeleton rows={3} />
                             ) : schedule.holidays.length === 0 ? (
@@ -748,12 +748,12 @@ export default function EmployeePortal() {
                                             <div key={i} className={`px-4 py-3 flex items-center justify-between gap-3 ${past ? 'opacity-50' : ''}`}>
                                                 <div>
                                                     <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{h.name}</p>
-                                                    <p className="text-xs tabular-nums text-slate-500 dark:text-slate-400">
+                                                    <p className="text-xs tabular-nums text-slate-600 dark:text-slate-400">
                                                         {formatDateWithWeekday(h.date)}
                                                     </p>
                                                 </div>
                                                 {h.is_optional && (
-                                                    <span className="text-[11px] font-bold uppercase tracking-wide px-2 py-1 rounded-full border border-slate-300 dark:border-slate-600 text-slate-500">
+                                                    <span className="text-[11px] font-bold uppercase tracking-wide px-2 py-1 rounded-full border border-slate-300 dark:border-slate-600 text-slate-600">
                                                         Optional
                                                     </span>
                                                 )}
@@ -786,7 +786,7 @@ export default function EmployeePortal() {
                                         ['Address', profileDetail.address],
                                     ].map(([label, value]) => (
                                         <div key={label} className="grid grid-cols-3 gap-2 border-b border-slate-100 dark:border-slate-700 pb-2 last:border-0">
-                                            <dt className="text-slate-500 dark:text-slate-400">{label}</dt>
+                                            <dt className="text-slate-600 dark:text-slate-400">{label}</dt>
                                             <dd className="col-span-2 text-slate-700 dark:text-slate-200">{value || '—'}</dd>
                                         </div>
                                     ))}
@@ -795,7 +795,7 @@ export default function EmployeePortal() {
                             {/* Read-only, and it says why. Joining date and department
                                 decide leave accrual and who approves requests; an
                                 employee editing them is an audit problem. */}
-                            <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">
+                            <p className="mt-3 text-xs text-slate-600 dark:text-slate-400">
                                 Something wrong here? Ask HR to correct it — these fields decide your
                                 leave and your shift, so they are not editable from this page.
                             </p>

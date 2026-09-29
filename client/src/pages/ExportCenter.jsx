@@ -12,7 +12,7 @@ const EXPORT_TYPES = [
 ];
 
 const FORMATS = [
-    { id: 'csv', label: 'CSV', icon: FileSpreadsheet, tint: 'text-emerald-600 dark:text-emerald-400' },
+    { id: 'csv', label: 'CSV', icon: FileSpreadsheet, tint: 'text-emerald-700 dark:text-emerald-400' },
     { id: 'json', label: 'JSON', icon: FileText, tint: 'text-slate-600 dark:text-slate-400' },
     { id: 'pdf', label: 'PDF', icon: FileDown, tint: 'text-rose-600 dark:text-rose-400' },
 ];
@@ -103,7 +103,7 @@ export default function ExportCenter() {
             <div className="card-base !p-6 space-y-6">
                 {/* Export Type */}
                 <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-2">Data Type</label>
+                    <label className="block text-[11px] font-bold uppercase tracking-[0.09em] text-slate-600 dark:text-slate-400 mb-2">Data Type</label>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {EXPORT_TYPES.map(type => {
                             const active = exportType === type.id;
@@ -117,7 +117,7 @@ export default function ExportCenter() {
                                         }`}
                                 >
                                     <FileSpreadsheet
-                                        className={`mb-1.5 ${active ? 'text-slate-600 dark:text-slate-400' : 'text-slate-400 dark:text-slate-500'}`}
+                                        className={`mb-1.5 ${active ? 'text-slate-600 dark:text-slate-400' : 'text-slate-500 dark:text-slate-400'}`}
                                         size={20}
                                     />
                                     <div className={`text-sm ${active ? 'font-semibold text-slate-800 dark:text-slate-100' : 'font-medium text-slate-600 dark:text-slate-300'}`}>
@@ -131,7 +131,7 @@ export default function ExportCenter() {
 
                 {/* Date Range (Optional) */}
                 <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-2">Date Range (Optional)</label>
+                    <label className="block text-[11px] font-bold uppercase tracking-[0.09em] text-slate-600 dark:text-slate-400 mb-2">Date Range (Optional)</label>
                     <div className="flex gap-4">
                         <input
                             type="date"
@@ -139,7 +139,7 @@ export default function ExportCenter() {
                             value={dateRange.start}
                             onChange={e => setDateRange({ ...dateRange, start: e.target.value })}
                         />
-                        <span className="self-center text-sm text-slate-500 dark:text-slate-400">to</span>
+                        <span className="self-center text-sm text-slate-600 dark:text-slate-400">to</span>
                         <input
                             type="date"
                             className="field flex-1"
@@ -147,14 +147,14 @@ export default function ExportCenter() {
                             onChange={e => setDateRange({ ...dateRange, end: e.target.value })}
                         />
                     </div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-2">
                         Leave both blank to export everything.
                     </p>
                 </div>
 
                 {/* Format */}
                 <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-2">Format</label>
+                    <label className="block text-[11px] font-bold uppercase tracking-[0.09em] text-slate-600 dark:text-slate-400 mb-2">Format</label>
                     <div className="flex flex-wrap gap-1.5">
                         {FORMATS.map(f => {
                             const Icon = f.icon;

@@ -27,12 +27,12 @@ const AreaTreeItem = ({ area, areas, onSelect, selectedId, level = 0 }) => {
             >
                 <button
                     onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
-                    className={`text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-400 transition-colors ${children.length === 0 ? 'invisible' : ''}`}
+                    className={`text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-400 transition-colors ${children.length === 0 ? 'invisible' : ''}`}
                 >
                     {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                 </button>
 
-                <Folder size={16} className={isSelected ? 'text-slate-500 dark:text-slate-400 fill-orange-200/60 dark:fill-orange-400/20' : 'text-amber-400 dark:text-amber-300 fill-amber-100 dark:fill-amber-400/20'} />
+                <Folder size={16} className={isSelected ? 'text-slate-600 dark:text-slate-400 fill-orange-200/60 dark:fill-orange-400/20' : 'text-amber-400 dark:text-amber-300 fill-amber-100 dark:fill-amber-400/20'} />
                 <span className="text-sm font-medium truncate">{area.name}</span>
             </div>
             {expanded && children.map(child => (
@@ -273,7 +273,7 @@ export default function Area() {
                 {/* Tree View Sidebar */}
                 <div className="w-64 border-r border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden shrink-0">
                     <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
-                        <h3 className="text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">Area Structure</h3>
+                        <h3 className="text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-600 dark:text-slate-400">Area Structure</h3>
                     </div>
                     <div className="p-2 flex-1 overflow-y-auto custom-scrollbar">
                         {loading ? (
@@ -290,7 +290,7 @@ export default function Area() {
                                         : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}
                                     onClick={() => setSelectedArea(null)}
                                 >
-                                    <Folder size={16} className={!selectedArea ? 'text-slate-500 dark:text-slate-400 fill-orange-200/60 dark:fill-orange-400/20' : 'text-amber-400 dark:text-amber-300 fill-amber-100 dark:fill-amber-400/20'} />
+                                    <Folder size={16} className={!selectedArea ? 'text-slate-600 dark:text-slate-400 fill-orange-200/60 dark:fill-orange-400/20' : 'text-amber-400 dark:text-amber-300 fill-amber-100 dark:fill-amber-400/20'} />
                                     <span className="text-sm font-medium">All Areas</span>
                                 </div>
                                 {rootAreas.map(area => (
@@ -303,7 +303,7 @@ export default function Area() {
                                     />
                                 ))}
                                 {!error && rootAreas.length === 0 && (
-                                    <p className="px-3 py-4 text-xs text-slate-500 dark:text-slate-400">
+                                    <p className="px-3 py-4 text-xs text-slate-600 dark:text-slate-400">
                                         No areas defined yet.
                                     </p>
                                 )}
@@ -324,16 +324,16 @@ export default function Area() {
                             <div className="py-20 text-center px-6">
                                 <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
                                 <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load areas</h3>
-                                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                                <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{error}</p>
                                 <Button variant="secondary" icon={RefreshCw} onClick={fetchAreas}>Try again</Button>
                             </div>
                         ) : tableData.length === 0 ? (
                             <div className="py-20 text-center px-6">
-                                <Map size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                                <Map size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                                 <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">
                                     {searchQuery ? 'No matching areas' : 'No areas here'}
                                 </h3>
-                                <p className="text-sm text-slate-500 dark:text-slate-400">
+                                <p className="text-sm text-slate-600 dark:text-slate-400">
                                     {searchQuery
                                         ? `Nothing matches “${searchQuery}”. Try a different search.`
                                         : selectedArea
@@ -367,7 +367,7 @@ export default function Area() {
                                             <td className={`${LIST_EDGE_FIRST} pr-4 py-3`}>
                                                 <input type="checkbox" checked={selectedRows.includes(area.id)} onChange={() => toggleRowSelection(area.id)} className="rounded text-slate-600 focus:ring-slate-500" />
                                             </td>
-                                            <td className="px-4 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{(pager.page - 1) * pager.pageSize + idx + 1}</td>
+                                            <td className="px-4 py-3 text-slate-500 dark:text-slate-400 tabular-nums">{(pager.page - 1) * pager.pageSize + idx + 1}</td>
                                             <td className="px-4 py-3">
                                                 <span className="font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">
                                                     {area.code || '—'}

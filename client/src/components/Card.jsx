@@ -84,7 +84,7 @@ export function CardHeader({
                 {icon && (
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 
                         flex items-center justify-center flex-shrink-0">
-                        {React.cloneElement(icon, { size: 20, className: 'text-slate-500' })}
+                        {React.cloneElement(icon, { size: 20, className: 'text-slate-600' })}
                     </div>
                 )}
                 <div>
@@ -92,7 +92,7 @@ export function CardHeader({
                         <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">{title}</h3>
                     )}
                     {subtitle && (
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">{subtitle}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mt-0.5">{subtitle}</p>
                     )}
                     {children}
                 </div>
@@ -151,7 +151,7 @@ export function StatCard({
             bg: 'bg-gradient-to-br from-slate-50 to-slate-100',
             border: 'border-l-4 border-l-orange-500',
             iconBg: 'bg-slate-100',
-            iconColor: 'text-slate-500',
+            iconColor: 'text-slate-600',
             valueColor: 'text-slate-800'
         },
         green: {
@@ -165,7 +165,7 @@ export function StatCard({
             bg: 'bg-gradient-to-br from-slate-50 to-slate-100',
             border: 'border-l-4 border-l-blue-500',
             iconBg: 'bg-slate-100',
-            iconColor: 'text-slate-500',
+            iconColor: 'text-slate-600',
             valueColor: 'text-slate-800'
         },
         red: {
@@ -179,7 +179,7 @@ export function StatCard({
             bg: 'bg-gradient-to-br from-slate-50 to-slate-100',
             border: 'border-l-4 border-l-purple-500',
             iconBg: 'bg-slate-100',
-            iconColor: 'text-slate-500',
+            iconColor: 'text-slate-600',
             valueColor: 'text-slate-800'
         }
     };
@@ -205,12 +205,12 @@ export function StatCard({
         >
             <div className="flex items-start justify-between">
                 <div>
-                    <p className="text-sm font-medium text-slate-500 mb-1">{label}</p>
+                    <p className="text-sm font-medium text-slate-600 mb-1">{label}</p>
                     <p className={`text-2xl font-bold ${styles.valueColor}`}>
                         {typeof value === 'number' ? value.toLocaleString() : value}
                     </p>
                     {trend && (
-                        <div className={`flex items-center gap-1 mt-2 text-sm ${trend === 'up' ? 'text-green-600' : trend === 'down' ? 'text-red-600' : 'text-slate-500'
+                        <div className={`flex items-center gap-1 mt-2 text-sm ${trend === 'up' ? 'text-green-600' : trend === 'down' ? 'text-red-600' : 'text-slate-600'
                             }`}>
                             {trend === 'up' && '↑'}
                             {trend === 'down' && '↓'}
@@ -282,7 +282,7 @@ export function ActionCard({
                 )}
                 <div className="flex-1 min-w-0">
                     <h4 className="font-semibold text-slate-800 dark:text-slate-100 mb-1">{title}</h4>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">{description}</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">{description}</p>
                     <button
                         onClick={onAction}
                         className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-700 
@@ -318,11 +318,11 @@ export function InfoCard({
                     <div key={index} className="flex items-start gap-3">
                         {item.icon && (
                             <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center flex-shrink-0">
-                                {React.cloneElement(item.icon, { size: 16, className: 'text-slate-500 dark:text-slate-400' })}
+                                {React.cloneElement(item.icon, { size: 16, className: 'text-slate-600 dark:text-slate-400' })}
                             </div>
                         )}
                         <div>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">{item.key}</p>
+                            <p className="text-xs text-slate-600 dark:text-slate-400 uppercase tracking-wide">{item.key}</p>
                             <p className="text-sm font-medium text-slate-800 dark:text-slate-100 mt-0.5">{item.value || '-'}</p>
                         </div>
                     </div>
@@ -370,7 +370,7 @@ export function FeatureCard({
                             </span>
                         )}
                     </div>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">{description}</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">{description}</p>
                 </div>
             </div>
         </Card>
@@ -407,7 +407,7 @@ export function ListCard({
                 </div>
             )}
             {displayItems.length === 0 ? (
-                <div className="px-6 py-8 text-center text-slate-500 dark:text-slate-400 text-sm">
+                <div className="px-6 py-8 text-center text-slate-600 dark:text-slate-400 text-sm">
                     {emptyMessage}
                 </div>
             ) : (
@@ -422,7 +422,7 @@ export function ListCard({
                             <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium text-slate-800 dark:text-slate-100 truncate">{item.primary}</p>
                                 {item.secondary && (
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{item.secondary}</p>
+                                    <p className="text-xs text-slate-600 dark:text-slate-400 truncate">{item.secondary}</p>
                                 )}
                             </div>
                             {item.action}

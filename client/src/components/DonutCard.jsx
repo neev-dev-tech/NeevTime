@@ -32,7 +32,7 @@ export default function DonutCard({ title, subtitle, data, colors, emptyMessage,
             <div className="mb-1">
                 <h3 className="font-semibold text-base text-slate-800 dark:text-slate-100">{title}</h3>
                 {subtitle && (
-                    <p className="text-xs text-slate-500 dark:text-slate-400">{subtitle}</p>
+                    <p className="text-xs text-slate-600 dark:text-slate-400">{subtitle}</p>
                 )}
             </div>
 
@@ -106,7 +106,7 @@ export default function DonutCard({ title, subtitle, data, colors, emptyMessage,
                                 <p className="text-2xl font-bold text-slate-800 dark:text-slate-100 tabular-nums leading-none">
                                     {total}
                                 </p>
-                                <p className="text-[11px] uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                                <p className="text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400">
                                     total
                                 </p>
                             </div>
@@ -126,17 +126,17 @@ export default function DonutCard({ title, subtitle, data, colors, emptyMessage,
                                     }}
                                 />
                                 {/* Zero rows are deliberately quieter, but not
-                                    unreadable: dark:text-slate-600 measured
+                                    unreadable: dark:text-slate-500 measured
                                     2.34:1 against the card, which is a label
                                     you cannot actually read. */}
                                 <span className={`truncate ${d.value > 0
                                     ? 'text-slate-600 dark:text-slate-300'
-                                    : 'text-slate-400 dark:text-slate-500'}`}>
+                                    : 'text-slate-500 dark:text-slate-400'}`}>
                                     {d.name}
                                 </span>
                                 <span className={`ml-auto font-semibold tabular-nums ${d.value > 0
                                     ? 'text-slate-700 dark:text-slate-200'
-                                    : 'text-slate-400 dark:text-slate-500'}`}>
+                                    : 'text-slate-500 dark:text-slate-400'}`}>
                                     {d.value}
                                 </span>
                             </li>

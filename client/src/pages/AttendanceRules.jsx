@@ -173,30 +173,30 @@ export default function AttendanceRules() {
 
             <dl className="grid grid-cols-2 gap-2 mb-3">
                 <div className="bg-app-surface/60 dark:bg-slate-900/50 rounded-xl px-3 py-2 border border-slate-100 dark:border-slate-700">
-                    <dt className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400 mb-0.5">Late Threshold</dt>
+                    <dt className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-600 dark:text-slate-400 mb-0.5">Late Threshold</dt>
                     <dd className="font-semibold text-slate-800 dark:text-slate-100 tabular-nums flex items-center gap-1.5">
                         <Clock size={13} className="text-amber-500 dark:text-amber-400" />
                         {rule.late_threshold_minutes ?? '—'} min
                     </dd>
                 </div>
                 <div className="bg-app-surface/60 dark:bg-slate-900/50 rounded-xl px-3 py-2 border border-slate-100 dark:border-slate-700">
-                    <dt className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400 mb-0.5">Early Leave</dt>
+                    <dt className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-600 dark:text-slate-400 mb-0.5">Early Leave</dt>
                     <dd className="font-semibold text-slate-800 dark:text-slate-100 tabular-nums flex items-center gap-1.5">
                         <Clock size={13} className="text-rose-500 dark:text-rose-400" />
                         {rule.early_leave_threshold_minutes ?? '—'} min
                     </dd>
                 </div>
                 <div className="bg-app-surface/60 dark:bg-slate-900/50 rounded-xl px-3 py-2 border border-slate-100 dark:border-slate-700">
-                    <dt className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400 mb-0.5">Grace Period</dt>
+                    <dt className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-600 dark:text-slate-400 mb-0.5">Grace Period</dt>
                     <dd className="font-semibold text-slate-800 dark:text-slate-100 tabular-nums flex items-center gap-1.5">
                         <CheckCircle size={13} className="text-emerald-500 dark:text-emerald-400" />
                         {rule.grace_period_minutes ?? '—'} min
                     </dd>
                 </div>
                 <div className="bg-app-surface/60 dark:bg-slate-900/50 rounded-xl px-3 py-2 border border-slate-100 dark:border-slate-700">
-                    <dt className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400 mb-0.5">Half Day</dt>
+                    <dt className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-600 dark:text-slate-400 mb-0.5">Half Day</dt>
                     <dd className="font-semibold text-slate-800 dark:text-slate-100 tabular-nums flex items-center gap-1.5">
-                        <AlertTriangle size={13} className="text-slate-500 dark:text-slate-400" />
+                        <AlertTriangle size={13} className="text-slate-600 dark:text-slate-400" />
                         {rule.half_day_threshold_minutes ?? '—'} min
                     </dd>
                 </div>
@@ -204,7 +204,7 @@ export default function AttendanceRules() {
 
             <div className="pt-3 border-t border-slate-100 dark:border-slate-700 space-y-2">
                 <div className="flex flex-wrap items-center gap-1.5">
-                    <span className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400">Week Off</span>
+                    <span className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-600 dark:text-slate-400">Week Off</span>
                     {rule.week_off_days?.length ? rule.week_off_days.map(day => (
                         <span key={day} className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300">
                             {day.substring(0, 3)}
@@ -273,7 +273,7 @@ export default function AttendanceRules() {
                         <AlertTriangle size={16} />
                     </div>
                     <div className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                        <strong className="block mb-0.5 text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">How Rules Work</strong>
+                        <strong className="block mb-0.5 text-[11px] font-bold uppercase tracking-[0.09em] text-slate-600 dark:text-slate-400">How Rules Work</strong>
                         Global rules are meant for all employees; a department rule is meant to override them for that department. Keep at least one global rule.
                     </div>
                 </div>
@@ -289,15 +289,15 @@ export default function AttendanceRules() {
                     <div className="py-16 text-center">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load rules</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchData}>Try again</Button>
                     </div>
                 ) : activeTab === 'global' ? (
                     globalRules.length === 0 ? (
                         <div className="py-16 text-center">
-                            <Globe size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                            <Globe size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                             <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No global rules yet</h3>
-                            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 max-w-sm mx-auto">
+                            <p className="text-sm text-slate-600 dark:text-slate-400 mb-4 max-w-sm mx-auto">
                                 A global rule sets the default late, grace, and overtime policy for everyone.
                             </p>
                             <Button mutating variant="primary" onClick={() => setShowModal(true)}>Create Now</Button>
@@ -310,9 +310,9 @@ export default function AttendanceRules() {
                 ) : (
                     departmentRules.length === 0 ? (
                         <div className="py-16 text-center">
-                            <Building2 size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                            <Building2 size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                             <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No department rules yet</h3>
-                            <p className="text-sm text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
+                            <p className="text-sm text-slate-600 dark:text-slate-400 max-w-sm mx-auto">
                                 Department rules override the global policy for one team only.
                             </p>
                         </div>
@@ -342,7 +342,7 @@ export default function AttendanceRules() {
                     {/* Rule Type */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1.5">
-                            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Rule Type <span className="text-red-500">*</span></label>
+                            <label className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Rule Type <span className="text-red-500">*</span></label>
                             <select
                                 value={form.rule_type}
                                 onChange={e => setForm({ ...form, rule_type: e.target.value })}
@@ -354,7 +354,7 @@ export default function AttendanceRules() {
                         </div>
                         {form.rule_type === 'department' && (
                             <div className="space-y-1.5">
-                                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Department <span className="text-red-500">*</span></label>
+                                <label className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Department <span className="text-red-500">*</span></label>
                                 <select
                                     value={form.department_id}
                                     onChange={e => setForm({ ...form, department_id: e.target.value })}
@@ -371,7 +371,7 @@ export default function AttendanceRules() {
                     </div>
 
                     <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Rule Name <span className="text-red-500">*</span></label>
+                        <label className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Rule Name <span className="text-red-500">*</span></label>
                         <input
                             type="text"
                             value={form.name}
@@ -385,11 +385,11 @@ export default function AttendanceRules() {
                     {/* Time Thresholds */}
                     <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-100 dark:border-slate-700">
                         <h3 className="font-bold text-slate-700 dark:text-slate-300 mb-4 flex items-center gap-2">
-                            <Clock size={16} className="text-slate-500" /> Time Thresholds
+                            <Clock size={16} className="text-slate-600" /> Time Thresholds
                         </h3>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <div className="space-y-1">
-                                <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Late After (min)</label>
+                                <label className="text-xs font-semibold text-slate-600 dark:text-slate-400">Late After (min)</label>
                                 <input
                                     type="number"
                                     value={form.late_threshold_minutes || ''}
@@ -398,7 +398,7 @@ export default function AttendanceRules() {
                                 />
                             </div>
                             <div className="space-y-1">
-                                <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Early Leave (min)</label>
+                                <label className="text-xs font-semibold text-slate-600 dark:text-slate-400">Early Leave (min)</label>
                                 <input
                                     type="number"
                                     value={form.early_leave_threshold_minutes || ''}
@@ -407,7 +407,7 @@ export default function AttendanceRules() {
                                 />
                             </div>
                             <div className="space-y-1">
-                                <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Half Day (min)</label>
+                                <label className="text-xs font-semibold text-slate-600 dark:text-slate-400">Half Day (min)</label>
                                 <input
                                     type="number"
                                     value={form.half_day_threshold_minutes || ''}
@@ -416,7 +416,7 @@ export default function AttendanceRules() {
                                 />
                             </div>
                             <div className="space-y-1">
-                                <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Absent (min)</label>
+                                <label className="text-xs font-semibold text-slate-600 dark:text-slate-400">Absent (min)</label>
                                 <input
                                     type="number"
                                     value={form.absent_threshold_minutes || ''}
@@ -434,7 +434,7 @@ export default function AttendanceRules() {
                         </h3>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-1">
-                                <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Grace Minutes</label>
+                                <label className="text-xs font-semibold text-slate-600 dark:text-slate-400">Grace Minutes</label>
                                 <input
                                     type="number"
                                     value={form.grace_period_minutes || ''}
@@ -443,7 +443,7 @@ export default function AttendanceRules() {
                                 />
                             </div>
                             <div className="space-y-1">
-                                <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Allowed Count/Month</label>
+                                <label className="text-xs font-semibold text-slate-600 dark:text-slate-400">Allowed Count/Month</label>
                                 <input
                                     type="number"
                                     value={form.grace_late_allowed_per_month || ''}
@@ -475,7 +475,7 @@ export default function AttendanceRules() {
                         {form.overtime_enabled && (
                             <div className="grid grid-cols-2 gap-4 animate-in slide-in-from-top-2">
                                 <div className="space-y-1">
-                                    <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Min OT Minutes</label>
+                                    <label className="text-xs font-semibold text-slate-600 dark:text-slate-400">Min OT Minutes</label>
                                     <input
                                         type="number"
                                         value={form.overtime_threshold_minutes || ''}
@@ -484,7 +484,7 @@ export default function AttendanceRules() {
                                     />
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">OT Multiplier</label>
+                                    <label className="text-xs font-semibold text-slate-600 dark:text-slate-400">OT Multiplier</label>
                                     <input
                                         type="number"
                                         step="0.1"
@@ -499,7 +499,7 @@ export default function AttendanceRules() {
 
                     {/* Week Off Days */}
                     <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Week Off Days</label>
+                        <label className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Week Off Days</label>
                         <div className="flex flex-wrap gap-2">
                             {weekDays.map(day => (
                                 <button

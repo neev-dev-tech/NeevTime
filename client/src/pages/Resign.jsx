@@ -295,7 +295,7 @@ export default function Resign() {
                 // Pages were computed but there was no way to move between them,
                 // so only the first 50 resignations could ever be seen.
                 <div className="flex items-center justify-between gap-3 px-4 sm:px-6 py-2.5">
-                    <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">
+                    <span className="text-xs text-slate-600 dark:text-slate-400 tabular-nums">
                         {filteredItems.length === 0
                             ? 'No records'
                             : `${(safePage - 1) * itemsPerPage + 1}–${Math.min(safePage * itemsPerPage, filteredItems.length)} of ${filteredItems.length}`}
@@ -320,16 +320,16 @@ export default function Resign() {
                     <div className="py-20 text-center px-6">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load resignations</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchData}>Try again</Button>
                     </div>
                 ) : paginatedItems.length === 0 ? (
                     <div className="py-20 text-center px-6">
-                        <UserMinus size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <UserMinus size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">
                             {searchQuery ? 'No matching records' : 'No resignations recorded'}
                         </h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
                             {searchQuery
                                 ? 'No resigned employee matches that search.'
                                 : 'Nobody has been marked as resigned or terminated yet.'}

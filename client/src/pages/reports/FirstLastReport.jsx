@@ -136,7 +136,7 @@ function FirstLastReport() {
                     </div>
                     <div className="min-w-0">
                         <h1 className="text-xl font-bold text-slate-800 truncate dark:text-slate-100">First &amp; Last Punch</h1>
-                        <p className="text-sm text-slate-500 truncate dark:text-slate-400">Daily punch analysis report</p>
+                        <p className="text-sm text-slate-600 truncate dark:text-slate-400">Daily punch analysis report</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
@@ -162,14 +162,14 @@ function FirstLastReport() {
             {/* Filters */}
             <div className="card-base !p-4 flex flex-wrap items-center gap-x-6 gap-y-3">
                 <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">Date range</span>
+                    <span className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-600 dark:text-slate-400">Date range</span>
                     <input
                         type="date"
                         value={startDate}
                         onChange={e => setStartDate(e.target.value)}
                         className="input-base !py-1.5 !w-auto text-sm tabular-nums"
                     />
-                    <span className="text-slate-400">→</span>
+                    <span className="text-slate-500">→</span>
                     <input
                         type="date"
                         value={endDate}
@@ -178,7 +178,7 @@ function FirstLastReport() {
                     />
                 </div>
                 <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">Employee</span>
+                    <span className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-600 dark:text-slate-400">Employee</span>
                     <input
                         type="text"
                         placeholder="ID…"
@@ -208,29 +208,29 @@ function FirstLastReport() {
                     <div className="py-16 text-center">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not generate the report</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={calculate}>Try again</Button>
                     </div>
                 ) : !calculated ? (
                     <div className="py-16 text-center">
-                        <Calculator size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <Calculator size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No report yet</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
                             Pick a date range above and press Calculate.
                         </p>
                     </div>
                 ) : data.length === 0 ? (
                     <div className="py-16 text-center">
-                        <Search size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <Search size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No records found</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
                             No punches between {startDate} and {endDate} match these filters.
                         </p>
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
-                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
+                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-600 dark:text-slate-400">
                                 <tr>
                                     <th className="px-5 py-3 font-semibold w-12">#</th>
                                     <th className="px-5 py-3 font-semibold whitespace-nowrap">Employee ID</th>
@@ -246,7 +246,7 @@ function FirstLastReport() {
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                                 {data.map((row, i) => (
                                     <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
-                                        <td className="px-5 py-3 text-slate-400 tabular-nums">{i + 1}</td>
+                                        <td className="px-5 py-3 text-slate-500 tabular-nums">{i + 1}</td>
                                         <td className="px-5 py-3 whitespace-nowrap">
                                             <span className={CODE_CELL}>{row.employee_code || '—'}</span>
                                         </td>
@@ -262,12 +262,12 @@ function FirstLastReport() {
                                             <span className={`${SECONDARY_CELL} tabular-nums`}>{row.date || '—'}</span>
                                         </td>
                                         <td className="px-5 py-3 whitespace-nowrap">
-                                            <span className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">
+                                            <span className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-600 dark:text-slate-400">
                                                 {row.weekday || '—'}
                                             </span>
                                         </td>
                                         <td className="px-5 py-3 whitespace-nowrap">
-                                            <span className="font-mono text-xs tabular-nums text-emerald-600 dark:text-emerald-400 font-semibold">
+                                            <span className="font-mono text-xs tabular-nums text-emerald-700 dark:text-emerald-400 font-semibold">
                                                 {row.first_punch || '—'}
                                             </span>
                                         </td>
@@ -289,7 +289,7 @@ function FirstLastReport() {
                 )}
 
                 {!loading && !error && data.length > 0 && (
-                    <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
+                    <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-400">
                         {data.length} record{data.length === 1 ? '' : 's'}
                     </div>
                 )}

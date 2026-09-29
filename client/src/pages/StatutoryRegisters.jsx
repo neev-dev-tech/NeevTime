@@ -34,9 +34,9 @@ const MARK_STYLE = {
     A: { label: 'Absent', cls: 'bg-rose-50 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300' },
     L: { label: 'Leave', cls: 'bg-slate-50 text-slate-700 dark:bg-slate-500/15 dark:text-slate-300' },
     H: { label: 'Holiday', cls: 'bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300' },
-    W: { label: 'Weekly off', cls: 'bg-slate-100 text-slate-500 dark:bg-slate-700/60 dark:text-slate-400' },
+    W: { label: 'Weekly off', cls: 'bg-slate-100 text-slate-600 dark:bg-slate-700/60 dark:text-slate-400' },
     '?': { label: 'No data — readers not reporting', cls: 'bg-slate-50 text-slate-700 dark:bg-slate-500/15 dark:text-slate-300' },
-    '–': { label: 'Not employed', cls: 'bg-transparent text-slate-300 dark:text-slate-600' }
+    '–': { label: 'Not employed', cls: 'bg-transparent text-slate-300 dark:text-slate-500' }
 };
 
 const lastCompleteMonth = () => {
@@ -138,14 +138,14 @@ export default function StatutoryRegisters() {
             toolbar={
                 <>
                     <ListSearch label="Search register" placeholder="Search by name or code…" value={pager.query} onChange={pager.setQuery} />
-                    <label htmlFor="reg-from" className="text-xs text-slate-500 dark:text-slate-400">From</label>
+                    <label htmlFor="reg-from" className="text-xs text-slate-600 dark:text-slate-400">From</label>
                     <input id="reg-from" type="date" className="field-sm !h-8 !py-0 w-auto" value={range.from}
                            onChange={e => setRange(r => ({ ...r, from: e.target.value }))} />
-                    <label htmlFor="reg-to" className="text-xs text-slate-500 dark:text-slate-400">to</label>
+                    <label htmlFor="reg-to" className="text-xs text-slate-600 dark:text-slate-400">to</label>
                     <input id="reg-to" type="date" className="field-sm !h-8 !py-0 w-auto" value={range.to}
                            onChange={e => setRange(r => ({ ...r, to: e.target.value }))} />
                     <div className="ml-auto flex items-center gap-3">
-                        <p className="hidden md:block text-xs text-slate-500 dark:text-slate-400 max-w-sm">
+                        <p className="hidden md:block text-xs text-slate-600 dark:text-slate-400 max-w-sm">
                             {REGISTERS.find(r => r.key === type)?.hint}
                         </p>
                         <ListIconButton label="Refresh" icon={RefreshCw} onClick={fetchRegister} disabled={loading} spin={loading} />
@@ -156,7 +156,7 @@ export default function StatutoryRegisters() {
         >
             {data?.missingFields?.length > 0 && (
                 <div className="m-4 sm:mx-6 flex items-start gap-3 p-4 rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20">
-                    <Info size={18} className="shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
+                    <Info size={18} className="shrink-0 mt-0.5 text-amber-700 dark:text-amber-400" />
                     <div className="text-sm">
                         <p className="font-semibold text-amber-800 dark:text-amber-300">
                             Not held by this system — fill in by hand
@@ -182,14 +182,14 @@ export default function StatutoryRegisters() {
                     <div className="py-20 text-center px-6">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not build the register</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchRegister}>Try again</Button>
                     </div>
                 ) : !data || data.rows.length === 0 ? (
                     <div className="py-20 text-center px-6">
-                        <FileText size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <FileText size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Nothing to show</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
                             No records for {range.from} to {range.to}.
                         </p>
                     </div>
@@ -214,9 +214,9 @@ export default function StatutoryRegisters() {
                                         {data.days.map(d => {
                                             const { num, dow } = dayLabel(d);
                                             return (
-                                                <th key={d} className="px-1 py-2 text-center text-[11px] font-semibold text-slate-500 dark:text-slate-400 w-8">
+                                                <th key={d} className="px-1 py-2 text-center text-[11px] font-semibold text-slate-600 dark:text-slate-400 w-8">
                                                     <span className="block tabular-nums">{num}</span>
-                                                    <span className="block text-[11px] text-slate-400 dark:text-slate-500">{dow}</span>
+                                                    <span className="block text-[11px] text-slate-500 dark:text-slate-400">{dow}</span>
                                                 </th>
                                             );
                                         })}
@@ -230,7 +230,7 @@ export default function StatutoryRegisters() {
                                         <tr key={r.employee_code} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
                                             <td className={`sticky left-0 z-[1] bg-app-surface ${LIST_EDGE_FIRST} pr-4 py-2 min-w-[13rem] border-r border-slate-100 dark:border-slate-800`}>
                                                 <span className="block font-semibold text-slate-800 dark:text-slate-100 truncate">{r.name || '—'}</span>
-                                                <span className="block text-xs text-slate-500 dark:text-slate-400 font-mono">
+                                                <span className="block text-xs text-slate-600 dark:text-slate-400 font-mono">
                                                     {r.employee_code}{r.designation ? ` · ${r.designation}` : ''}
                                                 </span>
                                             </td>
@@ -276,7 +276,7 @@ export default function StatutoryRegisters() {
                 )}
 
             {data?.retention_years && (
-                <p className="px-4 sm:px-6 py-3 text-xs text-slate-500 dark:text-slate-400">
+                <p className="px-4 sm:px-6 py-3 text-xs text-slate-600 dark:text-slate-400">
                     {data.register} · keep for {data.retention_years} years · {data.rows.length} row(s)
                     {data.notes?.length ? ` · ${data.notes[0]}` : ''}
                 </p>

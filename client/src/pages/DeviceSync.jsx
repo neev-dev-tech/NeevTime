@@ -25,9 +25,9 @@ const CELL_MONO = 'font-mono text-xs tabular-nums text-slate-600 dark:text-slate
 const BADGE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide';
 
 const STAT_TONES = {
-    pending: { chip: 'bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-300', icon: Clock },
+    pending: { chip: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300', icon: Clock },
     sent: { chip: 'bg-slate-100 text-slate-600 dark:bg-slate-900/40 dark:text-slate-300', icon: Send },
-    success: { chip: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-300', icon: CheckCircle },
+    success: { chip: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300', icon: CheckCircle },
     failed: { chip: 'bg-rose-100 text-rose-600 dark:bg-rose-900/40 dark:text-rose-300', icon: AlertCircle },
     dead_letter: { chip: 'bg-rose-100 text-rose-600 dark:bg-rose-900/40 dark:text-rose-300', icon: AlertTriangle }
 };
@@ -168,7 +168,7 @@ export default function DeviceSync() {
                                     <Icon size={20} />
                                 </div>
                                 <div className="min-w-0">
-                                    <p className="text-[11px] font-bold uppercase tracking-[0.04em] text-slate-500 dark:text-slate-400 leading-tight">
+                                    <p className="text-[11px] font-bold uppercase tracking-[0.04em] text-slate-600 dark:text-slate-400 leading-tight">
                                         {LABELS[key]}
                                     </p>
                                     <p className="text-[26px] leading-tight font-bold tabular-nums text-slate-900 dark:text-slate-50">
@@ -191,7 +191,7 @@ export default function DeviceSync() {
                         </Button>
                     )}
                 </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
+                <p className="text-xs text-slate-600 dark:text-slate-400 mb-4">
                     Commands are queued, not sent immediately — each reader collects them on its next poll.
                 </p>
                 {canEdit ? (
@@ -210,7 +210,7 @@ export default function DeviceSync() {
                         ))}
                     </div>
                 ) : (
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                    <p className="text-sm text-slate-600 dark:text-slate-400">
                         Your account has read-only access, so sync actions are disabled.
                     </p>
                 )}
@@ -223,7 +223,7 @@ export default function DeviceSync() {
                         <AlertTriangle size={18} className="text-rose-500" />
                         Commands the devices never accepted
                     </h2>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
                         These exhausted their retries. Until now nothing surfaced them.
                     </p>
                 </div>
@@ -236,13 +236,13 @@ export default function DeviceSync() {
                     <div className="py-16 text-center">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load stuck commands</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">{error}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400">{error}</p>
                     </div>
                 ) : deadLetter.length === 0 ? (
                     <div className="py-16 text-center">
-                        <CheckCircle size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <CheckCircle size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Nothing stuck</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
                             Commands that run out of retries will appear here. Every command so far has been delivered or is still in flight.
                         </p>
                     </div>
@@ -250,7 +250,7 @@ export default function DeviceSync() {
                     <>
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm">
-                                <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
+                                <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-600 dark:text-slate-400">
                                     <tr>
                                         <th className="text-left font-semibold px-5 py-3">#</th>
                                         <th className="text-left font-semibold px-5 py-3">Device</th>
@@ -263,7 +263,7 @@ export default function DeviceSync() {
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                                     {deadLetter.map((row, i) => (
                                         <tr key={row.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
-                                            <td className="px-5 py-3 text-slate-400 tabular-nums">{i + 1}</td>
+                                            <td className="px-5 py-3 text-slate-500 tabular-nums">{i + 1}</td>
                                             <td className={`px-5 py-3 ${CELL_MONO}`}>{row.device_serial || '—'}</td>
                                             <td className="px-5 py-3 max-w-[280px]">
                                                 <span className="font-mono text-xs text-slate-700 dark:text-slate-200 break-all">
@@ -298,7 +298,7 @@ export default function DeviceSync() {
                                 </tbody>
                             </table>
                         </div>
-                        <div className="px-5 py-3 text-xs text-slate-500 dark:text-slate-400 border-t border-slate-100 dark:border-slate-700">
+                        <div className="px-5 py-3 text-xs text-slate-600 dark:text-slate-400 border-t border-slate-100 dark:border-slate-700">
                             {deadLetter.length} command{deadLetter.length === 1 ? '' : 's'} given up on
                         </div>
                     </>
@@ -308,12 +308,12 @@ export default function DeviceSync() {
             {biometrics && (
                 <div className="card-base">
                     <h2 className="font-semibold text-base text-slate-800 dark:text-slate-100 mb-3 flex items-center gap-2">
-                        <Fingerprint size={18} className="text-slate-500" /> Biometric templates
+                        <Fingerprint size={18} className="text-slate-600" /> Biometric templates
                     </h2>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                         {Object.entries(biometrics).filter(([, v]) => typeof v === 'number').map(([k, v]) => (
                             <div key={k} className="rounded-xl bg-slate-50/70 dark:bg-slate-900/50 p-3">
-                                <p className="text-[11px] font-bold uppercase tracking-[0.04em] text-slate-500 dark:text-slate-400">
+                                <p className="text-[11px] font-bold uppercase tracking-[0.04em] text-slate-600 dark:text-slate-400">
                                     {k.replace(/_/g, ' ')}
                                 </p>
                                 <p className="text-xl font-bold tabular-nums text-slate-900 dark:text-slate-50">{v}</p>

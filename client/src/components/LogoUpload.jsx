@@ -124,15 +124,15 @@ export default function LogoUpload({ value, onChange, label = 'Company Logo', de
                         {hasLogo ? (
                             <img src={value} alt="Company logo" className="max-w-full max-h-full object-contain" />
                         ) : (
-                            <ImageIcon size={26} className="text-slate-300 dark:text-slate-600" />
+                            <ImageIcon size={26} className="text-slate-300 dark:text-slate-500" />
                         )}
                     </div>
 
                     <div className="flex-1 min-w-[220px] space-y-2">
-                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                        <p className="text-xs text-slate-600 dark:text-slate-400">
                             {description || 'Appears on the sign-in page, in the app header and on exported PDF reports.'}
                         </p>
-                        <p className="text-xs text-slate-400 dark:text-slate-500">
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
                             PNG, JPG, WEBP or SVG. Resized to {MAX_EDGE}px automatically — a transparent PNG
                             or an SVG looks best on both light and dark backgrounds.
                         </p>
@@ -168,7 +168,7 @@ export default function LogoUpload({ value, onChange, label = 'Company Logo', de
                         )}
 
                         {hasLogo && !error && (
-                            <p className="text-[11px] text-slate-400 dark:text-slate-500 pt-1">
+                            <p className="text-[11px] text-slate-500 dark:text-slate-400 pt-1">
                                 Stored size ≈ {Math.round(value.length / 1024)} KB.
                                 Remember to press Save Changes.
                             </p>

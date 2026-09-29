@@ -175,14 +175,14 @@ export default function LeaveBalances() {
                     <div className="py-20 text-center px-6">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load leave balances</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchData}>Try again</Button>
                     </div>
                 ) : balances.length === 0 ? (
                     <div className="py-20 text-center px-6">
-                        <PieChart size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <PieChart size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No balances for {year}</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
                             Use “Initialize Year” to create them from leave-type quotas, or pick a different year.
                         </p>
                     </div>
@@ -202,7 +202,7 @@ export default function LeaveBalances() {
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                             {controls.view.map((b, idx) => (
                                 <tr key={b.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
-                                    <td className={`${LIST_EDGE_FIRST} pr-4 py-3 text-slate-400 dark:text-slate-500 tabular-nums`}>{(controls.page - 1) * controls.pageSize + idx + 1}</td>
+                                    <td className={`${LIST_EDGE_FIRST} pr-4 py-3 text-slate-500 dark:text-slate-400 tabular-nums`}>{(controls.page - 1) * controls.pageSize + idx + 1}</td>
                                     <td className="px-4 py-3 font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">
                                         {b.employee_name || '—'}
                                     </td>
@@ -223,10 +223,10 @@ export default function LeaveBalances() {
                                     <td className="px-4 py-3 text-slate-600 dark:text-slate-300 tabular-nums">
                                         {b.opening_balance ?? '—'}
                                     </td>
-                                    <td className="px-4 py-3 font-semibold tabular-nums text-amber-600 dark:text-amber-400">
+                                    <td className="px-4 py-3 font-semibold tabular-nums text-amber-700 dark:text-amber-400">
                                         {b.used ?? 0}
                                     </td>
-                                    <td className={`pl-4 ${LIST_EDGE_LAST} py-3 font-bold tabular-nums text-emerald-600 dark:text-emerald-400`}>
+                                    <td className={`pl-4 ${LIST_EDGE_LAST} py-3 font-bold tabular-nums text-emerald-700 dark:text-emerald-400`}>
                                         {b.balance ?? '—'}
                                     </td>
                                 </tr>
@@ -246,7 +246,7 @@ export default function LeaveBalances() {
                 >
                     <div className="space-y-4">
                         {accrualPreview.changes.length === 0 ? (
-                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                            <p className="text-sm text-slate-600 dark:text-slate-400">
                                 Nothing to accrue. Either every balance is already current, or no leave
                                 type has an annual quota — set quotas under Leave Type first.
                             </p>
@@ -262,11 +262,11 @@ export default function LeaveBalances() {
                                             <span className="font-mono text-xs">{c.employee_code}</span>
                                             <span className="flex-1 text-slate-600 dark:text-slate-300">{c.type}</span>
                                             <span className="tabular-nums">{c.from ?? '—'} → {c.to}</span>
-                                            {c.reason && <span className="text-xs text-amber-600">{c.reason}</span>}
+                                            {c.reason && <span className="text-xs text-amber-700">{c.reason}</span>}
                                         </div>
                                     ))}
                                     {accrualPreview.changes.length > 100 && (
-                                        <p className="py-2 text-xs text-slate-500">…and {accrualPreview.changes.length - 100} more</p>
+                                        <p className="py-2 text-xs text-slate-600">…and {accrualPreview.changes.length - 100} more</p>
                                     )}
                                 </div>
                             </>

@@ -121,29 +121,29 @@ export default function ApiAccess() {
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                             {loading ? (
-                                <tr><td colSpan={8} className="px-4 py-20 text-center text-slate-400">Loading…</td></tr>
+                                <tr><td colSpan={8} className="px-4 py-20 text-center text-slate-500">Loading…</td></tr>
                             ) : clients.length === 0 ? (
-                                <tr><td colSpan={8} className="px-4 py-20 text-center text-slate-500 dark:text-slate-400">
+                                <tr><td colSpan={8} className="px-4 py-20 text-center text-slate-600 dark:text-slate-400">
                                     No API keys yet. Click <b>Issue Key</b> to create one for greytHR or another puller.
                                 </td></tr>
                             ) : clients.map(c => (
                                 <tr key={c.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
                                     <td className={`${LIST_EDGE_FIRST} pr-4 py-3 font-medium text-slate-800 dark:text-slate-100`}>{c.name}</td>
-                                    <td className="px-4 py-3 font-mono text-xs text-slate-500">{c.token_prefix}…</td>
+                                    <td className="px-4 py-3 font-mono text-xs text-slate-600">{c.token_prefix}…</td>
                                     <td className="px-4 py-3 text-xs">{(c.scopes || []).join(', ') || '—'}</td>
                                     <td className="px-4 py-3 text-xs font-mono">
                                         {(c.allowed_ips && c.allowed_ips.length)
                                             ? c.allowed_ips.join(', ')
-                                            : <span className="text-amber-600 dark:text-amber-400">ANY — unrestricted</span>}
+                                            : <span className="text-amber-700 dark:text-amber-400">ANY — unrestricted</span>}
                                     </td>
                                     <td className="px-4 py-3 text-xs">{c.rate_limit_per_minute}/min</td>
-                                    <td className="px-4 py-3 text-xs text-slate-500">
-                                        {c.last_used_at ? <>{fmt(c.last_used_at)}<div className="text-slate-400">{c.last_used_ip}</div></> : 'never'}
+                                    <td className="px-4 py-3 text-xs text-slate-600">
+                                        {c.last_used_at ? <>{fmt(c.last_used_at)}<div className="text-slate-500">{c.last_used_ip}</div></> : 'never'}
                                     </td>
                                     <td className="px-4 py-3">
                                         {c.is_active
-                                            ? <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400"><Check className="w-3.5 h-3.5" />Active</span>
-                                            : <span className="text-slate-400">Revoked</span>}
+                                            ? <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400"><Check className="w-3.5 h-3.5" />Active</span>
+                                            : <span className="text-slate-500">Revoked</span>}
                                     </td>
                                     <td className={`pl-4 ${LIST_EDGE_LAST} py-3 text-right whitespace-nowrap`}>
                                         <Button variant="secondary" size="sm" icon={RefreshCw} onClick={() => rotate(c)}>Rotate</Button>
@@ -180,7 +180,7 @@ export default function ApiAccess() {
                         <label className="text-sm font-medium text-slate-700 dark:text-slate-200">Allowed addresses (CIDR, comma-separated)</label>
                         <input className="input-base mt-1 font-mono" placeholder="103.21.58.0/24  (blank = any — not recommended)"
                             value={form.allowed_ips} onChange={e => setForm({ ...form, allowed_ips: e.target.value })} />
-                        <p className="mt-1 text-xs text-slate-400 flex items-center gap-1"><Shield className="w-3 h-3" />Restrict to the puller's egress IPs. Blank leaves the key usable from anywhere.</p>
+                        <p className="mt-1 text-xs text-slate-500 flex items-center gap-1"><Shield className="w-3 h-3" />Restrict to the puller's egress IPs. Blank leaves the key usable from anywhere.</p>
                     </div>
                     <div>
                         <label className="text-sm font-medium text-slate-700 dark:text-slate-200">Rate limit (per minute)</label>
@@ -205,7 +205,7 @@ export default function ApiAccess() {
                             {issued.token}
                         </div>
                         {issued.unrestricted && (
-                            <p className="text-xs text-amber-600 dark:text-amber-400">
+                            <p className="text-xs text-amber-700 dark:text-amber-400">
                                 No address restriction set — this key works from anywhere. Add a CIDR by rotating once the puller confirms their IPs.
                             </p>
                         )}
@@ -213,7 +213,7 @@ export default function ApiAccess() {
                             <Button variant="secondary" onClick={copyToken}>{copied ? 'Copied ✓' : 'Copy'}</Button>
                             <Button variant="primary" onClick={() => setIssued(null)}>Done</Button>
                         </div>
-                        <p className="text-xs text-slate-400">Send it over a channel the recipient controls, not email. It cannot be shown again.</p>
+                        <p className="text-xs text-slate-500">Send it over a channel the recipient controls, not email. It cannot be shown again.</p>
                     </div>
                 )}
             </Modal>

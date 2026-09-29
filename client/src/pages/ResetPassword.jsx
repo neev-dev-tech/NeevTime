@@ -57,12 +57,12 @@ export default function ResetPassword() {
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">New Password</label>
+                        <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">New Password</label>
                         <input type="password" value={password} onChange={e => setPassword(e.target.value)} minLength={6}
                             className="field" required />
                     </div>
                     <div>
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Confirm Password</label>
+                        <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">Confirm Password</label>
                         <input type="password" value={confirm} onChange={e => setConfirm(e.target.value)} minLength={6}
                             className="field" required />
                     </div>

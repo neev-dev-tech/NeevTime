@@ -103,16 +103,16 @@ export default function DeletedEmployees() {
                     <div className="py-20 text-center px-6">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load deleted employees</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchDeleted}>Try again</Button>
                     </div>
                 ) : controls.matched === 0 ? (
                     <div className="py-20 text-center px-6">
-                        <Trash2 size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <Trash2 size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">
                             {controls.isFiltered ? 'No matching records' : 'Nothing deleted'}
                         </h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
                             {controls.isFiltered
                                 ? 'No deleted employee matches that search.'
                                 : 'Employees removed from the Employees page appear here.'}
@@ -150,7 +150,7 @@ export default function DeletedEmployees() {
                                             </td>
                                             <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{emp.department_name || '—'}</td>
                                             <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{emp.designation || '—'}</td>
-                                            <td className={`pl-4 ${LIST_EDGE_LAST} py-3 text-slate-500 dark:text-slate-400 tabular-nums`}>{when(emp.deleted_at)}</td>
+                                            <td className={`pl-4 ${LIST_EDGE_LAST} py-3 text-slate-600 dark:text-slate-400 tabular-nums`}>{when(emp.deleted_at)}</td>
                                         </tr>
                                     ))}
                                 </tbody>

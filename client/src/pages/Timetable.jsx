@@ -201,14 +201,14 @@ export default function Timetable() {
                     <div className="py-16 text-center">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load timetables</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchTimetables}>Try again</Button>
                     </div>
                 ) : timetables.length === 0 ? (
                     <div className="py-16 text-center">
-                        <CalendarDays size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <CalendarDays size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No timetables yet</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
                             A timetable sets the check-in and check-out times a shift is measured against.
                         </p>
                     </div>
@@ -251,14 +251,14 @@ export default function Timetable() {
                                         <div className="rounded-xl p-2.5 text-center bg-emerald-50 dark:bg-emerald-900/25 border border-emerald-100 dark:border-emerald-900/40">
                                             <div className="text-[11px] uppercase tracking-[0.06em] font-bold text-emerald-700 dark:text-emerald-400 mb-0.5">Check In</div>
                                             <div className="text-lg font-bold tabular-nums text-emerald-700 dark:text-emerald-300">{formatTime(tt.check_in)}</div>
-                                            <div className="text-[11px] tabular-nums text-slate-500 dark:text-slate-400">
+                                            <div className="text-[11px] tabular-nums text-slate-600 dark:text-slate-400">
                                                 {tt.late_in ? `Late after ${formatTime(tt.late_in)}` : '—'}
                                             </div>
                                         </div>
                                         <div className="rounded-xl p-2.5 text-center bg-rose-50 dark:bg-rose-900/25 border border-rose-100 dark:border-rose-900/40">
                                             <div className="text-[11px] uppercase tracking-[0.06em] font-bold text-rose-700 dark:text-rose-400 mb-0.5">Check Out</div>
                                             <div className="text-lg font-bold tabular-nums text-rose-700 dark:text-rose-300">{formatTime(tt.check_out)}</div>
-                                            <div className="text-[11px] tabular-nums text-slate-500 dark:text-slate-400">
+                                            <div className="text-[11px] tabular-nums text-slate-600 dark:text-slate-400">
                                                 {tt.early_out ? `Early before ${formatTime(tt.early_out)}` : '—'}
                                             </div>
                                         </div>
@@ -267,15 +267,15 @@ export default function Timetable() {
                                     {/* Details */}
                                     <dl className="grid grid-cols-3 gap-2 text-center mb-3">
                                         <div>
-                                            <dt className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400">Grace</dt>
+                                            <dt className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-600 dark:text-slate-400">Grace</dt>
                                             <dd className="text-sm font-semibold tabular-nums text-slate-800 dark:text-slate-100">{tt.grace_period_minutes ?? 0}m</dd>
                                         </div>
                                         <div>
-                                            <dt className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400">Full Day</dt>
+                                            <dt className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-600 dark:text-slate-400">Full Day</dt>
                                             <dd className="text-sm font-semibold tabular-nums text-slate-800 dark:text-slate-100">{tt.min_hours_for_full_day || 8}h</dd>
                                         </div>
                                         <div>
-                                            <dt className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400">Breaks</dt>
+                                            <dt className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-600 dark:text-slate-400">Breaks</dt>
                                             <dd className="text-sm font-semibold tabular-nums text-slate-800 dark:text-slate-100">{tt.break_count || 0}</dd>
                                         </div>
                                     </dl>
@@ -478,7 +478,7 @@ export default function Timetable() {
                     open
                     onClose={() => setShowBreakModal(false)}
                     title={<span className="flex items-center gap-2">
-                        <Coffee className="text-amber-600 dark:text-amber-400" />
+                        <Coffee className="text-amber-700 dark:text-amber-400" />
                         Break Times - {selectedTimetable.name}
                     </span>}
                     size="lg"
@@ -487,9 +487,9 @@ export default function Timetable() {
                     <div className="space-y-2 mb-4">
                         {breaks.length === 0 ? (
                             <div className="text-center py-8">
-                                <Coffee size={32} className="mx-auto mb-2 text-slate-300 dark:text-slate-600" />
+                                <Coffee size={32} className="mx-auto mb-2 text-slate-300 dark:text-slate-500" />
                                 <h4 className="font-bold text-slate-800 dark:text-slate-100 mb-0.5">No breaks defined</h4>
-                                <p className="text-sm text-slate-500 dark:text-slate-400">Add a break below and it will be deducted from worked hours.</p>
+                                <p className="text-sm text-slate-600 dark:text-slate-400">Add a break below and it will be deducted from worked hours.</p>
                             </div>
                         ) : breaks.map(b => (
                             <div key={b.id} className="flex items-center justify-between gap-3 p-3 bg-app-surface/70 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl">

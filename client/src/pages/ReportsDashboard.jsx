@@ -26,7 +26,9 @@ export default function ReportsDashboard() {
     // Monochrome, like the rest of the app: every category shares one neutral
     // chip. Section headings and grouping carry the category, not colour.
     const NEUTRAL = {
-        color: '#475569',
+        color: 'rgb(var(--text-muted))',
+        // Hex form for the places that append an alpha suffix.
+        hex: '#64748B',
         bgColor: 'rgba(100, 116, 139, 0.10)',
         hoverGradient: 'rgba(100, 116, 139, 0.16)'
     };
@@ -197,7 +199,7 @@ export default function ReportsDashboard() {
                         </span>
                         {/* Microcopy - More Secondary */}
                         <span
-                            className="text-[11px] leading-tight text-slate-400 dark:text-slate-500"
+                            className="text-[11px] leading-tight text-slate-500 dark:text-slate-400"
                             style={{
                                 opacity: 0.9,
                                 fontWeight: 400,
@@ -248,7 +250,7 @@ export default function ReportsDashboard() {
                                     className="w-1 h-8 rounded-full"
                                     style={{ 
                                         backgroundColor: getCategoryColor(section.category).color,
-                                        boxShadow: `0 0 8px ${getCategoryColor(section.category).color}40`
+                                        boxShadow: `0 0 8px ${getCategoryColor(section.category).hex}40`
                                     }}
                                 ></div>
                                 <h2 
@@ -259,9 +261,9 @@ export default function ReportsDashboard() {
                                     <span 
                                         className="px-3 py-1 rounded-full text-xs font-bold"
                                         style={{
-                                            backgroundColor: `${getCategoryColor(section.category).color}12`,
+                                            backgroundColor: `${getCategoryColor(section.category).hex}12`,
                                             color: getCategoryColor(section.category).color,
-                                            border: `1px solid ${getCategoryColor(section.category).color}20`
+                                            border: `1px solid ${getCategoryColor(section.category).hex}20`
                                         }}
                                     >
                                         {section.items.length}
@@ -270,7 +272,7 @@ export default function ReportsDashboard() {
                             </div>
                             {section.description && (
                                 <p 
-                                    className="text-sm ml-4 text-slate-500 dark:text-slate-400"
+                                    className="text-sm ml-4 text-slate-600 dark:text-slate-400"
                                     style={{ fontWeight: 500, letterSpacing: '-0.01em' }}
                                 >
                                     {section.description}
@@ -283,7 +285,7 @@ export default function ReportsDashboard() {
                     <div 
                         className="h-px ml-4 mb-6"
                         style={{
-                            background: `linear-gradient(to right, ${getCategoryColor(section.category).color}40, transparent)`
+                            background: `linear-gradient(to right, ${getCategoryColor(section.category).hex}40, transparent)`
                         }}
                     ></div>
 

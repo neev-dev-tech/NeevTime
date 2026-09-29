@@ -226,14 +226,14 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
                 {/* Upcoming Holidays Banner */}
                 {upcomingHolidays.length > 0 && (
                     <div className="mx-4 sm:mx-6 mt-4 bg-app-surface/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-4">
-                        <h3 className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-3 flex items-center gap-2">
+                        <h3 className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-600 dark:text-slate-400 mb-3 flex items-center gap-2">
                             <Calendar size={13} /> Upcoming Holidays
                         </h3>
                         <div className="flex flex-wrap gap-3">
                             {upcomingHolidays.map(h => (
                                 <div key={h.id} className="bg-app-surface/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 hover:-translate-y-0.5 transition-transform">
                                     <div className="font-semibold text-sm text-slate-800 dark:text-slate-100">{h.name || '—'}</div>
-                                    <div className="text-xs tabular-nums text-slate-500 dark:text-slate-400">
+                                    <div className="text-xs tabular-nums text-slate-600 dark:text-slate-400">
                                         {formatDate(h.date)}
                                     </div>
                                 </div>
@@ -252,16 +252,16 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
                     <div className="py-20 text-center px-6">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load this page</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchData}>Try again</Button>
                     </div>
                 ) : activeTab === 'locations' ? (
                     /* Locations Grid */
                     locations.length === 0 ? (
                         <div className="py-20 text-center px-6">
-                            <MapPin size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                            <MapPin size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                             <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No locations yet</h3>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                            <p className="text-sm text-slate-600 dark:text-slate-400">
                                 Locations let you attach region-specific holidays to the right sites.
                             </p>
                         </div>
@@ -304,9 +304,9 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
                     )
                 ) : holidays.length === 0 ? (
                     <div className="py-20 text-center px-6">
-                        <Calendar size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <Calendar size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No holidays yet</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
                             Add a holiday and it will be excluded from attendance for the assigned locations.
                         </p>
                     </div>
@@ -326,7 +326,7 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                             {holidayPager.view.map((h, idx) => (
                                 <tr key={h.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
-                                    <td className={`${LIST_EDGE_FIRST} pr-4 py-3 text-slate-400 dark:text-slate-500 tabular-nums align-top`}>{(holidayPager.page - 1) * holidayPager.pageSize + idx + 1}</td>
+                                    <td className={`${LIST_EDGE_FIRST} pr-4 py-3 text-slate-500 dark:text-slate-400 tabular-nums align-top`}>{(holidayPager.page - 1) * holidayPager.pageSize + idx + 1}</td>
                                     <td className="px-4 py-3">
                                         <div className="font-semibold text-slate-800 dark:text-slate-100">{h.name || '—'}</div>
                                         {h.description && (

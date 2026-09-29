@@ -116,10 +116,10 @@ export default function AuditTrail() {
                         ))}
                     </select>
 
-                    <label className="text-xs text-slate-500 dark:text-slate-400">From</label>
+                    <label className="text-xs text-slate-600 dark:text-slate-400">From</label>
                     <input type="date" className="field-sm !h-8 !py-0 w-auto" value={filters.from}
                            onChange={e => setFilter('from', e.target.value)} aria-label="From date" />
-                    <label className="text-xs text-slate-500 dark:text-slate-400">to</label>
+                    <label className="text-xs text-slate-600 dark:text-slate-400">to</label>
                     <input type="date" className="field-sm !h-8 !py-0 w-auto" value={filters.to}
                            onChange={e => setFilter('to', e.target.value)} aria-label="To date" />
 
@@ -127,7 +127,7 @@ export default function AuditTrail() {
                         <button
                             type="button"
                             onClick={() => { setOffset(0); setFilters({ table: '', action: '', from: '', to: '' }); }}
-                            className="h-7 px-2 rounded-md text-xs font-medium text-slate-500 hover:bg-slate-200/70 hover:text-slate-800 dark:hover:bg-slate-700 dark:hover:text-slate-100"
+                            className="h-7 px-2 rounded-md text-xs font-medium text-slate-600 hover:bg-slate-200/70 hover:text-slate-800 dark:hover:bg-slate-700 dark:hover:text-slate-100"
                         >
                             Clear
                         </button>
@@ -140,7 +140,7 @@ export default function AuditTrail() {
             }
             footer={!loading && !error && entries.length > 0 ? (
                 <div className="flex items-center justify-between gap-3 px-4 sm:px-6 py-2">
-                    <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">
+                    <span className="text-xs text-slate-600 dark:text-slate-400 tabular-nums">
                         {offset + 1}–{Math.min(offset + PAGE, total)} of {total.toLocaleString()}
                     </span>
                     {pages > 1 && (
@@ -148,14 +148,14 @@ export default function AuditTrail() {
                             <button type="button" aria-label="Previous page"
                                     onClick={() => setOffset(o => Math.max(0, o - PAGE))}
                                     disabled={offset === 0}
-                                    className="grid place-items-center w-8 h-8 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800 disabled:opacity-40 disabled:cursor-not-allowed dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100">
+                                    className="grid place-items-center w-8 h-8 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-slate-800 disabled:opacity-40 disabled:cursor-not-allowed dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100">
                                 <ChevronLeft size={15} />
                             </button>
                             <span className="text-xs text-slate-600 dark:text-slate-300 tabular-nums px-2">{page} / {pages}</span>
                             <button type="button" aria-label="Next page"
                                     onClick={() => setOffset(o => o + PAGE)}
                                     disabled={page >= pages}
-                                    className="grid place-items-center w-8 h-8 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800 disabled:opacity-40 disabled:cursor-not-allowed dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100">
+                                    className="grid place-items-center w-8 h-8 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-slate-800 disabled:opacity-40 disabled:cursor-not-allowed dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100">
                                 <ChevronRight size={15} />
                             </button>
                         </div>
@@ -173,16 +173,16 @@ export default function AuditTrail() {
                     <div className="py-20 text-center px-6">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load the audit trail</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchEntries}>Try again</Button>
                     </div>
                 ) : entries.length === 0 ? (
                     <div className="py-20 text-center px-6">
-                        <Shield size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <Shield size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">
                             {isFiltered ? 'No matching changes' : 'Nothing recorded yet'}
                         </h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
                             {isFiltered
                                 ? 'Nothing matches the current filters. Clear them or widen the date range.'
                                 : 'Changes to attendance, employees, users and settings appear here as they happen.'}
@@ -206,13 +206,13 @@ export default function AuditTrail() {
                                             <tr key={e.id}
                                                 className="hover:bg-slate-50 dark:hover:bg-slate-800/40 cursor-pointer"
                                                 onClick={() => setDetail(e)}>
-                                                <td className={`${LIST_EDGE_FIRST} pr-4 py-3 text-slate-500 dark:text-slate-400 whitespace-nowrap tabular-nums`}>
+                                                <td className={`${LIST_EDGE_FIRST} pr-4 py-3 text-slate-600 dark:text-slate-400 whitespace-nowrap tabular-nums`}>
                                                     {when(e.created_at)}
                                                 </td>
                                                 <td className="px-4 py-3 font-medium text-slate-800 dark:text-slate-100">
                                                     {/* A change nobody triggered is a device or a scheduled job,
                                                         not an unknown person. Saying so avoids implying a gap. */}
-                                                    {e.username || <span className="text-slate-400 dark:text-slate-500">System</span>}
+                                                    {e.username || <span className="text-slate-500 dark:text-slate-400">System</span>}
                                                 </td>
                                                 <td className="px-4 py-3">
                                                     <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold border ${ACTION_STYLE[e.action] || ''}`}>
@@ -221,11 +221,11 @@ export default function AuditTrail() {
                                                 </td>
                                                 <td className="px-4 py-3 text-slate-600 dark:text-slate-300 whitespace-nowrap">
                                                     {e.table_name.replace(/_/g, ' ')}
-                                                    <span className="text-slate-400 dark:text-slate-500 font-mono text-xs ml-1.5">#{e.record_id ?? '—'}</span>
+                                                    <span className="text-slate-500 dark:text-slate-400 font-mono text-xs ml-1.5">#{e.record_id ?? '—'}</span>
                                                 </td>
                                                 <td className={`pl-4 ${LIST_EDGE_LAST} py-3 text-slate-600 dark:text-slate-300`}>
                                                     {changes.length === 0
-                                                        ? <span className="text-slate-400">—</span>
+                                                        ? <span className="text-slate-500">—</span>
                                                         : changes.slice(0, 3).map(c => c.field.replace(/_/g, ' ')).join(', ')
                                                           + (changes.length > 3 ? ` +${changes.length - 3} more` : '')}
                                                 </td>
@@ -250,12 +250,12 @@ export default function AuditTrail() {
                     {(() => {
                         const changes = diffOf(detail.old_data, detail.new_data);
                         if (changes.length === 0) {
-                            return <p className="text-sm text-slate-500 dark:text-slate-400">No field-level differences recorded.</p>;
+                            return <p className="text-sm text-slate-600 dark:text-slate-400">No field-level differences recorded.</p>;
                         }
                         return (
                             <div className="overflow-x-auto">
                                 <table className="w-full text-sm border-collapse">
-                                    <thead className="text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-700">
+                                    <thead className="text-[11px] uppercase tracking-[0.06em] text-slate-600 dark:text-slate-400 border-b border-slate-100 dark:border-slate-700">
                                         <tr>
                                             <th className="py-2 pr-4 text-left font-semibold">Field</th>
                                             <th className="py-2 pr-4 text-left font-semibold">Before</th>

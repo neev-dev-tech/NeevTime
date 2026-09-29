@@ -145,7 +145,7 @@ export default function ScheduleCalendar() {
                     <>
                         {/* Department Filter */}
                         <div className="relative">
-                            <Filter size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 pointer-events-none" />
+                            <Filter size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 pointer-events-none" />
                             <select
                                 value={selectedDepartment}
                                 onChange={(e) => setSelectedDepartment(e.target.value)}
@@ -186,7 +186,7 @@ export default function ScheduleCalendar() {
                     <button
                         onClick={() => navigateMonth(-1)}
                         aria-label="Previous"
-                        className="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-600 dark:hover:text-slate-400 transition-colors"
+                        className="p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-600 dark:hover:text-slate-400 transition-colors"
                     >
                         <ChevronLeft size={18} />
                     </button>
@@ -196,7 +196,7 @@ export default function ScheduleCalendar() {
                     <button
                         onClick={() => navigateMonth(1)}
                         aria-label="Next"
-                        className="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-600 dark:hover:text-slate-400 transition-colors"
+                        className="p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-600 dark:hover:text-slate-400 transition-colors"
                     >
                         <ChevronRight size={18} />
                     </button>
@@ -227,16 +227,16 @@ export default function ScheduleCalendar() {
                     <div className="py-16 text-center">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load the calendar</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchData}>Try again</Button>
                     </div>
                 ) : filteredEmployees.length === 0 ? (
                     <div className="py-16 text-center">
-                        <Users size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <Users size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">
                             {selectedDepartment ? 'No matching employees' : 'No employees yet'}
                         </h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
                             {selectedDepartment
                                 ? 'No employees belong to the selected department.'
                                 : 'Add employees and they will appear here with their shifts.'}
@@ -247,7 +247,7 @@ export default function ScheduleCalendar() {
                         <table className="w-full border-separate border-spacing-1">
                             <thead>
                                 <tr>
-                                    <th className="p-2 rounded-lg ring-1 ring-black/5 dark:ring-white/10 bg-slate-50/70 dark:bg-slate-900/50 text-left min-w-[150px] sticky left-0 z-10 text-[11px] uppercase tracking-[0.06em] font-semibold text-slate-500 dark:text-slate-400">
+                                    <th className="p-2 rounded-lg ring-1 ring-black/5 dark:ring-white/10 bg-slate-50/70 dark:bg-slate-900/50 text-left min-w-[150px] sticky left-0 z-10 text-[11px] uppercase tracking-[0.06em] font-semibold text-slate-600 dark:text-slate-400">
                                         Employee
                                     </th>
                                     {days.map((day, i) => (
@@ -259,7 +259,7 @@ export default function ScheduleCalendar() {
                                         >
                                             {day ? (
                                                 <>
-                                                    <div className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400">{dayNames[day.getDay()]}</div>
+                                                    <div className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-600 dark:text-slate-400">{dayNames[day.getDay()]}</div>
                                                     <div className={`text-xs tabular-nums ${isToday(day) ? 'text-slate-600 dark:text-slate-400 font-bold' : 'text-slate-600 dark:text-slate-300'}`}>
                                                         {day.getDate()}
                                                     </div>
@@ -290,7 +290,7 @@ export default function ScheduleCalendar() {
                                                         }`}
                                                 >
                                                     {isWO ? (
-                                                        <span className="text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">WO</span>
+                                                        <span className="text-[11px] font-bold uppercase tracking-wide text-slate-600 dark:text-slate-400">WO</span>
                                                     ) : schedule ? (
                                                         <span
                                                             className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide ${getShiftColor(shifts.findIndex(s => s.id === schedule.shift_id))
@@ -300,7 +300,7 @@ export default function ScheduleCalendar() {
                                                             {schedule.shift_name?.substring(0, 3) || 'SCH'}
                                                         </span>
                                                     ) : (
-                                                        <span className="text-xs text-slate-300 dark:text-slate-600">—</span>
+                                                        <span className="text-xs text-slate-300 dark:text-slate-500">—</span>
                                                     )}
                                                 </td>
                                             );
@@ -309,7 +309,7 @@ export default function ScheduleCalendar() {
                                 ))}
                             </tbody>
                         </table>
-                        <div className="pt-3 mt-2 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
+                        <div className="pt-3 mt-2 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-400">
                             {filteredEmployees.length > 15
                                 ? `Showing 15 of ${filteredEmployees.length} employees`
                                 : `${filteredEmployees.length} employee${filteredEmployees.length === 1 ? '' : 's'}`}
@@ -325,7 +325,7 @@ export default function ScheduleCalendar() {
                         <div className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-900/30 text-slate-600 dark:text-slate-400">
                             <Users size={16} />
                         </div>
-                        <h3 className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400">Total Employees</h3>
+                        <h3 className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-600 dark:text-slate-400">Total Employees</h3>
                     </div>
                     <div className="text-3xl font-bold tabular-nums text-slate-600 dark:text-slate-400">{filteredEmployees.length}</div>
                     <div className="text-sm text-slate-600 dark:text-slate-300">
@@ -334,12 +334,12 @@ export default function ScheduleCalendar() {
                 </div>
                 <div className="bg-app-surface/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 hover:-translate-y-0.5 transition-transform">
                     <div className="flex items-center gap-2 mb-2">
-                        <div className="p-1.5 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
+                        <div className="p-1.5 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400">
                             <Clock size={16} />
                         </div>
-                        <h3 className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400">Active Shifts</h3>
+                        <h3 className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-600 dark:text-slate-400">Active Shifts</h3>
                     </div>
-                    <div className="text-3xl font-bold tabular-nums text-emerald-600 dark:text-emerald-400">{shifts.length}</div>
+                    <div className="text-3xl font-bold tabular-nums text-emerald-700 dark:text-emerald-400">{shifts.length}</div>
                     <div className="text-sm text-slate-600 dark:text-slate-300">Defined in system</div>
                 </div>
                 <div className="bg-app-surface/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 hover:-translate-y-0.5 transition-transform">
@@ -347,7 +347,7 @@ export default function ScheduleCalendar() {
                         <div className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-900/30 text-slate-600 dark:text-slate-400">
                             <Building2 size={16} />
                         </div>
-                        <h3 className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400">Departments</h3>
+                        <h3 className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-600 dark:text-slate-400">Departments</h3>
                     </div>
                     <div className="text-3xl font-bold tabular-nums text-slate-600 dark:text-slate-400">{departments.length}</div>
                     <div className="text-sm text-slate-600 dark:text-slate-300">With employees</div>

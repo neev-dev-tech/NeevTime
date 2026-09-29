@@ -188,18 +188,18 @@ export default function ApprovalFlow() {
                 </>
             }
             footer={
-                <div className="px-4 sm:px-6 py-2 flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
+                <div className="px-4 sm:px-6 py-2 flex items-center justify-between text-sm text-slate-600 dark:text-slate-400">
                     <div className="flex items-center gap-3">
                         <select value={itemsPerPage} onChange={e => setItemsPerPage(Number(e.target.value))} className="field-sm font-semibold">
                             <option value={50}>50</option>
                             <option value={100}>100</option>
                         </select>
                         <div className="flex items-center bg-app-surface border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
-                            <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="p-1.5 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 transition-colors border-r border-slate-200 dark:border-slate-700">
+                            <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="p-1.5 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 transition-colors border-r border-slate-200 dark:border-slate-700">
                                 <ChevronLeft size={16} />
                             </button>
                             <span className="px-3 py-1 font-bold bg-slate-600 text-white text-xs tabular-nums">{currentPage}</span>
-                            <button onClick={() => setCurrentPage(p => Math.min(totalPages || 1, p + 1))} className="p-1.5 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 transition-colors border-l border-slate-200 dark:border-slate-700">
+                            <button onClick={() => setCurrentPage(p => Math.min(totalPages || 1, p + 1))} className="p-1.5 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 transition-colors border-l border-slate-200 dark:border-slate-700">
                                 <ChevronRight size={16} />
                             </button>
                         </div>
@@ -218,16 +218,16 @@ export default function ApprovalFlow() {
                     <div className="py-20 px-6 text-center">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load flows</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchData}>Try again</Button>
                     </div>
                 ) : paginatedItems.length === 0 ? (
                     <div className="py-20 px-6 text-center">
-                        <GitBranch size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <GitBranch size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">
                             {searchQuery ? 'No matching flows' : 'No approval flows yet'}
                         </h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
                             {searchQuery
                                 ? 'No flow matches that search.'
                                 : 'Add a flow to chain approval nodes into a workflow.'}
@@ -351,7 +351,7 @@ export default function ApprovalFlow() {
 
                         <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
                             <table className="w-full text-sm">
-                                <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
+                                <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-600 dark:text-slate-400">
                                     <tr className="text-left">
                                         <th className="p-3 pl-4 font-semibold">#</th>
                                         <th className="p-3 font-semibold">Node Name</th>
@@ -360,11 +360,11 @@ export default function ApprovalFlow() {
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                                     {flowNodes.length === 0 ? (
-                                        <tr><td colSpan={3} className="p-6 text-center text-slate-500 dark:text-slate-400 text-xs">No nodes added yet — add one to build the approval chain.</td></tr>
+                                        <tr><td colSpan={3} className="p-6 text-center text-slate-600 dark:text-slate-400 text-xs">No nodes added yet — add one to build the approval chain.</td></tr>
                                     ) : (
                                         flowNodes.map((node, i) => (
                                             <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
-                                                <td className="p-3 pl-4 text-slate-400 dark:text-slate-500 tabular-nums">{i + 1}</td>
+                                                <td className="p-3 pl-4 text-slate-500 dark:text-slate-400 tabular-nums">{i + 1}</td>
                                                 <td className="p-3">
                                                     <select value={node.node_id} onChange={e => updateNode(i, 'node_id', e.target.value)}
                                                         className="input-base py-1.5 text-sm">

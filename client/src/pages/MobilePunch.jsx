@@ -318,7 +318,7 @@ const MobilePunch = () => {
                             </div>
                         ) : status === 'locating' ? (
                             <div className="flex flex-col items-center z-10">
-                                <Navigation className="text-slate-500 animate-spin mb-2" size={32} />
+                                <Navigation className="text-slate-600 animate-spin mb-2" size={32} />
                                 <span className="text-slate-600 dark:text-slate-400 font-semibold text-sm">Locating GPS…</span>
                                 <div className="mt-3 h-2 w-32 rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
                             </div>
@@ -330,7 +330,7 @@ const MobilePunch = () => {
                                 </div>
                                 <div className="mt-2 text-center">
                                     <p className="font-semibold text-slate-800 dark:text-slate-100">{nearestFence?.name || '—'}</p>
-                                    <p className={`text-sm font-semibold tabular-nums ${status === 'ready' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                                    <p className={`text-sm font-semibold tabular-nums ${status === 'ready' ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                                         {distance != null ? `${Math.round(distance)}m away` : '—'}
                                     </p>
                                 </div>
@@ -339,7 +339,7 @@ const MobilePunch = () => {
                             <div className="flex flex-col items-center z-10 text-center px-6">
                                 <XCircle size={36} className="text-rose-400 mb-2" />
                                 <p className="font-bold text-slate-800 dark:text-slate-100">GPS access denied</p>
-                                <p className="text-sm text-slate-500 dark:text-slate-400">Allow location access to punch in.</p>
+                                <p className="text-sm text-slate-600 dark:text-slate-400">Allow location access to punch in.</p>
                             </div>
                         )}
                     </div>
@@ -347,7 +347,7 @@ const MobilePunch = () => {
                     {/* Content */}
                     <div className="p-6">
                         <div className="mb-6">
-                            <label className="block text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-2">
+                            <label className="block text-[11px] font-bold uppercase tracking-[0.09em] text-slate-600 dark:text-slate-400 mb-2">
                                 Simulate Employee (Admin)
                             </label>
                             <select
@@ -358,21 +358,21 @@ const MobilePunch = () => {
                                 {employees.map(e => <option key={e.id} value={e.id}>{e.first_name} {e.last_name} ({e.employee_code})</option>)}
                             </select>
                             {employees.length === 0 && (
-                                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">No employees available yet.</p>
+                                <p className="mt-2 text-xs text-slate-600 dark:text-slate-400">No employees available yet.</p>
                             )}
                         </div>
 
                         {status === 'success' ? (
                             <div className="text-center py-8 animate-fade-in">
                                 <CheckCircle className="mx-auto text-emerald-500 mb-4" size={64} />
-                                <h2 className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">Punched In</h2>
-                                <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">Attendance recorded successfully.</p>
+                                <h2 className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">Punched In</h2>
+                                <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">Attendance recorded successfully.</p>
                             </div>
                         ) : status === 'error' ? (
                             <div className="text-center py-6 animate-fade-in">
                                 <XCircle className="mx-auto text-rose-400 mb-4" size={48} />
                                 <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Punch failed</h3>
-                                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error || 'Something went wrong.'}</p>
+                                <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{error || 'Something went wrong.'}</p>
                                 <Button variant="secondary" icon={RefreshCw} onClick={() => setStatus('ready')} className="w-full">
                                     Try again
                                 </Button>
@@ -381,7 +381,7 @@ const MobilePunch = () => {
                             <div className="space-y-4">
                                 <div className="bg-slate-50/70 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 p-4 rounded-xl text-sm">
                                     <p className="flex items-center gap-2 font-semibold text-slate-800 dark:text-slate-100">
-                                        <MapPin size={16} className="text-slate-500" /> Location required
+                                        <MapPin size={16} className="text-slate-600" /> Location required
                                     </p>
                                     <p className="mt-1 text-slate-600 dark:text-slate-300">
                                         You must be within <span className="tabular-nums font-semibold">{nearestFence?.radius_meters || 100}m</span> of an office location.
@@ -445,7 +445,7 @@ const MobilePunch = () => {
                                                 one. Deliberately quieter than the camera button:
                                                 an uploaded file is any picture someone already
                                                 had, which is worth much less as evidence. */}
-                                            <label className="block cursor-pointer text-center text-xs text-slate-500 dark:text-slate-400 underline">
+                                            <label className="block cursor-pointer text-center text-xs text-slate-600 dark:text-slate-400 underline">
                                                 or upload a photo instead
                                                 <input
                                                     type="file"
@@ -471,7 +471,7 @@ const MobilePunch = () => {
                                     flex items-center justify-center gap-2
                                     ${status === 'ready'
                                             ? 'bg-saffron-gradient text-white hover:shadow-slate-200 dark:hover:shadow-slate-900/40'
-                                            : 'bg-slate-200 text-slate-400 cursor-not-allowed dark:bg-slate-700 dark:text-slate-500'}
+                                            : 'bg-slate-200 text-slate-500 cursor-not-allowed dark:bg-slate-700 dark:text-slate-400'}
                                 `}
                                 >
                                     {status === 'punching' ? (

@@ -157,7 +157,7 @@ const PunchCard = () => {
                     {checkingIn ? 'Check in' : 'Check out'}
                 </h3>
                 {status?.last_punch && (
-                    <span className="text-xs text-slate-500 dark:text-slate-400">
+                    <span className="text-xs text-slate-600 dark:text-slate-400">
                         Last today: {status.last_punch.punch_state === 'check_in' ? 'in' : 'out'} at{' '}
                         {new Date(status.last_punch.punch_time).toLocaleTimeString([], {
                             hour: '2-digit', minute: '2-digit',
@@ -175,7 +175,7 @@ const PunchCard = () => {
             )}
 
             {locating && (
-                <p className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                <p className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
                     <RefreshCw size={14} className="animate-spin" /> Finding your location…
                 </p>
             )}
@@ -187,7 +187,7 @@ const PunchCard = () => {
             )}
 
             {position && (
-                <p className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                <p className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
                     <MapPin size={14} />
                     Location found, accurate to about {Math.round(position.accuracy)} m
                 </p>

@@ -79,7 +79,7 @@ export default function HeroStat({
                             : ''}`}
         >
             <div className="flex items-center justify-between gap-2">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400 truncate">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-600 dark:text-slate-400 truncate">
                     {label}
                 </p>
                 <span
@@ -101,7 +101,7 @@ export default function HeroStat({
                     <p className="text-[28px] leading-none font-bold tabular-nums tracking-tight text-charcoal">
                         {value}
                     </p>
-                    <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400 leading-snug">
+                    <p className="mt-1.5 text-xs text-slate-600 dark:text-slate-400 leading-snug">
                         {shareLabel || hint}
                     </p>
                     {trend && (

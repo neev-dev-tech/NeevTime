@@ -108,7 +108,7 @@ export default function DeviceCommands() {
         const colors = {
             blue: 'bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-200 dark:bg-slate-900/30 dark:text-slate-300 dark:hover:bg-slate-900/50 dark:border-slate-800',
             green: 'bg-green-50 text-green-600 hover:bg-green-100 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-900/50 dark:border-green-800',
-            amber: 'bg-amber-50 text-amber-600 hover:bg-amber-100 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:hover:bg-amber-900/50 dark:border-amber-800',
+            amber: 'bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:hover:bg-amber-900/50 dark:border-amber-800',
             red: 'bg-red-50 text-red-600 hover:bg-red-100 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50 dark:border-red-800',
             purple: 'bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-200 dark:bg-slate-900/30 dark:text-slate-300 dark:hover:bg-slate-900/50 dark:border-slate-800'
         };
@@ -180,7 +180,7 @@ export default function DeviceCommands() {
                                 ))}
                             </div>
                         ) : devices.length === 0 ? (
-                            <div className="text-center py-4 text-slate-500 dark:text-slate-400">
+                            <div className="text-center py-4 text-slate-600 dark:text-slate-400">
                                 <WifiOff className="mx-auto mb-2 text-slate-300" size={32} />
                                 <p>No devices registered</p>
                                 <p className="text-xs mt-1">Add devices in Device Management</p>
@@ -210,7 +210,7 @@ export default function DeviceCommands() {
                                                 <WifiOff size={18} className={
                                                     selectedDevice?.serial_number === device.serial_number
                                                         ? 'text-white'
-                                                        : 'text-slate-500 dark:text-slate-400'
+                                                        : 'text-slate-600 dark:text-slate-400'
                                                 } />
                                             )}
                                         </div>
@@ -220,7 +220,7 @@ export default function DeviceCommands() {
                                             </div>
                                             <div className={`text-xs truncate ${selectedDevice?.serial_number === device.serial_number
                                                 ? 'text-slate-200'
-                                                : 'text-slate-500 dark:text-slate-400'
+                                                : 'text-slate-600 dark:text-slate-400'
                                                 }`}>
                                                 {device.serial_number}
                                             </div>
@@ -228,7 +228,7 @@ export default function DeviceCommands() {
                                         <span
                                             className={`flex items-center gap-1.5 flex-shrink-0 text-[11px] font-semibold ${selectedDevice?.serial_number === device.serial_number
                                                 ? 'text-slate-200'
-                                                : 'text-slate-500 dark:text-slate-400'
+                                                : 'text-slate-600 dark:text-slate-400'
                                                 }`}
                                             title={device.status === 'online' ? 'Online' : 'Offline'}
                                         >
@@ -245,15 +245,15 @@ export default function DeviceCommands() {
                         {selectedDevice && (
                             <div className="mt-4 pt-4 border-t dark:border-slate-700 space-y-2 text-sm">
                                 <div className="flex justify-between">
-                                    <span className="text-slate-500 dark:text-slate-400">Serial:</span>
+                                    <span className="text-slate-600 dark:text-slate-400">Serial:</span>
                                     <span className="font-medium">{selectedDevice.serial_number}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-slate-500 dark:text-slate-400">IP:</span>
+                                    <span className="text-slate-600 dark:text-slate-400">IP:</span>
                                     <span className="font-medium">{selectedDevice.ip_address || 'N/A'}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-slate-500 dark:text-slate-400">Status:</span>
+                                    <span className="text-slate-600 dark:text-slate-400">Status:</span>
                                     <span className={`px-2 py-0.5 rounded text-xs ${selectedDevice.status === 'online'
                                         ? 'bg-green-100 text-green-800'
                                         : 'bg-slate-100 text-slate-800'
@@ -262,19 +262,19 @@ export default function DeviceCommands() {
                                     </span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-slate-500 dark:text-slate-400">Users:</span>
+                                    <span className="text-slate-600 dark:text-slate-400">Users:</span>
                                     <span className="font-medium">{selectedDevice.user_count || 0}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-slate-500 dark:text-slate-400">FP Count:</span>
+                                    <span className="text-slate-600 dark:text-slate-400">FP Count:</span>
                                     <span className="font-medium">{selectedDevice.fingerprint_count || 0}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-slate-500 dark:text-slate-400">Face Count:</span>
+                                    <span className="text-slate-600 dark:text-slate-400">Face Count:</span>
                                     <span className="font-medium">{selectedDevice.face_count || 0}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-slate-500 dark:text-slate-400">Transactions:</span>
+                                    <span className="text-slate-600 dark:text-slate-400">Transactions:</span>
                                     <span className="font-medium">{selectedDevice.transaction_count || 0}</span>
                                 </div>
                             </div>
@@ -311,7 +311,7 @@ export default function DeviceCommands() {
 
                     {/* Warning */}
                     <div className="bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4 flex items-start gap-3">
-                        <AlertTriangle className="text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" size={18} />
+                        <AlertTriangle className="text-amber-700 dark:text-amber-400 mt-0.5 flex-shrink-0" size={18} />
                         <div className="text-sm text-amber-800 dark:text-amber-200">
                             <strong>Warning:</strong> Commands like "Clear Logs", "Clear All Data", and "Restart"
                             are irreversible. Ensure the device is connected and use with caution.
@@ -338,9 +338,9 @@ export default function DeviceCommands() {
                         </div>
                         {deviceCommands.length === 0 ? (
                             <div className="py-10 text-center">
-                                <Send size={32} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                                <Send size={32} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                                 <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No commands sent yet</h3>
-                                <p className="text-sm text-slate-500 dark:text-slate-400">
+                                <p className="text-sm text-slate-600 dark:text-slate-400">
                                     Select a device above, then send it a command to see the history here.
                                 </p>
                             </div>
@@ -356,7 +356,7 @@ export default function DeviceCommands() {
                                                 }`} />
                                             <div className="min-w-0">
                                                 <div className="font-medium text-sm truncate">{cmd.command}</div>
-                                                <div className="text-xs text-slate-500 dark:text-slate-400">
+                                                <div className="text-xs text-slate-600 dark:text-slate-400">
                                                     {formatTime(cmd.created_at)}
                                                 </div>
                                             </div>

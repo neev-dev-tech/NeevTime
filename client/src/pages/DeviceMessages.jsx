@@ -86,17 +86,17 @@ export default function DeviceMessages() {
                     </div>
                 ) : messages.length === 0 ? (
                     <div className="py-20 px-6 text-center">
-                        <MessageSquare size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <MessageSquare size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No messages sent yet</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
                             Messages you push to a device appear here with their delivery status.
                         </p>
                     </div>
                 ) : pager.matched === 0 ? (
                     <div className="py-20 px-6 text-center">
-                        <MessageSquare size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <MessageSquare size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No matching messages</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
                             Nothing matches the current search. Clear it to see every message.
                         </p>
                     </div>
@@ -120,7 +120,7 @@ export default function DeviceMessages() {
                                             {m.status || 'pending'}
                                         </span>
                                     </td>
-                                    <td className={`pl-4 ${LIST_EDGE_LAST} py-3 text-xs text-slate-500 dark:text-slate-400`}>{m.created_at ? formatDateTime(m.created_at) : '-'}</td>
+                                    <td className={`pl-4 ${LIST_EDGE_LAST} py-3 text-xs text-slate-600 dark:text-slate-400`}>{m.created_at ? formatDateTime(m.created_at) : '-'}</td>
                                 </tr>
                             ))}
                         </tbody>
