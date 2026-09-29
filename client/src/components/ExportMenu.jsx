@@ -1,12 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Download } from 'lucide-react';
-import Button from './ui/Button';
+import { ListMenu, ListMenuItem } from './ui/ListPage';
 import { exportToPDF } from '../utils/pdfExport';
 import { exportToExcel } from '../utils/excelExport';
 
 /**
- * Standard CSV / Excel / PDF export button row.
+ * Standard Export dropdown: CSV, Excel or PDF of the rows given.
  *
  *   <ExportMenu rows={rows} columns={[{key:'name',label:'Name'}, ...]}
  *               filename="devices" title="Devices" />
@@ -14,7 +14,8 @@ import { exportToExcel } from '../utils/excelExport';
  * `columns` maps row fields to export headers; omit it to export raw rows.
  * Optional `mapRow` runs per row before export (e.g. formatting dates).
  */
-export default function ExportMenu({ rows, columns, filename, title, mapRow, size = "md" }) {
+// eslint-disable-next-line no-unused-vars
+export default function ExportMenu({ rows, columns, filename, title, mapRow, size }) {
     const buildRows = () => {
         const source = mapRow ? rows.map(mapRow) : rows;
         if (!columns || columns.length === 0) return source;
@@ -51,14 +52,16 @@ export default function ExportMenu({ rows, columns, filename, title, mapRow, siz
         exportToPDF({ data, filename: `${filename}.pdf`, title: title || filename });
     };
 
-    const disabled = !rows || rows.length === 0;
+    const empty = !rows || rows.length === 0;
 
+    // One "Export" control instead of three coloured buttons, the same size
+    // as every other toolbar button. `size` is kept for callers but unused.
     return (
-        <div className="inline-flex items-center gap-2">
-            <Button variant="secondary" size={size} icon={Download} onClick={exportCSV} disabled={disabled}>CSV</Button>
-            <Button variant="success" size={size} icon={Download} onClick={exportExcel} disabled={disabled}>Excel</Button>
-            <Button variant="danger" size={size} icon={Download} onClick={exportPDF} disabled={disabled}>PDF</Button>
-        </div>
+        <ListMenu label="Export" icon={Download} width="w-44" emptyHint={empty ? 'Nothing to export yet.' : null}>
+            <ListMenuItem onClick={exportCSV}>CSV</ListMenuItem>
+            <ListMenuItem onClick={exportExcel}>Excel (.xlsx)</ListMenuItem>
+            <ListMenuItem onClick={exportPDF}>PDF</ListMenuItem>
+        </ListMenu>
     );
 }
 
