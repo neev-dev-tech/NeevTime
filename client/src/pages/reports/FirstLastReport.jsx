@@ -1,10 +1,13 @@
 import { useState } from 'react';
 import axios from 'axios';
-import { Search, Calculator, ArrowLeft, Printer, FileSpreadsheet, RefreshCw, Loader, AlertCircle } from 'lucide-react';
+import { Search, Calculator, ArrowLeft, Download, RefreshCw, Loader, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { exportToPDF } from '../../utils/pdfExport';
 import { exportToExcel as exportToExcelUtil } from '../../utils/excelExport';
-import { Button, useToast } from '../../components';
+import {
+    Button, useToast, ListPage, ListMenu, ListMenuItem,
+    LIST_THEAD, LIST_TH, LIST_EDGE_FIRST, LIST_EDGE_LAST
+} from '../../components';
 import { toLocalDateString, formatDateTime } from '../../utils/dateFormat';
 
 function FirstLastReport() {
@@ -125,176 +128,166 @@ function FirstLastReport() {
     const NAME_CELL = 'font-semibold text-slate-800 dark:text-slate-100';
     const SECONDARY_CELL = 'text-slate-600 dark:text-slate-300';
 
+    const TIME_CELL = 'font-mono text-xs tabular-nums font-semibold text-slate-800 dark:text-slate-100';
+    const FIELD = 'field-sm !h-8 !py-0';
+    const TD = 'px-4 py-2.5 whitespace-nowrap';
+
     return (
-        <div className="space-y-6">
-            {/* Header — icon chip + title, matching PageHeader */}
-            <div className="flex items-center justify-between flex-wrap gap-3">
-                <div className="flex items-center gap-3 min-w-0">
-                    <Button variant="ghost" size="sm" icon={ArrowLeft} iconSize={18} onClick={() => navigate('/reports')} aria-label="Back to reports" />
-                    <div className="p-2.5 bg-slate-50 border border-slate-100 rounded-xl text-slate-600 shrink-0 dark:bg-slate-900/30 dark:border-slate-800 dark:text-slate-400">
-                        <Search size={22} />
-                    </div>
-                    <div className="min-w-0">
-                        <h1 className="text-xl font-bold text-slate-800 truncate dark:text-slate-100">First &amp; Last Punch</h1>
-                        <p className="text-sm text-slate-600 truncate dark:text-slate-400">Daily punch analysis report</p>
-                    </div>
-                </div>
-                <div className="flex items-center gap-2 flex-wrap">
-                    {data.length > 0 && (
-                        <>
-                            <Button variant="danger" onClick={handleExportPDF} disabled={exporting}>
-                                {exporting ? <Loader size={16} className="animate-spin" /> : <Printer size={16} />}
-                                {exporting ? 'Exporting…' : 'PDF'}
-                            </Button>
-                            <Button variant="success" onClick={exportToExcel} disabled={exporting}>
-                                {exporting ? <Loader size={16} className="animate-spin" /> : <FileSpreadsheet size={16} />}
-                                {exporting ? (exportProgress > 0 ? `${exportProgress}%` : 'Exporting…') : 'Excel'}
-                            </Button>
-                        </>
+        <ListPage
+            title="First & Last Punch"
+            count={calculated && !error ? data.length : undefined}
+            actions={
+                <>
+                    <Button variant="tonal" size="toolbar" icon={ArrowLeft} onClick={() => navigate('/reports')}>All reports</Button>
+                    {exporting ? (
+                        <Button variant="tonal" size="toolbar" disabled>
+                            <Loader size={15} className="animate-spin" />
+                            {exportProgress > 0 ? `${exportProgress}%` : 'Exporting…'}
+                        </Button>
+                    ) : (
+                        <ListMenu
+                            label="Export"
+                            icon={Download}
+                            width="w-44"
+                            emptyHint={data.length > 0 ? null : 'Calculate the report to export it.'}
+                        >
+                            <ListMenuItem onClick={handleExportPDF}>PDF</ListMenuItem>
+                            <ListMenuItem onClick={exportToExcel}>Excel (.xlsx)</ListMenuItem>
+                        </ListMenu>
                     )}
-                    <Button variant="primary" onClick={calculate} disabled={loading}>
-                        {loading ? <RefreshCw size={16} className="animate-spin" /> : <Calculator size={16} />}
+                    <Button variant="primary" size="toolbar" onClick={calculate} disabled={loading}>
+                        {loading ? <RefreshCw size={15} className="animate-spin" /> : <Calculator size={15} />}
                         {loading ? 'Calculating…' : 'Calculate'}
                     </Button>
-                </div>
-            </div>
-
-            {/* Filters */}
-            <div className="card-base !p-4 flex flex-wrap items-center gap-x-6 gap-y-3">
-                <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-600 dark:text-slate-400">Date range</span>
-                    <input
-                        type="date"
-                        value={startDate}
-                        onChange={e => setStartDate(e.target.value)}
-                        className="input-base !py-1.5 !w-auto text-sm tabular-nums"
-                    />
-                    <span className="text-slate-500">→</span>
-                    <input
-                        type="date"
-                        value={endDate}
-                        onChange={e => setEndDate(e.target.value)}
-                        className="input-base !py-1.5 !w-auto text-sm tabular-nums"
-                    />
-                </div>
-                <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-600 dark:text-slate-400">Employee</span>
+                </>
+            }
+            toolbar={
+                <>
+                    <div className="flex items-center gap-2">
+                        <span className="text-[13px] text-slate-600 dark:text-slate-400">Range</span>
+                        <input
+                            type="date"
+                            aria-label="Start date"
+                            value={startDate}
+                            onChange={e => setStartDate(e.target.value)}
+                            className={`${FIELD} !w-auto tabular-nums`}
+                        />
+                        <span className="text-slate-500 dark:text-slate-400" aria-hidden="true">→</span>
+                        <input
+                            type="date"
+                            aria-label="End date"
+                            value={endDate}
+                            onChange={e => setEndDate(e.target.value)}
+                            className={`${FIELD} !w-auto tabular-nums`}
+                        />
+                    </div>
                     <input
                         type="text"
-                        placeholder="ID…"
+                        aria-label="Employee ID"
+                        placeholder="Employee ID…"
                         value={employeeId}
                         onChange={e => setEmployeeId(e.target.value)}
-                        className="input-base !py-1.5 !w-24 text-sm"
+                        className={`${FIELD} !w-32`}
                     />
-                    <input
-                        type="text"
-                        placeholder="Name…"
-                        value={firstName}
-                        onChange={e => setFirstName(e.target.value)}
-                        className="input-base !py-1.5 !w-36 text-sm"
-                    />
+                    <div className="relative">
+                        <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" aria-hidden="true" />
+                        <input
+                            type="text"
+                            aria-label="First name"
+                            placeholder="First name…"
+                            value={firstName}
+                            onChange={e => setFirstName(e.target.value)}
+                            className={`${FIELD} !w-48 pl-9`}
+                        />
+                    </div>
+                </>
+            }
+            footer={!loading && !error && data.length > 0 ? (
+                <div className="px-4 sm:px-6 py-2.5 text-xs text-slate-600 dark:text-slate-400 tabular-nums">
+                    {data.length} record{data.length === 1 ? '' : 's'}
                 </div>
-            </div>
-
-            {/* Results */}
-            <div className="card-base !p-0 overflow-hidden">
-                {loading ? (
-                    <div className="p-6 space-y-3">
-                        {Array.from({ length: 8 }).map((_, i) => (
-                            <div key={i} className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
+            ) : null}
+        >
+            {loading ? (
+                <div className="p-4 sm:p-6 space-y-3">
+                    {Array.from({ length: 8 }).map((_, i) => (
+                        <div key={i} className="h-10 rounded-lg bg-slate-100 dark:bg-slate-800 animate-pulse" />
+                    ))}
+                </div>
+            ) : error ? (
+                <div className="py-20 text-center px-6">
+                    <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
+                    <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not generate the report</h3>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{error}</p>
+                    <Button variant="secondary" icon={RefreshCw} onClick={calculate}>Try again</Button>
+                </div>
+            ) : !calculated ? (
+                <div className="py-20 text-center px-6">
+                    <Calculator size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
+                    <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No report yet</h3>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                        Pick a date range above and press Calculate.
+                    </p>
+                </div>
+            ) : data.length === 0 ? (
+                <div className="py-20 text-center px-6">
+                    <Search size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
+                    <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No records found</h3>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                        No punches between {startDate} and {endDate} match these filters.
+                    </p>
+                </div>
+            ) : (
+                <table className="w-full text-sm text-left">
+                    <thead className={LIST_THEAD}>
+                        <tr>
+                            <th className={`${LIST_TH} ${LIST_EDGE_FIRST} w-12`}>#</th>
+                            <th className={LIST_TH}>Employee ID</th>
+                            <th className={LIST_TH}>Name</th>
+                            <th className={LIST_TH}>Department</th>
+                            <th className={LIST_TH}>Date</th>
+                            <th className={LIST_TH}>Weekday</th>
+                            <th className={LIST_TH}>First Punch</th>
+                            <th className={LIST_TH}>Last Punch</th>
+                            <th className={`${LIST_TH} ${LIST_EDGE_LAST}`}>Total Time</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                        {data.map((row, i) => (
+                            <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                                <td className={`${LIST_EDGE_FIRST} pr-4 py-2.5 text-slate-500 dark:text-slate-400 tabular-nums`}>{i + 1}</td>
+                                <td className={TD}>
+                                    <span className={CODE_CELL}>{row.employee_code || '—'}</span>
+                                </td>
+                                <td className={TD}>
+                                    <span className={NAME_CELL}>
+                                        {[row.first_name, row.last_name].filter(Boolean).join(' ') || '—'}
+                                    </span>
+                                </td>
+                                <td className={TD}>
+                                    <span className={SECONDARY_CELL}>{row.department || '—'}</span>
+                                </td>
+                                <td className={TD}>
+                                    <span className={`${SECONDARY_CELL} tabular-nums`}>{row.date || '—'}</span>
+                                </td>
+                                <td className={TD}>
+                                    <span className={SECONDARY_CELL}>{row.weekday || '—'}</span>
+                                </td>
+                                <td className={TD}>
+                                    <span className={TIME_CELL}>{row.first_punch || '—'}</span>
+                                </td>
+                                <td className={TD}>
+                                    <span className={TIME_CELL}>{row.last_punch || '—'}</span>
+                                </td>
+                                <td className={`${TD} ${LIST_EDGE_LAST}`}>
+                                    <span className={TIME_CELL}>{row.total_time || '—'}</span>
+                                </td>
+                            </tr>
                         ))}
-                    </div>
-                ) : error ? (
-                    <div className="py-16 text-center">
-                        <AlertCircle size={40} className="mx-auto mb-3 text-rose-400" />
-                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not generate the report</h3>
-                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{error}</p>
-                        <Button variant="secondary" icon={RefreshCw} onClick={calculate}>Try again</Button>
-                    </div>
-                ) : !calculated ? (
-                    <div className="py-16 text-center">
-                        <Calculator size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
-                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No report yet</h3>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">
-                            Pick a date range above and press Calculate.
-                        </p>
-                    </div>
-                ) : data.length === 0 ? (
-                    <div className="py-16 text-center">
-                        <Search size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
-                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No records found</h3>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">
-                            No punches between {startDate} and {endDate} match these filters.
-                        </p>
-                    </div>
-                ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm text-left">
-                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-600 dark:text-slate-400">
-                                <tr>
-                                    <th className="px-5 py-3 font-semibold w-12">#</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Employee ID</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Name</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Department</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Date</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Weekday</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">First Punch</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Last Punch</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Total Time</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                {data.map((row, i) => (
-                                    <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
-                                        <td className="px-5 py-3 text-slate-500 tabular-nums">{i + 1}</td>
-                                        <td className="px-5 py-3 whitespace-nowrap">
-                                            <span className={CODE_CELL}>{row.employee_code || '—'}</span>
-                                        </td>
-                                        <td className="px-5 py-3 whitespace-nowrap">
-                                            <span className={NAME_CELL}>
-                                                {[row.first_name, row.last_name].filter(Boolean).join(' ') || '—'}
-                                            </span>
-                                        </td>
-                                        <td className="px-5 py-3 whitespace-nowrap">
-                                            <span className={SECONDARY_CELL}>{row.department || '—'}</span>
-                                        </td>
-                                        <td className="px-5 py-3 whitespace-nowrap">
-                                            <span className={`${SECONDARY_CELL} tabular-nums`}>{row.date || '—'}</span>
-                                        </td>
-                                        <td className="px-5 py-3 whitespace-nowrap">
-                                            <span className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-600 dark:text-slate-400">
-                                                {row.weekday || '—'}
-                                            </span>
-                                        </td>
-                                        <td className="px-5 py-3 whitespace-nowrap">
-                                            <span className="font-mono text-xs tabular-nums text-emerald-700 dark:text-emerald-400 font-semibold">
-                                                {row.first_punch || '—'}
-                                            </span>
-                                        </td>
-                                        <td className="px-5 py-3 whitespace-nowrap">
-                                            <span className="font-mono text-xs tabular-nums text-rose-600 dark:text-rose-400 font-semibold">
-                                                {row.last_punch || '—'}
-                                            </span>
-                                        </td>
-                                        <td className="px-5 py-3 whitespace-nowrap">
-                                            <span className="font-mono text-xs tabular-nums font-semibold text-slate-800 dark:text-slate-100">
-                                                {row.total_time || '—'}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
-
-                {!loading && !error && data.length > 0 && (
-                    <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-400">
-                        {data.length} record{data.length === 1 ? '' : 's'}
-                    </div>
-                )}
-            </div>
-        </div>
+                    </tbody>
+                </table>
+            )}
+        </ListPage>
     );
 }
 

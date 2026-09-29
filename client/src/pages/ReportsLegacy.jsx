@@ -1,28 +1,32 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useLocation, useNavigate } from 'react-router-dom';
 import api from '../api';
 import {
-    FileBarChart, Download, Filter, Calendar, Users, Clock,
-    AlertTriangle, CheckCircle, XCircle, FileSpreadsheet, Printer, ArrowLeft,
-    Smartphone, List, FileText, Activity, PieChart, ClipboardList, Timer, CheckSquare,
-    Search, Calculator, UserCheck, UserX, BarChart3, ChevronDown, RefreshCw,
-    Fingerprint, LogIn, LogOut, MapPin, Hash, User
+    FileBarChart, Download, Calendar, Users, Clock,
+    AlertTriangle, XCircle, FileSpreadsheet, ArrowLeft,
+    Smartphone, FileText, Calculator, UserCheck, UserX, RefreshCw,
+    Fingerprint, MapPin, Hash
 } from 'lucide-react';
 import { exportToPDF } from '../utils/pdfExport';
 import { exportToExcel as exportToExcelUtil } from '../utils/excelExport';
-import { Button } from '../components';
+import {
+    Button, ListPage, ListMenu, ListMenuItem,
+    LIST_THEAD, LIST_TH, LIST_EDGE_FIRST, LIST_EDGE_LAST
+} from '../components';
 import { formatDate, toLocalDateString, toDateOnly, formatDateTime, formatTime } from '../utils/dateFormat';
 
-// Stat tile tones — written out in full so Tailwind's scanner keeps the classes
-const STAT_TONES = {
-    orange: 'bg-slate-50 border-slate-100 text-slate-600 dark:bg-slate-900/30 dark:border-slate-800 dark:text-slate-400',
-    emerald: 'bg-emerald-50 border-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:border-emerald-800 dark:text-emerald-400',
-    rose: 'bg-rose-50 border-rose-100 text-rose-600 dark:bg-rose-900/30 dark:border-rose-800 dark:text-rose-400',
-    amber: 'bg-amber-50 border-amber-100 text-amber-700 dark:bg-amber-900/30 dark:border-amber-800 dark:text-amber-400'
+// Status colour lives on a small dot beside the word, never on a filled pill.
+const STATUS_DOT = {
+    Present: 'bg-emerald-500',
+    Absent: 'bg-rose-500',
+    Late: 'bg-amber-500'
 };
 
 const CODE_CELL = 'font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold';
 const SECONDARY_CELL = 'text-slate-600 dark:text-slate-300';
+// Emphasised figure (late minutes, OT hours…): weight, not colour.
+const STRONG_CELL = 'font-semibold text-slate-800 dark:text-slate-100';
+const FIELD = 'field-sm !h-8 !py-0 !w-auto';
 
 export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
     const [searchParams] = useSearchParams();
@@ -175,8 +179,9 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                         render: (row) => {
                             const dir = getDirection(row);
                             return (
-                                <span className={`badge-premium ${dir === 'OUT' ? 'bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800' : 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'} inline-flex items-center gap-1 border px-2 py-0.5 rounded-full text-[11px] font-bold uppercase`}>
-                                    {dir === 'OUT' ? <LogOut size={10} /> : <LogIn size={10} />} {dir}
+                                <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase text-slate-700 dark:text-slate-200">
+                                    <span aria-hidden="true" className={`w-1.5 h-1.5 rounded-full ${dir === 'OUT' ? 'bg-slate-400' : 'bg-emerald-500'}`} />
+                                    {dir}
                                 </span>
                             );
                         }
@@ -212,7 +217,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                     ...commonEmployeeCols,
                     { key: 'scheduled_in', label: 'Shift Start', type: 'time' },
                     { key: 'actual_in', label: 'Actual In', type: 'time' },
-                    { key: 'late_minutes', label: 'Late (Min)', type: 'number', className: 'text-amber-700 font-bold' },
+                    { key: 'late_minutes', label: 'Late (Min)', type: 'number', className: STRONG_CELL },
                     statusCol
                 ];
 
@@ -235,7 +240,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                     ...commonEmployeeCols,
                     { key: 'dob', label: 'Date of Birth', type: 'date' },
                     { key: 'age', label: 'Age', type: 'number' },
-                    { key: 'upcoming', label: 'Upcoming Birthday', type: 'date', className: 'text-slate-600 font-bold' }
+                    { key: 'upcoming', label: 'Upcoming Birthday', type: 'date', className: STRONG_CELL }
                 ];
 
             case 'half_day':
@@ -254,7 +259,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                     ...commonEmployeeCols,
                     { key: 'scheduled_out', label: 'Shift End', type: 'time' },
                     { key: 'actual_out', label: 'Actual Out', type: 'time' },
-                    { key: 'early_minutes', label: 'Early (Min)', type: 'number', className: 'text-rose-600 font-bold' },
+                    { key: 'early_minutes', label: 'Early (Min)', type: 'number', className: STRONG_CELL },
                     statusCol
                 ];
 
@@ -276,7 +281,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                     dateCol,
                     ...commonEmployeeCols,
                     { key: 'regular_hours', label: 'Regular Hrs' },
-                    { key: 'overtime_hours', label: 'OT Hrs', className: 'text-emerald-700 font-bold' },
+                    { key: 'overtime_hours', label: 'OT Hrs', className: STRONG_CELL },
                     { key: 'total_hours', label: 'Total Hrs', font: 'bold' }
                 ];
 
@@ -288,9 +293,9 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
             case 'att_status':
                 return [
                     ...commonEmployeeCols, // monthly doesn't show single date normally, or has range
-                    { key: 'present_days', label: 'Present', className: 'text-emerald-700 font-bold' },
-                    { key: 'absent_days', label: 'Absent', className: 'text-rose-600 font-bold' },
-                    { key: 'late_count', label: 'Late', className: 'text-amber-700' },
+                    { key: 'present_days', label: 'Present', className: STRONG_CELL },
+                    { key: 'absent_days', label: 'Absent', className: STRONG_CELL },
+                    { key: 'late_count', label: 'Late' },
                     { key: 'total_hours', label: 'Total Hrs' },
                     { key: 'overtime_hours', label: 'OT Hrs' }
                 ];
@@ -299,13 +304,13 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                 return [
                     ...commonEmployeeCols,
                     { key: 'designation', label: 'Designation' },
-                    { key: 'present_days', label: 'Present', type: 'number', className: 'text-emerald-700 font-bold' },
-                    { key: 'absent_days', label: 'Absent', type: 'number', className: 'text-rose-600 font-bold' },
+                    { key: 'present_days', label: 'Present', type: 'number', className: STRONG_CELL },
+                    { key: 'absent_days', label: 'Absent', type: 'number', className: STRONG_CELL },
                     { key: 'leave_days', label: 'Leave', type: 'number' },
-                    { key: 'late_count', label: 'Late', type: 'number', className: 'text-amber-700' },
+                    { key: 'late_count', label: 'Late', type: 'number' },
                     { key: 'late_minutes', label: 'Late (Min)', type: 'number' },
                     { key: 'total_hours', label: 'Hours', type: 'number' },
-                    { key: 'overtime_hours', label: 'OT Hrs', type: 'number', className: 'text-emerald-700 font-bold' }
+                    { key: 'overtime_hours', label: 'OT Hrs', type: 'number', className: STRONG_CELL }
                 ];
 
             case 'device_health':
@@ -317,7 +322,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                     { key: 'health_score', label: 'Health', type: 'number' },
                     { key: 'log_count_7d', label: 'Punches (7d)', type: 'number' },
                     { key: 'unique_users_7d', label: 'Users (7d)', type: 'number' },
-                    { key: 'cmd_failed', label: 'Failed Cmds', type: 'number', className: 'text-rose-600 font-bold' }
+                    { key: 'cmd_failed', label: 'Failed Cmds', type: 'number', className: STRONG_CELL }
                 ];
 
             case 'biometric_summary':
@@ -582,16 +587,9 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
 
         if (col.type === 'status') {
             return (
-                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${val === 'Present' ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-100 dark:border-emerald-800' :
-                    val === 'Absent' ? 'bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 border border-rose-100 dark:border-rose-800' :
-                        val === 'Late' ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-100 dark:border-amber-800' :
-                            'bg-slate-50 dark:bg-slate-900/50 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700'
-                    }`}>
-                    {val === 'Present' ? <CheckCircle size={10} /> :
-                        val === 'Absent' ? <XCircle size={10} /> :
-                            val === 'Late' ? <AlertTriangle size={10} /> : null
-                    }
-                    {val}
+                <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-700 dark:text-slate-200">
+                    <span aria-hidden="true" className={`w-1.5 h-1.5 rounded-full shrink-0 ${STATUS_DOT[val] || 'bg-slate-400'}`} />
+                    {val || '—'}
                 </span>
             );
         }
@@ -602,153 +600,150 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
             return <span className={CODE_CELL}>{val || '—'}</span>;
         }
         if (col.type === 'number' || col.type === 'duration') {
-            return <span className={`text-sm tabular-nums ${SECONDARY_CELL} ${col.className || ''}`}>{val ?? '—'}</span>;
+            return <span className={`text-sm tabular-nums ${col.className || SECONDARY_CELL}`}>{val ?? '—'}</span>;
         }
         if (col.type === 'date') {
-            return <span className={`text-sm tabular-nums ${SECONDARY_CELL} ${col.className || ''}`}>{val || '—'}</span>;
+            return <span className={`text-sm tabular-nums ${col.className || SECONDARY_CELL}`}>{val || '—'}</span>;
         }
 
-        return <span className={`text-sm ${SECONDARY_CELL} ${col.className || ''}`}>{val || '—'}</span>;
+        return <span className={`text-sm ${col.className || SECONDARY_CELL}`}>{val || '—'}</span>;
     };
 
     const columns = getColumnDefs(reportType);
 
+    const hasRows = generated && !error && reportData.length > 0;
+    const headers = columns
+        ? columns.map(col => ({ label: col.label, cls: '' }))
+        : Object.keys(reportData[0] || {}).map(k => ({ label: k.replace(/_/g, ' '), cls: 'capitalize' }));
 
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            <div className="flex items-center justify-between flex-wrap gap-3">
-                <div className="flex items-center gap-3 min-w-0">
-                    <Button variant="ghost" size="sm" icon={ArrowLeft} iconSize={18} onClick={() => navigate('/reports')} aria-label="Back to reports" />
-                    <div className="p-2.5 bg-slate-50 border border-slate-100 rounded-xl text-slate-600 shrink-0 dark:bg-slate-900/30 dark:border-slate-800 dark:text-slate-400">
-                        <FileBarChart size={22} />
-                    </div>
-                    <div className="min-w-0">
-                        <h1 className="text-xl font-bold text-slate-800 truncate dark:text-slate-100">{getReportTitle()}</h1>
-                        <p className="text-sm text-slate-600 truncate dark:text-slate-400">Comprehensive data view and analysis</p>
-                    </div>
-                </div>
-                <div className="flex items-center gap-2 flex-wrap">
-                    {generated && reportData.length > 0 && (
-                        <>
-                            <Button variant="secondary" icon={Download} iconSize={15} onClick={handleExportCSV}>CSV</Button>
-                            <Button variant="success" icon={Download} iconSize={15} onClick={handleExportExcel}>Excel</Button>
-                            <Button variant="danger" icon={Download} iconSize={15} onClick={handleExportPDF}>PDF</Button>
-                        </>
-                    )}
-                    <Button variant="primary" onClick={generateReport} disabled={loading}>
-                        {loading ? <RefreshCw size={16} className="animate-spin" /> : <Calculator size={16} />}
-                        {loading ? 'Processing…' : 'Generate Report'}
+        <ListPage
+            title={getReportTitle()}
+            count={hasRows ? reportData.length : undefined}
+            actions={
+                <>
+                    <Button variant="tonal" size="toolbar" icon={ArrowLeft} onClick={() => navigate('/reports')}>All reports</Button>
+                    <ListMenu
+                        label="Export"
+                        icon={Download}
+                        width="w-44"
+                        emptyHint={hasRows ? null : 'Generate the report to export it.'}
+                    >
+                        <ListMenuItem onClick={handleExportPDF}>PDF</ListMenuItem>
+                        <ListMenuItem onClick={handleExportExcel}>Excel (.xlsx)</ListMenuItem>
+                        <ListMenuItem onClick={handleExportCSV}>CSV</ListMenuItem>
+                    </ListMenu>
+                    <Button variant="primary" size="toolbar" onClick={generateReport} disabled={loading}>
+                        {loading ? <RefreshCw size={15} className="animate-spin" /> : <Calculator size={15} />}
+                        {loading ? 'Processing…' : 'Generate'}
                     </Button>
-                </div>
-            </div>
-
-            {/* Filters */}
-            <div className="card-base !p-4 flex flex-wrap items-center gap-x-6 gap-y-3">
-                <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-600 dark:text-slate-400">Range</span>
-                    <input
-                        type="date"
-                        value={dateFrom}
-                        onChange={e => setDateFrom(e.target.value)}
-                        className="input-base !py-1.5 !w-auto text-sm tabular-nums"
-                    />
-                    <span className="text-slate-500">&rarr;</span>
-                    <input
-                        type="date"
-                        value={dateTo}
-                        onChange={e => setDateTo(e.target.value)}
-                        className="input-base !py-1.5 !w-auto text-sm tabular-nums"
-                    />
-                </div>
-                <div className="flex items-center gap-2 min-w-[220px]">
-                    <span className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-600 dark:text-slate-400">Dept</span>
+                </>
+            }
+            toolbar={
+                <>
+                    <div className="flex items-center gap-2">
+                        <span className="text-[13px] text-slate-600 dark:text-slate-400">Range</span>
+                        <input
+                            type="date"
+                            aria-label="From date"
+                            value={dateFrom}
+                            onChange={e => setDateFrom(e.target.value)}
+                            className={`${FIELD} tabular-nums`}
+                        />
+                        <span className="text-slate-500 dark:text-slate-400" aria-hidden="true">&rarr;</span>
+                        <input
+                            type="date"
+                            aria-label="To date"
+                            value={dateTo}
+                            onChange={e => setDateTo(e.target.value)}
+                            className={`${FIELD} tabular-nums`}
+                        />
+                    </div>
                     <select
+                        aria-label="Department"
                         value={department}
                         onChange={e => setDepartment(e.target.value)}
-                        className="input-base !py-1.5 text-sm"
+                        className={`${FIELD} min-w-[180px]`}
                     >
                         <option value="">All Departments</option>
                         {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                     </select>
+                </>
+            }
+            footer={hasRows && !loading ? (
+                <div className="px-4 sm:px-6 py-2.5 text-xs text-slate-600 dark:text-slate-400 tabular-nums">
+                    {reportData.length} record{reportData.length === 1 ? '' : 's'}
                 </div>
-            </div>
-
-            {/* Stat tiles — glass cards with icon chips */}
-            {generated && !error && stats.length > 0 && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {stats.map((stat, i) => (
-                        <div key={i} className="card-base !p-4 flex items-center gap-3">
-                            <div className={`p-2.5 rounded-xl border shrink-0 ${STAT_TONES[stat.color] || STAT_TONES.orange}`}>
-                                <stat.icon size={20} />
-                            </div>
-                            <div className="min-w-0">
-                                <p className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-600 dark:text-slate-400 truncate">{stat.label}</p>
-                                <p className="text-xl font-bold tabular-nums text-slate-800 dark:text-slate-100 truncate">{stat.value}</p>
-                            </div>
-                        </div>
+            ) : null}
+        >
+            {loading ? (
+                <div className="p-4 sm:p-6 space-y-3">
+                    {Array.from({ length: 8 }).map((_, i) => (
+                        <div key={i} className="h-10 rounded-lg bg-slate-100 dark:bg-slate-800 animate-pulse" />
                     ))}
                 </div>
-            )}
+            ) : error ? (
+                <div className="py-20 text-center px-6">
+                    <AlertTriangle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
+                    <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not generate the report</h3>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{error}</p>
+                    <Button variant="secondary" icon={RefreshCw} onClick={generateReport}>Try again</Button>
+                </div>
+            ) : !generated ? (
+                <div className="py-20 text-center px-6">
+                    <FileBarChart size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
+                    <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No report yet</h3>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                        Choose a range and department, then press Generate.
+                    </p>
+                </div>
+            ) : (
+                <>
+                    {/* Key figures for the generated report */}
+                    {stats.length > 0 && (
+                        <section aria-label="Summary" className="grid grid-cols-2 md:grid-cols-4 border-b border-slate-200 dark:border-slate-800 divide-x divide-y md:divide-y-0 divide-slate-200 dark:divide-slate-800">
+                            {stats.map(stat => (
+                                <div key={stat.label} className="px-4 sm:px-6 py-3.5">
+                                    <span className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
+                                        {STATUS_DOT[stat.label] && <span aria-hidden="true" className={`w-1.5 h-1.5 rounded-full ${STATUS_DOT[stat.label]}`} />}
+                                        {stat.label}
+                                    </span>
+                                    <span className="mt-1 block text-2xl font-semibold tabular-nums text-slate-900 dark:text-slate-50">{stat.value}</span>
+                                </div>
+                            ))}
+                        </section>
+                    )}
 
-            {/* Results */}
-            <div className="card-base !p-0 overflow-hidden">
-                {loading ? (
-                    <div className="p-6 space-y-3">
-                        {Array.from({ length: 8 }).map((_, i) => (
-                            <div key={i} className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
-                        ))}
-                    </div>
-                ) : error ? (
-                    <div className="py-16 text-center">
-                        <AlertTriangle size={40} className="mx-auto mb-3 text-rose-400" />
-                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not generate the report</h3>
-                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{error}</p>
-                        <Button variant="secondary" icon={RefreshCw} onClick={generateReport}>Try again</Button>
-                    </div>
-                ) : !generated ? (
-                    <div className="py-16 text-center">
-                        <FileBarChart size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
-                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No report yet</h3>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">
-                            Choose a range and department, then press Generate Report.
-                        </p>
-                    </div>
-                ) : reportData.length === 0 ? (
-                    <div className="py-16 text-center">
-                        <FileText size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
-                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No records found</h3>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">
-                            Nothing matched {dateFrom} to {dateTo} for this report.
-                        </p>
-                    </div>
-                ) : (
-                    <div className="overflow-x-auto">
+                    {reportData.length === 0 ? (
+                        <div className="py-20 text-center px-6">
+                            <FileText size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
+                            <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No records found</h3>
+                            <p className="text-sm text-slate-600 dark:text-slate-400">
+                                Nothing matched {dateFrom} to {dateTo} for this report.
+                            </p>
+                        </div>
+                    ) : (
                         <table className="w-full text-sm text-left">
-                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-600 dark:text-slate-400">
+                            <thead className={LIST_THEAD}>
                                 <tr>
-                                    <th className="px-5 py-3 font-semibold w-12">#</th>
-                                    {columns
-                                        ? columns.map((col, i) => (
-                                            <th key={i} className="px-5 py-3 font-semibold whitespace-nowrap">{col.label}</th>
-                                        ))
-                                        : Object.keys(reportData[0] || {}).map(k => (
-                                            <th key={k} className="px-5 py-3 font-semibold whitespace-nowrap capitalize">{k.replace(/_/g, ' ')}</th>
-                                        ))}
+                                    <th className={`${LIST_TH} ${LIST_EDGE_FIRST} w-12`}>#</th>
+                                    {headers.map((h, i) => (
+                                        <th key={i} className={`${LIST_TH} ${h.cls} ${i === headers.length - 1 ? LIST_EDGE_LAST : ''}`}>{h.label}</th>
+                                    ))}
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                                 {reportData.map((row, i) => (
-                                    <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
-                                        <td className="px-5 py-3 text-slate-500 tabular-nums">{i + 1}</td>
+                                    <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                                        <td className={`${LIST_EDGE_FIRST} pr-4 py-2.5 text-slate-500 dark:text-slate-400 tabular-nums`}>{i + 1}</td>
                                         {columns
                                             ? columns.map((col, j) => (
-                                                <td key={j} className="px-5 py-3 whitespace-nowrap">
+                                                <td key={j} className={`px-4 py-2.5 whitespace-nowrap ${j === columns.length - 1 ? LIST_EDGE_LAST : ''}`}>
                                                     {renderCell(row, col)}
                                                 </td>
                                             ))
-                                            : Object.keys(row).map(k => (
-                                                <td key={k} className="px-5 py-3 whitespace-nowrap">
+                                            : Object.keys(row).map((k, j, keys) => (
+                                                <td key={k} className={`px-4 py-2.5 whitespace-nowrap ${j === keys.length - 1 ? LIST_EDGE_LAST : ''}`}>
                                                     <span className={SECONDARY_CELL}>{row[k] || '—'}</span>
                                                 </td>
                                             ))}
@@ -756,15 +751,9 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                                 ))}
                             </tbody>
                         </table>
-                    </div>
-                )}
-
-                {!loading && !error && generated && reportData.length > 0 && (
-                    <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-400">
-                        {reportData.length} record{reportData.length === 1 ? '' : 's'}
-                    </div>
-                )}
-            </div>
-        </div>
+                    )}
+                </>
+            )}
+        </ListPage>
     );
 }

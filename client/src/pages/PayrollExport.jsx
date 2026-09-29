@@ -114,6 +114,12 @@ export default function PayrollExport() {
 
     const selected = templates.find(t => t.key === template);
     const totalUncollected = data?.rows?.reduce((s, r) => s + (r.uncollected_days || 0), 0) || 0;
+    // Column sums for the figures strip and the table's Total row. Summed over
+    // every row in the period, not just the page on screen.
+    const totals = Object.fromEntries(COLUMNS.filter(c => c.num).map(c => [
+        c.key, (data?.rows || []).reduce((n, r) => n + (Number(r[c.key]) || 0), 0)
+    ]));
+    const fmt = (v) => (Number.isInteger(v) ? v : Math.round(v * 10) / 10).toLocaleString();
 
     // Display only; the downloaded file is built server-side from the full period.
     const pager = useTableControls(data?.rows || [], {
@@ -151,65 +157,66 @@ export default function PayrollExport() {
             }
             footer={!loading && !error && data?.rows?.length > 0 ? <TablePager controls={pager} noun="employee" /> : null}
         >
-            {(selected || readiness || totalUncollected > 0) && (
-                <div className="m-4 sm:mx-6 space-y-4">
-                    {selected && (
-                        <p className="text-xs text-slate-600 dark:text-slate-400">
-                            {selected.description}
-                            <span className="block mt-1 font-mono text-[11px]">{selected.columns.join(' · ')}</span>
-                        </p>
-                    )}
-
-                    {readiness && (
-                        <div className="rounded-xl border border-slate-200 dark:border-slate-800 p-4">
-                            <div className="flex items-center justify-between gap-3 mb-3">
-                                <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Before you export</h2>
-                                {openItems === 0 && (
-                                    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-300">
-                                        <CheckCircle size={14} /> Nothing pending for this period
-                                    </span>
-                                )}
-                            </div>
-                            <ul className="divide-y divide-slate-100 dark:divide-slate-800">
-                                {[
-                                    { n: readiness.pending_leave, label: 'Leave requests awaiting approval', to: '/leaves?status=Pending' },
-                                    { n: readiness.pending_regularizations, label: 'Regularization requests awaiting approval', to: '/regularizations' },
-                                    { n: readiness.missed_punches, label: 'Days with an IN but no OUT', to: '/attendance/manual' }
-                                ].map(item => (
-                                    <li key={item.label} className="flex items-center gap-3 py-2.5 text-sm">
-                                        {item.n > 0
-                                            ? <AlertTriangle size={16} className="shrink-0 text-amber-500" />
-                                            : <CheckCircle size={16} className="shrink-0 text-emerald-500" />}
-                                        <span className="flex-1 text-slate-700 dark:text-slate-300">{item.label}</span>
-                                        <span className="tabular-nums font-semibold text-slate-900 dark:text-slate-100">{item.n}</span>
-                                        {item.n > 0 && (
-                                            <Link to={item.to} className="text-xs font-medium underline underline-offset-2 text-slate-600 dark:text-slate-300">
-                                                Review
-                                            </Link>
-                                        )}
-                                    </li>
-                                ))}
-                            </ul>
+            {/* Period totals: the figures payroll will import, at a glance. */}
+            {data?.rows?.length > 0 && !loading && (
+                <div className="grid grid-cols-3 lg:grid-cols-6 border-b border-slate-200 dark:border-slate-800 divide-x divide-slate-200 dark:divide-slate-800">
+                    {[
+                        ['Employees', data.rows.length],
+                        ['Payable days', totals.payable_days],
+                        ['Loss of pay', totals.lop_days, totals.lop_days > 0 && 'text-rose-700 dark:text-rose-400'],
+                        ['Paid leave', totals.paid_leave_days],
+                        ['Overtime hrs', totals.overtime_hours],
+                        ['No data days', totals.uncollected_days, totals.uncollected_days > 0 && 'text-amber-700 dark:text-amber-400']
+                    ].map(([label, value, tone]) => (
+                        <div key={label} className="px-4 sm:px-6 py-3">
+                            <span className="block text-xs text-slate-600 dark:text-slate-400">{label}</span>
+                            <span className={`block mt-0.5 text-2xl font-semibold tabular-nums ${tone || 'text-slate-900 dark:text-slate-50'}`}>{fmt(value)}</span>
                         </div>
-                    )}
-
-                    {totalUncollected > 0 && (
-                        <div className="flex items-start gap-3 p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/20">
-                            <AlertTriangle size={18} className="shrink-0 mt-0.5 text-slate-600 dark:text-slate-400" />
-                            <div className="text-sm">
-                                <p className="font-semibold text-slate-800 dark:text-slate-300">
-                                    {totalUncollected} employee-day(s) in this period have no attendance data
-                                </p>
-                                <p className="mt-1 text-slate-700 dark:text-slate-400">
-                                    No reader reported on those days, so they are counted as payable and
-                                    <strong> not</strong> as loss of pay. That is deliberate — a reader outage is not
-                                    an absence, and deducting for it takes money off someone who came to work.
-                                    Reconcile these before running payroll.
-                                </p>
-                            </div>
-                        </div>
-                    )}
+                    ))}
                 </div>
+            )}
+
+            {/* Readiness and data-gap notes as slim strips, not boxes. */}
+            {readiness && (
+                openItems === 0 ? (
+                    <div className="flex items-center gap-2 px-4 sm:px-6 py-2 border-b border-slate-200 dark:border-slate-800 bg-emerald-50 dark:bg-emerald-950/30 text-[13px] text-emerald-800 dark:text-emerald-300">
+                        <CheckCircle size={15} className="shrink-0" /> Ready to export — nothing pending for this period.
+                    </div>
+                ) : (
+                    <div className="flex items-center gap-x-4 gap-y-1 flex-wrap px-4 sm:px-6 py-2 border-b border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/30 text-[13px] text-amber-900 dark:text-amber-200">
+                        <span className="inline-flex items-center gap-2 font-semibold"><AlertTriangle size={15} className="shrink-0" />{openItems} item{openItems === 1 ? '' : 's'} still need a decision:</span>
+                        {[
+                            { n: readiness.pending_leave, label: 'leave requests', to: '/leaves?status=Pending' },
+                            { n: readiness.pending_regularizations, label: 'regularizations', to: '/regularizations' },
+                            { n: readiness.missed_punches, label: 'days with IN but no OUT', to: '/attendance/manual' }
+                        ].filter(i => i.n > 0).map(i => (
+                            <Link key={i.label} to={i.to} className="underline underline-offset-2 hover:no-underline">{i.n} {i.label}</Link>
+                        ))}
+                    </div>
+                )
+            )}
+            {totalUncollected > 0 && (
+                <details className="group px-4 sm:px-6 py-2 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40 text-[13px] text-slate-700 dark:text-slate-300">
+                    <summary className="cursor-pointer list-none flex items-center gap-2">
+                        <AlertTriangle size={15} className="shrink-0 text-slate-600 dark:text-slate-400" />
+                        <span><strong className="font-semibold">{totalUncollected} employee-day{totalUncollected === 1 ? '' : 's'}</strong> have no attendance data and are counted as payable.</span>
+                        <span className="text-xs underline underline-offset-2 text-slate-600 dark:text-slate-400">Why?</span>
+                    </summary>
+                    <p className="mt-1.5 pl-6 text-slate-600 dark:text-slate-400">
+                        No reader reported on those days, so they are counted as payable and not as loss of pay. That is
+                        deliberate — a reader outage is not an absence, and deducting for it takes money off someone who
+                        came to work. Reconcile these before running payroll.
+                    </p>
+                </details>
+            )}
+            {selected && (
+                <details className="px-4 sm:px-6 py-2 border-b border-slate-200 dark:border-slate-800 text-[13px] text-slate-700 dark:text-slate-300">
+                    <summary className="cursor-pointer text-slate-600 dark:text-slate-400">
+                        What&apos;s in the <span className="font-medium text-slate-800 dark:text-slate-200">{selected.name}</span> file
+                    </summary>
+                    <p className="mt-1.5">{selected.description}</p>
+                    <p className="mt-1 font-mono text-xs text-slate-600 dark:text-slate-400">{selected.columns.join(' · ')}</p>
+                </details>
             )}
 
                 {loading ? (
@@ -265,6 +272,18 @@ export default function PayrollExport() {
                                     </tr>
                                 ))}
                             </tbody>
+                            <tfoot className="sticky bottom-0 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700">
+                                <tr>
+                                    {COLUMNS.map((c, i) => {
+                                        const pad = i === 0 ? `${LIST_EDGE_FIRST} pr-4` : i === COLUMNS.length - 1 ? `pl-4 ${LIST_EDGE_LAST}` : 'px-4';
+                                        return (
+                                            <td key={c.key} className={`${pad} py-2.5 font-semibold text-slate-900 dark:text-slate-100 ${c.num ? 'text-right tabular-nums' : ''}`}>
+                                                {i === 0 ? 'Total' : c.num ? fmt(totals[c.key]) : ''}
+                                            </td>
+                                        );
+                                    })}
+                                </tr>
+                            </tfoot>
                         </table>
                         <p className="px-4 sm:px-6 py-3 text-xs text-slate-600 dark:text-slate-400">
                             {data.rows.length} employee(s) · {range.from} to {range.to} · figures come from the same

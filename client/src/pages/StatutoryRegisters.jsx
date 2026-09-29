@@ -29,14 +29,16 @@ const REGISTERS = [
  * who cannot distinguish these hues, and this is a document people are asked to
  * read carefully.
  */
+// Plain coloured letters, not boxed chips: a month of 31 boxes per worker was
+// a wall of grey; letters let the few exceptions (A, ?) stand out.
 const MARK_STYLE = {
-    P: { label: 'Present', cls: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300' },
-    A: { label: 'Absent', cls: 'bg-rose-50 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300' },
-    L: { label: 'Leave', cls: 'bg-slate-50 text-slate-700 dark:bg-slate-500/15 dark:text-slate-300' },
-    H: { label: 'Holiday', cls: 'bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300' },
-    W: { label: 'Weekly off', cls: 'bg-slate-100 text-slate-600 dark:bg-slate-700/60 dark:text-slate-400' },
-    '?': { label: 'No data — readers not reporting', cls: 'bg-slate-50 text-slate-700 dark:bg-slate-500/15 dark:text-slate-300' },
-    '–': { label: 'Not employed', cls: 'bg-transparent text-slate-300 dark:text-slate-500' }
+    P: { label: 'Present', cls: 'text-emerald-700 dark:text-emerald-400 font-semibold' },
+    A: { label: 'Absent', cls: 'text-rose-700 dark:text-rose-400 font-bold' },
+    L: { label: 'Leave', cls: 'text-sky-700 dark:text-sky-400 font-semibold' },
+    H: { label: 'Holiday', cls: 'text-amber-700 dark:text-amber-400 font-semibold' },
+    W: { label: 'Weekly off', cls: 'text-slate-500 dark:text-slate-400' },
+    '?': { label: 'No data — readers not reporting', cls: 'text-slate-500 dark:text-slate-400' },
+    '–': { label: 'Not employed', cls: 'text-slate-400 dark:text-slate-500' }
 };
 
 const lastCompleteMonth = () => {
@@ -104,6 +106,8 @@ export default function StatutoryRegisters() {
         toast.success('Register downloaded');
     };
 
+    const isWeekend = (iso) => { const g = new Date(`${iso}T00:00:00`).getDay(); return g === 0 || g === 6; };
+
     const dayLabel = (iso) => {
         const d = new Date(`${iso}T00:00:00`);
         return { num: d.getDate(), dow: ['S', 'M', 'T', 'W', 'T', 'F', 'S'][d.getDay()] };
@@ -155,22 +159,35 @@ export default function StatutoryRegisters() {
             footer={hasRows ? <TablePager controls={pager} noun={type === 'muster-roll' ? 'worker' : 'row'} /> : null}
         >
             {data?.missingFields?.length > 0 && (
-                <div className="m-4 sm:mx-6 flex items-start gap-3 p-4 rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20">
-                    <Info size={18} className="shrink-0 mt-0.5 text-amber-700 dark:text-amber-400" />
-                    <div className="text-sm">
-                        <p className="font-semibold text-amber-800 dark:text-amber-300">
-                            Not held by this system — fill in by hand
-                        </p>
-                        <ul className="mt-1 text-amber-700 dark:text-amber-400 list-disc pl-5">
-                            {data.missingFields.map((f, i) => <li key={i}>{f}</li>)}
-                        </ul>
-                        <p className="mt-2 text-amber-700 dark:text-amber-400">
-                            Form numbers and column layouts are set by your state&rsquo;s Factories Rules.
-                            This is the register&rsquo;s content, not a certified form.
-                        </p>
-                    </div>
-                </div>
+                <details className="px-4 sm:px-6 py-2 border-b border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/30 text-[13px] text-amber-900 dark:text-amber-200">
+                    <summary className="cursor-pointer list-none flex items-center gap-2">
+                        <Info size={15} className="shrink-0" />
+                        <span><strong className="font-semibold">Fill in by hand:</strong> {data.missingFields.join('; ')}</span>
+                        <span className="text-xs underline underline-offset-2">Why?</span>
+                    </summary>
+                    <p className="mt-1.5 pl-6">
+                        This system doesn&rsquo;t hold those fields. Form numbers and column layouts are set by your
+                        state&rsquo;s Factories Rules; this is the register&rsquo;s content, not a certified form.
+                    </p>
+                </details>
             )}
+
+            {/* Period totals for the muster roll. */}
+            {hasRows && type === 'muster-roll' && (() => {
+                const sum = (k) => data.rows.reduce((n, r) => n + (Number(r.totals?.[k]) || 0), 0);
+                const noData = data.rows.reduce((n, r) => n + r.marks.filter(m => m === '?').length, 0);
+                return (
+                    <div className="grid grid-cols-5 border-b border-slate-200 dark:border-slate-800 divide-x divide-slate-200 dark:divide-slate-800">
+                        {[['Workers', data.rows.length], ['Present days', sum('present')], ['Absent days', sum('absent'), sum('absent') > 0 && 'text-rose-700 dark:text-rose-400'],
+                          ['Leave days', sum('leave')], ['No data days', noData, noData > 0 && 'text-amber-700 dark:text-amber-400']].map(([label, v, tone]) => (
+                            <div key={label} className="px-4 sm:px-6 py-3">
+                                <span className="block text-xs text-slate-600 dark:text-slate-400">{label}</span>
+                                <span className={`block mt-0.5 text-2xl font-semibold tabular-nums ${tone || 'text-slate-900 dark:text-slate-50'}`}>{v.toLocaleString()}</span>
+                            </div>
+                        ))}
+                    </div>
+                );
+            })()}
 
                 {loading ? (
                     <div className="px-4 sm:px-6 py-5 space-y-2" aria-busy="true">
@@ -195,13 +212,15 @@ export default function StatutoryRegisters() {
                     </div>
                 ) : type === 'muster-roll' ? (
                     <>
-                        <div className="flex flex-wrap gap-3 px-4 sm:px-6 py-3 border-b border-slate-200 dark:border-slate-800">
+                        <div className="flex flex-wrap gap-x-4 gap-y-1 px-4 sm:px-6 py-2 border-b border-slate-200 dark:border-slate-800">
                             {Object.entries(MARK_STYLE).map(([mark, s]) => (
-                                <span key={mark} className="inline-flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300">
-                                    <span className={`inline-flex items-center justify-center w-5 h-5 rounded font-bold ${s.cls}`}>{mark}</span>
-                                    {s.label}
+                                <span key={mark} className="inline-flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
+                                    <span className={`w-3 text-center ${s.cls}`}>{mark}</span>{s.label}
                                 </span>
                             ))}
+                            <span className="inline-flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
+                                <span className="w-3 h-3 rounded-sm bg-slate-100 dark:bg-slate-800" aria-hidden="true" />Weekend
+                            </span>
                         </div>
                         {/* Scrolls in ListPage's body on both axes, so the header
                             stays pinned and the worker column stays sticky. */}
@@ -214,7 +233,7 @@ export default function StatutoryRegisters() {
                                         {data.days.map(d => {
                                             const { num, dow } = dayLabel(d);
                                             return (
-                                                <th key={d} className="px-1 py-2 text-center text-[11px] font-semibold text-slate-600 dark:text-slate-400 w-8">
+                                                <th key={d} className={`px-1 py-2 text-center text-[11px] font-semibold text-slate-600 dark:text-slate-400 w-8 ${isWeekend(d) ? 'bg-slate-100 dark:bg-slate-800' : ''}`}>
                                                     <span className="block tabular-nums">{num}</span>
                                                     <span className="block text-[11px] text-slate-500 dark:text-slate-400">{dow}</span>
                                                 </th>
@@ -235,9 +254,9 @@ export default function StatutoryRegisters() {
                                                 </span>
                                             </td>
                                             {r.marks.map((m, i) => (
-                                                <td key={i} className="px-1 py-1 text-center">
+                                                <td key={i} className={`px-1 py-1 text-center ${isWeekend(data.days[i]) ? 'bg-slate-50 dark:bg-slate-800/50' : ''}`}>
                                                     <span
-                                                        className={`inline-flex items-center justify-center w-6 h-6 rounded text-xs font-bold ${MARK_STYLE[m]?.cls || ''}`}
+                                                        className={`inline-flex items-center justify-center w-6 h-6 text-[13px] ${MARK_STYLE[m]?.cls || ''}`}
                                                         title={`${data.days[i]} — ${MARK_STYLE[m]?.label || m}`}
                                                     >
                                                         {m}
