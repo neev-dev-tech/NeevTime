@@ -84,7 +84,7 @@ export default function AttendanceCalendar() {
                             {day}
                         </span>
                         {dayData && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide tabular-nums bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide tabular-nums bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300">
                                 {dayData.total} Staff
                             </span>
                         )}
@@ -183,7 +183,7 @@ export default function AttendanceCalendar() {
                     <div className="p-5">
                         <div className="grid grid-cols-7 gap-2 mb-2">
                             {weekDays.map(d => (
-                                <div key={d} className="text-center text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 py-2">
+                                <div key={d} className="text-center text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 py-2">
                                     {d}
                                 </div>
                             ))}

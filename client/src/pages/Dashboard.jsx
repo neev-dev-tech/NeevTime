@@ -888,7 +888,7 @@ export default function Dashboard() {
                                         const total = (day.late || 0) + (day.earlyLeave || 0) + (day.absent || 0);
                                         return (
                                             <div key={i} className="flex-1 flex flex-col items-center justify-end gap-1.5 min-w-0">
-                                                <span className="text-[10px] font-semibold tabular-nums text-slate-500 dark:text-slate-400">
+                                                <span className="text-[11px] font-semibold tabular-nums text-slate-500 dark:text-slate-400">
                                                     {total || ''}
                                                 </span>
                                                 <div className="w-full flex flex-col justify-end rounded-md overflow-hidden"
@@ -898,7 +898,7 @@ export default function Dashboard() {
                                                     <div style={{ height: `${px(day.earlyLeave)}px` }} className="w-full bg-slate-500" />
                                                     <div style={{ height: `${px(day.absent)}px` }} className="w-full bg-rose-500" />
                                                 </div>
-                                                <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 truncate w-full text-center">
+                                                <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 truncate w-full text-center">
                                                     {day.date}
                                                 </span>
                                             </div>
@@ -971,7 +971,7 @@ export default function Dashboard() {
                                                         <div className="text-sm font-bold font-mono text-slate-900 dark:text-slate-100">
                                                             {formatTimeShort(log.punch_time)}
                                                         </div>
-                                                        <div className={`text-[10px] font-semibold uppercase tracking-wider mt-0.5 ${log.punch_type === 'IN' ? 'text-green-600 dark:text-green-300' : 'text-red-600 dark:text-red-300'}`}>
+                                                        <div className={`text-[11px] font-semibold uppercase tracking-wider mt-0.5 ${log.punch_type === 'IN' ? 'text-green-600 dark:text-green-300' : 'text-red-600 dark:text-red-300'}`}>
                                                             {log.punch_type || 'PUNCH'}
                                                         </div>
                                                     </div>
@@ -1002,7 +1002,7 @@ export default function Dashboard() {
                                                         <div className="text-sm font-bold font-mono text-slate-900 dark:text-slate-100">
                                                             {formatTimeShort(log.punch_time)}
                                                         </div>
-                                                        <div className={`text-[10px] font-semibold uppercase tracking-wider mt-0.5 ${log.punch_type === 'IN' ? 'text-green-600 dark:text-green-300' : 'text-red-600 dark:text-red-300'}`}>
+                                                        <div className={`text-[11px] font-semibold uppercase tracking-wider mt-0.5 ${log.punch_type === 'IN' ? 'text-green-600 dark:text-green-300' : 'text-red-600 dark:text-red-300'}`}>
                                                             {log.punch_type || 'PUNCH'}
                                                         </div>
                                                     </div>

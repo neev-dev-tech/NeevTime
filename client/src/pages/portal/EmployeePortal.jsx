@@ -394,7 +394,7 @@ export default function EmployeePortal() {
                                                         {row.duration_minutes != null ? (row.duration_minutes / 60).toFixed(1) : '—'}
                                                     </td>
                                                     <td className="px-4 py-3">
-                                                        <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border ${row.status === 'Present' ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' : 'bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'}`}>
+                                                        <span className={`inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border ${row.status === 'Present' ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' : 'bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'}`}>
                                                             {row.status === 'Present' ? <CheckCircle size={10} /> : <XCircle size={10} />}
                                                             {row.status || '—'}
                                                         </span>
@@ -418,7 +418,7 @@ export default function EmployeePortal() {
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                 {leave.balances.map(b => (
                                     <div key={b.id} className="bg-app-surface/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 p-3">
-                                        <p className="text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 truncate">{b.leave_type_name}</p>
+                                        <p className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 truncate">{b.leave_type_name}</p>
                                         <p className="text-xl font-bold tabular-nums text-slate-800 dark:text-slate-100">
                                             {b.balance}<span className="text-xs text-slate-500 dark:text-slate-400 font-normal"> left</span>
                                         </p>
@@ -494,7 +494,7 @@ export default function EmployeePortal() {
                                                         </p>
                                                     )}
                                                 </div>
-                                                <span className={`text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded-full border ${statusBadge(app.status)}`}>
+                                                <span className={`text-[11px] font-bold uppercase tracking-wide px-2 py-1 rounded-full border ${statusBadge(app.status)}`}>
                                                     {app.status || 'pending'}
                                                 </span>
                                             </div>
@@ -577,7 +577,7 @@ export default function EmployeePortal() {
                                                         <p className="text-xs text-slate-500 dark:text-slate-400 italic">"{reg.review_comment}"</p>
                                                     )}
                                                 </div>
-                                                <span className={`text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded-full border ${statusBadge(reg.status)}`}>
+                                                <span className={`text-[11px] font-bold uppercase tracking-wide px-2 py-1 rounded-full border ${statusBadge(reg.status)}`}>
                                                     {reg.status || 'pending'}
                                                 </span>
                                             </div>
@@ -674,7 +674,7 @@ export default function EmployeePortal() {
                                             {/* Which hat they are wearing. Somebody who
                                                 is both a manager and a department
                                                 approver should know which one this is. */}
-                                            <span className="mt-2 inline-block text-[10px] uppercase tracking-wide font-bold px-2 py-0.5 rounded-full border border-slate-300 dark:border-slate-600 text-slate-500">
+                                            <span className="mt-2 inline-block text-[11px] uppercase tracking-wide font-bold px-2 py-0.5 rounded-full border border-slate-300 dark:border-slate-600 text-slate-500">
                                                 as {item.via}
                                             </span>
                                         </div>
@@ -753,7 +753,7 @@ export default function EmployeePortal() {
                                                     </p>
                                                 </div>
                                                 {h.is_optional && (
-                                                    <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded-full border border-slate-300 dark:border-slate-600 text-slate-500">
+                                                    <span className="text-[11px] font-bold uppercase tracking-wide px-2 py-1 rounded-full border border-slate-300 dark:border-slate-600 text-slate-500">
                                                         Optional
                                                     </span>
                                                 )}

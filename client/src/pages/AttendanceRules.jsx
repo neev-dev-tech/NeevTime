@@ -158,7 +158,7 @@ export default function AttendanceRules() {
             <div className="flex items-start justify-between gap-3 mb-3">
                 <div className="min-w-0">
                     <h3 className="font-semibold text-slate-800 dark:text-slate-100 truncate">{rule.name || '—'}</h3>
-                    <span className={`mt-1 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${rule.rule_type === 'global'
+                    <span className={`mt-1 inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide ${rule.rule_type === 'global'
                         ? 'bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300'
                         : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
                         }`}>
@@ -206,7 +206,7 @@ export default function AttendanceRules() {
                 <div className="flex flex-wrap items-center gap-1.5">
                     <span className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400">Week Off</span>
                     {rule.week_off_days?.length ? rule.week_off_days.map(day => (
-                        <span key={day} className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300">
+                        <span key={day} className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300">
                             {day.substring(0, 3)}
                         </span>
                     )) : <span className="text-xs text-slate-600 dark:text-slate-300">—</span>}
@@ -214,12 +214,12 @@ export default function AttendanceRules() {
                 {(rule.overtime_enabled || rule.alternate_saturday) && (
                     <div className="flex flex-wrap items-center gap-1.5">
                         {rule.overtime_enabled && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
                                 <Clock size={10} /> <span className="tabular-nums">OT {rule.overtime_multiplier}x</span>
                             </span>
                         )}
                         {rule.alternate_saturday && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300">
                                 <Calendar size={10} /> Alt. Sat
                             </span>
                         )}
@@ -286,7 +286,7 @@ export default function AttendanceRules() {
                     <AlertTriangle size={16} />
                 </div>
                 <div className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                    <strong className="block mb-0.5 text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">How Rules Work</strong>
+                    <strong className="block mb-0.5 text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">How Rules Work</strong>
                     Global rules are meant for all employees; a department rule is meant to override them for that department. Keep at least one global rule.
                 </div>
             </div>

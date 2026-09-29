@@ -347,7 +347,7 @@ const MobilePunch = () => {
                     {/* Content */}
                     <div className="p-6">
                         <div className="mb-6">
-                            <label className="block text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-2">
+                            <label className="block text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-2">
                                 Simulate Employee (Admin)
                             </label>
                             <select

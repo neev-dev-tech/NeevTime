@@ -243,7 +243,7 @@ export default function ApprovalNode() {
                                 <td className="px-5 py-3 font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">{node.node_code || '—'}</td>
                                 <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100">{node.node_name || node.name || '—'}</td>
                                 <td className="px-5 py-3">
-                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-slate-50 text-slate-700 border border-slate-200 dark:bg-slate-900/30 dark:text-slate-300 dark:border-slate-800">
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-slate-50 text-slate-700 border border-slate-200 dark:bg-slate-900/30 dark:text-slate-300 dark:border-slate-800">
                                         {node.approver_type || '—'}
                                     </span>
                                 </td>

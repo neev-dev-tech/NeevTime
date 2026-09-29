@@ -261,7 +261,7 @@ export default function ApprovalFlow() {
                                 <td className="px-5 py-3 text-slate-600 dark:text-slate-300 tabular-nums">{toDateOnly(flow.start_date) || '—'}</td>
                                 <td className="px-5 py-3 text-slate-600 dark:text-slate-300 tabular-nums">{toDateOnly(flow.end_date) || '—'}</td>
                                 <td className="px-5 py-3">
-                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-slate-50 text-slate-700 border border-slate-200 dark:bg-slate-900/30 dark:text-slate-300 dark:border-slate-800">
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-slate-50 text-slate-700 border border-slate-200 dark:bg-slate-900/30 dark:text-slate-300 dark:border-slate-800">
                                         {flow.request_type || '—'}
                                     </span>
                                 </td>

@@ -281,7 +281,7 @@ api.get('/api/contractors').then(r => setContractors(r.data.filter(c => c.is_act
                                         <span className="text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400 font-bold">ID</span>
                                         <span className="font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">{employee.employee_code || '—'}</span>
                                     </span>
-                                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide border ${employee.status === 'active'
+                                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide border ${employee.status === 'active'
                                         ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800'
                                         : 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-900/30 dark:text-rose-300 dark:border-rose-800'}`}>
                                         <span className={`w-1.5 h-1.5 rounded-full ${employee.status === 'active' ? 'bg-emerald-500 dark:bg-emerald-400' : 'bg-rose-500 dark:bg-rose-400'}`} />

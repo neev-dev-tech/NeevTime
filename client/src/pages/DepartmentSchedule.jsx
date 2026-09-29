@@ -191,7 +191,7 @@ export default function DepartmentSchedule() {
                                         </td>
                                         <td className="px-5 py-3">
                                             {schedule.shift_name ? (
-                                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300">
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300">
                                                     {schedule.shift_name}
                                                 </span>
                                             ) : (
@@ -210,7 +210,7 @@ export default function DepartmentSchedule() {
                                         <td className="px-5 py-3">
                                             <div className="flex flex-wrap gap-1">
                                                 {schedule.week_off_days?.length ? schedule.week_off_days.map(day => (
-                                                    <span key={day} className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300">
+                                                    <span key={day} className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300">
                                                         {day.substring(0, 3)}
                                                     </span>
                                                 )) : <span className="text-slate-600 dark:text-slate-300">—</span>}

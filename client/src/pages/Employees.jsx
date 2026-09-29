@@ -15,7 +15,7 @@ import useTableControls from '../hooks/useTableControls';
 import { TablePager } from '../components/TableControls';
 
 /* ---- shared cell vocabulary (matches DeviceData / Devices) ---- */
-const BADGE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide';
+const BADGE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide';
 const BADGE_ON = `${BADGE} bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300`;
 const BADGE_OFF = `${BADGE} bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300`;
 const CELL_CODE = 'font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold';
@@ -787,7 +787,7 @@ export default function Employees() {
                                         headcount unnoticed. */}
                                     {emp.attendance_required === false && (
                                         <span
-                                            className="ml-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold
+                                            className="ml-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold
                                                        bg-slate-100 text-slate-600 border border-slate-200
                                                        dark:bg-slate-700 dark:text-slate-300 dark:border-slate-600"
                                             title="Door access only — not counted as staff, not pushed to the HRMS"

@@ -17,7 +17,7 @@ const ROLE_HELP = {
     viewer: 'Read-only. Can see every page but cannot change anything.'
 };
 
-const BADGE = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide';
+const BADGE = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide';
 const ROLE_TINTS = {
     admin: 'bg-rose-50 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300',
     hr: 'bg-slate-50 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300'

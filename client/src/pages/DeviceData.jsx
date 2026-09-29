@@ -201,7 +201,7 @@ export default function DeviceData() {
             <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
                 {groups.map(group => (
                     <div key={group} className="flex items-center gap-2 flex-wrap">
-                        <span className="text-[10px] font-bold uppercase tracking-[0.09em] text-slate-400">{group}</span>
+                        <span className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-400">{group}</span>
                         <div className="flex flex-wrap gap-1.5">
                             {VALID_VIEWS.filter(id => VIEWS[id].group === group).map(id => {
                                 const Icon = VIEWS[id].icon;
@@ -269,7 +269,7 @@ export default function DeviceData() {
                                             return (
                                                 <td key={col.label} className="px-5 py-3 whitespace-nowrap">
                                                     {col.badge ? (
-                                                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+                                                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
                                                             {value || '—'}
                                                         </span>
                                                     ) : (

@@ -139,13 +139,13 @@ export default function ShiftMaster() {
                                     <div className="min-w-0">
                                         <h3 className="font-semibold text-slate-800 dark:text-slate-100 truncate">{shift.name || '—'}</h3>
                                         <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${shift.shift_type === 'Night'
+                                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide ${shift.shift_type === 'Night'
                                                 ? 'bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300'
                                                 : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'}`}>
                                                 {shift.shift_type || 'Fixed'}
                                             </span>
                                             {shift.is_night_shift && (
-                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300">
+                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300">
                                                     <Moon size={10} /> Overnight
                                                 </span>
                                             )}

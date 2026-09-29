@@ -175,7 +175,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                         render: (row) => {
                             const dir = getDirection(row);
                             return (
-                                <span className={`badge-premium ${dir === 'OUT' ? 'bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800' : 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'} inline-flex items-center gap-1 border px-2 py-0.5 rounded-full text-[10px] font-bold uppercase`}>
+                                <span className={`badge-premium ${dir === 'OUT' ? 'bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800' : 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'} inline-flex items-center gap-1 border px-2 py-0.5 rounded-full text-[11px] font-bold uppercase`}>
                                     {dir === 'OUT' ? <LogOut size={10} /> : <LogIn size={10} />} {dir}
                                 </span>
                             );
@@ -646,7 +646,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
             {/* Filters */}
             <div className="card-base !p-4 flex flex-wrap items-center gap-x-6 gap-y-3">
                 <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">Range</span>
+                    <span className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">Range</span>
                     <input
                         type="date"
                         value={dateFrom}
@@ -662,7 +662,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                     />
                 </div>
                 <div className="flex items-center gap-2 min-w-[220px]">
-                    <span className="text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">Dept</span>
+                    <span className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">Dept</span>
                     <select
                         value={department}
                         onChange={e => setDepartment(e.target.value)}
@@ -683,7 +683,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                                 <stat.icon size={20} />
                             </div>
                             <div className="min-w-0">
-                                <p className="text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 truncate">{stat.label}</p>
+                                <p className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 truncate">{stat.label}</p>
                                 <p className="text-xl font-bold tabular-nums text-slate-800 dark:text-slate-100 truncate">{stat.value}</p>
                             </div>
                         </div>

@@ -235,7 +235,7 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
             {/* Upcoming Holidays Banner */}
             {upcomingHolidays.length > 0 && (
                 <div className="bg-app-surface/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-4">
-                    <h3 className="text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-3 flex items-center gap-2">
+                    <h3 className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-3 flex items-center gap-2">
                         <Calendar size={13} /> Upcoming Holidays
                     </h3>
                     <div className="flex flex-wrap gap-3">
@@ -363,15 +363,15 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
                                                 {formatDateWithWeekday(h.date)}
                                             </td>
                                             <td className="px-5 py-3">
-                                                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${getHolidayTypeColor(h.holiday_type)}`}>
+                                                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide ${getHolidayTypeColor(h.holiday_type)}`}>
                                                     {h.holiday_type || 'national'}
                                                 </span>
                                             </td>
                                             <td className="px-5 py-3">
                                                 {h.is_optional ? (
-                                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300">Optional</span>
+                                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300">Optional</span>
                                                 ) : (
-                                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">Mandatory</span>
+                                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">Mandatory</span>
                                                 )}
                                             </td>
                                             <td className="px-5 py-3">

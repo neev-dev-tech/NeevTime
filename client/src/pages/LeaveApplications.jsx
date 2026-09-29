@@ -8,7 +8,7 @@ import { formatDate } from '../utils/dateFormat';
 import useTableControls from '../hooks/useTableControls';
 import { TablePager } from '../components/TableControls';
 
-const BADGE_BASE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide';
+const BADGE_BASE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide';
 
 export default function LeaveApplications() {
     const toast = useToast();

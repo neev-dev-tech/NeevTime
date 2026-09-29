@@ -45,7 +45,7 @@ function Gauge({ pct, accent }) {
                     style={{ transition: 'stroke-dashoffset 600ms ease-out' }}
                 />
             </svg>
-            <span className="absolute text-[10px] font-bold tabular-nums text-slate-700 dark:text-slate-200">
+            <span className="absolute text-[11px] font-bold tabular-nums text-slate-700 dark:text-slate-200">
                 {Math.round(pct)}%
             </span>
         </span>

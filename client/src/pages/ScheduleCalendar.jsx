@@ -207,12 +207,12 @@ export default function ScheduleCalendar() {
                     {shifts.map((shift, i) => (
                         <span
                             key={shift.id}
-                            className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${getShiftColor(i)}`}
+                            className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide ${getShiftColor(i)}`}
                         >
                             {shift.name}
                         </span>
                     ))}
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300">
                         WO = Week Off
                     </span>
                 </div>
@@ -288,10 +288,10 @@ export default function ScheduleCalendar() {
                                                         }`}
                                                 >
                                                     {isWO ? (
-                                                        <span className="text-[10px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">WO</span>
+                                                        <span className="text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">WO</span>
                                                     ) : schedule ? (
                                                         <span
-                                                            className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${getShiftColor(shifts.findIndex(s => s.id === schedule.shift_id))
+                                                            className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide ${getShiftColor(shifts.findIndex(s => s.id === schedule.shift_id))
                                                                 }`}
                                                             title={schedule.shift_name}
                                                         >

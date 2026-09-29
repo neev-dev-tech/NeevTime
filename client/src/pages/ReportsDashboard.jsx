@@ -197,7 +197,7 @@ export default function ReportsDashboard() {
                         </span>
                         {/* Microcopy - More Secondary */}
                         <span
-                            className="text-[10px] leading-tight text-slate-400 dark:text-slate-500"
+                            className="text-[11px] leading-tight text-slate-400 dark:text-slate-500"
                             style={{
                                 opacity: 0.9,
                                 fontWeight: 400,

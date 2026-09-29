@@ -9,7 +9,7 @@ import { formatDate, toLocalDateString, formatDateTime, formatTime } from '../ut
 import useTableControls from '../hooks/useTableControls';
 import { TablePager, TableToolbar } from '../components/TableControls';
 
-const BADGE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide';
+const BADGE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide';
 const CELL_MONO = 'font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold';
 const CELL_STRONG = 'font-semibold text-slate-800 dark:text-slate-100';
 const CELL_SOFT = 'text-slate-600 dark:text-slate-300';
@@ -170,7 +170,7 @@ export default function SystemLogs() {
                                 <Icon size={18} />
                             </div>
                             <div className="min-w-0">
-                                <div className="text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">
+                                <div className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">
                                     {kpi.label}
                                 </div>
                                 <div className="text-2xl font-bold tabular-nums text-slate-800 dark:text-slate-100">{kpi.value}</div>
@@ -186,7 +186,7 @@ export default function SystemLogs() {
                     <div className="bg-slate-50/70 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700 p-4 animate-in fade-in slide-in-from-top-2">
                         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                             <div>
-                                <label className="text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-1 block">Action</label>
+                                <label className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-1 block">Action</label>
                                 <select
                                     className={FIELD}
                                     value={filters.action}
@@ -197,7 +197,7 @@ export default function SystemLogs() {
                                 </select>
                             </div>
                             <div>
-                                <label className="text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-1 block">Entity</label>
+                                <label className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-1 block">Entity</label>
                                 <select
                                     className={FIELD}
                                     value={filters.entity_type}
@@ -208,7 +208,7 @@ export default function SystemLogs() {
                                 </select>
                             </div>
                             <div>
-                                <label className="text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-1 block">User</label>
+                                <label className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-1 block">User</label>
                                 <select
                                     className={FIELD}
                                     value={filters.user_id}
@@ -219,7 +219,7 @@ export default function SystemLogs() {
                                 </select>
                             </div>
                             <div>
-                                <label className="text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-1 block">From Date</label>
+                                <label className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-1 block">From Date</label>
                                 <input
                                     type="date"
                                     className={FIELD}
@@ -228,7 +228,7 @@ export default function SystemLogs() {
                                 />
                             </div>
                             <div>
-                                <label className="text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-1 block">To Date</label>
+                                <label className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-1 block">To Date</label>
                                 <input
                                     type="date"
                                     className={FIELD}

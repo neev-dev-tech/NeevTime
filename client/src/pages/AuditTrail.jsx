@@ -186,7 +186,7 @@ export default function AuditTrail() {
                                                     {e.username || <span className="text-slate-400 dark:text-slate-500">System</span>}
                                                 </td>
                                                 <td className="px-5 py-3">
-                                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${ACTION_STYLE[e.action] || ''}`}>
+                                                    <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold border ${ACTION_STYLE[e.action] || ''}`}>
                                                         {e.action === 'INSERT' ? 'CREATED' : e.action === 'UPDATE' ? 'EDITED' : 'DELETED'}
                                                     </span>
                                                 </td>

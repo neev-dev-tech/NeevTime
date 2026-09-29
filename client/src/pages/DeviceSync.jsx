@@ -22,7 +22,7 @@ import { usePermissions } from '../hooks/usePermissions';
  */
 
 const CELL_MONO = 'font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold';
-const BADGE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide';
+const BADGE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide';
 
 const STAT_TONES = {
     pending: { chip: 'bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-300', icon: Clock },
@@ -168,7 +168,7 @@ export default function DeviceSync() {
                                     <Icon size={20} />
                                 </div>
                                 <div className="min-w-0">
-                                    <p className="text-[10px] font-bold uppercase tracking-[0.04em] text-slate-500 dark:text-slate-400 leading-tight">
+                                    <p className="text-[11px] font-bold uppercase tracking-[0.04em] text-slate-500 dark:text-slate-400 leading-tight">
                                         {LABELS[key]}
                                     </p>
                                     <p className="text-[26px] leading-tight font-bold tabular-nums text-slate-900 dark:text-slate-50">
@@ -305,7 +305,7 @@ export default function DeviceSync() {
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                         {Object.entries(biometrics).filter(([, v]) => typeof v === 'number').map(([k, v]) => (
                             <div key={k} className="rounded-xl bg-slate-50/70 dark:bg-slate-900/50 p-3">
-                                <p className="text-[10px] font-bold uppercase tracking-[0.04em] text-slate-500 dark:text-slate-400">
+                                <p className="text-[11px] font-bold uppercase tracking-[0.04em] text-slate-500 dark:text-slate-400">
                                     {k.replace(/_/g, ' ')}
                                 </p>
                                 <p className="text-xl font-bold tabular-nums text-slate-900 dark:text-slate-50">{v}</p>

@@ -105,7 +105,7 @@ export default function NotificationCenter() {
             >
                 <Bell size={20} />
                 {badge > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-rose-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                    <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-rose-600 text-white text-[11px] font-bold rounded-full flex items-center justify-center">
                         {badge > 99 ? '99+' : badge}
                     </span>
                 )}
@@ -179,7 +179,7 @@ export default function NotificationCenter() {
                                         <p className="text-xs font-semibold text-slate-700 dark:text-slate-200 truncate">{item.title}</p>
                                         <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">{item.text}</p>
                                     </div>
-                                    <span className="text-[10px] text-slate-400 shrink-0">{item.at.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                    <span className="text-[11px] text-slate-400 shrink-0">{item.at.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                 </div>
                             );
                         })}

@@ -75,7 +75,7 @@ export function SortableTh({ controls, sortKey, children, className = '' }) {
             <button
                 type="button"
                 onClick={() => controls.toggleSort(sortKey)}
-                className="inline-flex items-center gap-1 uppercase tracking-[0.09em] text-[10px] font-bold
+                className="inline-flex items-center gap-1 uppercase tracking-[0.09em] text-[11px] font-bold
                            hover:text-slate-600 dark:hover:text-slate-400 transition-colors"
             >
                 {children}

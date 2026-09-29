@@ -174,7 +174,7 @@ export default function ThemeSettings() {
                                     {preset.name}
                                 </p>
                                 {active && (
-                                    <p className="text-[10px] text-slate-600 dark:text-slate-400 font-semibold">In use</p>
+                                    <p className="text-[11px] text-slate-600 dark:text-slate-400 font-semibold">In use</p>
                                 )}
                             </button>
                         );

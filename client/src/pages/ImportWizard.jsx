@@ -114,7 +114,7 @@ export default function ImportWizard() {
                             }`}>
                             {step > i + 1 ? <CheckCircle size={18} /> : i + 1}
                         </div>
-                        <span className={`text-[10px] font-bold uppercase tracking-[0.09em] text-center ${step === i + 1
+                        <span className={`text-[11px] font-bold uppercase tracking-[0.09em] text-center ${step === i + 1
                             ? 'text-slate-600 dark:text-slate-400'
                             : step > i + 1
                                 ? 'text-emerald-600 dark:text-emerald-400'

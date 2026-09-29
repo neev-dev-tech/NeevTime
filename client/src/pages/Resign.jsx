@@ -368,7 +368,7 @@ export default function Resign() {
                                 <td className="px-5 py-3 text-slate-600 dark:text-slate-300">{emp.position_name || emp.designation || '—'}</td>
                                 <td className="px-5 py-3 text-slate-600 dark:text-slate-300">{emp.area_name || '—'}</td>
                                 <td className="px-5 py-3">
-                                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide border ${emp.resignation_type === 'Dismissed' ? 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-900/30 dark:text-rose-300 dark:border-rose-800' :
+                                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide border ${emp.resignation_type === 'Dismissed' ? 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-900/30 dark:text-rose-300 dark:border-rose-800' :
                                         emp.resignation_type === 'Transfer' ? 'bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-900/30 dark:text-slate-300 dark:border-slate-800' :
                                             'bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-900/30 dark:text-slate-300 dark:border-slate-800'
                                         }`}>

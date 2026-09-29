@@ -103,7 +103,7 @@ export default function ExportCenter() {
             <div className="card-base !p-6 space-y-6">
                 {/* Export Type */}
                 <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-2">Data Type</label>
+                    <label className="block text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-2">Data Type</label>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {EXPORT_TYPES.map(type => {
                             const active = exportType === type.id;
@@ -131,7 +131,7 @@ export default function ExportCenter() {
 
                 {/* Date Range (Optional) */}
                 <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-2">Date Range (Optional)</label>
+                    <label className="block text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-2">Date Range (Optional)</label>
                     <div className="flex gap-4">
                         <input
                             type="date"
@@ -154,7 +154,7 @@ export default function ExportCenter() {
 
                 {/* Format */}
                 <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-2">Format</label>
+                    <label className="block text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-2">Format</label>
                     <div className="flex flex-wrap gap-1.5">
                         {FORMATS.map(f => {
                             const Icon = f.icon;

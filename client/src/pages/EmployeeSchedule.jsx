@@ -311,7 +311,7 @@ export default function EmployeeSchedule({ temporary = false }) {
                                         </td>
                                         <td className="px-5 py-3">
                                             {(schedule.shift_name || schedule.timetable_name) ? (
-                                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300">
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300">
                                                     {schedule.shift_name || schedule.timetable_name}
                                                 </span>
                                             ) : (
@@ -323,9 +323,9 @@ export default function EmployeeSchedule({ temporary = false }) {
                                         </td>
                                         <td className="px-5 py-3">
                                             {schedule.is_temporary ? (
-                                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">Temporary</span>
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">Temporary</span>
                                             ) : (
-                                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">Regular</span>
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">Regular</span>
                                             )}
                                         </td>
                                         <td className="px-5 py-3">

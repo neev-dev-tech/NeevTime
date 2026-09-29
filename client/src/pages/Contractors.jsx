@@ -140,7 +140,7 @@ export default function Contractors() {
                                     <td className="px-5 py-3">
                                         <p className="font-semibold text-slate-800 dark:text-slate-100">{row.name}</p>
                                         {row.code && <p className="text-xs font-mono text-slate-500">{row.code}</p>}
-                                        {!row.is_active && <span className="text-[10px] uppercase font-bold text-slate-400">Inactive</span>}
+                                        {!row.is_active && <span className="text-[11px] uppercase font-bold text-slate-400">Inactive</span>}
                                     </td>
                                     <td className="px-5 py-3 text-slate-600 dark:text-slate-300">
                                         {row.contact_person || '—'}
@@ -245,7 +245,7 @@ export default function Contractors() {
                                         ['Overtime (min)', summary.totals.overtime_minutes],
                                     ].map(([label, value]) => (
                                         <div key={label} className="rounded-xl border border-slate-200 dark:border-slate-700 p-3">
-                                            <p className="text-[10px] uppercase tracking-wide font-bold text-slate-500">{label}</p>
+                                            <p className="text-[11px] uppercase tracking-wide font-bold text-slate-500">{label}</p>
                                             <p className="text-xl font-bold tabular-nums text-slate-800 dark:text-slate-100">{value}</p>
                                         </div>
                                     ))}

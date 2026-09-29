@@ -9,7 +9,7 @@ import { toLocalDateString, formatDateTime, formatTime } from '../utils/dateForm
 import useTableControls from '../hooks/useTableControls';
 import { TablePager, TableToolbar } from '../components/TableControls';
 
-const BADGE_BASE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide';
+const BADGE_BASE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide';
 
 export default function AttendanceRegister() {
     const toast = useToast();
@@ -215,7 +215,7 @@ export default function AttendanceRegister() {
                         className="bg-app-surface/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 flex items-start justify-between gap-3"
                     >
                         <div className="min-w-0">
-                            <div className={`text-[10px] font-bold uppercase tracking-[0.09em] mb-1 ${tone}`}>{label}</div>
+                            <div className={`text-[11px] font-bold uppercase tracking-[0.09em] mb-1 ${tone}`}>{label}</div>
                             <div className="text-3xl font-bold tabular-nums text-slate-800 dark:text-slate-100">{value}</div>
                         </div>
                         <Icon size={22} className={`shrink-0 opacity-40 ${tone}`} />

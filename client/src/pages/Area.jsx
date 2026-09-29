@@ -246,7 +246,7 @@ export default function Area() {
                 {/* Tree View Sidebar */}
                 <div className="w-64 bg-app-surface/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl flex flex-col overflow-hidden shrink-0">
                     <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900/50">
-                        <h3 className="text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">Area Structure</h3>
+                        <h3 className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">Area Structure</h3>
                     </div>
                     <div className="p-2 flex-1 overflow-y-auto custom-scrollbar">
                         {loading ? (

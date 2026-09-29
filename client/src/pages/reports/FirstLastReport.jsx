@@ -162,7 +162,7 @@ function FirstLastReport() {
             {/* Filters */}
             <div className="card-base !p-4 flex flex-wrap items-center gap-x-6 gap-y-3">
                 <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">Date range</span>
+                    <span className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">Date range</span>
                     <input
                         type="date"
                         value={startDate}
@@ -178,7 +178,7 @@ function FirstLastReport() {
                     />
                 </div>
                 <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">Employee</span>
+                    <span className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">Employee</span>
                     <input
                         type="text"
                         placeholder="ID…"
@@ -262,7 +262,7 @@ function FirstLastReport() {
                                             <span className={`${SECONDARY_CELL} tabular-nums`}>{row.date || '—'}</span>
                                         </td>
                                         <td className="px-5 py-3 whitespace-nowrap">
-                                            <span className="text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">
+                                            <span className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">
                                                 {row.weekday || '—'}
                                             </span>
                                         </td>

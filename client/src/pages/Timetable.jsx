@@ -241,12 +241,12 @@ export default function Timetable() {
                                         </div>
                                         <div className="flex gap-1 shrink-0">
                                             {tt.is_overnight && (
-                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300" title="Overnight">
+                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300" title="Overnight">
                                                     <Moon size={10} /> Night
                                                 </span>
                                             )}
                                             {tt.is_flexible && (
-                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300" title="Flexible">
+                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300" title="Flexible">
                                                     <Sun size={10} /> Flex
                                                 </span>
                                             )}
@@ -508,7 +508,7 @@ export default function Timetable() {
                                     <div className="text-sm tabular-nums text-slate-600 dark:text-slate-300">
                                         {formatTime(b.start_time)} – {formatTime(b.end_time)}
                                         {b.is_paid && (
-                                            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">Paid</span>
+                                            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">Paid</span>
                                         )}
                                     </div>
                                 </div>

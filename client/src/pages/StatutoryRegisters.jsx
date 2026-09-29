@@ -216,9 +216,9 @@ export default function StatutoryRegisters() {
                                         {data.days.map(d => {
                                             const { num, dow } = dayLabel(d);
                                             return (
-                                                <th key={d} className="px-1 py-2 text-center text-[10px] font-semibold text-slate-500 dark:text-slate-400 w-8">
+                                                <th key={d} className="px-1 py-2 text-center text-[11px] font-semibold text-slate-500 dark:text-slate-400 w-8">
                                                     <span className="block tabular-nums">{num}</span>
-                                                    <span className="block text-[9px] text-slate-400 dark:text-slate-500">{dow}</span>
+                                                    <span className="block text-[11px] text-slate-400 dark:text-slate-500">{dow}</span>
                                                 </th>
                                             );
                                         })}

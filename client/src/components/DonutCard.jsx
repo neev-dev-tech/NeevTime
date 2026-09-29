@@ -106,7 +106,7 @@ export default function DonutCard({ title, subtitle, data, colors, emptyMessage,
                                 <p className="text-2xl font-bold text-slate-800 dark:text-slate-100 tabular-nums leading-none">
                                     {total}
                                 </p>
-                                <p className="text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                                <p className="text-[11px] uppercase tracking-wider text-slate-400 dark:text-slate-500">
                                     total
                                 </p>
                             </div>
