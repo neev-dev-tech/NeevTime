@@ -4,6 +4,8 @@ import Modal from '../components/Modal';
 import { Building2, Plus, Trash2, Edit2, Search, RefreshCw, Save, Download, Upload, AlertCircle, CheckCircle, UserCheck } from 'lucide-react';
 import { useToast, Button, PageHeader, ExportMenu } from '../components';
 import { toLocalDateString } from '../utils/dateFormat';
+import useTableControls from '../hooks/useTableControls';
+import { TablePager } from '../components/TableControls';
 
 export default function Departments() {
     const toast = useToast();
@@ -223,6 +225,8 @@ export default function Departments() {
         setImportResult(null);
     };
 
+    const pager = useTableControls(filteredDepartments, { pageSize: 50 });
+
     return (
         <div className="space-y-6">
             {/* Header */}
@@ -327,7 +331,7 @@ export default function Departments() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                {filteredDepartments.map((dept, idx) => (
+                                {pager.view.map((dept, idx) => (
                                     <tr key={dept.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
                                         <td className="px-5 py-3">
                                             <input
@@ -336,7 +340,7 @@ export default function Departments() {
                                                 onChange={() => toggleSelect(dept.id)}
                                             />
                                         </td>
-                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{idx + 1}</td>
+                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{(pager.page - 1) * pager.pageSize + idx + 1}</td>
                                         <td className="px-5 py-3">
                                             <span className="font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">
                                                 {dept.id ?? '—'}
@@ -381,9 +385,7 @@ export default function Departments() {
                 )}
 
                 {!loading && !error && filteredDepartments.length > 0 && (
-                    <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
-                        {filteredDepartments.length} record{filteredDepartments.length === 1 ? '' : 's'}
-                    </div>
+                    <TablePager controls={pager} noun="department" />
                 )}
             </div>
 

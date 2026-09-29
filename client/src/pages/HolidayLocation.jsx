@@ -5,6 +5,8 @@ import { useToast, Button, PageHeader, ExportMenu } from '../components';
 import Modal from '../components/Modal';
 import { formatDate, formatDateWithWeekday } from '../utils/dateFormat';
 import { confirm } from '../components/ConfirmDialog';
+import useTableControls from '../hooks/useTableControls';
+import { TablePager, TableToolbar } from '../components/TableControls';
 
 export default function HolidayLocation({ initialTab = 'locations' }) {
     const toast = useToast();
@@ -152,6 +154,11 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
         .filter(h => new Date(h.date) >= new Date())
         .sort((a, b) => new Date(a.date) - new Date(b.date))
         .slice(0, 5);
+
+    const holidayPager = useTableControls(holidays, {
+        searchKeys: ['name', 'description', 'holiday_type', 'date'],
+        pageSize: 50
+    });
 
     return (
         <div className="space-y-6">
@@ -328,6 +335,8 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
                             </p>
                         </div>
                     ) : (
+                        <>
+                        <TableToolbar controls={holidayPager} placeholder="Search holidays…" />
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm text-left">
                                 <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
@@ -341,9 +350,9 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                    {holidays.map((h, idx) => (
+                                    {holidayPager.view.map((h, idx) => (
                                         <tr key={h.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
-                                            <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums align-top">{idx + 1}</td>
+                                            <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums align-top">{(holidayPager.page - 1) * holidayPager.pageSize + idx + 1}</td>
                                             <td className="px-5 py-3">
                                                 <div className="font-semibold text-slate-800 dark:text-slate-100">{h.name || '—'}</div>
                                                 {h.description && (
@@ -390,12 +399,11 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
                                 </tbody>
                             </table>
                         </div>
+                        </>
                     )}
 
                     {holidays.length > 0 && (
-                        <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
-                            {holidays.length} record{holidays.length === 1 ? '' : 's'}
-                        </div>
+                        <TablePager controls={holidayPager} noun="holiday" />
                     )}
                 </div>
             )}

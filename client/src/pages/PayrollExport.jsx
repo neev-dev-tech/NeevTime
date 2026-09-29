@@ -5,6 +5,8 @@ import api from '../api';
 import { useToast, Button, PageHeader } from '../components';
 import { confirm } from '../components/ConfirmDialog';
 import { toLocalDateString } from '../utils/dateFormat';
+import useTableControls from '../hooks/useTableControls';
+import { TablePager, TableToolbar } from '../components/TableControls';
 
 /**
  * Attendance in the shape payroll reads, for whichever payroll the client runs.
@@ -112,6 +114,12 @@ export default function PayrollExport() {
 
     const selected = templates.find(t => t.key === template);
     const totalUncollected = data?.rows?.reduce((s, r) => s + (r.uncollected_days || 0), 0) || 0;
+
+    // Display only; the downloaded file is built server-side from the full period.
+    const pager = useTableControls(data?.rows || [], {
+        searchKeys: ['employee_code', 'employee_name'],
+        pageSize: 50
+    });
 
     return (
         <div className="space-y-6">
@@ -229,6 +237,8 @@ export default function PayrollExport() {
                         </p>
                     </div>
                 ) : (
+                    <>
+                    <TableToolbar controls={pager} placeholder="Search by name or code…" />
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm border-collapse">
                             <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-700">
@@ -241,7 +251,7 @@ export default function PayrollExport() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                {data.rows.map(r => (
+                                {pager.view.map(r => (
                                     <tr key={r.employee_code} className="hover:bg-slate-50 dark:hover:bg-slate-700/40">
                                         {COLUMNS.map(c => {
                                             const v = r[c.key];
@@ -261,6 +271,8 @@ export default function PayrollExport() {
                             </tbody>
                         </table>
                     </div>
+                    <TablePager controls={pager} noun="employee" />
+                    </>
                 )}
             </div>
 

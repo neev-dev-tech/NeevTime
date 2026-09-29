@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { MessageSquare, Send, RefreshCw } from 'lucide-react';
 import api from '../api';
 import { Button, PageHeader, useToast } from '../components';
+import useTableControls from '../hooks/useTableControls';
+import { TablePager, TableToolbar } from '../components/TableControls';
 
 export default function DeviceMessages() {
     const toast = useToast();
@@ -44,6 +46,11 @@ export default function DeviceMessages() {
         }
     };
 
+    const pager = useTableControls(messages, {
+        searchKeys: ['device_name', 'device_serial', 'message', 'status'],
+        pageSize: 50
+    });
+
     return (
         <div className="space-y-6">
             <PageHeader
@@ -69,6 +76,9 @@ export default function DeviceMessages() {
             </form>
 
             <div className="bg-app-surface rounded-xl border dark:border-slate-700 shadow-sm overflow-hidden">
+                {messages.length > 0 && (
+                    <TableToolbar controls={pager} placeholder="Search by device, message or status…" />
+                )}
                 <table className="w-full text-sm text-left">
                     <thead className="bg-slate-50 dark:bg-slate-900/50 text-xs uppercase text-slate-500 dark:text-slate-400">
                         <tr>
@@ -89,7 +99,7 @@ export default function DeviceMessages() {
                                         </p>
                                     </td>
                                 </tr>
-                        ) : messages.map((m, i) => (
+                        ) : pager.view.map((m, i) => (
                             <tr key={m.id || i} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
                                 <td className="px-6 py-3 font-mono text-xs">{m.device_name || m.device_serial}</td>
                                 <td className="px-6 py-3 text-slate-700 dark:text-slate-300">{m.message}</td>
@@ -103,6 +113,7 @@ export default function DeviceMessages() {
                         ))}
                     </tbody>
                 </table>
+                {messages.length > 0 && <TablePager controls={pager} noun="message" />}
             </div>
         </div>
     );

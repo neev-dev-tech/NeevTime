@@ -6,6 +6,8 @@ import { exportToPDF } from '../utils/pdfExport';
 import { exportToExcel } from '../utils/excelExport';
 import { useToast, Button, PageHeader } from '../components';
 import { toLocalDateString } from '../utils/dateFormat';
+import useTableControls from '../hooks/useTableControls';
+import { TablePager, TableToolbar } from '../components/TableControls';
 
 const BADGE_BASE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide';
 
@@ -136,6 +138,11 @@ export default function AttendanceRegister() {
         });
     };
 
+    const pager = useTableControls(data, {
+        searchKeys: ['name', 'employee_code', 'department'],
+        pageSize: 50
+    });
+
     const isFiltered = Boolean(filters.status || filters.department || filters.late);
 
     const stats = [
@@ -244,6 +251,8 @@ export default function AttendanceRegister() {
                         </p>
                     </div>
                 ) : (
+                    <>
+                    <TableToolbar controls={pager} placeholder="Search by name, code or department…" />
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
                             <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
@@ -264,9 +273,9 @@ export default function AttendanceRegister() {
                                     no summary row, so id was null for every one of
                                     them — dozens of identical keys, and React
                                     recycling the wrong rows on filter changes. */}
-                                {data.map((row, idx) => (
+                                {pager.view.map((row, idx) => (
                                     <tr key={`${row.employee_code}-${row.date}`} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
-                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{idx + 1}</td>
+                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{(pager.page - 1) * pager.pageSize + idx + 1}</td>
                                         <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">
                                             {row.name || '—'}
                                         </td>
@@ -312,12 +321,11 @@ export default function AttendanceRegister() {
                             </tbody>
                         </table>
                     </div>
+                    </>
                 )}
 
                 {!loading && !error && data.length > 0 && (
-                    <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
-                        {data.length} record{data.length === 1 ? '' : 's'}
-                    </div>
+                    <TablePager controls={pager} noun="record" />
                 )}
             </div>
         </div>

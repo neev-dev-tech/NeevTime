@@ -4,6 +4,8 @@ import Modal from './Modal';
 import { Plus, Trash2, Edit } from 'lucide-react';
 import { useToast } from './Toast';
 import Button from './ui/Button';
+import useTableControls from '../hooks/useTableControls';
+import { TableToolbar, TablePager } from './TableControls';
 
 export default function GenericCrud({ title, endpoint, columns, icon: Icon }) {
     const toast = useToast();
@@ -20,6 +22,11 @@ export default function GenericCrud({ title, endpoint, columns, icon: Icon }) {
     };
 
     useEffect(() => { fetchItems(); }, [endpoint]);
+
+    const pager = useTableControls(items, {
+        searchKeys: columns.map(c => c.key),
+        pageSize: 50
+    });
 
     const [submitting, setSubmitting] = useState(false);
     const handleSubmit = async (e) => {
@@ -77,6 +84,7 @@ export default function GenericCrud({ title, endpoint, columns, icon: Icon }) {
             </div>
 
             <div className="card-base overflow-hidden">
+                <TableToolbar controls={pager} placeholder={`Search ${title.toLowerCase()}…`} />
                 <table className="w-full text-left">
                     <thead className="bg-slate-50/50 dark:bg-slate-900/20 border-b border-slate-100 dark:border-slate-800">
                         <tr>
@@ -86,7 +94,7 @@ export default function GenericCrud({ title, endpoint, columns, icon: Icon }) {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                        {items.map((item) => (
+                        {pager.view.map((item) => (
                             <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
                                 <td className="px-6 py-4 text-slate-grey dark:text-slate-400 text-sm font-medium">#{item.id}</td>
                                 {columns.map(col => (
@@ -102,6 +110,7 @@ export default function GenericCrud({ title, endpoint, columns, icon: Icon }) {
                         ))}
                     </tbody>
                 </table>
+                <TablePager controls={pager} noun="record" />
             </div>
 
             {/* Edit/Add Modal */}

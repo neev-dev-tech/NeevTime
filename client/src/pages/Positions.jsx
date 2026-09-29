@@ -4,6 +4,8 @@ import Modal from '../components/Modal';
 import { Briefcase, Plus, Trash2, Edit2, Search, RefreshCw, Save, Download, Upload, AlertCircle, CheckCircle } from 'lucide-react';
 import { useToast, Button, PageHeader, ExportMenu } from '../components';
 import { toLocalDateString } from '../utils/dateFormat';
+import useTableControls from '../hooks/useTableControls';
+import { TablePager } from '../components/TableControls';
 
 export default function Positions() {
     const toast = useToast();
@@ -186,6 +188,8 @@ export default function Positions() {
         setImportResult(null);
     };
 
+    const pager = useTableControls(filteredPositions, { pageSize: 50 });
+
     return (
         <div className="space-y-6">
             {/* Header */}
@@ -293,7 +297,7 @@ export default function Positions() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                {filteredPositions.map((pos, idx) => (
+                                {pager.view.map((pos, idx) => (
                                     <tr key={pos.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
                                         <td className="px-5 py-3">
                                             <input
@@ -302,7 +306,7 @@ export default function Positions() {
                                                 onChange={() => toggleSelect(pos.id)}
                                             />
                                         </td>
-                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{idx + 1}</td>
+                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{(pager.page - 1) * pager.pageSize + idx + 1}</td>
                                         <td className="px-5 py-3">
                                             <span className="font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">
                                                 {pos.id ?? '—'}
@@ -342,9 +346,7 @@ export default function Positions() {
                 )}
 
                 {!loading && !error && filteredPositions.length > 0 && (
-                    <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
-                        {filteredPositions.length} record{filteredPositions.length === 1 ? '' : 's'}
-                    </div>
+                    <TablePager controls={pager} noun="position" />
                 )}
             </div>
 

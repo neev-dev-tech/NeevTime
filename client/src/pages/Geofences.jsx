@@ -5,6 +5,8 @@ import api from '../api';
 import { Button, PageHeader, ExportMenu } from '../components';
 import Modal from '../components/Modal';
 import { confirm } from '../components/ConfirmDialog';
+import useTableControls from '../hooks/useTableControls';
+import { TablePager } from '../components/TableControls';
 
 const Geofences = () => {
     const [geofences, setGeofences] = useState([]);
@@ -114,6 +116,8 @@ const Geofences = () => {
         String(g.address ?? '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    const pager = useTableControls(filteredGeofences, { pageSize: 50 });
+
     return (
         <div className="h-full flex flex-col space-y-6">
             <PageHeader
@@ -192,9 +196,9 @@ const Geofences = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                {filteredGeofences.map((fence, idx) => (
+                                {pager.view.map((fence, idx) => (
                                     <tr key={fence.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
-                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{idx + 1}</td>
+                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{(pager.page - 1) * pager.pageSize + idx + 1}</td>
                                         <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100">{fence.name || '—'}</td>
                                         <td className="px-5 py-3 font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold whitespace-nowrap">
                                             {Number(fence.latitude).toFixed(5)}, {Number(fence.longitude).toFixed(5)}
@@ -217,9 +221,7 @@ const Geofences = () => {
                 )}
 
                 {!loading && !loadError && filteredGeofences.length > 0 && (
-                    <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
-                        {filteredGeofences.length} location{filteredGeofences.length === 1 ? '' : 's'}
-                    </div>
+                    <TablePager controls={pager} noun="location" />
                 )}
             </div>
 

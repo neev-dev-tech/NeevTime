@@ -3,6 +3,8 @@ import { FileText, RefreshCw, Download, AlertCircle, Info } from 'lucide-react';
 import api from '../api';
 import { useToast, Button, PageHeader } from '../components';
 import { toLocalDateString } from '../utils/dateFormat';
+import useTableControls from '../hooks/useTableControls';
+import { TablePager, TableToolbar } from '../components/TableControls';
 
 /**
  * The registers a labour inspection asks for.
@@ -107,6 +109,12 @@ export default function StatutoryRegisters() {
         return { num: d.getDate(), dow: ['S', 'M', 'T', 'W', 'T', 'F', 'S'][d.getDay()] };
     };
 
+    // Display only; the downloaded register still carries every row.
+    const pager = useTableControls(data?.rows || [], {
+        searchKeys: ['name', 'employee_name', 'employee_code', 'designation', 'department'],
+        pageSize: 50
+    });
+
     return (
         <div className="space-y-6">
             <PageHeader
@@ -197,6 +205,7 @@ export default function StatutoryRegisters() {
                                 </span>
                             ))}
                         </div>
+                        <TableToolbar controls={pager} placeholder="Search by name or code…" />
                         <div className="overflow-x-auto">
                             <table className="text-sm border-collapse">
                                 <thead>
@@ -219,7 +228,7 @@ export default function StatutoryRegisters() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                    {data.rows.map(r => (
+                                    {pager.view.map(r => (
                                         <tr key={r.employee_code} className="hover:bg-slate-50 dark:hover:bg-slate-700/40">
                                             <td className="sticky left-0 z-10 bg-app-surface px-4 py-2 min-w-[13rem] border-r border-slate-100 dark:border-slate-700">
                                                 <span className="block font-semibold text-slate-800 dark:text-slate-100 truncate">{r.name || '—'}</span>
@@ -245,8 +254,11 @@ export default function StatutoryRegisters() {
                                 </tbody>
                             </table>
                         </div>
+                        <TablePager controls={pager} noun="worker" />
                     </>
                 ) : (
+                    <>
+                    <TableToolbar controls={pager} placeholder="Search by name or code…" />
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm border-collapse">
                             <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-700">
@@ -257,7 +269,7 @@ export default function StatutoryRegisters() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                {data.rows.map((row, i) => (
+                                {pager.view.map((row, i) => (
                                     <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-700/40">
                                         {Object.keys(data.rows[0]).map(k => (
                                             <td key={k} className="px-4 py-2 text-slate-700 dark:text-slate-300 tabular-nums">
@@ -269,6 +281,8 @@ export default function StatutoryRegisters() {
                             </tbody>
                         </table>
                     </div>
+                    <TablePager controls={pager} noun="row" />
+                    </>
                 )}
             </div>
 

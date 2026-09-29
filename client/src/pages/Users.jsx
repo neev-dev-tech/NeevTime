@@ -5,6 +5,8 @@ import { Button, PageHeader, ExportMenu } from '../components';
 import Modal from '../components/Modal';
 import { formatDate } from '../utils/dateFormat';
 import { confirm } from '../components/ConfirmDialog';
+import useTableControls from '../hooks/useTableControls';
+import { TablePager, TableToolbar } from '../components/TableControls';
 
 // Tiers enforced by server/utils/rbac.js. 'user' is retired — legacy accounts
 // still holding it are treated as hr — so it is not offered for new accounts.
@@ -131,6 +133,11 @@ export default function UsersPage() {
         setShowModal(true);
     };
 
+    const pager = useTableControls(users, {
+        searchKeys: ['username', 'email', 'role'],
+        pageSize: 50
+    });
+
     return (
         <div className="space-y-6">
             {/* Header */}
@@ -192,6 +199,8 @@ export default function UsersPage() {
                         </p>
                     </div>
                 ) : (
+                    <>
+                    <TableToolbar controls={pager} placeholder="Search users…" />
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
                             <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
@@ -206,9 +215,9 @@ export default function UsersPage() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                {users.map((user, idx) => (
+                                {pager.view.map((user, idx) => (
                                     <tr key={user.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
-                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{idx + 1}</td>
+                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{(pager.page - 1) * pager.pageSize + idx + 1}</td>
                                         <td className="px-5 py-3">
                                             <span className={CELL_MONO}>{dash(user.id)}</span>
                                         </td>
@@ -262,12 +271,11 @@ export default function UsersPage() {
                             </tbody>
                         </table>
                     </div>
+                    </>
                 )}
 
                 {!loading && !loadError && users.length > 0 && (
-                    <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
-                        {users.length} user{users.length === 1 ? '' : 's'}
-                    </div>
+                    <TablePager controls={pager} noun="user" />
                 )}
             </div>
 

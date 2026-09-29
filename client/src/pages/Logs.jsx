@@ -5,6 +5,8 @@ import { RefreshCw, Inbox, Fingerprint, Clock, LogIn, LogOut, AlertCircle } from
 import { Button, PageHeader, ExportMenu } from '../components';
 import Modal from '../components/Modal';
 import { formatTimestamp } from '../utils/dateFormat';
+import useTableControls from '../hooks/useTableControls';
+import { TablePager, TableToolbar } from '../components/TableControls';
 
 const BADGE_BASE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide';
 
@@ -158,6 +160,11 @@ export default function Logs() {
         );
     };
 
+    const pager = useTableControls(logs, {
+        searchKeys: ['emp_name', 'employee_code', 'device_serial'],
+        pageSize: 50
+    });
+
     const refresh = () => { setLoading(true); fetchLogs(); fetchDevices(); };
 
     return (
@@ -218,6 +225,8 @@ export default function Logs() {
                         </p>
                     </div>
                 ) : (
+                    <>
+                    <TableToolbar controls={pager} placeholder="Search by employee, code or device…" />
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
                             <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
@@ -238,9 +247,9 @@ export default function Logs() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                {logs.map((log, i) => (
+                                {pager.view.map((log, i) => (
                                     <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
-                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{i + 1}</td>
+                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{(pager.page - 1) * pager.pageSize + i + 1}</td>
                                         <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">
                                             {log.emp_name || 'Unknown'}
                                         </td>
@@ -302,6 +311,7 @@ export default function Logs() {
                             </tbody>
                         </table>
                     </div>
+                    </>
                 )}
 
                 {/* Full size, with who and when beside it — a thumbnail is enough to
@@ -343,9 +353,7 @@ export default function Logs() {
                 )}
 
                 {!loading && logs.length > 0 && (
-                    <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
-                        {logs.length} record{logs.length === 1 ? '' : 's'}
-                    </div>
+                    <TablePager controls={pager} noun="log" />
                 )}
             </div>
         </div>

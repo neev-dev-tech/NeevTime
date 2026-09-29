@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { CheckCircle, XCircle, Clock, RefreshCw, Filter, AlertCircle } from 'lucide-react';
 import api from '../api';
 import { useToast, Button, PageHeader } from '../components';
+import useTableControls from '../hooks/useTableControls';
+import { TablePager, TableToolbar } from '../components/TableControls';
 
 const BADGE_BASE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide';
 
@@ -47,6 +49,11 @@ export default function Regularizations() {
         approved: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
         rejected: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300'
     }[status] || 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300');
+
+    const pager = useTableControls(requests, {
+        searchKeys: ['employee_name', 'employee_code', 'department', 'date', 'reason'],
+        pageSize: 50
+    });
 
     const filterLabel = { pending: 'pending', approved: 'approved', rejected: 'rejected' }[statusFilter];
 
@@ -105,6 +112,8 @@ export default function Regularizations() {
                         </p>
                     </div>
                 ) : (
+                    <>
+                    <TableToolbar controls={pager} placeholder="Search by employee, code, department…" />
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
                             <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
@@ -122,9 +131,9 @@ export default function Regularizations() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                {requests.map((req, idx) => (
+                                {pager.view.map((req, idx) => (
                                     <tr key={req.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
-                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{idx + 1}</td>
+                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{(pager.page - 1) * pager.pageSize + idx + 1}</td>
                                         <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">
                                             {req.employee_name || '—'}
                                         </td>
@@ -190,12 +199,8 @@ export default function Regularizations() {
                             </tbody>
                         </table>
                     </div>
-                )}
-
-                {!loading && !error && requests.length > 0 && (
-                    <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
-                        {requests.length} record{requests.length === 1 ? '' : 's'}
-                    </div>
+                    <TablePager controls={pager} noun="request" />
+                    </>
                 )}
             </div>
         </div>

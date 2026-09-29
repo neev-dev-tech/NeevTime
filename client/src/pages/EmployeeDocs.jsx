@@ -5,6 +5,8 @@ import { Button, PageHeader } from '../components';
 import Modal from '../components/Modal';
 import { formatDate as formatDateUtil } from '../utils/dateFormat';
 import { confirm } from '../components/ConfirmDialog';
+import useTableControls from '../hooks/useTableControls';
+import { TablePager } from '../components/TableControls';
 
 export default function EmployeeDocs() {
     const [documents, setDocuments] = useState([]);
@@ -204,6 +206,8 @@ export default function EmployeeDocs() {
     // tables beside it rendered 8/16/2026).
     const formatDate = (dateString) => (dateString ? formatDateUtil(dateString) : '—');
 
+    const pager = useTableControls(filteredDocuments, { pageSize: 50 });
+
     return (
         <div className="space-y-6">
             {/* Header */}
@@ -275,7 +279,7 @@ export default function EmployeeDocs() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                            {filteredDocuments.map(doc => (
+                            {pager.view.map(doc => (
                                 <tr key={doc.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
                                     <td className="px-5 py-3">
                                         <div className="flex items-center gap-2">
@@ -319,8 +323,8 @@ export default function EmployeeDocs() {
             </div>
 
             {/* Footer */}
-            <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900/50 text-xs font-medium text-slate-500 dark:text-slate-400 flex justify-between items-center">
-                <span>Total <span className="text-slate-800 dark:text-slate-100 font-bold tabular-nums">{filteredDocuments.length}</span> Documents</span>
+            <div className="bg-slate-50/70 dark:bg-slate-900/50">
+                <TablePager controls={pager} noun="document" />
             </div>
             </div>
 

@@ -5,6 +5,8 @@ import {
 } from 'recharts';
 import api from '../api';
 import { PageHeader, ExportMenu } from '../components';
+import useTableControls from '../hooks/useTableControls';
+import { TablePager, TableToolbar } from '../components/TableControls';
 
 /**
  * The two questions HR asks monthly that had no screen:
@@ -48,6 +50,11 @@ export default function ReportsInsights() {
         { key: 'late_minutes', label: 'Late (min)' },
         { key: 'days_absent', label: 'Days absent' },
     ];
+
+    const pager = useTableControls(departments || [], {
+        searchKeys: ['department'],
+        pageSize: 50
+    });
 
     return (
         <div className="space-y-5">
@@ -110,6 +117,8 @@ export default function ReportsInsights() {
                 {!departments ? (
                     <div className="p-4"><div className="h-32 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" /></div>
                 ) : (
+                    <>
+                    <TableToolbar controls={pager} placeholder="Search departments…" />
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm">
                             <thead className="bg-slate-50 dark:bg-slate-900/40 text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400">
@@ -118,7 +127,7 @@ export default function ReportsInsights() {
                                 ))}</tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                {departments.map(row => (
+                                {pager.view.map(row => (
                                     <tr key={row.department}>
                                         <td className="px-4 py-3 font-semibold text-slate-800 dark:text-slate-100">{row.department}</td>
                                         {columns.slice(1).map(c => (
@@ -129,6 +138,8 @@ export default function ReportsInsights() {
                             </tbody>
                         </table>
                     </div>
+                    <TablePager controls={pager} noun="department" />
+                    </>
                 )}
             </div>
         </div>

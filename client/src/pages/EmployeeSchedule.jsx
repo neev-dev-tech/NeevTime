@@ -6,6 +6,8 @@ import { useToast, Button, PageHeader, ExportMenu } from '../components';
 import Modal from '../components/Modal';
 import { toLocalDateString } from '../utils/dateFormat';
 import { confirm } from '../components/ConfirmDialog';
+import useTableControls from '../hooks/useTableControls';
+import { TablePager } from '../components/TableControls';
 
 // `temporary` turns the page into the Temporary Schedule view: it lists only
 // temporary overrides and new assignments default to temporary.
@@ -182,6 +184,8 @@ export default function EmployeeSchedule({ temporary = false }) {
 
     const weekDays = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
 
+    const pager = useTableControls(filteredSchedules, { pageSize: 50 });
+
     return (
         <div className="space-y-6">
             {/* Header */}
@@ -293,9 +297,9 @@ export default function EmployeeSchedule({ temporary = false }) {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                {filteredSchedules.map((schedule, idx) => (
+                                {pager.view.map((schedule, idx) => (
                                     <tr key={schedule.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
-                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums align-top">{idx + 1}</td>
+                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums align-top">{(pager.page - 1) * pager.pageSize + idx + 1}</td>
                                         <td className="px-5 py-3">
                                             <div className="font-semibold text-slate-800 dark:text-slate-100">{schedule.employee_name || '—'}</div>
                                             <div className="font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">
@@ -340,9 +344,7 @@ export default function EmployeeSchedule({ temporary = false }) {
                 )}
 
                 {!loading && !error && filteredSchedules.length > 0 && (
-                    <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
-                        {filteredSchedules.length} schedule{filteredSchedules.length === 1 ? '' : 's'}
-                    </div>
+                    <TablePager controls={pager} noun="schedule" />
                 )}
             </div>
 

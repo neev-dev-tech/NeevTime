@@ -11,6 +11,8 @@ import ResignationModal from '../components/ResignationModal';
 import { Button, PageHeader } from '../components';
 import Modal from '../components/Modal';
 import { toLocalDateString } from '../utils/dateFormat';
+import useTableControls from '../hooks/useTableControls';
+import { TablePager } from '../components/TableControls';
 
 /* ---- shared cell vocabulary (matches DeviceData / Devices) ---- */
 const BADGE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide';
@@ -142,6 +144,10 @@ export default function Employees() {
             ));
         }
     }, [searchQuery, employees]);
+
+    // Paginates the filtered list for display only; select-all, export and
+    // the bulk actions still work on the whole filtered list as before.
+    const pager = useTableControls(filteredEmployees, { pageSize: 50 });
 
     const [refreshing, setRefreshing] = useState(false);
 
@@ -742,7 +748,7 @@ export default function Employees() {
                 <table className="w-full text-left text-sm border-collapse">
                     {tableHead}
                     <tbody>
-                        {filteredEmployees.map(emp => {
+                        {pager.view.map(emp => {
                             const isActive = emp.status === 'active';
                             const appOn = !!emp.app_login_enabled;
                             return (
@@ -821,9 +827,11 @@ export default function Employees() {
                 )}
             </div>
 
-            <div className="px-5 py-3 border-t border-slate-200/80 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400 flex justify-between items-center">
-                <span>Total <span className="font-bold text-slate-700 dark:text-slate-200">{filteredEmployees.length}</span> Records</span>
-                <span>Selected: <span className="font-bold text-slate-600 dark:text-slate-400">{selectedIds.length}</span></span>
+            <div className="border-t border-slate-200/80 dark:border-slate-700 flex justify-between items-center">
+                <div className="flex-1 min-w-0 [&>div]:border-t-0">
+                    <TablePager controls={pager} noun="employee" />
+                </div>
+                <span className="px-5 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">Selected: <span className="font-bold text-slate-600 dark:text-slate-400">{selectedIds.length}</span></span>
             </div>
             </div>
 

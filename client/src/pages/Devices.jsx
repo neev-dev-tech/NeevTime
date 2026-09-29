@@ -13,6 +13,8 @@ import { useToast, Button, PageHeader } from '../components';
 import Modal from '../components/Modal';
 import { exportToExcel, exportToCSV } from '../utils/excelExport';
 import { formatDate, toLocalDateString } from '../utils/dateFormat';
+import useTableControls from '../hooks/useTableControls';
+import { TablePager, TableToolbar } from '../components/TableControls';
 
 // ==========================================
 // Sub-Components for Data Views
@@ -22,6 +24,12 @@ const DataView = ({ title, endpoint, columns, icon: Icon = Database }) => {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [exporting, setExporting] = useState(null);
+
+    // Display-only search and paging; exports still use the full list.
+    const pager = useTableControls(data, {
+        searchKeys: columns.map(c => c.key),
+        pageSize: 50
+    });
 
     useEffect(() => {
         fetchData();
@@ -201,6 +209,8 @@ const DataView = ({ title, endpoint, columns, icon: Icon = Database }) => {
                         <TableSkeleton rows={10} cols={columns.length} />
                     </div>
                 ) : (
+                    <>
+                    <TableToolbar controls={pager} placeholder={`Search ${title.toLowerCase()}…`} />
                     <div className="table-premium-wrapper">
                         <table className="table-premium">
                             <thead>
@@ -211,7 +221,7 @@ const DataView = ({ title, endpoint, columns, icon: Icon = Database }) => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {data.length === 0 ? (
+                                {pager.matched === 0 ? (
                                     <tr>
                                         <td colSpan={columns.length}>
                                             <div className="table-empty-state">
@@ -226,7 +236,7 @@ const DataView = ({ title, endpoint, columns, icon: Icon = Database }) => {
                                         </td>
                                     </tr>
                                 ) : (
-                                    data.map((row, i) => (
+                                    pager.view.map((row, i) => (
                                         <tr key={i}>
                                             {columns.map((col, j) => (
                                                 <td key={j}>
@@ -239,6 +249,8 @@ const DataView = ({ title, endpoint, columns, icon: Icon = Database }) => {
                             </tbody>
                         </table>
                     </div>
+                    <TablePager controls={pager} noun="record" />
+                    </>
                 )}
             </div>
         </div>

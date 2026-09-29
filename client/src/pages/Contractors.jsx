@@ -4,6 +4,8 @@ import api from '../api';
 import { Button, PageHeader } from '../components';
 import Modal from '../components/Modal';
 import { formatDate } from '../utils/dateFormat';
+import useTableControls from '../hooks/useTableControls';
+import { TablePager, TableToolbar } from '../components/TableControls';
 
 /**
  * The companies whose people work here and who invoice for it.
@@ -80,6 +82,11 @@ export default function Contractors() {
         </div>
     );
 
+    const pager = useTableControls(rows, {
+        searchKeys: ['name', 'code', 'contact_person', 'phone', 'gst_number'],
+        pageSize: 50
+    });
+
     return (
         <div className="space-y-5">
             <PageHeader
@@ -114,6 +121,8 @@ export default function Contractors() {
                         </p>
                     </div>
                 ) : (
+                    <>
+                    <TableToolbar controls={pager} placeholder="Search contractors…" />
                     <table className="w-full text-left text-sm">
                         <thead className="bg-slate-50 dark:bg-slate-900/40 text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400">
                             <tr>
@@ -126,7 +135,7 @@ export default function Contractors() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                            {rows.map(row => (
+                            {pager.view.map(row => (
                                 <tr key={row.id} className={row.is_active ? '' : 'opacity-50'}>
                                     <td className="px-5 py-3">
                                         <p className="font-semibold text-slate-800 dark:text-slate-100">{row.name}</p>
@@ -162,6 +171,8 @@ export default function Contractors() {
                             ))}
                         </tbody>
                     </table>
+                    <TablePager controls={pager} noun="contractor" />
+                    </>
                 )}
             </div>
 

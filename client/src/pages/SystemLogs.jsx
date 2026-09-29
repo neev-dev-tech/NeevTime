@@ -6,6 +6,8 @@ import {
 } from 'lucide-react';
 import { Button, PageHeader } from '../components';
 import { formatDate, toLocalDateString } from '../utils/dateFormat';
+import useTableControls from '../hooks/useTableControls';
+import { TablePager, TableToolbar } from '../components/TableControls';
 
 const BADGE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide';
 const CELL_MONO = 'font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold';
@@ -108,6 +110,11 @@ export default function SystemLogs() {
             if (logDate > filters.dateTo) return false;
         }
         return true;
+    });
+
+    const pager = useTableControls(filteredLogs, {
+        searchKeys: ['username', 'action', 'entity_type', 'entity_id', 'ip_address'],
+        pageSize: 50
     });
 
     const hasActiveFilters = Boolean(
@@ -260,6 +267,8 @@ export default function SystemLogs() {
                         </p>
                     </div>
                 ) : (
+                    <>
+                    <TableToolbar controls={pager} placeholder="Search by user, action, entity or IP…" />
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
                             <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
@@ -274,9 +283,9 @@ export default function SystemLogs() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                {filteredLogs.map((log, idx) => (
+                                {pager.view.map((log, idx) => (
                                     <tr key={log.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
-                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{idx + 1}</td>
+                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{(pager.page - 1) * pager.pageSize + idx + 1}</td>
                                         <td className="px-5 py-3">
                                             <div className="flex items-center gap-2">
                                                 <div className="p-1.5 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700">
@@ -329,13 +338,11 @@ export default function SystemLogs() {
                             </tbody>
                         </table>
                     </div>
+                    </>
                 )}
 
                 {!loading && !error && filteredLogs.length > 0 && (
-                    <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
-                        {filteredLogs.length} record{filteredLogs.length === 1 ? '' : 's'}
-                        {filteredLogs.length !== logs.length && ` of ${logs.length}`}
-                    </div>
+                    <TablePager controls={pager} noun="log" />
                 )}
             </div>
         </div>

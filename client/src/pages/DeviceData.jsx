@@ -7,6 +7,8 @@ import {
 import api from '../api';
 import { Button, PageHeader, ExportMenu } from '../components';
 import { formatDate } from '../utils/dateFormat';
+import useTableControls from '../hooks/useTableControls';
+import { TablePager, TableToolbar } from '../components/TableControls';
 
 const fmtTime = (v) => (v ? new Date(v).toLocaleString() : '—');
 const fmtDate = (v) => formatDate(v);
@@ -162,9 +164,15 @@ export default function DeviceData() {
         return out;
     }), [data, activeSection]);
 
+    const pager = useTableControls(data, {
+        searchKeys: view.columns.map(col => col.key).filter(Boolean),
+        pageSize: 50
+    });
+
     const switchView = (id) => {
         setActiveSection(id);
         setSearchParams({ view: id }, { replace: true });
+        pager.reset();
     };
 
     const groups = ['Data', 'Log'];
@@ -240,6 +248,8 @@ export default function DeviceData() {
                         </p>
                     </div>
                 ) : (
+                    <>
+                    <TableToolbar controls={pager} placeholder="Search records…" />
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
                             <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
@@ -251,9 +261,9 @@ export default function DeviceData() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                {data.map((row, idx) => (
+                                {pager.view.map((row, idx) => (
                                     <tr key={row.id ?? idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
-                                        <td className="px-5 py-3 text-slate-400 tabular-nums">{idx + 1}</td>
+                                        <td className="px-5 py-3 text-slate-400 tabular-nums">{(pager.page - 1) * pager.pageSize + idx + 1}</td>
                                         {view.columns.map(col => {
                                             const value = col.render ? col.render(row) : (row[col.key] ?? '—');
                                             return (
@@ -279,12 +289,11 @@ export default function DeviceData() {
                             </tbody>
                         </table>
                     </div>
+                    </>
                 )}
 
                 {!loading && !error && data.length > 0 && (
-                    <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
-                        {data.length} record{data.length === 1 ? '' : 's'}
-                    </div>
+                    <TablePager controls={pager} noun="record" />
                 )}
             </div>
         </div>

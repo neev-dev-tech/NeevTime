@@ -8,6 +8,8 @@ import {
 } from 'lucide-react';
 import { useToast, Button, PageHeader } from '../components';
 import Modal from '../components/Modal';
+import useTableControls from '../hooks/useTableControls';
+import { TablePager } from '../components/TableControls';
 
 const AreaTreeItem = ({ area, areas, onSelect, selectedId, level = 0 }) => {
     const [expanded, setExpanded] = useState(true);
@@ -233,6 +235,8 @@ export default function Area() {
             String(a.code ?? '').toLowerCase().includes(searchQuery.toLowerCase())
         );
 
+    const pager = useTableControls(tableData, { pageSize: 50 });
+
     return (
         <div className="space-y-6">
             {/* Page Header */}
@@ -362,12 +366,12 @@ export default function Area() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                    {tableData.map((area, idx) => (
+                                    {pager.view.map((area, idx) => (
                                         <tr key={area.id} className={`hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors ${selectedRows.includes(area.id) ? 'bg-slate-50/60 dark:bg-slate-900/20' : ''}`}>
                                             <td className="px-5 py-3">
                                                 <input type="checkbox" checked={selectedRows.includes(area.id)} onChange={() => toggleRowSelection(area.id)} className="rounded text-slate-600 focus:ring-slate-500" />
                                             </td>
-                                            <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{idx + 1}</td>
+                                            <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{(pager.page - 1) * pager.pageSize + idx + 1}</td>
                                             <td className="px-5 py-3">
                                                 <span className="font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">
                                                     {area.code || '—'}
@@ -403,9 +407,7 @@ export default function Area() {
                     </div>
 
                     {!loading && !error && tableData.length > 0 && (
-                        <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
-                            {tableData.length} record{tableData.length === 1 ? '' : 's'}
-                        </div>
+                        <TablePager controls={pager} noun="area" />
                     )}
                 </div>
             </div>

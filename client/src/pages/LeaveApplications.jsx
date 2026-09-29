@@ -5,6 +5,8 @@ import { Calendar, Plus, Check, X, Search, RefreshCw, ChevronDown, AlertCircle }
 import { useToast, Button, PageHeader, ExportMenu } from '../components';
 import Modal from '../components/Modal';
 import { formatDate } from '../utils/dateFormat';
+import useTableControls from '../hooks/useTableControls';
+import { TablePager } from '../components/TableControls';
 
 const BADGE_BASE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide';
 
@@ -119,6 +121,8 @@ export default function LeaveApplications() {
         if (failures.length > 0) toast.error(`${failures.length} could not be ${verb}: ${failures[0]}`);
         fetchData();
     };
+
+    const pager = useTableControls(filteredApps, { pageSize: 50 });
 
     const pendingVisible = useMemo(
         () => filteredApps.filter(a => a.status === 'Pending').map(a => a.id),
@@ -273,7 +277,7 @@ export default function LeaveApplications() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                {filteredApps.map((app, idx) => (
+                                {pager.view.map((app, idx) => (
                                     <tr key={app.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
                                         <td className="pl-5 pr-2 py-3">
                                             {app.status === 'Pending' && (
@@ -286,7 +290,7 @@ export default function LeaveApplications() {
                                                 />
                                             )}
                                         </td>
-                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{idx + 1}</td>
+                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{(pager.page - 1) * pager.pageSize + idx + 1}</td>
                                         <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">
                                             {app.employee_name || '—'}
                                         </td>
@@ -336,9 +340,7 @@ export default function LeaveApplications() {
                 )}
 
                 {!loading && !error && filteredApps.length > 0 && (
-                    <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
-                        {filteredApps.length} record{filteredApps.length === 1 ? '' : 's'}
-                    </div>
+                    <TablePager controls={pager} noun="record" />
                 )}
             </div>
 

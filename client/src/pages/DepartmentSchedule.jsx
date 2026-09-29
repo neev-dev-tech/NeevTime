@@ -5,6 +5,8 @@ import { useToast, Button, PageHeader } from '../components';
 import Modal from '../components/Modal';
 import { toLocalDateString } from '../utils/dateFormat';
 import { confirm } from '../components/ConfirmDialog';
+import useTableControls from '../hooks/useTableControls';
+import { TablePager, TableToolbar } from '../components/TableControls';
 
 export default function DepartmentSchedule() {
     const toast = useToast();
@@ -121,6 +123,11 @@ export default function DepartmentSchedule() {
         setForm({ ...form, week_off_days: days });
     };
 
+    const pager = useTableControls(schedules, {
+        searchKeys: ['department_name', 'shift_name', 'timetable_name'],
+        pageSize: 50
+    });
+
     const weekDays = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
 
     return (
@@ -159,6 +166,8 @@ export default function DepartmentSchedule() {
                         </p>
                     </div>
                 ) : (
+                    <>
+                    <TableToolbar controls={pager} placeholder="Search by department, shift or timetable…" />
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
                             <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
@@ -174,9 +183,9 @@ export default function DepartmentSchedule() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                {schedules.map((schedule, idx) => (
+                                {pager.view.map((schedule, idx) => (
                                     <tr key={schedule.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
-                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{idx + 1}</td>
+                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{(pager.page - 1) * pager.pageSize + idx + 1}</td>
                                         <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100">
                                             {schedule.department_name || '—'}
                                         </td>
@@ -220,12 +229,11 @@ export default function DepartmentSchedule() {
                             </tbody>
                         </table>
                     </div>
+                    </>
                 )}
 
                 {!loading && !error && schedules.length > 0 && (
-                    <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
-                        {schedules.length} schedule{schedules.length === 1 ? '' : 's'}
-                    </div>
+                    <TablePager controls={pager} noun="schedule" />
                 )}
             </div>
 
