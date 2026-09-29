@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api';
-import { Scale, Plus, Edit2, Trash2, Save, Globe, Building2, Clock, AlertTriangle, CheckCircle, Calendar, AlertCircle, RefreshCw } from 'lucide-react';
-import { useToast, Button, PageHeader } from '../components';
+import { Plus, Edit2, Trash2, Save, Globe, Building2, Clock, AlertTriangle, CheckCircle, Calendar, AlertCircle, RefreshCw } from 'lucide-react';
+import { useToast, Button, ListPage, ListTabs } from '../components';
 import Modal from '../components/Modal';
 import { confirm } from '../components/ConfirmDialog';
 
@@ -230,108 +230,85 @@ export default function AttendanceRules() {
     );
 
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            <PageHeader
-                icon={Scale}
+        <>
+            <ListPage
                 title="Attendance Rules"
-                subtitle="Configure policies for late marks, overtime, and week offs"
-                actions={
-                    <Button variant="successSolid" icon={Plus} onClick={() => setShowModal(true)}>Add Rule</Button>
+                count={rules.length}
+                tabs={
+                    <ListTabs
+                        label="Rule type"
+                        value={activeTab}
+                        onChange={setActiveTab}
+                        items={[
+                            { key: 'global', label: 'Global Rules', count: globalRules.length },
+                            { key: 'department', label: 'Department Rules', count: departmentRules.length }
+                        ]}
+                    />
                 }
-            />
-
-            {/* The attendance engine does not read these rules yet. Saying so
-                here stops anyone tuning a grace period that changes nothing. */}
-            <div role="note" className="flex gap-3 p-4 rounded-xl border border-amber-200 bg-amber-50 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
-                <AlertTriangle size={18} className="shrink-0 mt-0.5" />
-                <div className="space-y-1">
-                    <p className="font-semibold">These rules are saved but not yet used in attendance calculation.</p>
-                    <p>
-                        Late marks and grace come from the employee's assigned shift
-                        (<Link to="/shifts" className="underline underline-offset-2">Shifts</Link>, grace-in minutes),
-                        and otherwise from{' '}
-                        <Link to="/settings/attendance" className="underline underline-offset-2">System › Attendance Defaults</Link>.
-                        Week-offs come from{' '}
-                        <Link to="/settings/weekend" className="underline underline-offset-2">Weekend Rules</Link>.
-                    </p>
+                actions={
+                    <Button mutating variant="primary" size="toolbar" icon={Plus} onClick={() => setShowModal(true)}>Add Rule</Button>
+                }
+                bodyClassName="p-4 sm:p-6 space-y-4"
+            >
+                {/* The attendance engine does not read these rules yet. Saying so
+                    here stops anyone tuning a grace period that changes nothing. */}
+                <div role="note" className="flex gap-3 p-4 rounded-xl border border-amber-200 bg-amber-50 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+                    <AlertTriangle size={18} className="shrink-0 mt-0.5" />
+                    <div className="space-y-1">
+                        <p className="font-semibold">These rules are saved but not yet used in attendance calculation.</p>
+                        <p>
+                            Late marks and grace come from the employee's assigned shift
+                            (<Link to="/shifts" className="underline underline-offset-2">Shifts</Link>, grace-in minutes),
+                            and otherwise from{' '}
+                            <Link to="/settings/attendance" className="underline underline-offset-2">System › Attendance Defaults</Link>.
+                            Week-offs come from{' '}
+                            <Link to="/settings/weekend" className="underline underline-offset-2">Weekend Rules</Link>.
+                        </p>
+                    </div>
                 </div>
-            </div>
 
-            {/* Tabs */}
-            <div className="flex flex-wrap gap-1.5">
-                <button
-                    onClick={() => setActiveTab('global')}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors border ${activeTab === 'global'
-                        ? 'bg-slate-600 text-white border-transparent shadow-sm'
-                        : 'bg-app-surface/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300 hover:text-slate-600 dark:hover:text-slate-400'}`}
-                >
-                    <Globe size={13} />
-                    Global Rules ({globalRules.length})
-                </button>
-                <button
-                    onClick={() => setActiveTab('department')}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors border ${activeTab === 'department'
-                        ? 'bg-slate-600 text-white border-transparent shadow-sm'
-                        : 'bg-app-surface/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300 hover:text-slate-600 dark:hover:text-slate-400'}`}
-                >
-                    <Building2 size={13} />
-                    Department Rules ({departmentRules.length})
-                </button>
-            </div>
+                {/* Info Banner */}
+                <div className="bg-app-surface/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 flex items-start gap-3">
+                    <div className="p-2 rounded-xl bg-slate-100 dark:bg-slate-900/30 text-slate-600 dark:text-slate-300 shrink-0">
+                        <AlertTriangle size={16} />
+                    </div>
+                    <div className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                        <strong className="block mb-0.5 text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">How Rules Work</strong>
+                        Global rules are meant for all employees; a department rule is meant to override them for that department. Keep at least one global rule.
+                    </div>
+                </div>
 
-            {/* Info Banner */}
-            <div className="bg-app-surface/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 flex items-start gap-3">
-                <div className="p-2 rounded-xl bg-slate-100 dark:bg-slate-900/30 text-slate-600 dark:text-slate-300 shrink-0">
-                    <AlertTriangle size={16} />
-                </div>
-                <div className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                    <strong className="block mb-0.5 text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">How Rules Work</strong>
-                    Global rules are meant for all employees; a department rule is meant to override them for that department. Keep at least one global rule.
-                </div>
-            </div>
-
-            {/* Rules Grid */}
-            {loading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                    {Array.from({ length: 6 }).map((_, i) => (
-                        <div key={i} className="h-64 rounded-2xl bg-slate-100 dark:bg-slate-700 animate-pulse" />
-                    ))}
-                </div>
-            ) : error ? (
-                <div className="card-base !p-0 overflow-hidden">
+                {/* Rules Grid */}
+                {loading ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                        {Array.from({ length: 6 }).map((_, i) => (
+                            <div key={i} className="h-64 rounded-2xl bg-slate-100 dark:bg-slate-700 animate-pulse" />
+                        ))}
+                    </div>
+                ) : error ? (
                     <div className="py-16 text-center">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load rules</h3>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchData}>Try again</Button>
                     </div>
-                </div>
-            ) : activeTab === 'global' ? (
-                globalRules.length === 0 ? (
-                    <div className="card-base !p-0 overflow-hidden">
+                ) : activeTab === 'global' ? (
+                    globalRules.length === 0 ? (
                         <div className="py-16 text-center">
                             <Globe size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
                             <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No global rules yet</h3>
                             <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 max-w-sm mx-auto">
                                 A global rule sets the default late, grace, and overtime policy for everyone.
                             </p>
-                            <Button variant="primary" onClick={() => setShowModal(true)}>Create Now</Button>
+                            <Button mutating variant="primary" onClick={() => setShowModal(true)}>Create Now</Button>
                         </div>
-                    </div>
-                ) : (
-                    <div className="space-y-4">
+                    ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                             {globalRules.map(rule => <RuleCard key={rule.id} rule={rule} />)}
                         </div>
-                        <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
-                            {globalRules.length} rule{globalRules.length === 1 ? '' : 's'}
-                        </div>
-                    </div>
-                )
-            ) : (
-                departmentRules.length === 0 ? (
-                    <div className="card-base !p-0 overflow-hidden">
+                    )
+                ) : (
+                    departmentRules.length === 0 ? (
                         <div className="py-16 text-center">
                             <Building2 size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
                             <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No department rules yet</h3>
@@ -339,18 +316,13 @@ export default function AttendanceRules() {
                                 Department rules override the global policy for one team only.
                             </p>
                         </div>
-                    </div>
-                ) : (
-                    <div className="space-y-4">
+                    ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                             {departmentRules.map(rule => <RuleCard key={rule.id} rule={rule} />)}
                         </div>
-                        <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
-                            {departmentRules.length} rule{departmentRules.length === 1 ? '' : 's'}
-                        </div>
-                    </div>
-                )
-            )}
+                    )
+                )}
+            </ListPage>
 
             <Modal
                 open={showModal}
@@ -561,6 +533,6 @@ export default function AttendanceRules() {
                     </div>
                 </form>
             </Modal>
-        </div>
+        </>
     );
 }

@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { RefreshCw, Plus, Users, Zap } from 'lucide-react';
 import api from '../api';
-import { Button, PageHeader, useToast } from '../components';
+import {
+    Button, useToast, ListPage,
+    LIST_THEAD, LIST_TH, LIST_EDGE_FIRST, LIST_EDGE_LAST
+} from '../components';
 import Modal from '../components/Modal';
 import { toDateOnly } from '../utils/dateFormat';
 
@@ -78,31 +81,28 @@ export default function ShiftRotations() {
     };
 
     return (
-        <div className="space-y-5">
-            <PageHeader
-                icon={RefreshCw}
+        <>
+            <ListPage
                 title="Shift Rotations"
-                subtitle="Repeating patterns — week A days, week B nights — generated into the schedule ahead"
+                count={rotations.length}
                 actions={
                     <>
-                        <Button variant="secondary" icon={Zap} onClick={generateNow} disabled={busy}>Generate now</Button>
-                        <Button variant="primary" icon={Plus}
+                        <Button variant="tonal" size="toolbar" icon={Zap} onClick={generateNow} disabled={busy}>Generate now</Button>
+                        <Button mutating variant="primary" size="toolbar" icon={Plus}
                                 onClick={() => setForm({ name: '', period_days: 7, anchor_date: '', shift_sequence: ['', ''] })}>
                             Add rotation
                         </Button>
                     </>
                 }
-            />
-
-            <div className="bg-app-surface rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+            >
                 {loading ? (
-                    <div className="p-6 space-y-3">
+                    <div className="p-4 sm:p-6 space-y-3">
                         {Array.from({ length: 5 }).map((_, i) => (
                             <div key={i} className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
                         ))}
                     </div>
                 ) : rotations.length === 0 ? (
-                    <div className="py-16 px-6 text-center">
+                    <div className="py-20 px-6 text-center">
                         <RefreshCw size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No rotations yet</h3>
                         <p className="text-sm text-slate-500 dark:text-slate-400 max-w-xl mx-auto">
@@ -113,27 +113,27 @@ export default function ShiftRotations() {
                     </div>
                 ) : (
                     <table className="w-full text-left text-sm">
-                        <thead className="bg-slate-50 dark:bg-slate-900/40 text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400">
+                        <thead className={LIST_THEAD}>
                             <tr>
-                                <th className="px-5 py-3">Rotation</th>
-                                <th className="px-5 py-3">Pattern</th>
-                                <th className="px-5 py-3">Period</th>
-                                <th className="px-5 py-3 text-right">Crew</th>
-                                <th className="px-5 py-3"></th>
+                                <th className={`${LIST_TH} ${LIST_EDGE_FIRST}`}>Rotation</th>
+                                <th className={LIST_TH}>Pattern</th>
+                                <th className={LIST_TH}>Period</th>
+                                <th className={`${LIST_TH} !text-right`}>Crew</th>
+                                <th className={`${LIST_TH} ${LIST_EDGE_LAST}`}></th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                             {rotations.map(r => (
-                                <tr key={r.id} className={r.is_active ? '' : 'opacity-50'}>
-                                    <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100">{r.name}</td>
-                                    <td className="px-5 py-3 text-slate-600 dark:text-slate-300">
+                                <tr key={r.id} className={`hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors ${r.is_active ? '' : 'opacity-50'}`}>
+                                    <td className={`${LIST_EDGE_FIRST} pr-4 py-3 font-semibold text-slate-800 dark:text-slate-100`}>{r.name}</td>
+                                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
                                         {(r.shift_sequence || []).map(id =>
                                             id === null ? 'Off' : (shifts.find(s => s.id === id)?.name || `#${id}`)
                                         ).join(' → ')}
                                     </td>
-                                    <td className="px-5 py-3 tabular-nums text-slate-600 dark:text-slate-300">{r.period_days}d</td>
-                                    <td className="px-5 py-3 text-right tabular-nums font-semibold">{r.crew}</td>
-                                    <td className="px-5 py-3 text-right">
+                                    <td className="px-4 py-3 tabular-nums text-slate-600 dark:text-slate-300">{r.period_days}d</td>
+                                    <td className="px-4 py-3 text-right tabular-nums font-semibold">{r.crew}</td>
+                                    <td className={`pl-4 ${LIST_EDGE_LAST} py-3 text-right`}>
                                         <Button size="sm" variant="secondary" icon={Users} onClick={() => openCrew(r)}>Crew</Button>
                                     </td>
                                 </tr>
@@ -141,7 +141,7 @@ export default function ShiftRotations() {
                         </tbody>
                     </table>
                 )}
-            </div>
+            </ListPage>
 
             {form && (
                 <Modal open onClose={() => setForm(null)} title="Add rotation" size="md">
@@ -215,6 +215,6 @@ export default function ShiftRotations() {
                     </div>
                 </Modal>
             )}
-        </div>
+        </>
     );
 }

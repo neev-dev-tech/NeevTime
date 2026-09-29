@@ -3,10 +3,10 @@ import api from '../api';
 import {
     Plus, Trash2, Folder,
     ChevronRight, ChevronDown,
-    Upload, RefreshCw, LayoutList,
-    ArrowRightLeft, Download, Search, Map, AlertCircle
+    Upload, RefreshCw,
+    ArrowRightLeft, Download, Map, AlertCircle
 } from 'lucide-react';
-import { useToast, Button, PageHeader } from '../components';
+import { useToast, Button, ListPage, ListSearch, ListSelection, LIST_THEAD, LIST_TH, LIST_EDGE_FIRST, LIST_EDGE_LAST } from '../components';
 import Modal from '../components/Modal';
 import useTableControls from '../hooks/useTableControls';
 import { TablePager } from '../components/TableControls';
@@ -238,15 +238,42 @@ export default function Area() {
     const pager = useTableControls(tableData, { pageSize: 50 });
 
     return (
-        <div className="space-y-6">
-            {/* Page Header */}
-            <PageHeader icon={Map} title="Areas" subtitle="Sites and zones devices and employees belong to" />
-
-            <div className="flex gap-6 h-[calc(100vh-12rem)]">
+        <>
+        <ListPage
+            title="Areas"
+            count={areas.length}
+            actions={
+                <>
+                    <Button variant="tonal" size="toolbar" icon={Upload} onClick={() => setShowImportModal(true)}>
+                        Import
+                    </Button>
+                    <Button variant="tonal" size="toolbar" icon={ArrowRightLeft} onClick={() => setShowTransferModal(true)}>
+                        Personnel Transfer
+                    </Button>
+                    <Button mutating variant="primary" size="toolbar" icon={Plus} onClick={() => { setFormData({}); setShowModal(true); }}>
+                        Add
+                    </Button>
+                </>
+            }
+            toolbarActive={selectedRows.length > 0}
+            toolbar={
+                <>
+                    <ListSearch label="Search areas" placeholder="Search areas..." value={searchQuery} onChange={setSearchQuery} />
+                    <ListSelection count={selectedRows.length} onClear={() => setSelectedRows([])} />
+                    <div className="ml-auto flex items-center gap-2 flex-wrap">
+                        <Button variant="danger" size="toolbar" icon={Trash2} onClick={handleBulkDelete}>
+                            Delete
+                        </Button>
+                    </div>
+                </>
+            }
+            footer={!loading && !error && tableData.length > 0 ? <TablePager controls={pager} noun="area" /> : null}
+            bodyClassName="flex !overflow-hidden"
+        >
                 {/* Tree View Sidebar */}
-                <div className="w-64 bg-app-surface/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl flex flex-col overflow-hidden shrink-0">
-                    <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900/50">
-                        <h3 className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">Area Structure</h3>
+                <div className="w-64 border-r border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden shrink-0">
+                    <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
+                        <h3 className="text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">Area Structure</h3>
                     </div>
                     <div className="p-2 flex-1 overflow-y-auto custom-scrollbar">
                         {loading ? (
@@ -285,39 +312,8 @@ export default function Area() {
                     </div>
                 </div>
 
-                {/* Main Table Section */}
-                <div className="flex-1 flex flex-col card-base !p-0 overflow-hidden">
-                    {/* Toolbar */}
-                    <div className="p-3 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between bg-app-surface/70 dark:bg-slate-800/70 flex-wrap gap-3">
-                        <div className="flex items-center gap-2">
-                            <Button variant="successSolid" icon={Plus} onClick={() => { setFormData({}); setShowModal(true); }}>
-                                Add
-                            </Button>
-                            <Button variant="danger" icon={Trash2} onClick={handleBulkDelete}>
-                                Delete
-                            </Button>
-                            <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-2"></div>
-                            <Button variant="secondary" icon={Upload} onClick={() => setShowImportModal(true)}>
-                                Import
-                            </Button>
-                            <Button variant="secondary" icon={ArrowRightLeft} onClick={() => setShowTransferModal(true)}>
-                                Personnel Transfer
-                            </Button>
-                        </div>
-                        <div className="relative w-64">
-                            <input
-                                type="text"
-                                placeholder="Search areas..."
-                                value={searchQuery}
-                                onChange={e => setSearchQuery(e.target.value)}
-                                className="input-base pl-10 py-2"
-                            />
-                            <Search size={18} className="absolute left-3 top-2.5 text-slate-400 dark:text-slate-500" />
-                        </div>
-                    </div>
-
-                    {/* Table */}
-                    <div className="flex-1 overflow-auto custom-scrollbar">
+                {/* Table */}
+                <div className="flex-1 min-w-0 overflow-auto custom-scrollbar">
                         {loading ? (
                             <div className="p-6 space-y-3">
                                 {Array.from({ length: 8 }).map((_, i) => (
@@ -325,14 +321,14 @@ export default function Area() {
                                 ))}
                             </div>
                         ) : error ? (
-                            <div className="py-16 text-center">
+                            <div className="py-20 text-center px-6">
                                 <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
                                 <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load areas</h3>
                                 <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
                                 <Button variant="secondary" icon={RefreshCw} onClick={fetchAreas}>Try again</Button>
                             </div>
                         ) : tableData.length === 0 ? (
-                            <div className="py-16 text-center">
+                            <div className="py-20 text-center px-6">
                                 <Map size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
                                 <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">
                                     {searchQuery ? 'No matching areas' : 'No areas here'}
@@ -347,45 +343,45 @@ export default function Area() {
                             </div>
                         ) : (
                             <table className="w-full text-sm text-left">
-                                <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400 sticky top-0 z-10">
+                                <thead className={LIST_THEAD}>
                                     <tr>
-                                        <th className="px-5 py-3 font-semibold w-10">
+                                        <th className={`${LIST_TH} ${LIST_EDGE_FIRST} w-10`}>
                                             <input type="checkbox" checked={selectedRows.length === tableData.length && tableData.length > 0} onChange={toggleAllRows} className="rounded text-slate-600 focus:ring-slate-500" />
                                         </th>
-                                        <th className="px-5 py-3 font-semibold w-12">#</th>
-                                        <th className="px-5 py-3 font-semibold whitespace-nowrap">Area Code</th>
-                                        <th className="px-5 py-3 font-semibold whitespace-nowrap">Area Name</th>
-                                        <th className="px-5 py-3 font-semibold whitespace-nowrap">Parent</th>
-                                        <th className="px-5 py-3 font-semibold whitespace-nowrap">Device Count</th>
-                                        <th className="px-5 py-3 font-semibold whitespace-nowrap">Employee Count</th>
-                                        <th className="px-5 py-3 font-semibold whitespace-nowrap">Resigned Count</th>
-                                        <th className="px-5 py-3 font-semibold whitespace-nowrap">FP Count</th>
-                                        <th className="px-5 py-3 font-semibold whitespace-nowrap">Face Count</th>
-                                        <th className="px-5 py-3 font-semibold whitespace-nowrap">Card Count</th>
-                                        <th className="px-5 py-3 font-semibold text-right whitespace-nowrap w-20">Actions</th>
+                                        <th className={`${LIST_TH} w-12`}>#</th>
+                                        <th className={LIST_TH}>Area Code</th>
+                                        <th className={LIST_TH}>Area Name</th>
+                                        <th className={LIST_TH}>Parent</th>
+                                        <th className={LIST_TH}>Device Count</th>
+                                        <th className={LIST_TH}>Employee Count</th>
+                                        <th className={LIST_TH}>Resigned Count</th>
+                                        <th className={LIST_TH}>FP Count</th>
+                                        <th className={LIST_TH}>Face Count</th>
+                                        <th className={LIST_TH}>Card Count</th>
+                                        <th className={`${LIST_TH} ${LIST_EDGE_LAST} text-right w-20`}>Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                                     {pager.view.map((area, idx) => (
-                                        <tr key={area.id} className={`hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors ${selectedRows.includes(area.id) ? 'bg-slate-50/60 dark:bg-slate-900/20' : ''}`}>
-                                            <td className="px-5 py-3">
+                                        <tr key={area.id} className={`hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors ${selectedRows.includes(area.id) ? 'bg-slate-50/60 dark:bg-slate-900/20' : ''}`}>
+                                            <td className={`${LIST_EDGE_FIRST} pr-4 py-3`}>
                                                 <input type="checkbox" checked={selectedRows.includes(area.id)} onChange={() => toggleRowSelection(area.id)} className="rounded text-slate-600 focus:ring-slate-500" />
                                             </td>
-                                            <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{(pager.page - 1) * pager.pageSize + idx + 1}</td>
-                                            <td className="px-5 py-3">
+                                            <td className="px-4 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{(pager.page - 1) * pager.pageSize + idx + 1}</td>
+                                            <td className="px-4 py-3">
                                                 <span className="font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">
                                                     {area.code || '—'}
                                                 </span>
                                             </td>
-                                            <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100">{area.name || '—'}</td>
-                                            <td className="px-5 py-3 text-slate-600 dark:text-slate-300">{area.parent_area_name || '—'}</td>
-                                            <td className="px-5 py-3 text-slate-600 dark:text-slate-300 tabular-nums">{area.device_count || 0}</td>
-                                            <td className="px-5 py-3 text-slate-600 dark:text-slate-300 tabular-nums">{area.employee_count || 0}</td>
-                                            <td className="px-5 py-3 text-slate-600 dark:text-slate-300 tabular-nums">{area.resigned_count || 0}</td>
-                                            <td className="px-5 py-3 text-slate-600 dark:text-slate-300 tabular-nums">{area.fp_count || 0}</td>
-                                            <td className="px-5 py-3 text-slate-600 dark:text-slate-300 tabular-nums">{area.face_count || 0}</td>
-                                            <td className="px-5 py-3 text-slate-600 dark:text-slate-300 tabular-nums">{area.card_count || 0}</td>
-                                            <td className="px-5 py-3">
+                                            <td className="px-4 py-3 font-semibold text-slate-800 dark:text-slate-100">{area.name || '—'}</td>
+                                            <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{area.parent_area_name || '—'}</td>
+                                            <td className="px-4 py-3 text-slate-600 dark:text-slate-300 tabular-nums">{area.device_count || 0}</td>
+                                            <td className="px-4 py-3 text-slate-600 dark:text-slate-300 tabular-nums">{area.employee_count || 0}</td>
+                                            <td className="px-4 py-3 text-slate-600 dark:text-slate-300 tabular-nums">{area.resigned_count || 0}</td>
+                                            <td className="px-4 py-3 text-slate-600 dark:text-slate-300 tabular-nums">{area.fp_count || 0}</td>
+                                            <td className="px-4 py-3 text-slate-600 dark:text-slate-300 tabular-nums">{area.face_count || 0}</td>
+                                            <td className="px-4 py-3 text-slate-600 dark:text-slate-300 tabular-nums">{area.card_count || 0}</td>
+                                            <td className={`pl-4 ${LIST_EDGE_LAST} py-3`}>
                                                 <div className="flex items-center justify-end">
                                                     <div className="dv-quiet">
                                                         <Button
@@ -404,13 +400,8 @@ export default function Area() {
                                 </tbody>
                             </table>
                         )}
-                    </div>
-
-                    {!loading && !error && tableData.length > 0 && (
-                        <TablePager controls={pager} noun="area" />
-                    )}
                 </div>
-            </div>
+        </ListPage>
 
             {/* Modals - Simplified Styling for Consistency */}
             {/* Add Modal */}
@@ -550,6 +541,6 @@ export default function Area() {
                 </div>
                 </div>
             </Modal>
-        </div>
+        </>
     );
 }

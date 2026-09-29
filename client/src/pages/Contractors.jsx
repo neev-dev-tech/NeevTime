@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Building2, Plus, Users, Trash2, Edit2, FileText } from 'lucide-react';
+import { Building2, Plus, Trash2, Edit2, FileText } from 'lucide-react';
 import api from '../api';
-import { Button, PageHeader } from '../components';
+import { Button, ListPage, ListSearch, LIST_THEAD, LIST_TH, LIST_EDGE_FIRST, LIST_EDGE_LAST } from '../components';
 import Modal from '../components/Modal';
 import { formatDate, toLocalDateString } from '../utils/dateFormat';
 import useTableControls from '../hooks/useTableControls';
-import { TablePager, TableToolbar } from '../components/TableControls';
+import { TablePager } from '../components/TableControls';
 
 /**
  * The companies whose people work here and who invoice for it.
@@ -88,31 +88,32 @@ export default function Contractors() {
     });
 
     return (
-        <div className="space-y-5">
-            <PageHeader
-                title="Contractors"
-                subtitle="Agencies whose people work here, and what they are owed"
-                icon={Building2}
-                actions={
-                    <Button variant="primary" icon={Plus} onClick={() => setEditing({ is_active: true })}>
-                        Add contractor
-                    </Button>
-                }
-            />
+        <>
+        <ListPage
+            title="Contractors"
+            count={rows.length}
+            actions={
+                <Button mutating variant="primary" size="toolbar" icon={Plus} onClick={() => setEditing({ is_active: true })}>
+                    Add contractor
+                </Button>
+            }
+            toolbar={
+                <ListSearch label="Search contractors" placeholder="Search contractors…" value={pager.query} onChange={pager.setQuery} />
+            }
+            footer={!loading && rows.length > 0 ? <TablePager controls={pager} noun="contractor" /> : null}
+        >
+                {error && (
+                    <div className="border-b border-rose-100 dark:border-rose-800 bg-rose-50 dark:bg-rose-900/20 px-4 sm:px-6 py-3 text-sm text-rose-700 dark:text-rose-300">
+                        {error}
+                    </div>
+                )}
 
-            {error && (
-                <div className="rounded-lg bg-rose-50 dark:bg-rose-900/20 border border-rose-100 dark:border-rose-800 px-4 py-3 text-sm text-rose-700 dark:text-rose-300">
-                    {error}
-                </div>
-            )}
-
-            <div className="bg-app-surface rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
                 {loading ? (
                     <div className="p-6 space-y-3">
                         {[0, 1, 2].map(i => <div key={i} className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />)}
                     </div>
                 ) : rows.length === 0 ? (
-                    <div className="p-10 text-center">
+                    <div className="py-20 px-6 text-center">
                         <Building2 size={28} className="mx-auto text-slate-300 dark:text-slate-600 mb-2" />
                         <h3 className="font-semibold text-slate-800 dark:text-slate-100">No contractors yet</h3>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
@@ -121,37 +122,35 @@ export default function Contractors() {
                         </p>
                     </div>
                 ) : (
-                    <>
-                    <TableToolbar controls={pager} placeholder="Search contractors…" />
                     <table className="w-full text-left text-sm">
-                        <thead className="bg-slate-50 dark:bg-slate-900/40 text-[11px] uppercase tracking-[0.06em] font-bold text-slate-500 dark:text-slate-400">
+                        <thead className={LIST_THEAD}>
                             <tr>
-                                <th className="px-5 py-3">Contractor</th>
-                                <th className="px-5 py-3">Contact</th>
-                                <th className="px-5 py-3">GST</th>
-                                <th className="px-5 py-3 text-right">People</th>
-                                <th className="px-5 py-3 text-right">Rate/hr</th>
-                                <th className="px-5 py-3"></th>
+                                <th className={`${LIST_TH} ${LIST_EDGE_FIRST}`}>Contractor</th>
+                                <th className={LIST_TH}>Contact</th>
+                                <th className={LIST_TH}>GST</th>
+                                <th className={`${LIST_TH} !text-right`}>People</th>
+                                <th className={`${LIST_TH} !text-right`}>Rate/hr</th>
+                                <th className={`${LIST_TH} ${LIST_EDGE_LAST}`}></th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                             {pager.view.map(row => (
-                                <tr key={row.id} className={row.is_active ? '' : 'opacity-50'}>
-                                    <td className="px-5 py-3">
+                                <tr key={row.id} className={`hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors ${row.is_active ? '' : 'opacity-50'}`}>
+                                    <td className={`${LIST_EDGE_FIRST} pr-4 py-3`}>
                                         <p className="font-semibold text-slate-800 dark:text-slate-100">{row.name}</p>
                                         {row.code && <p className="text-xs font-mono text-slate-500">{row.code}</p>}
                                         {!row.is_active && <span className="text-[11px] uppercase font-bold text-slate-400">Inactive</span>}
                                     </td>
-                                    <td className="px-5 py-3 text-slate-600 dark:text-slate-300">
+                                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
                                         {row.contact_person || '—'}
                                         {row.phone && <span className="block text-xs font-mono">{row.phone}</span>}
                                     </td>
-                                    <td className="px-5 py-3 font-mono text-xs text-slate-600 dark:text-slate-300">{row.gst_number || '—'}</td>
-                                    <td className="px-5 py-3 text-right tabular-nums font-semibold text-slate-800 dark:text-slate-100">{row.employee_count}</td>
-                                    <td className="px-5 py-3 text-right tabular-nums text-slate-600 dark:text-slate-300">
+                                    <td className="px-4 py-3 font-mono text-xs text-slate-600 dark:text-slate-300">{row.gst_number || '—'}</td>
+                                    <td className="px-4 py-3 text-right tabular-nums font-semibold text-slate-800 dark:text-slate-100">{row.employee_count}</td>
+                                    <td className="px-4 py-3 text-right tabular-nums text-slate-600 dark:text-slate-300">
                                         {row.hourly_rate ? Number(row.hourly_rate).toFixed(2) : '—'}
                                     </td>
-                                    <td className="px-5 py-3">
+                                    <td className={`pl-4 ${LIST_EDGE_LAST} py-3`}>
                                         <div className="flex gap-1 justify-end">
                                             <button onClick={() => openSummary(row)} title="Hours this month"
                                                     className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500">
@@ -171,10 +170,8 @@ export default function Contractors() {
                             ))}
                         </tbody>
                     </table>
-                    <TablePager controls={pager} noun="contractor" />
-                    </>
                 )}
-            </div>
+        </ListPage>
 
             {/* Add / edit */}
             {editing && (
@@ -310,6 +307,6 @@ export default function Contractors() {
                     </div>
                 </Modal>
             )}
-        </div>
+        </>
     );
 }

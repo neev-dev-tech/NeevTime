@@ -1,8 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
-import { MapPin, Plus, Search, Trash2, Edit2, AlertCircle, CheckCircle, Navigation, RefreshCw } from 'lucide-react';
+import { MapPin, Plus, Trash2, Edit2, AlertCircle, CheckCircle, Navigation, RefreshCw } from 'lucide-react';
 import api from '../api';
-import { Button, PageHeader, ExportMenu } from '../components';
+import {
+    Button, ExportMenu, ListPage, ListSearch,
+    LIST_THEAD, LIST_TH, LIST_EDGE_FIRST, LIST_EDGE_LAST
+} from '../components';
 import Modal from '../components/Modal';
 import { confirm } from '../components/ConfirmDialog';
 import useTableControls from '../hooks/useTableControls';
@@ -119,11 +122,10 @@ const Geofences = () => {
     const pager = useTableControls(filteredGeofences, { pageSize: 50 });
 
     return (
-        <div className="h-full flex flex-col space-y-6">
-            <PageHeader
-                icon={MapPin}
+        <>
+            <ListPage
                 title="Geofence Locations"
-                subtitle="Manage GPS boundaries for mobile attendance"
+                count={geofences.length}
                 actions={
                     <>
                         <ExportMenu
@@ -138,40 +140,27 @@ const Geofences = () => {
                             filename="geofences"
                             title="Geofence Locations"
                         />
-                        <Button variant="successSolid" icon={Plus} onClick={() => openModal()}>Add Location</Button>
+                        <Button mutating variant="primary" size="toolbar" icon={Plus} onClick={() => openModal()}>Add Location</Button>
                     </>
                 }
-            />
-
-            <div className="card-base !p-0 flex flex-col flex-1 overflow-hidden">
-                <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex gap-4 bg-slate-50/70 dark:bg-slate-900/50">
-                    <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500" size={18} />
-                        <input
-                            type="text"
-                            placeholder="Search locations..."
-                            className="input-base pl-10 bg-app-surface dark:border-slate-600 dark:text-slate-100"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                    </div>
-                </div>
-
+                toolbar={<ListSearch label="Search locations" placeholder="Search locations…" value={searchTerm} onChange={setSearchTerm} />}
+                footer={!loading && !loadError && filteredGeofences.length > 0 ? <TablePager controls={pager} noun="location" /> : null}
+            >
                 {loading ? (
-                    <div className="p-6 space-y-3">
+                    <div className="p-4 sm:p-6 space-y-3">
                         {Array.from({ length: 6 }).map((_, i) => (
                             <div key={i} className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
                         ))}
                     </div>
                 ) : loadError ? (
-                    <div className="py-16 text-center">
+                    <div className="py-20 text-center px-6">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load locations</h3>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{loadError}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchGeofences}>Try again</Button>
                     </div>
                 ) : filteredGeofences.length === 0 ? (
-                    <div className="py-16 text-center">
+                    <div className="py-20 text-center px-6">
                         <MapPin size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">
                             {searchTerm ? 'No matching locations' : 'No locations yet'}
@@ -183,47 +172,41 @@ const Geofences = () => {
                         </p>
                     </div>
                 ) : (
-                    <div className="overflow-auto flex-1">
-                        <table className="w-full text-sm text-left">
-                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400 sticky top-0 z-10">
-                                <tr>
-                                    <th className="px-5 py-3 font-semibold w-12">#</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Name</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Coordinates</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Radius</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Address</th>
-                                    <th className="px-5 py-3 font-semibold text-right whitespace-nowrap">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                {pager.view.map((fence, idx) => (
-                                    <tr key={fence.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
-                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{(pager.page - 1) * pager.pageSize + idx + 1}</td>
-                                        <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100">{fence.name || '—'}</td>
-                                        <td className="px-5 py-3 font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold whitespace-nowrap">
-                                            {Number(fence.latitude).toFixed(5)}, {Number(fence.longitude).toFixed(5)}
-                                        </td>
-                                        <td className="px-5 py-3 text-slate-600 dark:text-slate-300 tabular-nums whitespace-nowrap">{fence.radius_meters}m</td>
-                                        <td className="px-5 py-3 text-slate-600 dark:text-slate-300">{fence.address || '—'}</td>
-                                        <td className="px-5 py-3">
-                                            <div className="flex items-center justify-end">
-                                                <div className="dv-quiet">
-                                                    <Button variant="ghost" size="sm" icon={Edit2} aria-label="Edit geofence" onClick={() => openModal(fence)} />
-                                                    <Button variant="danger" size="sm" icon={Trash2} aria-label="Delete geofence" onClick={() => handleDelete(fence.id)} />
-                                                </div>
+                    <table className="w-full text-sm text-left">
+                        <thead className={LIST_THEAD}>
+                            <tr>
+                                <th className={`${LIST_TH} ${LIST_EDGE_FIRST} w-12`}>#</th>
+                                <th className={LIST_TH}>Name</th>
+                                <th className={LIST_TH}>Coordinates</th>
+                                <th className={LIST_TH}>Radius</th>
+                                <th className={LIST_TH}>Address</th>
+                                <th className={`${LIST_TH} !text-right ${LIST_EDGE_LAST}`}>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                            {pager.view.map((fence, idx) => (
+                                <tr key={fence.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                                    <td className={`${LIST_EDGE_FIRST} pr-4 py-3 text-slate-400 dark:text-slate-500 tabular-nums`}>{(pager.page - 1) * pager.pageSize + idx + 1}</td>
+                                    <td className="px-4 py-3 font-semibold text-slate-800 dark:text-slate-100">{fence.name || '—'}</td>
+                                    <td className="px-4 py-3 font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold whitespace-nowrap">
+                                        {Number(fence.latitude).toFixed(5)}, {Number(fence.longitude).toFixed(5)}
+                                    </td>
+                                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300 tabular-nums whitespace-nowrap">{fence.radius_meters}m</td>
+                                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{fence.address || '—'}</td>
+                                    <td className={`pl-4 ${LIST_EDGE_LAST} py-3`}>
+                                        <div className="flex items-center justify-end">
+                                            <div className="dv-quiet">
+                                                <Button variant="ghost" size="sm" icon={Edit2} aria-label="Edit geofence" onClick={() => openModal(fence)} />
+                                                <Button variant="danger" size="sm" icon={Trash2} aria-label="Delete geofence" onClick={() => handleDelete(fence.id)} />
                                             </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 )}
-
-                {!loading && !loadError && filteredGeofences.length > 0 && (
-                    <TablePager controls={pager} noun="location" />
-                )}
-            </div>
+            </ListPage>
 
             <Modal
                 open={showModal}
@@ -313,7 +296,7 @@ const Geofences = () => {
                     <span>{toast.message}</span>
                 </div>
             )}
-        </div>
+        </>
     );
 };
 

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Edit2, Check, RefreshCw, Users, Shield, AlertCircle } from 'lucide-react';
 import api from '../api';
-import { Button, PageHeader, ExportMenu } from '../components';
+import { Button, ExportMenu, ListPage, ListSearch, ListIconButton, LIST_THEAD, LIST_TH, LIST_EDGE_FIRST, LIST_EDGE_LAST } from '../components';
 import Modal from '../components/Modal';
 import { formatDate } from '../utils/dateFormat';
 import { confirm } from '../components/ConfirmDialog';
 import useTableControls from '../hooks/useTableControls';
-import { TablePager, TableToolbar } from '../components/TableControls';
+import { TablePager } from '../components/TableControls';
 
 // Tiers enforced by server/utils/rbac.js. 'user' is retired — legacy accounts
 // still holding it are treated as hr — so it is not offered for new accounts.
@@ -139,59 +139,67 @@ export default function UsersPage() {
     });
 
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            <PageHeader
-                icon={Users}
-                title="User Management"
-                subtitle="Manage system users and their roles"
-                actions={(
-                    <>
-                        <ExportMenu
-                            rows={users}
-                            columns={[
-                                { key: 'username', label: 'Username' },
-                                { key: 'role', label: 'Role' },
-                                { key: 'email', label: 'Email' }
-                            ]}
-                            filename="users"
-                            title="Users"
-                        />
-                        <Button
-                            variant="secondary"
+        <>
+        <ListPage
+            title="User Management"
+            count={users.length}
+            actions={(
+                <>
+                    <ExportMenu
+                        rows={users}
+                        columns={[
+                            { key: 'username', label: 'Username' },
+                            { key: 'role', label: 'Role' },
+                            { key: 'email', label: 'Email' }
+                        ]}
+                        filename="users"
+                        title="Users"
+                    />
+                    <Button mutating variant="primary" size="toolbar" icon={Plus} onClick={openNewModal}>
+                        Add User
+                    </Button>
+                </>
+            )}
+            toolbar={(
+                <>
+                    <ListSearch label="Search users" placeholder="Search users…" value={pager.query} onChange={pager.setQuery} />
+                    {pager.isFiltered && (
+                        <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums whitespace-nowrap">
+                            {pager.matched} of {pager.total}
+                        </span>
+                    )}
+                    <div className="ml-auto flex items-center gap-2">
+                        <ListIconButton
+                            label="Refresh"
                             icon={RefreshCw}
-                            type="button"
-                            aria-label="Refresh"
+                            disabled={loading}
+                            spin={loading}
                             onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
                                 fetchUsers();
                             }}
                         />
-                        <Button variant="successSolid" icon={Plus} onClick={openNewModal}>
-                            Add User
-                        </Button>
-                    </>
-                )}
-            />
-
-            {/* Users Table */}
-            <div className="card-base !p-0 overflow-hidden">
+                    </div>
+                </>
+            )}
+            footer={!loading && !loadError && users.length > 0 ? <TablePager controls={pager} noun="user" /> : null}
+        >
                 {loading ? (
-                    <div className="p-6 space-y-3">
+                    <div className="px-4 sm:px-6 py-6 space-y-3">
                         {Array.from({ length: 6 }).map((_, i) => (
                             <div key={i} className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
                         ))}
                     </div>
                 ) : loadError ? (
-                    <div className="py-16 text-center">
+                    <div className="py-20 text-center px-6">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load users</h3>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{loadError}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchUsers}>Try again</Button>
                     </div>
                 ) : users.length === 0 ? (
-                    <div className="py-16 text-center">
+                    <div className="py-20 text-center px-6">
                         <Users size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No users yet</h3>
                         <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -199,29 +207,26 @@ export default function UsersPage() {
                         </p>
                     </div>
                 ) : (
-                    <>
-                    <TableToolbar controls={pager} placeholder="Search users…" />
-                    <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
-                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
+                            <thead className={LIST_THEAD}>
                                 <tr>
-                                    <th className="px-5 py-3 font-semibold w-12">#</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">ID</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Username</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Email</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Role</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Created</th>
-                                    <th className="px-5 py-3 font-semibold text-right whitespace-nowrap">Actions</th>
+                                    <th className={`${LIST_TH} ${LIST_EDGE_FIRST} w-12`}>#</th>
+                                    <th className={LIST_TH}>ID</th>
+                                    <th className={LIST_TH}>Username</th>
+                                    <th className={LIST_TH}>Email</th>
+                                    <th className={LIST_TH}>Role</th>
+                                    <th className={LIST_TH}>Created</th>
+                                    <th className={`${LIST_TH} ${LIST_EDGE_LAST} !text-right`}>Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                                 {pager.view.map((user, idx) => (
-                                    <tr key={user.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
-                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{(pager.page - 1) * pager.pageSize + idx + 1}</td>
-                                        <td className="px-5 py-3">
+                                    <tr key={user.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                                        <td className={`${LIST_EDGE_FIRST} pr-4 py-3 text-slate-400 dark:text-slate-500 tabular-nums`}>{(pager.page - 1) * pager.pageSize + idx + 1}</td>
+                                        <td className="px-4 py-3">
                                             <span className={CELL_MONO}>{dash(user.id)}</span>
                                         </td>
-                                        <td className="px-5 py-3">
+                                        <td className="px-4 py-3">
                                             <div className="flex items-center gap-3 min-w-0">
                                                 <span
                                                     aria-hidden="true"
@@ -232,21 +237,21 @@ export default function UsersPage() {
                                                 <span className={`${CELL_STRONG} truncate`}>{dash(user.username)}</span>
                                             </div>
                                         </td>
-                                        <td className="px-5 py-3">
+                                        <td className="px-4 py-3">
                                             <span className={CELL_SOFT}>{dash(user.email)}</span>
                                         </td>
-                                        <td className="px-5 py-3">
+                                        <td className="px-4 py-3">
                                             <span className={`${BADGE} ${ROLE_TINTS[user.role] || ROLE_FALLBACK}`}>
                                                 <Shield size={11} />
                                                 {dash(user.role)}
                                             </span>
                                         </td>
-                                        <td className="px-5 py-3">
+                                        <td className="px-4 py-3">
                                             <span className={CELL_SOFT}>
                                                 {formatDate(user.created_at)}
                                             </span>
                                         </td>
-                                        <td className="px-5 py-3">
+                                        <td className={`pl-4 ${LIST_EDGE_LAST} py-3`}>
                                             <div className="flex items-center justify-end">
                                                 <div className="dv-quiet">
                                                     <Button
@@ -270,14 +275,8 @@ export default function UsersPage() {
                                 ))}
                             </tbody>
                         </table>
-                    </div>
-                    </>
                 )}
-
-                {!loading && !loadError && users.length > 0 && (
-                    <TablePager controls={pager} noun="user" />
-                )}
-            </div>
+        </ListPage>
 
             <Modal
                 open={showModal}
@@ -382,6 +381,6 @@ export default function UsersPage() {
                     </button>
                 </div>
             )}
-        </div>
+        </>
     );
 }

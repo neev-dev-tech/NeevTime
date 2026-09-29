@@ -51,10 +51,13 @@ export default function Button({
     className = '',
     disabled = false,
     type = 'button',
+    // Marks a create/change action whose variant is not one of MUTATING
+    // (e.g. a black primary "Add"), so view-only accounts get it disabled too.
+    mutating = false,
     ...rest
 }) {
     const { isViewer } = usePermissions();
-    const readOnly = isViewer && MUTATING.has(variant);
+    const readOnly = isViewer && (mutating || MUTATING.has(variant));
     return (
         <button
             type={type}
@@ -80,5 +83,6 @@ Button.propTypes = {
     iconSize: PropTypes.number,
     className: PropTypes.string,
     disabled: PropTypes.bool,
-    type: PropTypes.string
+    type: PropTypes.string,
+    mutating: PropTypes.bool
 };

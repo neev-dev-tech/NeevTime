@@ -14,10 +14,9 @@ import {
     Plus, Edit2, Trash2, RefreshCw, Check, FileText, Network, Loader2, AlertCircle, CheckCircle, Info
 } from 'lucide-react';
 import Modal from '../components/Modal';
-import { PageHeader } from '../components';
 import { formatDateTime } from '../utils/dateFormat';
 import { integrationsAPI } from '../api';
-import { Button, useToast } from '../components';
+import { Button, useToast, ListPage } from '../components';
 import { confirm } from '../components/ConfirmDialog';
 
 const Integrations = () => {
@@ -306,14 +305,14 @@ const Integrations = () => {
     const TABS = ['Basic Info', 'Authentication', 'Sync Settings'];
 
     return (
-        <div className="space-y-6">
-            <PageHeader
-                icon={Network}
-                title="HRMS Integrations"
-                subtitle="Connect with external HR systems: greytHR, ERPNext, Odoo, Horilla, SAP SuccessFactors, Workday, BambooHR, Zoho People and webhooks"
-                actions={<Button variant="successSolid" icon={Plus} onClick={() => handleOpenDialog()}>Add Integration</Button>}
-            />
-
+        <>
+        <ListPage
+            title="HRMS Integrations"
+            count={loading ? undefined : integrations.length}
+            actions={<Button mutating variant="primary" size="toolbar" icon={Plus} onClick={() => handleOpenDialog()}>Add Integration</Button>}
+            bodyClassName="p-4 sm:p-6"
+        >
+            <div className="space-y-4">
             {error && (
                 <div role="alert" className="flex items-start gap-3 p-3 rounded-xl border border-rose-200 bg-rose-50 text-sm text-rose-800 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-200">
                     <AlertCircle size={16} className="shrink-0 mt-0.5" />
@@ -329,17 +328,19 @@ const Integrations = () => {
                     ))}
                 </div>
             ) : integrations.length === 0 ? (
-                <div className="card-base py-14 text-center">
+                <div className="py-20 text-center">
                     <Network size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
                     <h3 className="font-semibold text-slate-800 dark:text-slate-100">No integrations configured</h3>
                     <p className="mt-1 mb-5 text-sm text-slate-500 dark:text-slate-400">Connect your attendance system with an external HRMS</p>
-                    <Button variant="primary" icon={Plus} onClick={() => handleOpenDialog()}>Add your first integration</Button>
+                    <Button mutating variant="primary" icon={Plus} onClick={() => handleOpenDialog()}>Add your first integration</Button>
                 </div>
             ) : (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {integrations.map(renderIntegrationCard)}
                 </div>
             )}
+            </div>
+        </ListPage>
 
             {/* Add/Edit */}
             <Modal
@@ -637,7 +638,7 @@ const Integrations = () => {
                     </div>
                 )}
             </Modal>
-        </div>
+        </>
     );
 };
 

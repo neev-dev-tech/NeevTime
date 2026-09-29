@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
-import { Building2, Plus, Edit2, Trash2, Save, Calendar, Clock, AlertCircle, RefreshCw } from 'lucide-react';
-import { useToast, Button, PageHeader } from '../components';
+import { Plus, Edit2, Trash2, Save, Calendar, AlertCircle, RefreshCw } from 'lucide-react';
+import {
+    useToast, Button, ListPage, ListSearch,
+    LIST_THEAD, LIST_TH, LIST_EDGE_FIRST, LIST_EDGE_LAST
+} from '../components';
 import Modal from '../components/Modal';
 import { toLocalDateString, toDateOnly } from '../utils/dateFormat';
 import { confirm } from '../components/ConfirmDialog';
 import useTableControls from '../hooks/useTableControls';
-import { TablePager, TableToolbar } from '../components/TableControls';
+import { TablePager } from '../components/TableControls';
 
 export default function DepartmentSchedule() {
     const toast = useToast();
@@ -131,34 +134,31 @@ export default function DepartmentSchedule() {
     const weekDays = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
 
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            <PageHeader
-                icon={Building2}
+        <>
+            <ListPage
                 title="Department Schedule"
-                subtitle="Shifts and timetables applied to a whole department"
+                count={schedules.length}
                 actions={
-                    <Button variant="successSolid" icon={Plus} onClick={() => setShowModal(true)}>Assign Schedule</Button>
+                    <Button mutating variant="primary" size="toolbar" icon={Plus} onClick={() => setShowModal(true)}>Assign Schedule</Button>
                 }
-            />
-
-            {/* Schedules Table */}
-            <div className="card-base !p-0 overflow-hidden">
+                toolbar={<ListSearch label="Search schedules" placeholder="Search by department, shift or timetable…" value={pager.query} onChange={pager.setQuery} />}
+                footer={!loading && !error && schedules.length > 0 ? <TablePager controls={pager} noun="schedule" /> : null}
+            >
                 {loading ? (
-                    <div className="p-6 space-y-3">
+                    <div className="p-4 sm:p-6 space-y-3">
                         {Array.from({ length: 6 }).map((_, i) => (
                             <div key={i} className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
                         ))}
                     </div>
                 ) : error ? (
-                    <div className="py-16 text-center">
+                    <div className="py-20 text-center px-6">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load schedules</h3>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchData}>Try again</Button>
                     </div>
                 ) : schedules.length === 0 ? (
-                    <div className="py-16 text-center">
+                    <div className="py-20 text-center px-6">
                         <Calendar size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No department schedules yet</h3>
                         <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -166,76 +166,67 @@ export default function DepartmentSchedule() {
                         </p>
                     </div>
                 ) : (
-                    <>
-                    <TableToolbar controls={pager} placeholder="Search by department, shift or timetable…" />
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm text-left">
-                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
-                                <tr>
-                                    <th className="px-5 py-3 font-semibold w-12">#</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Department</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Shift</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Timetable</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Effective From</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Effective To</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Week Off</th>
-                                    <th className="px-5 py-3 font-semibold text-right whitespace-nowrap">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                {pager.view.map((schedule, idx) => (
-                                    <tr key={schedule.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
-                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{(pager.page - 1) * pager.pageSize + idx + 1}</td>
-                                        <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100">
-                                            {schedule.department_name || '—'}
-                                        </td>
-                                        <td className="px-5 py-3">
-                                            {schedule.shift_name ? (
-                                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300">
-                                                    {schedule.shift_name}
+                    <table className="w-full text-sm text-left">
+                        <thead className={LIST_THEAD}>
+                            <tr>
+                                <th className={`${LIST_TH} ${LIST_EDGE_FIRST} w-12`}>#</th>
+                                <th className={LIST_TH}>Department</th>
+                                <th className={LIST_TH}>Shift</th>
+                                <th className={LIST_TH}>Timetable</th>
+                                <th className={LIST_TH}>Effective From</th>
+                                <th className={LIST_TH}>Effective To</th>
+                                <th className={LIST_TH}>Week Off</th>
+                                <th className={`${LIST_TH} !text-right ${LIST_EDGE_LAST}`}>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                            {pager.view.map((schedule, idx) => (
+                                <tr key={schedule.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                                    <td className={`${LIST_EDGE_FIRST} pr-4 py-3 text-slate-400 dark:text-slate-500 tabular-nums`}>{(pager.page - 1) * pager.pageSize + idx + 1}</td>
+                                    <td className="px-4 py-3 font-semibold text-slate-800 dark:text-slate-100">
+                                        {schedule.department_name || '—'}
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        {schedule.shift_name ? (
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300">
+                                                {schedule.shift_name}
+                                            </span>
+                                        ) : (
+                                            <span className="text-slate-600 dark:text-slate-300">—</span>
+                                        )}
+                                    </td>
+                                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
+                                        {schedule.timetable_name || '—'}
+                                    </td>
+                                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300 tabular-nums whitespace-nowrap">
+                                        {toDateOnly(schedule.effective_from) || '—'}
+                                    </td>
+                                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300 tabular-nums whitespace-nowrap">
+                                        {toDateOnly(schedule.effective_to) || 'Ongoing'}
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        <div className="flex flex-wrap gap-1">
+                                            {schedule.week_off_days?.length ? schedule.week_off_days.map(day => (
+                                                <span key={day} className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300">
+                                                    {day.substring(0, 3)}
                                                 </span>
-                                            ) : (
-                                                <span className="text-slate-600 dark:text-slate-300">—</span>
-                                            )}
-                                        </td>
-                                        <td className="px-5 py-3 text-slate-600 dark:text-slate-300">
-                                            {schedule.timetable_name || '—'}
-                                        </td>
-                                        <td className="px-5 py-3 text-slate-600 dark:text-slate-300 tabular-nums whitespace-nowrap">
-                                            {toDateOnly(schedule.effective_from) || '—'}
-                                        </td>
-                                        <td className="px-5 py-3 text-slate-600 dark:text-slate-300 tabular-nums whitespace-nowrap">
-                                            {toDateOnly(schedule.effective_to) || 'Ongoing'}
-                                        </td>
-                                        <td className="px-5 py-3">
-                                            <div className="flex flex-wrap gap-1">
-                                                {schedule.week_off_days?.length ? schedule.week_off_days.map(day => (
-                                                    <span key={day} className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300">
-                                                        {day.substring(0, 3)}
-                                                    </span>
-                                                )) : <span className="text-slate-600 dark:text-slate-300">—</span>}
+                                            )) : <span className="text-slate-600 dark:text-slate-300">—</span>}
+                                        </div>
+                                    </td>
+                                    <td className={`pl-4 ${LIST_EDGE_LAST} py-3`}>
+                                        <div className="flex items-center justify-end">
+                                            <div className="dv-quiet">
+                                                <Button variant="ghost" size="sm" icon={Edit2} iconSize={16} onClick={() => openEdit(schedule)} aria-label="Edit schedule" />
+                                                <Button variant="danger" size="sm" icon={Trash2} iconSize={16} onClick={() => handleDelete(schedule.id)} aria-label="Delete schedule" />
                                             </div>
-                                        </td>
-                                        <td className="px-5 py-3">
-                                            <div className="flex items-center justify-end">
-                                                <div className="dv-quiet">
-                                                    <Button variant="ghost" size="sm" icon={Edit2} iconSize={16} onClick={() => openEdit(schedule)} aria-label="Edit schedule" />
-                                                    <Button variant="danger" size="sm" icon={Trash2} iconSize={16} onClick={() => handleDelete(schedule.id)} aria-label="Delete schedule" />
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                    </>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 )}
-
-                {!loading && !error && schedules.length > 0 && (
-                    <TablePager controls={pager} noun="schedule" />
-                )}
-            </div>
+            </ListPage>
 
             <Modal
                 open={showModal}
@@ -337,6 +328,6 @@ export default function DepartmentSchedule() {
                     </div>
                 </form>
             </Modal>
-        </div>
+        </>
     );
 }

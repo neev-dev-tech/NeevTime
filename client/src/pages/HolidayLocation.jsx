@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
-import { MapPin, Plus, Edit2, Trash2, Save, Calendar, Globe, AlertCircle, RefreshCw } from 'lucide-react';
-import { useToast, Button, PageHeader, ExportMenu } from '../components';
+import { MapPin, Plus, Edit2, Trash2, Save, Calendar, AlertCircle, RefreshCw } from 'lucide-react';
+import {
+    useToast, Button, ExportMenu, ListPage, ListTabs, ListSearch,
+    LIST_THEAD, LIST_TH, LIST_EDGE_FIRST, LIST_EDGE_LAST
+} from '../components';
 import Modal from '../components/Modal';
 import { formatDate, formatDateWithWeekday, toDateOnly } from '../utils/dateFormat';
 import { confirm } from '../components/ConfirmDialog';
 import useTableControls from '../hooks/useTableControls';
-import { TablePager, TableToolbar } from '../components/TableControls';
+import { TablePager } from '../components/TableControls';
 
 export default function HolidayLocation({ initialTab = 'locations' }) {
     const toast = useToast();
@@ -161,12 +164,21 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
     });
 
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            <PageHeader
-                icon={MapPin}
+        <>
+            <ListPage
                 title="Holidays & Locations"
-                subtitle="Regional locations and the holiday calendar attached to them"
+                count={activeTab === 'locations' ? locations.length : holidays.length}
+                tabs={
+                    <ListTabs
+                        label="Holidays and locations"
+                        value={activeTab}
+                        onChange={setActiveTab}
+                        items={[
+                            { key: 'locations', label: 'Locations', count: locations.length },
+                            { key: 'holidays', label: 'Holidays', count: holidays.length }
+                        ]}
+                    />
+                }
                 actions={
                     <>
                         {activeTab === 'locations' ? (
@@ -198,7 +210,7 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
                                 })}
                             />
                         )}
-                        <Button variant="successSolid"
+                        <Button mutating variant="primary" size="toolbar"
                             icon={Plus}
                             onClick={() => activeTab === 'locations' ? setShowModal(true) : setShowHolidayModal(true)}
                         >
@@ -206,84 +218,55 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
                         </Button>
                     </>
                 }
-            />
-
-            {/* Tabs */}
-            <div className="flex flex-wrap gap-1.5">
-                <button
-                    onClick={() => setActiveTab('locations')}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors border ${activeTab === 'locations'
-                        ? 'bg-slate-600 text-white border-transparent shadow-sm'
-                        : 'bg-app-surface/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300 hover:text-slate-600 dark:hover:text-slate-400'
-                        }`}
-                >
-                    <MapPin size={13} />
-                    Locations ({locations.length})
-                </button>
-                <button
-                    onClick={() => setActiveTab('holidays')}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors border ${activeTab === 'holidays'
-                        ? 'bg-slate-600 text-white border-transparent shadow-sm'
-                        : 'bg-app-surface/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300 hover:text-slate-600 dark:hover:text-slate-400'
-                        }`}
-                >
-                    <Calendar size={13} />
-                    Holidays ({holidays.length})
-                </button>
-            </div>
-
-            {/* Upcoming Holidays Banner */}
-            {upcomingHolidays.length > 0 && (
-                <div className="bg-app-surface/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-4">
-                    <h3 className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-3 flex items-center gap-2">
-                        <Calendar size={13} /> Upcoming Holidays
-                    </h3>
-                    <div className="flex flex-wrap gap-3">
-                        {upcomingHolidays.map(h => (
-                            <div key={h.id} className="bg-app-surface/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 hover:-translate-y-0.5 transition-transform">
-                                <div className="font-semibold text-sm text-slate-800 dark:text-slate-100">{h.name || '—'}</div>
-                                <div className="text-xs tabular-nums text-slate-500 dark:text-slate-400">
-                                    {formatDate(h.date)}
+                toolbar={activeTab === 'holidays' && !loading && !error && holidays.length > 0 ? (
+                    <ListSearch label="Search holidays" placeholder="Search holidays…" value={holidayPager.query} onChange={holidayPager.setQuery} />
+                ) : null}
+                footer={!loading && !error && activeTab === 'holidays' && holidays.length > 0 ? <TablePager controls={holidayPager} noun="holiday" /> : null}
+            >
+                {/* Upcoming Holidays Banner */}
+                {upcomingHolidays.length > 0 && (
+                    <div className="mx-4 sm:mx-6 mt-4 bg-app-surface/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-4">
+                        <h3 className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-3 flex items-center gap-2">
+                            <Calendar size={13} /> Upcoming Holidays
+                        </h3>
+                        <div className="flex flex-wrap gap-3">
+                            {upcomingHolidays.map(h => (
+                                <div key={h.id} className="bg-app-surface/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 hover:-translate-y-0.5 transition-transform">
+                                    <div className="font-semibold text-sm text-slate-800 dark:text-slate-100">{h.name || '—'}</div>
+                                    <div className="text-xs tabular-nums text-slate-500 dark:text-slate-400">
+                                        {formatDate(h.date)}
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
-                </div>
-            )}
+                )}
 
-            {/* Content */}
-            {loading ? (
-                <div className="card-base !p-0 overflow-hidden">
-                    <div className="p-6 space-y-3">
+                {loading ? (
+                    <div className="p-4 sm:p-6 space-y-3">
                         {Array.from({ length: 6 }).map((_, i) => (
                             <div key={i} className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
                         ))}
                     </div>
-                </div>
-            ) : error ? (
-                <div className="card-base !p-0 overflow-hidden">
-                    <div className="py-16 text-center">
+                ) : error ? (
+                    <div className="py-20 text-center px-6">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load this page</h3>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchData}>Try again</Button>
                     </div>
-                </div>
-            ) : activeTab === 'locations' ? (
-                /* Locations Grid */
-                locations.length === 0 ? (
-                    <div className="card-base !p-0 overflow-hidden">
-                        <div className="py-16 text-center">
+                ) : activeTab === 'locations' ? (
+                    /* Locations Grid */
+                    locations.length === 0 ? (
+                        <div className="py-20 text-center px-6">
                             <MapPin size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
                             <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No locations yet</h3>
                             <p className="text-sm text-slate-500 dark:text-slate-400">
                                 Locations let you attach region-specific holidays to the right sites.
                             </p>
                         </div>
-                    </div>
-                ) : (
-                    <div className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    ) : (
+                        <div className="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {locations.map(loc => (
                                 <div key={loc.id} className="bg-app-surface/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 hover:-translate-y-0.5 transition-transform">
                                     <div className="flex items-start justify-between gap-3">
@@ -318,95 +301,79 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
                                 </div>
                             ))}
                         </div>
-                        <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
-                            {locations.length} record{locations.length === 1 ? '' : 's'}
-                        </div>
+                    )
+                ) : holidays.length === 0 ? (
+                    <div className="py-20 text-center px-6">
+                        <Calendar size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No holidays yet</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            Add a holiday and it will be excluded from attendance for the assigned locations.
+                        </p>
                     </div>
-                )
-            ) : (
-                /* Holidays Table */
-                <div className="card-base !p-0 overflow-hidden">
-                    {holidays.length === 0 ? (
-                        <div className="py-16 text-center">
-                            <Calendar size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
-                            <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No holidays yet</h3>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">
-                                Add a holiday and it will be excluded from attendance for the assigned locations.
-                            </p>
-                        </div>
-                    ) : (
-                        <>
-                        <TableToolbar controls={holidayPager} placeholder="Search holidays…" />
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-sm text-left">
-                                <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
-                                    <tr>
-                                        <th className="px-5 py-3 font-semibold w-12">#</th>
-                                        <th className="px-5 py-3 font-semibold whitespace-nowrap">Holiday Name</th>
-                                        <th className="px-5 py-3 font-semibold whitespace-nowrap">Date</th>
-                                        <th className="px-5 py-3 font-semibold whitespace-nowrap">Type</th>
-                                        <th className="px-5 py-3 font-semibold whitespace-nowrap">Optional</th>
-                                        <th className="px-5 py-3 font-semibold text-right whitespace-nowrap">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                    {holidayPager.view.map((h, idx) => (
-                                        <tr key={h.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
-                                            <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums align-top">{(holidayPager.page - 1) * holidayPager.pageSize + idx + 1}</td>
-                                            <td className="px-5 py-3">
-                                                <div className="font-semibold text-slate-800 dark:text-slate-100">{h.name || '—'}</div>
-                                                {h.description && (
-                                                    <div className="text-xs text-slate-600 dark:text-slate-300">{h.description}</div>
-                                                )}
-                                            </td>
-                                            <td className="px-5 py-3 text-slate-600 dark:text-slate-300 tabular-nums whitespace-nowrap">
-                                                {formatDateWithWeekday(h.date)}
-                                            </td>
-                                            <td className="px-5 py-3">
-                                                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide ${getHolidayTypeColor(h.holiday_type)}`}>
-                                                    {h.holiday_type || 'national'}
-                                                </span>
-                                            </td>
-                                            <td className="px-5 py-3">
-                                                {h.is_optional ? (
-                                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300">Optional</span>
-                                                ) : (
-                                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">Mandatory</span>
-                                                )}
-                                            </td>
-                                            <td className="px-5 py-3">
-                                                <div className="flex items-center justify-end">
-                                                    <div className="dv-quiet">
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            icon={Edit2}
-                                                            aria-label="Edit"
-                                                            onClick={() => openHolidayEdit(h)}
-                                                        />
-                                                        <Button
-                                                            variant="danger"
-                                                            size="sm"
-                                                            icon={Trash2}
-                                                            aria-label="Delete"
-                                                            onClick={() => handleHolidayDelete(h.id)}
-                                                        />
-                                                    </div>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                        </>
-                    )}
-
-                    {holidays.length > 0 && (
-                        <TablePager controls={holidayPager} noun="holiday" />
-                    )}
-                </div>
-            )}
+                ) : (
+                    /* Holidays Table */
+                    <table className={`w-full text-sm text-left ${upcomingHolidays.length > 0 ? 'mt-4' : ''}`}>
+                        <thead className={LIST_THEAD}>
+                            <tr>
+                                <th className={`${LIST_TH} ${LIST_EDGE_FIRST} w-12`}>#</th>
+                                <th className={LIST_TH}>Holiday Name</th>
+                                <th className={LIST_TH}>Date</th>
+                                <th className={LIST_TH}>Type</th>
+                                <th className={LIST_TH}>Optional</th>
+                                <th className={`${LIST_TH} !text-right ${LIST_EDGE_LAST}`}>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                            {holidayPager.view.map((h, idx) => (
+                                <tr key={h.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                                    <td className={`${LIST_EDGE_FIRST} pr-4 py-3 text-slate-400 dark:text-slate-500 tabular-nums align-top`}>{(holidayPager.page - 1) * holidayPager.pageSize + idx + 1}</td>
+                                    <td className="px-4 py-3">
+                                        <div className="font-semibold text-slate-800 dark:text-slate-100">{h.name || '—'}</div>
+                                        {h.description && (
+                                            <div className="text-xs text-slate-600 dark:text-slate-300">{h.description}</div>
+                                        )}
+                                    </td>
+                                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300 tabular-nums whitespace-nowrap">
+                                        {formatDateWithWeekday(h.date)}
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide ${getHolidayTypeColor(h.holiday_type)}`}>
+                                            {h.holiday_type || 'national'}
+                                        </span>
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        {h.is_optional ? (
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300">Optional</span>
+                                        ) : (
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">Mandatory</span>
+                                        )}
+                                    </td>
+                                    <td className={`pl-4 ${LIST_EDGE_LAST} py-3`}>
+                                        <div className="flex items-center justify-end">
+                                            <div className="dv-quiet">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    icon={Edit2}
+                                                    aria-label="Edit"
+                                                    onClick={() => openHolidayEdit(h)}
+                                                />
+                                                <Button
+                                                    variant="danger"
+                                                    size="sm"
+                                                    icon={Trash2}
+                                                    aria-label="Delete"
+                                                    onClick={() => handleHolidayDelete(h.id)}
+                                                />
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                )}
+            </ListPage>
 
             {/* Location Modal */}
             <Modal
@@ -512,6 +479,6 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
                     </div>
                 </form>
             </Modal>
-        </div>
+        </>
     );
 }

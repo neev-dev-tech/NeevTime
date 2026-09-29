@@ -3,9 +3,9 @@ import api from '../api';
 import Modal from '../components/Modal';
 import {
     CircleDot, Plus, Trash2, Edit, ChevronLeft, ChevronRight,
-    RefreshCw, Search, X, AlertCircle
+    RefreshCw, AlertCircle
 } from 'lucide-react';
-import { useToast, Button, PageHeader } from '../components';
+import { useToast, Button, ListPage, ListSearch, ListSelection, ListIconButton, LIST_THEAD, LIST_TH, LIST_EDGE_FIRST, LIST_EDGE_LAST } from '../components';
 import { confirm } from '../components/ConfirmDialog';
 
 export default function ApprovalNode() {
@@ -136,55 +136,64 @@ export default function ApprovalNode() {
     const paginatedItems = filteredItems.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
     return (
-        <div className="flex flex-col h-[calc(100vh-120px)]">
-            <PageHeader
-                icon={CircleDot}
-                title="Approval Nodes"
-                subtitle="Define approval steps and their approvers"
-            />
-            <div className="flex flex-col flex-1 card-base overflow-hidden relative">
-            {/* Toolbar */}
-            <div className="flex items-center gap-3 p-4 border-b border-slate-100 dark:border-slate-700 bg-app-surface text-sm flex-wrap">
-                <Button
-                    variant="successSolid"
+        <>
+        <ListPage
+            title="Approval Nodes"
+            count={nodes.length}
+            actions={
+                <Button mutating
+                    variant="primary"
+                    size="toolbar"
                     icon={Plus}
                     onClick={() => { resetForm(); setShowModal('add'); setEditItem(null); }}
                 >
                     Add Node
                 </Button>
-
-                <div className="h-8 w-px bg-slate-200 dark:bg-slate-700 mx-2 hidden md:block"></div>
-
-                <Button variant="danger" icon={Trash2} onClick={handleBulkDelete}>
-                    Delete
-                </Button>
-
-                <Button
-                    variant="secondary"
-                    icon={RefreshCw}
-                    onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        fetchData();
-                    }}
-                >
-                    Refresh
-                </Button>
-
-                <div className="ml-auto w-72 relative">
-                    <input
-                        type="text"
-                        placeholder="Search nodes..."
-                        value={searchQuery}
-                        onChange={e => setSearchQuery(e.target.value)}
-                        className="input-base pl-10 py-2 text-sm"
-                    />
-                    <Search size={16} className="absolute left-3.5 top-2.5 text-slate-grey dark:text-slate-400" />
+            }
+            toolbarActive={selectedIds.length > 0}
+            toolbar={
+                <>
+                    <ListSearch label="Search nodes" placeholder="Search nodes..." value={searchQuery} onChange={setSearchQuery} />
+                    <ListSelection count={selectedIds.length} onClear={() => setSelectedIds([])} />
+                    <div className="ml-auto flex items-center gap-2 flex-wrap">
+                        <Button variant="danger" size="toolbar" icon={Trash2} onClick={handleBulkDelete}>
+                            Delete
+                        </Button>
+                        <ListIconButton
+                            label="Refresh"
+                            icon={RefreshCw}
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                fetchData();
+                            }}
+                            disabled={loading}
+                            spin={loading}
+                        />
+                    </div>
+                </>
+            }
+            footer={
+                <div className="px-4 sm:px-6 py-2 flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
+                    <div className="flex items-center gap-3">
+                        <select value={itemsPerPage} onChange={e => setItemsPerPage(Number(e.target.value))} className="field-sm font-semibold">
+                            <option value={50}>50</option>
+                            <option value={100}>100</option>
+                        </select>
+                        <div className="flex items-center bg-app-surface border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
+                            <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="p-1.5 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 transition-colors border-r border-slate-200 dark:border-slate-700">
+                                <ChevronLeft size={16} />
+                            </button>
+                            <span className="px-3 py-1 font-bold bg-slate-600 text-white text-xs tabular-nums">{currentPage}</span>
+                            <button onClick={() => setCurrentPage(p => Math.min(totalPages || 1, p + 1))} className="p-1.5 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 transition-colors border-l border-slate-200 dark:border-slate-700">
+                                <ChevronRight size={16} />
+                            </button>
+                        </div>
+                    </div>
+                    <span className="text-xs font-medium">Total <span className="text-slate-800 dark:text-slate-100 font-bold tabular-nums">{filteredItems.length}</span> Records</span>
                 </div>
-            </div>
-
-            {/* Table */}
-            <div className="flex-1 overflow-auto bg-app-surface custom-scrollbar">
+            }
+        >
                 {loading ? (
                     <div className="p-6 space-y-3">
                         {Array.from({ length: 8 }).map((_, i) => (
@@ -192,14 +201,14 @@ export default function ApprovalNode() {
                         ))}
                     </div>
                 ) : error ? (
-                    <div className="py-16 text-center">
+                    <div className="py-20 px-6 text-center">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load nodes</h3>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchData}>Try again</Button>
                     </div>
                 ) : paginatedItems.length === 0 ? (
-                    <div className="py-16 text-center">
+                    <div className="py-20 px-6 text-center">
                         <CircleDot size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">
                             {searchQuery ? 'No matching nodes' : 'No approval nodes yet'}
@@ -212,9 +221,9 @@ export default function ApprovalNode() {
                     </div>
                 ) : (
                 <table className="w-full text-left text-sm border-collapse">
-                    <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400 sticky top-0 z-10 border-b border-slate-100 dark:border-slate-700">
+                    <thead className={LIST_THEAD}>
                         <tr>
-                            <th className="px-5 py-3 w-12 text-center">
+                            <th className={`${LIST_TH} ${LIST_EDGE_FIRST} w-12`}>
                                 <input
                                     type="checkbox"
                                     className="rounded border-slate-300 dark:border-slate-600 text-saffron focus:ring-saffron"
@@ -222,17 +231,17 @@ export default function ApprovalNode() {
                                     onChange={toggleSelectAll}
                                 />
                             </th>
-                            <th className="px-5 py-3 font-semibold whitespace-nowrap">Node Code</th>
-                            <th className="px-5 py-3 font-semibold whitespace-nowrap">Node Name</th>
-                            <th className="px-5 py-3 font-semibold whitespace-nowrap">Approver Type</th>
-                            <th className="px-5 py-3 font-semibold whitespace-nowrap">Description</th>
-                            <th className="px-5 py-3 font-semibold whitespace-nowrap w-24 text-right">Actions</th>
+                            <th className={LIST_TH}>Node Code</th>
+                            <th className={LIST_TH}>Node Name</th>
+                            <th className={LIST_TH}>Approver Type</th>
+                            <th className={LIST_TH}>Description</th>
+                            <th className={`${LIST_TH} ${LIST_EDGE_LAST} w-24 !text-right`}>Actions</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                         {paginatedItems.map(node => (
-                            <tr key={node.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors group">
-                                <td className="px-5 py-3 text-center">
+                            <tr key={node.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors group">
+                                <td className={`${LIST_EDGE_FIRST} pr-4 py-3`}>
                                     <input
                                         type="checkbox"
                                         className="rounded border-slate-300 dark:border-slate-600 text-saffron focus:ring-saffron"
@@ -240,15 +249,15 @@ export default function ApprovalNode() {
                                         onChange={() => toggleSelect(node.id)}
                                     />
                                 </td>
-                                <td className="px-5 py-3 font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">{node.node_code || '—'}</td>
-                                <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100">{node.node_name || node.name || '—'}</td>
-                                <td className="px-5 py-3">
+                                <td className="px-4 py-3 font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">{node.node_code || '—'}</td>
+                                <td className="px-4 py-3 font-semibold text-slate-800 dark:text-slate-100">{node.node_name || node.name || '—'}</td>
+                                <td className="px-4 py-3">
                                     <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-slate-50 text-slate-700 border border-slate-200 dark:bg-slate-900/30 dark:text-slate-300 dark:border-slate-800">
                                         {node.approver_type || '—'}
                                     </span>
                                 </td>
-                                <td className="px-5 py-3 text-slate-600 dark:text-slate-300">{node.description || '—'}</td>
-                                <td className="px-5 py-3">
+                                <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{node.description || '—'}</td>
+                                <td className={`pl-4 ${LIST_EDGE_LAST} py-3`}>
                                     <div className="dv-quiet">
                                         <Button variant="ghost" size="sm" icon={Edit} iconSize={16} onClick={() => handleEdit(node)} aria-label="Edit node" />
                                         <Button variant="danger" size="sm" icon={Trash2} iconSize={16} onClick={() => handleDelete(node.id)} aria-label="Delete node" />
@@ -259,28 +268,7 @@ export default function ApprovalNode() {
                     </tbody>
                 </table>
                 )}
-            </div>
-
-            {/* Pagination */}
-            <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between text-sm text-slate-500 dark:text-slate-400 bg-slate-50/70 dark:bg-slate-900/50">
-                <div className="flex items-center gap-3">
-                    <Button variant="ghost" size="sm" icon={RefreshCw} onClick={fetchData} title="Refresh" aria-label="Refresh" />
-                    <select value={itemsPerPage} onChange={e => setItemsPerPage(Number(e.target.value))} className="field-sm font-semibold">
-                        <option value={50}>50</option>
-                        <option value={100}>100</option>
-                    </select>
-                    <div className="flex items-center bg-app-surface border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
-                        <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="p-1.5 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 transition-colors border-r border-slate-200 dark:border-slate-700">
-                            <ChevronLeft size={16} />
-                        </button>
-                        <span className="px-3 py-1 font-bold bg-slate-600 text-white text-xs tabular-nums">{currentPage}</span>
-                        <button onClick={() => setCurrentPage(p => Math.min(totalPages || 1, p + 1))} className="p-1.5 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 transition-colors border-l border-slate-200 dark:border-slate-700">
-                            <ChevronRight size={16} />
-                        </button>
-                    </div>
-                </div>
-                <span className="text-xs font-medium">Total <span className="text-slate-800 dark:text-slate-100 font-bold tabular-nums">{filteredItems.length}</span> Records</span>
-            </div>
+        </ListPage>
 
             {/* Add/Edit Modal */}
             {(showModal === 'add' || showModal === 'edit') && (
@@ -337,7 +325,6 @@ export default function ApprovalNode() {
                         </form>
                 </Modal>
             )}
-            </div>
-        </div>
+        </>
     );
 }

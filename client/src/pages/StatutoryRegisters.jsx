@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { FileText, RefreshCw, Download, AlertCircle, Info } from 'lucide-react';
 import api from '../api';
-import { useToast, Button, PageHeader } from '../components';
+import { useToast, Button, ListPage, ListTabs, ListSearch, ListIconButton, LIST_THEAD, LIST_TH, LIST_EDGE_FIRST, LIST_EDGE_LAST } from '../components';
 import { toLocalDateString } from '../utils/dateFormat';
 import useTableControls from '../hooks/useTableControls';
-import { TablePager, TableToolbar } from '../components/TableControls';
+import { TablePager } from '../components/TableControls';
 
 /**
  * The registers a labour inspection asks for.
@@ -115,48 +115,47 @@ export default function StatutoryRegisters() {
         pageSize: 50
     });
 
+    const hasRows = !loading && !error && data?.rows?.length > 0;
+
     return (
-        <div className="space-y-6">
-            <PageHeader
-                icon={FileText}
-                title="Statutory Registers"
-                subtitle="The muster roll, overtime and leave registers a labour inspection asks for"
-                actions={
-                    <>
-                        <Button variant="secondary" icon={RefreshCw} onClick={fetchRegister}>Refresh</Button>
-                        <Button variant="primary" icon={Download} disabled={!data || loading} onClick={downloadCsv}>
-                            Download CSV
-                        </Button>
-                    </>
-                }
-            />
-
-            <div className="card-base">
-                <div className="flex flex-wrap items-end gap-3">
-                    <div>
-                        <label htmlFor="reg-type" className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Register</label>
-                        <select id="reg-type" className="field-sm" value={type} onChange={e => setType(e.target.value)}>
-                            {REGISTERS.map(r => <option key={r.key} value={r.key}>{r.label}</option>)}
-                        </select>
+        <>
+        <ListPage
+            title="Statutory Registers"
+            count={data?.rows ? data.rows.length : undefined}
+            tabs={
+                <ListTabs
+                    label="Register"
+                    value={type}
+                    onChange={setType}
+                    items={REGISTERS.map(r => ({ key: r.key, label: r.label }))}
+                />
+            }
+            actions={
+                <Button variant="primary" size="toolbar" icon={Download} disabled={!data || loading} onClick={downloadCsv}>
+                    Download CSV
+                </Button>
+            }
+            toolbar={
+                <>
+                    <ListSearch label="Search register" placeholder="Search by name or code…" value={pager.query} onChange={pager.setQuery} />
+                    <label htmlFor="reg-from" className="text-xs text-slate-500 dark:text-slate-400">From</label>
+                    <input id="reg-from" type="date" className="field-sm !h-8 !py-0 w-auto" value={range.from}
+                           onChange={e => setRange(r => ({ ...r, from: e.target.value }))} />
+                    <label htmlFor="reg-to" className="text-xs text-slate-500 dark:text-slate-400">to</label>
+                    <input id="reg-to" type="date" className="field-sm !h-8 !py-0 w-auto" value={range.to}
+                           onChange={e => setRange(r => ({ ...r, to: e.target.value }))} />
+                    <div className="ml-auto flex items-center gap-3">
+                        <p className="hidden md:block text-xs text-slate-500 dark:text-slate-400 max-w-sm">
+                            {REGISTERS.find(r => r.key === type)?.hint}
+                        </p>
+                        <ListIconButton label="Refresh" icon={RefreshCw} onClick={fetchRegister} disabled={loading} spin={loading} />
                     </div>
-                    <div>
-                        <label htmlFor="reg-from" className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">From</label>
-                        <input id="reg-from" type="date" className="field-sm" value={range.from}
-                               onChange={e => setRange(r => ({ ...r, from: e.target.value }))} />
-                    </div>
-                    <div>
-                        <label htmlFor="reg-to" className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">To</label>
-                        <input id="reg-to" type="date" className="field-sm" value={range.to}
-                               onChange={e => setRange(r => ({ ...r, to: e.target.value }))} />
-                    </div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 ml-auto max-w-sm">
-                        {REGISTERS.find(r => r.key === type)?.hint}
-                    </p>
-                </div>
-            </div>
-
+                </>
+            }
+            footer={hasRows ? <TablePager controls={pager} noun={type === 'muster-roll' ? 'worker' : 'row'} /> : null}
+        >
             {data?.missingFields?.length > 0 && (
-                <div className="flex items-start gap-3 p-4 rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20">
+                <div className="m-4 sm:mx-6 flex items-start gap-3 p-4 rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20">
                     <Info size={18} className="shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
                     <div className="text-sm">
                         <p className="font-semibold text-amber-800 dark:text-amber-300">
@@ -173,22 +172,21 @@ export default function StatutoryRegisters() {
                 </div>
             )}
 
-            <div className="card-base p-0 overflow-hidden">
                 {loading ? (
-                    <div className="p-5 space-y-2" aria-busy="true">
+                    <div className="px-4 sm:px-6 py-5 space-y-2" aria-busy="true">
                         {Array.from({ length: 6 }).map((_, i) => (
                             <div key={i} className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700/50 animate-pulse" />
                         ))}
                     </div>
                 ) : error ? (
-                    <div className="py-16 text-center">
+                    <div className="py-20 text-center px-6">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not build the register</h3>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchRegister}>Try again</Button>
                     </div>
                 ) : !data || data.rows.length === 0 ? (
-                    <div className="py-16 text-center">
+                    <div className="py-20 text-center px-6">
                         <FileText size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Nothing to show</h3>
                         <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -197,7 +195,7 @@ export default function StatutoryRegisters() {
                     </div>
                 ) : type === 'muster-roll' ? (
                     <>
-                        <div className="flex flex-wrap gap-3 px-5 py-3 border-b border-slate-100 dark:border-slate-700">
+                        <div className="flex flex-wrap gap-3 px-4 sm:px-6 py-3 border-b border-slate-200 dark:border-slate-800">
                             {Object.entries(MARK_STYLE).map(([mark, s]) => (
                                 <span key={mark} className="inline-flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300">
                                     <span className={`inline-flex items-center justify-center w-5 h-5 rounded font-bold ${s.cls}`}>{mark}</span>
@@ -205,12 +203,12 @@ export default function StatutoryRegisters() {
                                 </span>
                             ))}
                         </div>
-                        <TableToolbar controls={pager} placeholder="Search by name or code…" />
-                        <div className="overflow-x-auto">
+                        {/* Scrolls in ListPage's body on both axes, so the header
+                            stays pinned and the worker column stays sticky. */}
                             <table className="text-sm border-collapse">
-                                <thead>
-                                    <tr className="bg-slate-50/70 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-700">
-                                        <th className="sticky left-0 z-10 bg-slate-50 dark:bg-slate-900 px-4 py-2 text-left text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400 min-w-[13rem]">
+                                <thead className={LIST_THEAD}>
+                                    <tr>
+                                        <th className={`sticky left-0 z-20 bg-slate-50 dark:bg-slate-900 ${LIST_TH} ${LIST_EDGE_FIRST} min-w-[13rem]`}>
                                             Worker
                                         </th>
                                         {data.days.map(d => {
@@ -222,15 +220,15 @@ export default function StatutoryRegisters() {
                                                 </th>
                                             );
                                         })}
-                                        <th className="px-3 py-2 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">P</th>
-                                        <th className="px-3 py-2 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">A</th>
-                                        <th className="px-3 py-2 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">L</th>
+                                        <th className={`${LIST_TH} !px-3 !text-center`}>P</th>
+                                        <th className={`${LIST_TH} !px-3 !text-center`}>A</th>
+                                        <th className={`${LIST_TH} !pl-3 !text-center ${LIST_EDGE_LAST}`}>L</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                                     {pager.view.map(r => (
-                                        <tr key={r.employee_code} className="hover:bg-slate-50 dark:hover:bg-slate-700/40">
-                                            <td className="sticky left-0 z-10 bg-app-surface px-4 py-2 min-w-[13rem] border-r border-slate-100 dark:border-slate-700">
+                                        <tr key={r.employee_code} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                                            <td className={`sticky left-0 z-[1] bg-app-surface ${LIST_EDGE_FIRST} pr-4 py-2 min-w-[13rem] border-r border-slate-100 dark:border-slate-800`}>
                                                 <span className="block font-semibold text-slate-800 dark:text-slate-100 truncate">{r.name || '—'}</span>
                                                 <span className="block text-xs text-slate-500 dark:text-slate-400 font-mono">
                                                     {r.employee_code}{r.designation ? ` · ${r.designation}` : ''}
@@ -248,31 +246,26 @@ export default function StatutoryRegisters() {
                                             ))}
                                             <td className="px-3 py-2 text-center tabular-nums font-semibold text-emerald-700 dark:text-emerald-400">{r.totals.present}</td>
                                             <td className="px-3 py-2 text-center tabular-nums font-semibold text-rose-700 dark:text-rose-400">{r.totals.absent}</td>
-                                            <td className="px-3 py-2 text-center tabular-nums text-slate-600 dark:text-slate-300">{r.totals.leave}</td>
+                                            <td className={`pl-3 ${LIST_EDGE_LAST} py-2 text-center tabular-nums text-slate-600 dark:text-slate-300`}>{r.totals.leave}</td>
                                         </tr>
                                     ))}
                                 </tbody>
                             </table>
-                        </div>
-                        <TablePager controls={pager} noun="worker" />
                     </>
                 ) : (
-                    <>
-                    <TableToolbar controls={pager} placeholder="Search by name or code…" />
-                    <div className="overflow-x-auto">
                         <table className="w-full text-sm border-collapse">
-                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-700">
+                            <thead className={LIST_THEAD}>
                                 <tr>
-                                    {Object.keys(data.rows[0]).map(k => (
-                                        <th key={k} className="px-4 py-2 text-left font-semibold">{k.replace(/_/g, ' ')}</th>
+                                    {Object.keys(data.rows[0]).map((k, i, keys) => (
+                                        <th key={k} className={`${LIST_TH} ${i === 0 ? LIST_EDGE_FIRST : ''} ${i === keys.length - 1 ? LIST_EDGE_LAST : ''}`}>{k.replace(/_/g, ' ')}</th>
                                     ))}
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                                 {pager.view.map((row, i) => (
-                                    <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-700/40">
-                                        {Object.keys(data.rows[0]).map(k => (
-                                            <td key={k} className="px-4 py-2 text-slate-700 dark:text-slate-300 tabular-nums">
+                                    <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                                        {Object.keys(data.rows[0]).map((k, j, keys) => (
+                                            <td key={k} className={`${j === 0 ? `${LIST_EDGE_FIRST} pr-4` : j === keys.length - 1 ? `pl-4 ${LIST_EDGE_LAST}` : 'px-4'} py-2 text-slate-700 dark:text-slate-300 tabular-nums`}>
                                                 {row[k] === null || row[k] === undefined || row[k] === '' ? '—' : String(row[k])}
                                             </td>
                                         ))}
@@ -280,18 +273,15 @@ export default function StatutoryRegisters() {
                                 ))}
                             </tbody>
                         </table>
-                    </div>
-                    <TablePager controls={pager} noun="row" />
-                    </>
                 )}
-            </div>
 
             {data?.retention_years && (
-                <p className="text-xs text-slate-500 dark:text-slate-400">
+                <p className="px-4 sm:px-6 py-3 text-xs text-slate-500 dark:text-slate-400">
                     {data.register} · keep for {data.retention_years} years · {data.rows.length} row(s)
                     {data.notes?.length ? ` · ${data.notes[0]}` : ''}
                 </p>
             )}
-        </div>
+        </ListPage>
+        </>
     );
 }

@@ -507,7 +507,7 @@ export default function Employees() {
                 <>
                     <Button variant="tonal" size="toolbar" icon={Upload} onClick={() => setShowImportModal(true)}>Import</Button>
                     <Button variant="tonal" size="toolbar" icon={Download} onClick={handleExport}>Export</Button>
-                    <Button variant="primary" size="toolbar" icon={Plus} onClick={() => setShowAddModal(true)}>Add employee</Button>
+                    <Button mutating variant="primary" size="toolbar" icon={Plus} onClick={() => setShowAddModal(true)}>Add employee</Button>
                 </>
             }
             toolbarActive={selectedIds.length > 0}
@@ -593,7 +593,7 @@ export default function Employees() {
                                 </p>
                                 <div className="mt-5 flex items-center justify-center gap-2">
                                     <Button variant="tonal" icon={Upload} onClick={() => setShowImportModal(true)}>Import CSV</Button>
-                                    <Button variant="successSolid" icon={Plus} onClick={() => setShowAddModal(true)}>Add employee</Button>
+                                    <Button mutating variant="primary" icon={Plus} onClick={() => setShowAddModal(true)}>Add employee</Button>
                                 </div>
                             </div>
                         )

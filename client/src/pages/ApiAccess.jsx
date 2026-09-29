@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api';
-import { useToast, Button, PageHeader } from '../components';
+import { useToast, Button, ListPage, LIST_THEAD, LIST_TH, LIST_EDGE_FIRST, LIST_EDGE_LAST } from '../components';
 import Modal from '../components/Modal';
 import { Plus, RefreshCw, Trash2, Shield, Check } from 'lucide-react';
 import { confirm } from '../components/ConfirmDialog';
@@ -100,39 +100,35 @@ export default function ApiAccess() {
     const fmt = (t) => t ? formatDateTime(t) : '—';
 
     return (
-        <div className="p-6">
-            <PageHeader
-                icon={Shield}
-                title="Export API Access"
-                subtitle="Keys an external HRMS uses to pull attendance from NeevTime"
-                actions={<Button variant="successSolid" icon={Plus} onClick={openForm}>Issue Key</Button>}
-            />
-
-            <div className="mt-4 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                        <thead className="bg-slate-50 dark:bg-slate-800 text-left text-slate-500 dark:text-slate-400">
+        <>
+        <ListPage
+            title="Export API Access"
+            count={loading ? undefined : clients.length}
+            actions={<Button mutating variant="primary" size="toolbar" icon={Plus} onClick={openForm}>Issue Key</Button>}
+        >
+                    <table className="w-full text-sm text-left">
+                        <thead className={LIST_THEAD}>
                             <tr>
-                                <th className="px-4 py-3 font-medium">Name</th>
-                                <th className="px-4 py-3 font-medium">Key</th>
-                                <th className="px-4 py-3 font-medium">Scopes</th>
-                                <th className="px-4 py-3 font-medium">Allowed addresses</th>
-                                <th className="px-4 py-3 font-medium">Rate</th>
-                                <th className="px-4 py-3 font-medium">Last used</th>
-                                <th className="px-4 py-3 font-medium">Status</th>
-                                <th className="px-4 py-3 font-medium text-right">Actions</th>
+                                <th className={`${LIST_TH} ${LIST_EDGE_FIRST}`}>Name</th>
+                                <th className={LIST_TH}>Key</th>
+                                <th className={LIST_TH}>Scopes</th>
+                                <th className={LIST_TH}>Allowed addresses</th>
+                                <th className={LIST_TH}>Rate</th>
+                                <th className={LIST_TH}>Last used</th>
+                                <th className={LIST_TH}>Status</th>
+                                <th className={`${LIST_TH} ${LIST_EDGE_LAST} !text-right`}>Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                             {loading ? (
-                                <tr><td colSpan={8} className="px-4 py-10 text-center text-slate-400">Loading…</td></tr>
+                                <tr><td colSpan={8} className="px-4 py-20 text-center text-slate-400">Loading…</td></tr>
                             ) : clients.length === 0 ? (
-                                <tr><td colSpan={8} className="px-4 py-10 text-center text-slate-500 dark:text-slate-400">
+                                <tr><td colSpan={8} className="px-4 py-20 text-center text-slate-500 dark:text-slate-400">
                                     No API keys yet. Click <b>Issue Key</b> to create one for greytHR or another puller.
                                 </td></tr>
                             ) : clients.map(c => (
-                                <tr key={c.id} className="border-t border-slate-100 dark:border-slate-800">
-                                    <td className="px-4 py-3 font-medium text-slate-800 dark:text-slate-100">{c.name}</td>
+                                <tr key={c.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                                    <td className={`${LIST_EDGE_FIRST} pr-4 py-3 font-medium text-slate-800 dark:text-slate-100`}>{c.name}</td>
                                     <td className="px-4 py-3 font-mono text-xs text-slate-500">{c.token_prefix}…</td>
                                     <td className="px-4 py-3 text-xs">{(c.scopes || []).join(', ') || '—'}</td>
                                     <td className="px-4 py-3 text-xs font-mono">
@@ -149,7 +145,7 @@ export default function ApiAccess() {
                                             ? <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400"><Check className="w-3.5 h-3.5" />Active</span>
                                             : <span className="text-slate-400">Revoked</span>}
                                     </td>
-                                    <td className="px-4 py-3 text-right whitespace-nowrap">
+                                    <td className={`pl-4 ${LIST_EDGE_LAST} py-3 text-right whitespace-nowrap`}>
                                         <Button variant="secondary" size="sm" icon={RefreshCw} onClick={() => rotate(c)}>Rotate</Button>
                                         {c.is_active && (
                                             <Button variant="dangerSolid" size="sm" icon={Trash2} onClick={() => revoke(c)} className="ml-2">Revoke</Button>
@@ -159,8 +155,7 @@ export default function ApiAccess() {
                             ))}
                         </tbody>
                     </table>
-                </div>
-            </div>
+        </ListPage>
 
             {/* Issue form */}
             <Modal open={showForm} onClose={() => setShowForm(false)} title="Issue API key" size="md">
@@ -222,6 +217,6 @@ export default function ApiAccess() {
                     </div>
                 )}
             </Modal>
-        </div>
+        </>
     );
 }

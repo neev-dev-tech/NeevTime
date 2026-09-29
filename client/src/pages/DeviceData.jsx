@@ -5,10 +5,10 @@ import {
     Upload as UploadIcon, RefreshCw
 } from 'lucide-react';
 import api from '../api';
-import { Button, PageHeader, ExportMenu } from '../components';
+import { Button, ExportMenu, ListPage, ListTabs, ListSearch, ListIconButton, LIST_THEAD, LIST_TH, LIST_EDGE_FIRST, LIST_EDGE_LAST } from '../components';
 import { formatDate, formatDateTime } from '../utils/dateFormat';
 import useTableControls from '../hooks/useTableControls';
-import { TablePager, TableToolbar } from '../components/TableControls';
+import { TablePager } from '../components/TableControls';
 
 const fmtTime = (v) => (v ? formatDateTime(v) : '—');
 const fmtDate = (v) => formatDate(v);
@@ -178,54 +178,41 @@ export default function DeviceData() {
     const groups = ['Data', 'Log'];
 
     return (
-        <div className="space-y-6">
-            <PageHeader
-                icon={view.icon}
-                title={view.label}
-                subtitle={view.blurb}
-                actions={
-                    <>
-                        <ExportMenu
-                            rows={exportRows}
-                            filename={`device_${activeSection}`}
-                            title={view.label}
-                        />
-                        <Button variant="secondary" icon={RefreshCw} onClick={fetchData} disabled={loading}>
-                            Refresh
-                        </Button>
-                    </>
-                }
-            />
-
-            {/* view switcher — segmented, replaces the old dark duplicate sidebar */}
-            <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-                {groups.map(group => (
-                    <div key={group} className="flex items-center gap-2 flex-wrap">
-                        <span className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-400">{group}</span>
-                        <div className="flex flex-wrap gap-1.5">
-                            {VALID_VIEWS.filter(id => VIEWS[id].group === group).map(id => {
-                                const Icon = VIEWS[id].icon;
-                                const active = id === activeSection;
-                                return (
-                                    <button
-                                        key={id}
-                                        onClick={() => switchView(id)}
-                                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors border ${active
-                                            ? 'bg-slate-600 text-white border-transparent shadow-sm'
-                                            : 'bg-app-surface/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300 hover:text-slate-600 dark:hover:text-slate-400'
-                                            }`}
-                                    >
-                                        <Icon size={13} />
-                                        {VIEWS[id].label}
-                                    </button>
-                                );
-                            })}
+        <ListPage
+            title={view.label}
+            count={loading ? undefined : data.length}
+            tabs={
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                    {groups.map(group => (
+                        <div key={group} className="flex items-center gap-1.5 flex-wrap">
+                            <span className="text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-400">{group}</span>
+                            <ListTabs
+                                label={`${group} views`}
+                                value={activeSection}
+                                onChange={switchView}
+                                items={VALID_VIEWS.filter(id => VIEWS[id].group === group).map(id => ({ key: id, label: VIEWS[id].label }))}
+                            />
                         </div>
+                    ))}
+                </div>
+            }
+            actions={
+                <ExportMenu
+                    rows={exportRows}
+                    filename={`device_${activeSection}`}
+                    title={view.label}
+                />
+            }
+            toolbar={
+                <>
+                    <ListSearch label="Search records" placeholder="Search records…" value={pager.query} onChange={pager.setQuery} />
+                    <div className="ml-auto flex items-center gap-2">
+                        <ListIconButton label="Refresh" icon={RefreshCw} onClick={fetchData} disabled={loading} spin={loading} />
                     </div>
-                ))}
-            </div>
-
-            <div className="card-base !p-0 overflow-hidden">
+                </>
+            }
+            footer={!loading && !error && data.length > 0 ? <TablePager controls={pager} noun="record" /> : null}
+        >
                 {loading ? (
                     <div className="p-6 space-y-3">
                         {Array.from({ length: 6 }).map((_, i) => (
@@ -233,14 +220,14 @@ export default function DeviceData() {
                         ))}
                     </div>
                 ) : error ? (
-                    <div className="py-16 text-center">
+                    <div className="py-20 px-6 text-center">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load records</h3>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchData}>Try again</Button>
                     </div>
                 ) : data.length === 0 ? (
-                    <div className="py-16 text-center">
+                    <div className="py-20 px-6 text-center">
                         <view.icon size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No records yet</h3>
                         <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -248,26 +235,23 @@ export default function DeviceData() {
                         </p>
                     </div>
                 ) : (
-                    <>
-                    <TableToolbar controls={pager} placeholder="Search records…" />
-                    <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
-                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
+                            <thead className={LIST_THEAD}>
                                 <tr>
-                                    <th className="px-5 py-3 font-semibold w-12">#</th>
-                                    {view.columns.map(col => (
-                                        <th key={col.label} className="px-5 py-3 font-semibold whitespace-nowrap">{col.label}</th>
+                                    <th className={`${LIST_TH} ${LIST_EDGE_FIRST} w-12`}>#</th>
+                                    {view.columns.map((col, ci) => (
+                                        <th key={col.label} className={`${LIST_TH} ${ci === view.columns.length - 1 ? LIST_EDGE_LAST : ''}`}>{col.label}</th>
                                     ))}
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                                 {pager.view.map((row, idx) => (
-                                    <tr key={row.id ?? idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
-                                        <td className="px-5 py-3 text-slate-400 tabular-nums">{(pager.page - 1) * pager.pageSize + idx + 1}</td>
-                                        {view.columns.map(col => {
+                                    <tr key={row.id ?? idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                                        <td className={`${LIST_EDGE_FIRST} pr-4 py-3 text-slate-400 tabular-nums`}>{(pager.page - 1) * pager.pageSize + idx + 1}</td>
+                                        {view.columns.map((col, ci) => {
                                             const value = col.render ? col.render(row) : (row[col.key] ?? '—');
                                             return (
-                                                <td key={col.label} className="px-5 py-3 whitespace-nowrap">
+                                                <td key={col.label} className={`pl-4 py-3 whitespace-nowrap ${ci === view.columns.length - 1 ? LIST_EDGE_LAST : 'pr-4'}`}>
                                                     {col.badge ? (
                                                         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
                                                             {value || '—'}
@@ -288,14 +272,7 @@ export default function DeviceData() {
                                 ))}
                             </tbody>
                         </table>
-                    </div>
-                    </>
                 )}
-
-                {!loading && !error && data.length > 0 && (
-                    <TablePager controls={pager} noun="record" />
-                )}
-            </div>
-        </div>
+        </ListPage>
     );
 }

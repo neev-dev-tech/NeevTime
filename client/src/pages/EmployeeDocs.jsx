@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FileText, Upload, Download, Trash2, X, Search, RefreshCw, User, Calendar, AlertCircle } from 'lucide-react';
+import { FileText, Upload, Download, Trash2, X, RefreshCw, Calendar, AlertCircle } from 'lucide-react';
 import api from '../api';
-import { Button, PageHeader } from '../components';
+import { Button, ListPage, ListSearch, ListIconButton, LIST_THEAD, LIST_TH, LIST_EDGE_FIRST, LIST_EDGE_LAST } from '../components';
 import Modal from '../components/Modal';
 import { formatDate as formatDateUtil } from '../utils/dateFormat';
 import { confirm } from '../components/ConfirmDialog';
@@ -209,41 +209,25 @@ export default function EmployeeDocs() {
     const pager = useTableControls(filteredDocuments, { pageSize: 50 });
 
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            <PageHeader
-                icon={FileText}
-                title="Employee Documents"
-                subtitle="Contracts, ID proofs and other files held against each employee"
-                actions={
-                    <>
-                        <Button variant="secondary" onClick={handleRefresh} disabled={refreshing}>
-                            <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} /> Refresh
-                        </Button>
-                        <Button variant="primary" icon={Upload} onClick={() => setShowUploadModal(true)}>
-                            Upload Document
-                        </Button>
-                    </>
-                }
-            />
-
-            <div className="flex flex-col h-[calc(100vh-210px)] card-base overflow-hidden">
-            {/* Search Bar */}
-            <div className="p-4 border-b border-slate-100 dark:border-slate-700 bg-app-surface">
-                <div className="relative w-full max-w-md">
-                    <input
-                        type="text"
-                        placeholder="Search by document name, employee code, or name..."
-                        value={searchQuery}
-                        onChange={e => setSearchQuery(e.target.value)}
-                        className="input-base pl-10 py-2 text-sm w-full"
-                    />
-                    <Search size={16} className="absolute left-3.5 top-2.5 text-slate-grey dark:text-slate-400" />
-                </div>
-            </div>
-
-            {/* Documents Table */}
-            <div className="flex-1 overflow-auto bg-app-surface custom-scrollbar">
+        <>
+        <ListPage
+            title="Employee Documents"
+            count={documents.length}
+            actions={
+                <Button mutating variant="primary" size="toolbar" icon={Upload} onClick={() => setShowUploadModal(true)}>
+                    Upload Document
+                </Button>
+            }
+            toolbar={
+                <>
+                    <ListSearch label="Search documents" placeholder="Search by document name, employee code, or name..." value={searchQuery} onChange={setSearchQuery} />
+                    <div className="ml-auto flex items-center gap-2">
+                        <ListIconButton label="Refresh" icon={RefreshCw} onClick={handleRefresh} disabled={refreshing} spin={refreshing} />
+                    </div>
+                </>
+            }
+            footer={<TablePager controls={pager} noun="document" />}
+        >
                 {loading ? (
                     <div className="p-6 space-y-3">
                         {Array.from({ length: 8 }).map((_, i) => (
@@ -251,15 +235,15 @@ export default function EmployeeDocs() {
                         ))}
                     </div>
                 ) : error ? (
-                    <div className="flex flex-col items-center justify-center h-full p-12 text-center">
+                    <div className="py-20 px-6 text-center">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load documents</h3>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchDocuments}>Try again</Button>
                     </div>
                 ) : filteredDocuments.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full p-12 text-center">
-                        <FileText size={40} className="mb-3 text-slate-300 dark:text-slate-600" />
+                    <div className="py-20 px-6 text-center">
+                        <FileText size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No documents found</h3>
                         <p className="text-sm text-slate-500 dark:text-slate-400">
                             {searchQuery
@@ -269,33 +253,34 @@ export default function EmployeeDocs() {
                     </div>
                 ) : (
                     <table className="w-full text-left text-sm border-collapse">
-                        <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400 sticky top-0 z-10 border-b border-slate-100 dark:border-slate-700">
+                        <thead className={LIST_THEAD}>
                             <tr>
-                                <th className="px-5 py-3 font-semibold whitespace-nowrap">Document Name</th>
-                                <th className="px-5 py-3 font-semibold whitespace-nowrap">Employee</th>
-                                <th className="px-5 py-3 font-semibold whitespace-nowrap">Employee Code</th>
-                                <th className="px-5 py-3 font-semibold whitespace-nowrap">Uploaded Date</th>
-                                <th className="px-5 py-3 font-semibold whitespace-nowrap text-right">Actions</th>
+                                <th className={`${LIST_TH} ${LIST_EDGE_FIRST}`}>Document Name</th>
+                                <th className={LIST_TH}>Employee</th>
+                                <th className={LIST_TH}>Employee Code</th>
+                                <th className={LIST_TH}>Uploaded Date</th>
+                                <th className={`${LIST_TH} ${LIST_EDGE_LAST} !text-right`}>Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                             {pager.view.map(doc => (
-                                <tr key={doc.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
-                                    <td className="px-5 py-3">
+                                <tr key={doc.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                                    <td className={`${LIST_EDGE_FIRST} pr-4 py-3`}>
                                         <div className="flex items-center gap-2">
                                             <FileText size={16} className="text-slate-600 dark:text-slate-400 shrink-0" />
                                             <span className="font-semibold text-slate-800 dark:text-slate-100">{doc.doc_name || '—'}</span>
                                         </div>
                                     </td>
-                                    <td className="px-5 py-3 text-slate-600 dark:text-slate-300">{doc.employee_name || '—'}</td>
-                                    <td className="px-5 py-3 font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">{doc.employee_code || '—'}</td>
-                                    <td className="px-5 py-3 text-slate-600 dark:text-slate-300">
+                                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{doc.employee_name || '—'}</td>
+                                    <td className="px-4 py-3 font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">{doc.employee_code || '—'}</td>
+                                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
                                         <div className="flex items-center gap-2">
                                             <Calendar size={14} className="text-slate-400 dark:text-slate-500" />
                                             {formatDate(doc.uploaded_at)}
                                         </div>
                                     </td>
-                                    <td className="px-5 py-3">
+                                    <td className={`pl-4 ${LIST_EDGE_LAST} py-3`}>
+                                        <div className="flex items-center justify-end">
                                         <div className="dv-quiet">
                                             <Button
                                                 variant="ghost"
@@ -314,19 +299,14 @@ export default function EmployeeDocs() {
                                                 onClick={() => handleDelete(doc.id)}
                                             />
                                         </div>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
                 )}
-            </div>
-
-            {/* Footer */}
-            <div className="bg-slate-50/70 dark:bg-slate-900/50">
-                <TablePager controls={pager} noun="document" />
-            </div>
-            </div>
+        </ListPage>
 
             <Modal
                 open={showUploadModal}
@@ -421,6 +401,6 @@ export default function EmployeeDocs() {
                     </button>
                 </div>
             )}
-        </div>
+        </>
     );
 }

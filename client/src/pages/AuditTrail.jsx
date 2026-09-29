@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Shield, RefreshCw, AlertCircle, ChevronRight, ChevronLeft } from 'lucide-react';
 import api from '../api';
-import { Button, PageHeader } from '../components';
+import { Button, ListPage, ListTabs, ListIconButton, LIST_THEAD, LIST_TH, LIST_EDGE_FIRST, LIST_EDGE_LAST } from '../components';
 import Modal from '../components/Modal';
 import { formatDateTime } from '../utils/dateFormat';
 
@@ -87,17 +87,26 @@ export default function AuditTrail() {
     const isFiltered = !!(filters.table || filters.action || filters.from || filters.to);
 
     return (
-        <div className="space-y-6">
-            <PageHeader
-                icon={Shield}
-                title="Audit Trail"
-                subtitle="Every change to attendance, employees, users and settings — who made it, and what it said before."
-                actions={<Button variant="secondary" icon={RefreshCw} onClick={fetchEntries}>Refresh</Button>}
-            />
-
-            <div className="card-base p-0 overflow-hidden">
-                <div className="flex items-center gap-2 flex-wrap px-5 py-3 border-b border-slate-100 dark:border-slate-700">
-                    <select className="field-sm w-auto" value={filters.table}
+        <>
+        <ListPage
+            title="Audit Trail"
+            count={total}
+            tabs={
+                <ListTabs
+                    label="Filter by change type"
+                    value={filters.action}
+                    onChange={v => setFilter('action', v)}
+                    items={[
+                        { key: '', label: 'Any change' },
+                        { key: 'INSERT', label: 'Created' },
+                        { key: 'UPDATE', label: 'Edited' },
+                        { key: 'DELETE', label: 'Deleted' }
+                    ]}
+                />
+            }
+            toolbar={
+                <>
+                    <select className="field-sm !h-8 !py-0 w-auto" value={filters.table}
                             onChange={e => setFilter('table', e.target.value)} aria-label="Filter by record type">
                         <option value="">All records</option>
                         {tables.map(t => (
@@ -107,51 +116,68 @@ export default function AuditTrail() {
                         ))}
                     </select>
 
-                    <select className="field-sm w-auto" value={filters.action}
-                            onChange={e => setFilter('action', e.target.value)} aria-label="Filter by change type">
-                        <option value="">Any change</option>
-                        <option value="INSERT">Created</option>
-                        <option value="UPDATE">Edited</option>
-                        <option value="DELETE">Deleted</option>
-                    </select>
-
                     <label className="text-xs text-slate-500 dark:text-slate-400">From</label>
-                    <input type="date" className="field-sm w-auto" value={filters.from}
+                    <input type="date" className="field-sm !h-8 !py-0 w-auto" value={filters.from}
                            onChange={e => setFilter('from', e.target.value)} aria-label="From date" />
                     <label className="text-xs text-slate-500 dark:text-slate-400">to</label>
-                    <input type="date" className="field-sm w-auto" value={filters.to}
+                    <input type="date" className="field-sm !h-8 !py-0 w-auto" value={filters.to}
                            onChange={e => setFilter('to', e.target.value)} aria-label="To date" />
 
-                    {(filters.table || filters.action || filters.from || filters.to) && (
+                    {isFiltered && (
                         <button
                             type="button"
                             onClick={() => { setOffset(0); setFilters({ table: '', action: '', from: '', to: '' }); }}
-                            className="text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-600 dark:hover:text-slate-400"
+                            className="h-7 px-2 rounded-md text-xs font-medium text-slate-500 hover:bg-slate-200/70 hover:text-slate-800 dark:hover:bg-slate-700 dark:hover:text-slate-100"
                         >
                             Clear
                         </button>
                     )}
 
-                    <span className="ml-auto text-xs text-slate-500 dark:text-slate-400 tabular-nums">
-                        {total.toLocaleString()} entr{total === 1 ? 'y' : 'ies'}
+                    <div className="ml-auto flex items-center gap-2">
+                        <ListIconButton label="Refresh" icon={RefreshCw} onClick={fetchEntries} disabled={loading} spin={loading} />
+                    </div>
+                </>
+            }
+            footer={!loading && !error && entries.length > 0 ? (
+                <div className="flex items-center justify-between gap-3 px-4 sm:px-6 py-2">
+                    <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">
+                        {offset + 1}–{Math.min(offset + PAGE, total)} of {total.toLocaleString()}
                     </span>
+                    {pages > 1 && (
+                        <div className="flex items-center gap-1">
+                            <button type="button" aria-label="Previous page"
+                                    onClick={() => setOffset(o => Math.max(0, o - PAGE))}
+                                    disabled={offset === 0}
+                                    className="grid place-items-center w-8 h-8 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800 disabled:opacity-40 disabled:cursor-not-allowed dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100">
+                                <ChevronLeft size={15} />
+                            </button>
+                            <span className="text-xs text-slate-600 dark:text-slate-300 tabular-nums px-2">{page} / {pages}</span>
+                            <button type="button" aria-label="Next page"
+                                    onClick={() => setOffset(o => o + PAGE)}
+                                    disabled={page >= pages}
+                                    className="grid place-items-center w-8 h-8 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800 disabled:opacity-40 disabled:cursor-not-allowed dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100">
+                                <ChevronRight size={15} />
+                            </button>
+                        </div>
+                    )}
                 </div>
-
+            ) : null}
+        >
                 {loading ? (
-                    <div className="p-5 space-y-2" aria-busy="true">
+                    <div className="px-4 sm:px-6 py-5 space-y-2" aria-busy="true">
                         {Array.from({ length: 6 }).map((_, i) => (
                             <div key={i} className="h-11 rounded-lg bg-slate-100 dark:bg-slate-700/50 animate-pulse" />
                         ))}
                     </div>
                 ) : error ? (
-                    <div className="py-16 text-center">
+                    <div className="py-20 text-center px-6">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load the audit trail</h3>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchEntries}>Try again</Button>
                     </div>
                 ) : entries.length === 0 ? (
-                    <div className="py-16 text-center">
+                    <div className="py-20 text-center px-6">
                         <Shield size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">
                             {isFiltered ? 'No matching changes' : 'Nothing recorded yet'}
@@ -163,43 +189,41 @@ export default function AuditTrail() {
                         </p>
                     </div>
                 ) : (
-                    <>
-                        <div className="overflow-x-auto">
                             <table className="w-full text-left text-sm border-collapse">
-                                <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-700">
+                                <thead className={LIST_THEAD}>
                                     <tr>
-                                        <th className="px-5 py-3 font-semibold">When</th>
-                                        <th className="px-5 py-3 font-semibold">Who</th>
-                                        <th className="px-5 py-3 font-semibold">Change</th>
-                                        <th className="px-5 py-3 font-semibold">Record</th>
-                                        <th className="px-5 py-3 font-semibold">What changed</th>
+                                        <th className={`${LIST_TH} ${LIST_EDGE_FIRST}`}>When</th>
+                                        <th className={LIST_TH}>Who</th>
+                                        <th className={LIST_TH}>Change</th>
+                                        <th className={LIST_TH}>Record</th>
+                                        <th className={`${LIST_TH} ${LIST_EDGE_LAST}`}>What changed</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                                     {entries.map(e => {
                                         const changes = diffOf(e.old_data, e.new_data);
                                         return (
                                             <tr key={e.id}
-                                                className="hover:bg-slate-50 dark:hover:bg-slate-700/40 cursor-pointer"
+                                                className="hover:bg-slate-50 dark:hover:bg-slate-800/40 cursor-pointer"
                                                 onClick={() => setDetail(e)}>
-                                                <td className="px-5 py-3 text-slate-500 dark:text-slate-400 whitespace-nowrap tabular-nums">
+                                                <td className={`${LIST_EDGE_FIRST} pr-4 py-3 text-slate-500 dark:text-slate-400 whitespace-nowrap tabular-nums`}>
                                                     {when(e.created_at)}
                                                 </td>
-                                                <td className="px-5 py-3 font-medium text-slate-800 dark:text-slate-100">
+                                                <td className="px-4 py-3 font-medium text-slate-800 dark:text-slate-100">
                                                     {/* A change nobody triggered is a device or a scheduled job,
                                                         not an unknown person. Saying so avoids implying a gap. */}
                                                     {e.username || <span className="text-slate-400 dark:text-slate-500">System</span>}
                                                 </td>
-                                                <td className="px-5 py-3">
+                                                <td className="px-4 py-3">
                                                     <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold border ${ACTION_STYLE[e.action] || ''}`}>
                                                         {e.action === 'INSERT' ? 'CREATED' : e.action === 'UPDATE' ? 'EDITED' : 'DELETED'}
                                                     </span>
                                                 </td>
-                                                <td className="px-5 py-3 text-slate-600 dark:text-slate-300 whitespace-nowrap">
+                                                <td className="px-4 py-3 text-slate-600 dark:text-slate-300 whitespace-nowrap">
                                                     {e.table_name.replace(/_/g, ' ')}
                                                     <span className="text-slate-400 dark:text-slate-500 font-mono text-xs ml-1.5">#{e.record_id ?? '—'}</span>
                                                 </td>
-                                                <td className="px-5 py-3 text-slate-600 dark:text-slate-300">
+                                                <td className={`pl-4 ${LIST_EDGE_LAST} py-3 text-slate-600 dark:text-slate-300`}>
                                                     {changes.length === 0
                                                         ? <span className="text-slate-400">—</span>
                                                         : changes.slice(0, 3).map(c => c.field.replace(/_/g, ' ')).join(', ')
@@ -210,33 +234,8 @@ export default function AuditTrail() {
                                     })}
                                 </tbody>
                             </table>
-                        </div>
-
-                        <div className="flex items-center justify-between gap-3 px-5 py-3 border-t border-slate-100 dark:border-slate-700">
-                            <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">
-                                {offset + 1}–{Math.min(offset + PAGE, total)} of {total.toLocaleString()}
-                            </span>
-                            {pages > 1 && (
-                                <div className="flex items-center gap-1">
-                                    <button type="button" aria-label="Previous page"
-                                            onClick={() => setOffset(o => Math.max(0, o - PAGE))}
-                                            disabled={offset === 0}
-                                            className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-700/50">
-                                        <ChevronLeft size={15} />
-                                    </button>
-                                    <span className="text-xs text-slate-600 dark:text-slate-300 tabular-nums px-2">{page} / {pages}</span>
-                                    <button type="button" aria-label="Next page"
-                                            onClick={() => setOffset(o => o + PAGE)}
-                                            disabled={page >= pages}
-                                            className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-700/50">
-                                        <ChevronRight size={15} />
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    </>
                 )}
-            </div>
+        </ListPage>
 
             {/* The guard stays: the body reads detail.table_name, and Modal builds
                 its children even when closed. */}
@@ -284,6 +283,6 @@ export default function AuditTrail() {
                     })()}
                 </Modal>
             )}
-        </div>
+        </>
     );
 }

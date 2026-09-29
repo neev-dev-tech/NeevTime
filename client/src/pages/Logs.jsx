@@ -1,12 +1,15 @@
 import React, { useEffect, useState, useRef } from 'react';
 import api from '../api';
 import io from 'socket.io-client';
-import { RefreshCw, Inbox, Fingerprint, Clock, LogIn, LogOut, AlertCircle } from 'lucide-react';
-import { Button, PageHeader, ExportMenu } from '../components';
+import { RefreshCw, Inbox, Fingerprint, LogIn, LogOut, AlertCircle } from 'lucide-react';
+import {
+    Button, ExportMenu, ListPage, ListSearch, ListIconButton,
+    LIST_THEAD, LIST_TH, LIST_EDGE_FIRST, LIST_EDGE_LAST
+} from '../components';
 import Modal from '../components/Modal';
 import { formatTimestamp } from '../utils/dateFormat';
 import useTableControls from '../hooks/useTableControls';
-import { TablePager, TableToolbar } from '../components/TableControls';
+import { TablePager } from '../components/TableControls';
 
 const BADGE_BASE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide';
 
@@ -168,56 +171,52 @@ export default function Logs() {
     const refresh = () => { setLoading(true); fetchLogs(); fetchDevices(); };
 
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            <PageHeader
-                icon={Clock}
+        <>
+            <ListPage
                 title="Attendance Logs"
-                subtitle={`${logs.length} records`}
+                count={logs.length}
                 actions={(
-                    <>
-                        <ExportMenu
-                            rows={logs}
-                            columns={[
-                                { key: 'employee_code', label: 'Employee Code' },
-                                { key: 'emp_name', label: 'Employee Name' },
-                                { key: 'punch_time', label: 'Time' },
-                                { key: 'direction', label: 'Direction' },
-                                { key: 'punch_state', label: 'State Code' },
-                                { key: 'device_serial', label: 'Device' },
-                                { key: 'verification_mode', label: 'Verification' }
-                            ]}
-                            filename="attendance_logs"
-                            title="Attendance Logs"
-                            mapRow={(log) => ({ ...log, direction: getDirection(log) })}
-                        />
-                        <Button
-                            variant="secondary"
-                            onClick={refresh}
-                            disabled={loading}
-                        >
-                            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} /> Refresh
-                        </Button>
-                    </>
+                    <ExportMenu
+                        rows={logs}
+                        columns={[
+                            { key: 'employee_code', label: 'Employee Code' },
+                            { key: 'emp_name', label: 'Employee Name' },
+                            { key: 'punch_time', label: 'Time' },
+                            { key: 'direction', label: 'Direction' },
+                            { key: 'punch_state', label: 'State Code' },
+                            { key: 'device_serial', label: 'Device' },
+                            { key: 'verification_mode', label: 'Verification' }
+                        ]}
+                        filename="attendance_logs"
+                        title="Attendance Logs"
+                        mapRow={(log) => ({ ...log, direction: getDirection(log) })}
+                    />
                 )}
-            />
-
-            <div className="card-base !p-0 overflow-hidden">
+                toolbar={
+                    <>
+                        <ListSearch label="Search logs" placeholder="Search by employee, code or device…" value={pager.query} onChange={pager.setQuery} />
+                        <div className="ml-auto flex items-center gap-2">
+                            <ListIconButton label="Refresh" icon={RefreshCw} onClick={refresh} disabled={loading} spin={loading} />
+                        </div>
+                    </>
+                }
+                footer={!loading && logs.length > 0 ? <TablePager controls={pager} noun="log" /> : null}
+            >
                 {loading && logs.length === 0 ? (
-                    <div className="p-6 space-y-3">
+                    <div className="p-4 sm:p-6 space-y-3">
                         {Array.from({ length: 10 }).map((_, i) => (
                             <div key={i} className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
                         ))}
                     </div>
                 ) : error && logs.length === 0 ? (
-                    <div className="py-16 text-center">
+                    <div className="py-20 text-center px-6">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load logs</h3>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={refresh}>Try again</Button>
                     </div>
                 ) : logs.length === 0 ? (
-                    <div className="py-16 text-center">
+                    <div className="py-20 text-center px-6">
                         <Inbox size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No logs found</h3>
                         <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -225,137 +224,128 @@ export default function Logs() {
                         </p>
                     </div>
                 ) : (
-                    <>
-                    <TableToolbar controls={pager} placeholder="Search by employee, code or device…" />
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm text-left">
-                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
-                                <tr>
-                                    <th className="px-5 py-3 font-semibold w-12">#</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Employee</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Code</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Time</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Log Type</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">State</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Device</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Verification</th>
-                                    {/* The whole point of capturing a photo is that somebody can
-                                        look at it. Stored and served since this morning, and
-                                        displayed nowhere — which reduces buddy punching not at
-                                        all. */}
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Photo</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                {pager.view.map((log, i) => (
-                                    <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
-                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{(pager.page - 1) * pager.pageSize + i + 1}</td>
-                                        <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">
-                                            {log.emp_name || 'Unknown'}
-                                        </td>
-                                        <td className="px-5 py-3 whitespace-nowrap">
-                                            <span className="font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">
-                                                {log.employee_code || '—'}
-                                            </span>
-                                        </td>
-                                        <td className="px-5 py-3 whitespace-nowrap">
-                                            <span className="font-mono text-xs tabular-nums text-slate-600 dark:text-slate-300">
-                                                {formatTimestamp(log.punch_time).date}
-                                            </span>
-                                            <span className="font-mono text-xs tabular-nums font-semibold text-slate-700 dark:text-slate-200 ml-2">
-                                                {formatTimestamp(log.punch_time).time}
-                                            </span>
-                                        </td>
-                                        <td className="px-5 py-3 whitespace-nowrap">
-                                            {renderDirection(log)}
-                                        </td>
-                                        <td className="px-5 py-3 whitespace-nowrap">
-                                            <span className={`${BADGE_BASE} tabular-nums font-mono bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300`}>
-                                                {log.punch_state || '255'}
-                                            </span>
-                                        </td>
-                                        <td className="px-5 py-3 whitespace-nowrap">
-                                            <span className="font-mono text-xs tabular-nums text-slate-600 dark:text-slate-300">
-                                                {log.device_serial || '—'}
-                                            </span>
-                                        </td>
-                                        <td className="px-5 py-3 whitespace-nowrap">
-                                            <div className="flex items-center gap-2">
-                                                <div className="p-1.5 bg-slate-50 dark:bg-slate-900/30 rounded-md">
-                                                    <Fingerprint size={14} className="text-slate-600 dark:text-slate-400" />
-                                                </div>
-                                                <span className="text-xs uppercase tracking-wide font-medium text-slate-600 dark:text-slate-300">
-                                                    {log.verification_mode || 'Unknown'}
-                                                </span>
+                    <table className="w-full text-sm text-left">
+                        <thead className={LIST_THEAD}>
+                            <tr>
+                                <th className={`${LIST_TH} ${LIST_EDGE_FIRST} w-12`}>#</th>
+                                <th className={LIST_TH}>Employee</th>
+                                <th className={LIST_TH}>Code</th>
+                                <th className={LIST_TH}>Time</th>
+                                <th className={LIST_TH}>Log Type</th>
+                                <th className={LIST_TH}>State</th>
+                                <th className={LIST_TH}>Device</th>
+                                <th className={LIST_TH}>Verification</th>
+                                {/* The whole point of capturing a photo is that somebody can
+                                    look at it. Stored and served since this morning, and
+                                    displayed nowhere — which reduces buddy punching not at
+                                    all. */}
+                                <th className={`${LIST_TH} ${LIST_EDGE_LAST}`}>Photo</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                            {pager.view.map((log, i) => (
+                                <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                                    <td className={`${LIST_EDGE_FIRST} pr-4 py-3 text-slate-400 dark:text-slate-500 tabular-nums`}>{(pager.page - 1) * pager.pageSize + i + 1}</td>
+                                    <td className="px-4 py-3 font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">
+                                        {log.emp_name || 'Unknown'}
+                                    </td>
+                                    <td className="px-4 py-3 whitespace-nowrap">
+                                        <span className="font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">
+                                            {log.employee_code || '—'}
+                                        </span>
+                                    </td>
+                                    <td className="px-4 py-3 whitespace-nowrap">
+                                        <span className="font-mono text-xs tabular-nums text-slate-600 dark:text-slate-300">
+                                            {formatTimestamp(log.punch_time).date}
+                                        </span>
+                                        <span className="font-mono text-xs tabular-nums font-semibold text-slate-700 dark:text-slate-200 ml-2">
+                                            {formatTimestamp(log.punch_time).time}
+                                        </span>
+                                    </td>
+                                    <td className="px-4 py-3 whitespace-nowrap">
+                                        {renderDirection(log)}
+                                    </td>
+                                    <td className="px-4 py-3 whitespace-nowrap">
+                                        <span className={`${BADGE_BASE} tabular-nums font-mono bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300`}>
+                                            {log.punch_state || '255'}
+                                        </span>
+                                    </td>
+                                    <td className="px-4 py-3 whitespace-nowrap">
+                                        <span className="font-mono text-xs tabular-nums text-slate-600 dark:text-slate-300">
+                                            {log.device_serial || '—'}
+                                        </span>
+                                    </td>
+                                    <td className="px-4 py-3 whitespace-nowrap">
+                                        <div className="flex items-center gap-2">
+                                            <div className="p-1.5 bg-slate-50 dark:bg-slate-900/30 rounded-md">
+                                                <Fingerprint size={14} className="text-slate-600 dark:text-slate-400" />
                                             </div>
-                                        </td>
-                                        <td className="px-5 py-3 whitespace-nowrap">
-                                            {log.photo_path ? (
-                                                <button
-                                                    onClick={() => setPhoto(log)}
-                                                    className="block"
-                                                    title="Taken at the moment of this punch"
-                                                >
-                                                    <PunchPhoto
-                                                        name={log.photo_path}
-                                                        alt={`Punch by ${log.emp_name || log.employee_code}`}
-                                                        className="h-10 w-10 rounded-md object-cover border border-slate-200 dark:border-slate-700"
-                                                    />
-                                                </button>
-                                            ) : (
-                                                <span className="text-xs text-slate-400 dark:text-slate-500">—</span>
-                                            )}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                    </>
+                                            <span className="text-xs uppercase tracking-wide font-medium text-slate-600 dark:text-slate-300">
+                                                {log.verification_mode || 'Unknown'}
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td className={`pl-4 ${LIST_EDGE_LAST} py-3 whitespace-nowrap`}>
+                                        {log.photo_path ? (
+                                            <button
+                                                onClick={() => setPhoto(log)}
+                                                className="block"
+                                                title="Taken at the moment of this punch"
+                                            >
+                                                <PunchPhoto
+                                                    name={log.photo_path}
+                                                    alt={`Punch by ${log.emp_name || log.employee_code}`}
+                                                    className="h-10 w-10 rounded-md object-cover border border-slate-200 dark:border-slate-700"
+                                                />
+                                            </button>
+                                        ) : (
+                                            <span className="text-xs text-slate-400 dark:text-slate-500">—</span>
+                                        )}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 )}
+            </ListPage>
 
-                {/* Full size, with who and when beside it — a thumbnail is enough to
-                    see that a photo exists and not enough to tell who it is, and
-                    telling who it is is the reason the photo was taken. */}
-                {photo && (
-                    // No title bar: the photo runs edge to edge from the top, and
-                    // the name under it is the heading. The panel keeps its own
-                    // Close button, so Modal's X is hidden rather than doubled.
-                    <Modal open onClose={() => setPhoto(null)} size="md" padded={false} hideClose>
-                        <div className="rounded-xl overflow-hidden">
-                            <PunchPhoto
-                                name={photo.photo_path}
-                                alt={`Punch by ${photo.emp_name || photo.employee_code}`}
-                                className="w-full"
-                            />
-                            <div className="p-4 space-y-1">
-                                <p className="font-semibold text-slate-800 dark:text-slate-100">
-                                    {photo.emp_name || 'Unknown'}{' '}
-                                    <span className="font-mono text-xs text-slate-500">{photo.employee_code}</span>
-                                </p>
-                                <p className="text-sm text-slate-600 dark:text-slate-300 tabular-nums">
-                                    {formatTimestamp(photo.punch_time).datetime}
-                                </p>
-                                <p className="text-xs text-slate-500 dark:text-slate-400">
-                                    {photo.is_geofence_verified
-                                        ? 'Inside an approved work location'
-                                        : 'Location was not verified'}
-                                </p>
-                                <button
-                                    onClick={() => setPhoto(null)}
-                                    className="mt-2 text-sm underline text-slate-600 dark:text-slate-300"
-                                >
-                                    Close
-                                </button>
-                            </div>
+            {/* Full size, with who and when beside it — a thumbnail is enough to
+                see that a photo exists and not enough to tell who it is, and
+                telling who it is is the reason the photo was taken. */}
+            {photo && (
+                // No title bar: the photo runs edge to edge from the top, and
+                // the name under it is the heading. The panel keeps its own
+                // Close button, so Modal's X is hidden rather than doubled.
+                <Modal open onClose={() => setPhoto(null)} size="md" padded={false} hideClose>
+                    <div className="rounded-xl overflow-hidden">
+                        <PunchPhoto
+                            name={photo.photo_path}
+                            alt={`Punch by ${photo.emp_name || photo.employee_code}`}
+                            className="w-full"
+                        />
+                        <div className="p-4 space-y-1">
+                            <p className="font-semibold text-slate-800 dark:text-slate-100">
+                                {photo.emp_name || 'Unknown'}{' '}
+                                <span className="font-mono text-xs text-slate-500">{photo.employee_code}</span>
+                            </p>
+                            <p className="text-sm text-slate-600 dark:text-slate-300 tabular-nums">
+                                {formatTimestamp(photo.punch_time).datetime}
+                            </p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">
+                                {photo.is_geofence_verified
+                                    ? 'Inside an approved work location'
+                                    : 'Location was not verified'}
+                            </p>
+                            <button
+                                onClick={() => setPhoto(null)}
+                                className="mt-2 text-sm underline text-slate-600 dark:text-slate-300"
+                            >
+                                Close
+                            </button>
                         </div>
-                    </Modal>
-                )}
-
-                {!loading && logs.length > 0 && (
-                    <TablePager controls={pager} noun="log" />
-                )}
-            </div>
-        </div>
+                    </div>
+                </Modal>
+            )}
+        </>
     );
 }

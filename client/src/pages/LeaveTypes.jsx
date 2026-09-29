@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { FileText, Plus, Trash2, X, AlertCircle, RefreshCw, Edit2 } from 'lucide-react';
+import { FileText, Plus, Trash2, AlertCircle, RefreshCw, Edit2 } from 'lucide-react';
 import api from '../api';
-import { Button, PageHeader, useToast } from '../components';
-import { TableToolbar, SortableTh, TablePager } from '../components/TableControls';
+import {
+    Button, useToast, ListPage, ListSearch, ListIconButton,
+    LIST_THEAD, LIST_TH, LIST_EDGE_FIRST, LIST_EDGE_LAST
+} from '../components';
+import { SortableTh, TablePager } from '../components/TableControls';
 import useTableControls from '../hooks/useTableControls';
 import Modal from '../components/Modal';
 import { confirm } from '../components/ConfirmDialog';
@@ -86,115 +89,114 @@ export default function LeaveTypes() {
         }
     };
 
-    return (
-        <div className="space-y-6">
-            <PageHeader
-                icon={FileText}
-                title="Leave Types"
-                subtitle="Define leave categories and annual quotas"
-                actions={<Button variant="successSolid" icon={Plus} onClick={() => setShowModal(true)}>Add Leave Type</Button>}
-            />
+    const STH = `${LIST_TH} !px-4`;
 
-            <div className="card-base !p-0 overflow-hidden">
+    return (
+        <>
+            <ListPage
+                title="Leave Types"
+                count={types.length}
+                actions={<Button mutating variant="primary" size="toolbar" icon={Plus} onClick={() => setShowModal(true)}>Add Leave Type</Button>}
+                toolbar={
+                    <>
+                        <ListSearch label="Search leave types" placeholder="Search leave types…" value={controls.query} onChange={controls.setQuery} />
+                        <div className="ml-auto flex items-center gap-2">
+                            <ListIconButton label="Refresh" icon={RefreshCw} onClick={fetchTypes} disabled={loading} spin={loading} />
+                        </div>
+                    </>
+                }
+                footer={!loading && !error && types.length > 0 && controls.matched > 0 ? <TablePager controls={controls} noun="leave type" /> : null}
+            >
                 {loading ? (
-                    <div className="p-6 space-y-3">
+                    <div className="p-4 sm:p-6 space-y-3">
                         {Array.from({ length: 6 }).map((_, i) => (
                             <div key={i} className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
                         ))}
                     </div>
                 ) : error ? (
-                    <div className="py-16 text-center">
+                    <div className="py-20 text-center px-6">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load leave types</h3>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchTypes}>Try again</Button>
                     </div>
                 ) : types.length === 0 ? (
-                    <div className="py-16 text-center">
+                    <div className="py-20 text-center px-6">
                         <FileText size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No leave types defined</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
                             Add a leave type to set the annual quota employees can draw from.
                         </p>
+                        <Button mutating variant="primary" icon={Plus} onClick={() => setShowModal(true)}>Add Leave Type</Button>
                     </div>
-                ) : (
-                    <>
-                    <TableToolbar controls={controls} placeholder="Search leave types…" />
-                    {controls.matched === 0 ? (
-                    <div className="py-16 text-center">
+                ) : controls.matched === 0 ? (
+                    <div className="py-20 text-center px-6">
                         <FileText size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No matching leave types</h3>
                         <p className="text-sm text-slate-500 dark:text-slate-400">
                             Nothing matches the current search. Clear it to see all leave types.
                         </p>
                     </div>
-                    ) : (
-                    <>
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm text-left">
-                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
-                                <tr>
-                                    <th className="px-5 py-3 font-semibold w-12">#</th>
-                                    <SortableTh controls={controls} sortKey="code" className="whitespace-nowrap">Code</SortableTh>
-                                    <SortableTh controls={controls} sortKey="name" className="whitespace-nowrap">Name</SortableTh>
-                                    <SortableTh controls={controls} sortKey="annual_quota" className="whitespace-nowrap">Annual Quota</SortableTh>
-                                    <SortableTh controls={controls} sortKey="carry_forward" className="whitespace-nowrap">Carry Forward</SortableTh>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Color</th>
-                                    <th className="px-5 py-3 font-semibold text-right whitespace-nowrap">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                {controls.view.map((t, idx) => (
-                                    <tr key={t.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
-                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{(controls.page - 1) * controls.pageSize + idx + 1}</td>
-                                        <td className="px-5 py-3 whitespace-nowrap">
-                                            <span className="font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">
-                                                {t.code || '—'}
+                ) : (
+                    <table className="w-full text-sm text-left">
+                        <thead className={LIST_THEAD}>
+                            <tr>
+                                <th className={`${LIST_TH} ${LIST_EDGE_FIRST} w-12`}>#</th>
+                                <SortableTh controls={controls} sortKey="code" className={STH}>Code</SortableTh>
+                                <SortableTh controls={controls} sortKey="name" className={STH}>Name</SortableTh>
+                                <SortableTh controls={controls} sortKey="annual_quota" className={STH}>Annual Quota</SortableTh>
+                                <SortableTh controls={controls} sortKey="carry_forward" className={STH}>Carry Forward</SortableTh>
+                                <th className={LIST_TH}>Color</th>
+                                <th className={`${LIST_TH} !text-right ${LIST_EDGE_LAST}`}>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                            {controls.view.map((t, idx) => (
+                                <tr key={t.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                                    <td className={`${LIST_EDGE_FIRST} pr-4 py-3 text-slate-400 dark:text-slate-500 tabular-nums`}>{(controls.page - 1) * controls.pageSize + idx + 1}</td>
+                                    <td className="px-4 py-3 whitespace-nowrap">
+                                        <span className="font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">
+                                            {t.code || '—'}
+                                        </span>
+                                    </td>
+                                    <td className="px-4 py-3 font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">
+                                        {t.name || '—'}
+                                    </td>
+                                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300 tabular-nums">
+                                        {t.annual_quota ?? '—'}
+                                    </td>
+                                    <td className="px-4 py-3 whitespace-nowrap">
+                                        <span className={`${BADGE_BASE} ${t.carry_forward
+                                            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
+                                            : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'}`}>
+                                            {t.carry_forward ? `Yes, max ${t.max_carry_forward ?? 0}` : 'No'}
+                                        </span>
+                                    </td>
+                                    <td className="px-4 py-3 whitespace-nowrap">
+                                        <span className="inline-flex items-center gap-2">
+                                            <span
+                                                className="inline-block w-4 h-4 rounded-full ring-1 ring-black/5 dark:ring-white/10"
+                                                style={{ backgroundColor: t.color || 'transparent' }}
+                                            />
+                                            <span className="font-mono text-xs text-slate-600 dark:text-slate-300">
+                                                {t.color || '—'}
                                             </span>
-                                        </td>
-                                        <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">
-                                            {t.name || '—'}
-                                        </td>
-                                        <td className="px-5 py-3 text-slate-600 dark:text-slate-300 tabular-nums">
-                                            {t.annual_quota ?? '—'}
-                                        </td>
-                                        <td className="px-5 py-3 whitespace-nowrap">
-                                            <span className={`${BADGE_BASE} ${t.carry_forward
-                                                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
-                                                : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'}`}>
-                                                {t.carry_forward ? `Yes, max ${t.max_carry_forward ?? 0}` : 'No'}
-                                            </span>
-                                        </td>
-                                        <td className="px-5 py-3 whitespace-nowrap">
-                                            <span className="inline-flex items-center gap-2">
-                                                <span
-                                                    className="inline-block w-4 h-4 rounded-full ring-1 ring-black/5 dark:ring-white/10"
-                                                    style={{ backgroundColor: t.color || 'transparent' }}
-                                                />
-                                                <span className="font-mono text-xs text-slate-600 dark:text-slate-300">
-                                                    {t.color || '—'}
-                                                </span>
-                                            </span>
-                                        </td>
-                                        <td className="px-5 py-3">
-                                            <div className="flex items-center justify-end">
-                                                <Button variant="secondary" size="sm" icon={Edit2} aria-label="Edit leave type" onClick={() => openEdit(t)} />
-                                                <div className="dv-quiet ml-1">
-                                                    <Button variant="danger" size="sm" icon={Trash2} aria-label="Delete leave type" onClick={() => handleDelete(t.id)} />
-                                                </div>
+                                        </span>
+                                    </td>
+                                    <td className={`pl-4 ${LIST_EDGE_LAST} py-3`}>
+                                        <div className="flex items-center justify-end">
+                                            <Button variant="secondary" size="sm" icon={Edit2} aria-label="Edit leave type" onClick={() => openEdit(t)} />
+                                            <div className="dv-quiet ml-1">
+                                                <Button variant="danger" size="sm" icon={Trash2} aria-label="Delete leave type" onClick={() => handleDelete(t.id)} />
                                             </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                    <TablePager controls={controls} noun="leave type" />
-                    </>
-                    )}
-                    </>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 )}
-            </div>
+            </ListPage>
 
             <Modal
                 open={showModal}
@@ -258,6 +260,6 @@ export default function LeaveTypes() {
                             </div>
                         </form>
             </Modal>
-        </div>
+        </>
     );
 }

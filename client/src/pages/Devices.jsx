@@ -3,24 +3,24 @@ import { useLocation } from 'react-router-dom';
 import api from '../api';
 import io from 'socket.io-client';
 import {
-    TabletSmartphone, RefreshCw, Power, Plus, Edit2, Trash2, Save,
-    Wifi, WifiOff, Users, Fingerprint, Clock, Activity, Settings, Check,
-    Upload, Download, ChevronDown, AlertTriangle, Briefcase, Camera, FileText,
-    FileQuestion, Database, AlertCircle, FileSpreadsheet, Table2, Inbox, ShieldAlert
+    RefreshCw, Power, Plus, Edit2, Trash2,
+    Wifi, WifiOff, Clock, Activity,
+    Upload, FileText,
+    Database, FileSpreadsheet, Inbox, ShieldAlert
 } from 'lucide-react';
 import { TableSkeleton } from '../components/SkeletonLoader';
-import { useToast, Button, PageHeader } from '../components';
+import { useToast, Button, ListPage, ListSearch, ListSelection, ListMenu, ListMenuItem, ListIconButton, LIST_THEAD, LIST_TH, LIST_EDGE_FIRST, LIST_EDGE_LAST } from '../components';
 import Modal from '../components/Modal';
 import { exportToExcel, exportToCSV } from '../utils/excelExport';
 import { formatDate, toLocalDateString, formatDateTime } from '../utils/dateFormat';
 import useTableControls from '../hooks/useTableControls';
-import { TablePager, TableToolbar } from '../components/TableControls';
+import { TablePager } from '../components/TableControls';
 
 // ==========================================
 // Sub-Components for Data Views
 // ==========================================
 
-const DataView = ({ title, endpoint, columns, icon: Icon = Database }) => {
+const DataView = ({ title, endpoint, columns }) => {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [exporting, setExporting] = useState(null);
@@ -132,128 +132,94 @@ const DataView = ({ title, endpoint, columns, icon: Icon = Database }) => {
     };
 
     return (
-        <div className="space-y-6">
-            {/* Premium Report Container */}
-            <div className="report-container">
-                {/* Report Header */}
-                <div className="report-header">
-                    <div className="report-title">
-                        <div className="report-title-icon">
-                            <Icon size={24} />
-                        </div>
-                        {title}
-                    </div>
-
-                    <div className="report-meta">
-                        {/* Record Count Badge */}
-                        {!loading && (
-                            <div className="report-count">
-                                <Table2 size={14} />
-                                <span className="report-count-number">{data.length}</span>
-                                records
-                            </div>
+        <ListPage
+            title={title}
+            count={loading ? undefined : data.length}
+            actions={data.length > 0 && (
+                <>
+                    <Button
+                        variant="tonal"
+                        size="toolbar"
+                        onClick={handleExportCSV}
+                        disabled={exporting === 'csv'}
+                    >
+                        {exporting === 'csv' ? (
+                            <RefreshCw size={14} className="animate-spin" />
+                        ) : (
+                            <FileText size={14} />
                         )}
-
-                        {/* Export Buttons */}
-                        {data.length > 0 && (
-                            <div className="flex gap-2">
-                                <Button
-                                    variant="secondary"
-                                    size="sm"
-                                    onClick={handleExportCSV}
-                                    disabled={exporting === 'csv'}
-                                >
-                                    {exporting === 'csv' ? (
-                                        <RefreshCw size={14} className="animate-spin" />
-                                    ) : (
-                                        <FileText size={14} />
-                                    )}
-                                    CSV
-                                </Button>
-                                <Button
-                                    variant="success"
-                                    size="sm"
-                                    onClick={handleExportXLSX}
-                                    disabled={exporting === 'xlsx'}
-                                >
-                                    {exporting === 'xlsx' ? (
-                                        <RefreshCw size={14} className="animate-spin" />
-                                    ) : (
-                                        <FileSpreadsheet size={14} />
-                                    )}
-                                    Excel
-                                </Button>
-                            </div>
+                        CSV
+                    </Button>
+                    <Button
+                        variant="tonal"
+                        size="toolbar"
+                        onClick={handleExportXLSX}
+                        disabled={exporting === 'xlsx'}
+                    >
+                        {exporting === 'xlsx' ? (
+                            <RefreshCw size={14} className="animate-spin" />
+                        ) : (
+                            <FileSpreadsheet size={14} />
                         )}
-
-                        {/* Refresh Button */}
-                        <Button
-                            variant="secondary"
-                            type="button"
+                        Excel
+                    </Button>
+                </>
+            )}
+            toolbar={
+                <>
+                    <ListSearch label={`Search ${title.toLowerCase()}`} placeholder={`Search ${title.toLowerCase()}…`} value={pager.query} onChange={pager.setQuery} />
+                    <div className="ml-auto flex items-center gap-2">
+                        <ListIconButton
+                            label="Refresh"
+                            icon={RefreshCw}
                             onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
                                 fetchData();
                             }}
                             disabled={loading}
-                        >
-                            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-                            Refresh
-                        </Button>
+                            spin={loading}
+                        />
                     </div>
-                </div>
-
-                {/* Table Content */}
+                </>
+            }
+            footer={loading ? null : <TablePager controls={pager} noun="record" />}
+        >
                 {loading ? (
                     <div className="p-6">
                         <TableSkeleton rows={10} cols={columns.length} />
                     </div>
+                ) : pager.matched === 0 ? (
+                    <div className="py-20 px-6 text-center">
+                        <Inbox size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No records found</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            There are no {title.toLowerCase()} to display at this time.
+                        </p>
+                    </div>
                 ) : (
-                    <>
-                    <TableToolbar controls={pager} placeholder={`Search ${title.toLowerCase()}…`} />
-                    <div className="table-premium-wrapper">
-                        <table className="table-premium">
-                            <thead>
-                                <tr>
-                                    {columns.map((col, i) => (
-                                        <th key={i}>{col.label}</th>
+                    <table className="w-full text-left text-sm">
+                        <thead className={LIST_THEAD}>
+                            <tr>
+                                {columns.map((col, i) => (
+                                    <th key={i} className={`${LIST_TH} ${i === 0 ? LIST_EDGE_FIRST : ''} ${i === columns.length - 1 ? LIST_EDGE_LAST : ''}`}>{col.label}</th>
+                                ))}
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                            {pager.view.map((row, i) => (
+                                <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                                    {columns.map((col, j) => (
+                                        <td key={j} className={`py-3 text-slate-600 dark:text-slate-300 ${j === 0 ? LIST_EDGE_FIRST : 'pl-4'} ${j === columns.length - 1 ? LIST_EDGE_LAST : 'pr-4'}`}>
+                                            {renderCell(col, row, j)}
+                                        </td>
                                     ))}
                                 </tr>
-                            </thead>
-                            <tbody>
-                                {pager.matched === 0 ? (
-                                    <tr>
-                                        <td colSpan={columns.length}>
-                                            <div className="table-empty-state">
-                                                <div className="table-empty-icon">
-                                                    <Inbox size={40} />
-                                                </div>
-                                                <div className="table-empty-title">No records found</div>
-                                                <div className="table-empty-description">
-                                                    There are no {title.toLowerCase()} to display at this time.
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    pager.view.map((row, i) => (
-                                        <tr key={i}>
-                                            {columns.map((col, j) => (
-                                                <td key={j}>
-                                                    {renderCell(col, row, j)}
-                                                </td>
-                                            ))}
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                    <TablePager controls={pager} noun="record" />
-                    </>
+                            ))}
+                        </tbody>
+                    </table>
                 )}
-            </div>
-        </div>
+        </ListPage>
     );
 };
 
@@ -292,14 +258,10 @@ export default function Devices() {
     };
 
     const [selectedDevices, setSelectedDevices] = useState([]);
-    const [showTransferMenu, setShowTransferMenu] = useState(false);
-    const [showSyncAllMenu, setShowSyncAllMenu] = useState(false);
     const [syncingAll, setSyncingAll] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
     const [confirmation, setConfirmation] = useState({ show: false, action: null, title: '', message: '', target: null });
     const socketRef = useRef(null);
-    const syncAllMenuRef = useRef(null);
-    const transferMenuRef = useRef(null);
 
     // Toast notification state
     const [toast, setToast] = useState(null);
@@ -323,22 +285,6 @@ export default function Devices() {
         is_attendance_device: true, connection_interval: 10, device_direction: 'both', enable_access_control: false
     };
     const [form, setForm] = useState(defaultForm);
-
-    // Close dropdowns when clicking outside
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            // Check if click is outside dropdown containers
-            if (syncAllMenuRef.current && !syncAllMenuRef.current.contains(event.target)) {
-                setShowSyncAllMenu(false);
-            }
-            if (transferMenuRef.current && !transferMenuRef.current.contains(event.target)) {
-                setShowTransferMenu(false);
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
 
     useEffect(() => {
         if (activeView === 'devices') {
@@ -487,7 +433,6 @@ export default function Devices() {
     // Sync All Devices Handler
     const syncAllDevices = async (action) => {
         setSyncingAll(true);
-        setShowSyncAllMenu(false);
         try {
             const endpointMap = {
                 'upload-users': '/api/devices/sync/all/upload-users',
@@ -528,6 +473,69 @@ export default function Devices() {
         switch (activeView) {
             case 'devices':
                 return (
+                    <ListPage
+                        title="Connected Devices"
+                        count={devices.length}
+                        actions={
+                            <>
+                                <ListMenu
+                                    label={syncingAll ? 'Syncing…' : 'Sync All Devices'}
+                                    icon={syncingAll ? RefreshCw : Upload}
+                                    width="w-72"
+                                    emptyHint={syncingAll ? 'A sync is already running.' : null}
+                                >
+                                    <ListMenuItem onClick={() => syncAllDevices('upload-users')}>Push Users to All Devices</ListMenuItem>
+                                    <ListMenuItem onClick={() => syncAllDevices('download-users')}>Pull Users from All Devices</ListMenuItem>
+                                    <ListMenuItem onClick={() => syncAllDevices('upload-biometrics')}>Push Biometrics to All Devices</ListMenuItem>
+                                    <ListMenuItem onClick={() => syncAllDevices('download-biometrics')}>Pull Biometrics from All Devices</ListMenuItem>
+                                    <ListMenuItem onClick={() => syncAllDevices('download-logs')}>Pull Logs from All Devices</ListMenuItem>
+                                </ListMenu>
+                                <Button mutating variant="primary" size="toolbar" icon={Plus} onClick={() => setShowModal(true)}>
+                                    Add Device
+                                </Button>
+                            </>
+                        }
+                        toolbarActive={selectedDevices.length > 0}
+                        toolbar={
+                            <>
+                                <ListSelection count={selectedDevices.length} onClear={() => setSelectedDevices([])} />
+                                <div className="ml-auto flex items-center gap-2 flex-wrap">
+                                    <ListMenu
+                                        label="Selected Devices"
+                                        width="w-64"
+                                        emptyHint={selectedDevices.length ? null : 'Tick one or more devices first.'}
+                                    >
+                                        {['download-users', 'download-logs', 'upload-users', 'reboot'].map(action => (
+                                            <ListMenuItem key={action} onClick={() => initiateDataTransfer(action)}>
+                                                <span className="capitalize">{action.replace('-', ' ')}</span>
+                                            </ListMenuItem>
+                                        ))}
+                                    </ListMenu>
+                                    <ListIconButton
+                                        label="Refresh"
+                                        icon={RefreshCw}
+                                        onClick={async (e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            setRefreshing(true);
+                                            try {
+                                                await Promise.all([fetchDevices(), fetchAreas()]);
+                                                showToast('Devices refreshed successfully', 'success');
+                                            } catch (err) {
+                                                console.error('Refresh error:', err);
+                                                showToast('Failed to refresh devices', 'error');
+                                            } finally {
+                                                setRefreshing(false);
+                                            }
+                                        }}
+                                        disabled={refreshing}
+                                        spin={refreshing}
+                                    />
+                                </div>
+                            </>
+                        }
+                        bodyClassName="p-4 sm:p-6"
+                    >
                     <div className="space-y-6">
                         {awaitingApproval.length > 0 && (
                             <div className="card-base !p-4 border-l-4 border-rose-500 flex items-start gap-3">
@@ -547,164 +555,6 @@ export default function Devices() {
                                 </div>
                             </div>
                         )}
-                        <PageHeader
-                            icon={TabletSmartphone}
-                            title="Connected Devices"
-                            actions={(
-                                <>
-                                <Button
-                                    variant="secondary"
-                                    type="button"
-                                    onClick={async (e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        setRefreshing(true);
-                                        try {
-                                            await Promise.all([fetchDevices(), fetchAreas()]);
-                                            showToast('Devices refreshed successfully', 'success');
-                                        } catch (err) {
-                                            console.error('Refresh error:', err);
-                                            showToast('Failed to refresh devices', 'error');
-                                        } finally {
-                                            setRefreshing(false);
-                                        }
-                                    }}
-                                    disabled={refreshing}
-                                >
-                                    <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} /> Refresh
-                                </Button>
-
-                                {/* Sync All Devices Button */}
-                                <div className="relative" ref={syncAllMenuRef}>
-                                    <Button
-                                        variant="success"
-                                        type="button"
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-                                            setShowSyncAllMenu(!showSyncAllMenu);
-                                            setShowTransferMenu(false);
-                                        }}
-                                        disabled={syncingAll}
-                                    >
-                                        {syncingAll ? <RefreshCw size={16} className="animate-spin" /> : <Upload size={16} />}
-                                        Sync All Devices
-                                        <ChevronDown size={14} className={`transition-transform duration-200 ${showSyncAllMenu ? 'rotate-180' : ''}`} />
-                                    </Button>
-                                    {showSyncAllMenu && (
-                                        <>
-                                            <div className="fixed inset-0 z-10" onClick={() => setShowSyncAllMenu(false)}></div>
-                                            <div className="absolute right-0 mt-2 w-72 bg-app-surface border border-slate-100 dark:border-slate-700 shadow-xl rounded-xl z-20 overflow-hidden">
-                                                <button
-                                                    type="button"
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
-                                                        e.stopPropagation();
-                                                        syncAllDevices('upload-users');
-                                                    }}
-                                                    className="flex items-center gap-3 w-full text-left px-4 py-3 hover:bg-green-50 dark:hover:bg-slate-700 text-sm text-slate-grey dark:text-slate-400 hover:text-charcoal dark:hover:text-slate-100 border-b border-slate-50 dark:border-slate-700"
-                                                >
-                                                    <Upload size={16} className="text-green-600" />
-                                                    Push Users to All Devices
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
-                                                        e.stopPropagation();
-                                                        syncAllDevices('download-users');
-                                                    }}
-                                                    className="flex items-center gap-3 w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 text-sm text-slate-grey dark:text-slate-400 hover:text-charcoal dark:hover:text-slate-100 border-b border-slate-50 dark:border-slate-700"
-                                                >
-                                                    <Download size={16} className="text-slate-600" />
-                                                    Pull Users from All Devices
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
-                                                        e.stopPropagation();
-                                                        syncAllDevices('upload-biometrics');
-                                                    }}
-                                                    className="flex items-center gap-3 w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 text-sm text-slate-grey dark:text-slate-400 hover:text-charcoal dark:hover:text-slate-100 border-b border-slate-50 dark:border-slate-700"
-                                                >
-                                                    <Fingerprint size={16} className="text-slate-600" />
-                                                    Push Biometrics to All Devices
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
-                                                        e.stopPropagation();
-                                                        syncAllDevices('download-biometrics');
-                                                    }}
-                                                    className="flex items-center gap-3 w-full text-left px-4 py-3 hover:bg-pink-50 dark:hover:bg-slate-700 text-sm text-slate-grey dark:text-slate-400 hover:text-charcoal dark:hover:text-slate-100 border-b border-slate-50 dark:border-slate-700"
-                                                >
-                                                    <Fingerprint size={16} className="text-pink-600" />
-                                                    Pull Biometrics from All Devices
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
-                                                        e.stopPropagation();
-                                                        syncAllDevices('download-logs');
-                                                    }}
-                                                    className="flex items-center gap-3 w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 text-sm text-slate-grey dark:text-slate-400 hover:text-charcoal dark:hover:text-slate-100"
-                                                >
-                                                    <Clock size={16} className="text-slate-600" />
-                                                    Pull Logs from All Devices
-                                                </button>
-                                            </div>
-                                        </>
-                                    )}
-                                </div>
-
-                                {/* Per-Device Data Transfer */}
-                                <div className="relative" ref={transferMenuRef}>
-                                    <Button
-                                        variant="secondary"
-                                        type="button"
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-                                            setShowTransferMenu(!showTransferMenu);
-                                            setShowSyncAllMenu(false);
-                                        }}
-                                    >
-                                        Selected Devices <ChevronDown size={14} className={`transition-transform duration-200 ${showTransferMenu ? 'rotate-180' : ''}`} />
-                                    </Button>
-                                    {showTransferMenu && (
-                                        <>
-                                            <div className="fixed inset-0 z-10" onClick={() => setShowTransferMenu(false)}></div>
-                                            <div className="absolute right-0 mt-2 w-64 bg-app-surface border border-slate-100 dark:border-slate-700 shadow-xl rounded-xl z-20 overflow-hidden">
-                                                <div className="px-4 py-2 bg-slate-50 dark:bg-slate-900/50 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Selected: {selectedDevices.length} device(s)</div>
-                                                {['download-users', 'download-logs', 'upload-users', 'reboot'].map(action => (
-                                                    <button
-                                                        key={action}
-                                                        type="button"
-                                                        onClick={(e) => {
-                                                            e.preventDefault();
-                                                            e.stopPropagation();
-                                                            initiateDataTransfer(action);
-                                                            setShowTransferMenu(false);
-                                                        }}
-                                                        className="block w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 text-sm text-slate-grey dark:text-slate-400 hover:text-charcoal dark:hover:text-slate-100 capitalize border-b border-slate-50 dark:border-slate-700 last:border-0"
-                                                    >
-                                                        {action.replace('-', ' ')}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </>
-                                    )}
-                                </div>
-                                <Button variant="successSolid" icon={Plus} onClick={() => setShowModal(true)}>
-                                    Add Device
-                                </Button>
-                                </>
-                            )}
-                        />
-
                         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
                             {devices.map(device => {
                                 const isOnline = device.status === 'online';
@@ -869,7 +719,8 @@ export default function Devices() {
                                 );
                             })}
                         </div>
-                    </div >
+                    </div>
+                    </ListPage>
                 );
 
             case 'transaction':

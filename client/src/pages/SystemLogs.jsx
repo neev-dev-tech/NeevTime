@@ -4,16 +4,15 @@ import {
     Activity, RefreshCw, Filter, Download, User,
     Database, Users, ChevronDown, Monitor, AlertCircle
 } from 'lucide-react';
-import { Button, PageHeader } from '../components';
+import { Button, ListPage, ListSearch, ListIconButton, LIST_THEAD, LIST_TH, LIST_EDGE_FIRST, LIST_EDGE_LAST } from '../components';
 import { formatDate, toLocalDateString, formatDateTime, formatTime } from '../utils/dateFormat';
 import useTableControls from '../hooks/useTableControls';
-import { TablePager, TableToolbar } from '../components/TableControls';
+import { TablePager } from '../components/TableControls';
 
 const BADGE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide';
 const CELL_MONO = 'font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold';
 const CELL_STRONG = 'font-semibold text-slate-800 dark:text-slate-100';
 const CELL_SOFT = 'text-slate-600 dark:text-slate-300';
-const FIELD = 'w-full text-sm rounded-lg px-3 py-1.5 border border-slate-200 dark:border-slate-600 bg-app-surface text-slate-700 dark:text-slate-100 focus:outline-none focus:border-slate-400 dark:focus:border-slate-500';
 
 const dash = (v) => (v === null || v === undefined || v === '' ? '—' : v);
 
@@ -129,133 +128,122 @@ export default function SystemLogs() {
     ];
 
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            <PageHeader
-                icon={Activity}
-                title="System Logs"
-                subtitle="Audit trail of every action taken in the system"
-                actions={(
-                    <>
-                        <Button
-                            variant="secondary"
-                            icon={Filter}
-                            onClick={() => setShowFilters(!showFilters)}
-                            className={showFilters ? 'ring-2 ring-slate-400 ring-offset-1 dark:ring-offset-slate-900' : ''}
-                        >
-                            Filters
-                            <ChevronDown size={14} className={`transition-transform ${showFilters ? 'rotate-180' : ''}`} />
-                        </Button>
-                        <Button variant="secondary" icon={Download} onClick={exportLogs}>
-                            Export
-                        </Button>
-                        <Button variant="primary" onClick={fetchLogs}>
-                            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-                            Refresh
-                        </Button>
-                    </>
-                )}
-            />
-
-            {/* KPI Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {KPIS.map(kpi => {
-                    const Icon = kpi.icon;
-                    return (
-                        <div
-                            key={kpi.label}
-                            className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-app-surface/70 dark:bg-slate-800/70 p-4 shadow-sm flex items-center gap-3"
-                        >
-                            <div className={`w-10 h-10 shrink-0 rounded-xl grid place-items-center ${kpi.ring} ${kpi.tint}`}>
-                                <Icon size={18} />
-                            </div>
-                            <div className="min-w-0">
-                                <div className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">
-                                    {kpi.label}
-                                </div>
-                                <div className="text-2xl font-bold tabular-nums text-slate-800 dark:text-slate-100">{kpi.value}</div>
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
-
-            <div className="card-base !p-0 overflow-hidden">
-                {/* Filter Panel */}
-                {showFilters && (
-                    <div className="bg-slate-50/70 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700 p-4 animate-in fade-in slide-in-from-top-2">
-                        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                            <div>
-                                <label className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-1 block">Action</label>
-                                <select
-                                    className={FIELD}
-                                    value={filters.action}
-                                    onChange={e => setFilters({ ...filters, action: e.target.value })}
-                                >
-                                    <option value="">All Actions</option>
-                                    {uniqueActions.map(a => <option key={a} value={a}>{a}</option>)}
-                                </select>
-                            </div>
-                            <div>
-                                <label className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-1 block">Entity</label>
-                                <select
-                                    className={FIELD}
-                                    value={filters.entity_type}
-                                    onChange={e => setFilters({ ...filters, entity_type: e.target.value })}
-                                >
-                                    <option value="">All Entities</option>
-                                    {uniqueEntities.map(e => <option key={e} value={e}>{e}</option>)}
-                                </select>
-                            </div>
-                            <div>
-                                <label className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-1 block">User</label>
-                                <select
-                                    className={FIELD}
-                                    value={filters.user_id}
-                                    onChange={e => setFilters({ ...filters, user_id: e.target.value })}
-                                >
-                                    <option value="">All Users</option>
-                                    {uniqueUsers.map(u => <option key={u} value={u}>{u}</option>)}
-                                </select>
-                            </div>
-                            <div>
-                                <label className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-1 block">From Date</label>
-                                <input
-                                    type="date"
-                                    className={FIELD}
-                                    value={filters.dateFrom}
-                                    onChange={e => setFilters({ ...filters, dateFrom: e.target.value })}
-                                />
-                            </div>
-                            <div>
-                                <label className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400 mb-1 block">To Date</label>
-                                <input
-                                    type="date"
-                                    className={FIELD}
-                                    value={filters.dateTo}
-                                    onChange={e => setFilters({ ...filters, dateTo: e.target.value })}
-                                />
-                            </div>
-                        </div>
+        <>
+        <ListPage
+            title="System Logs"
+            count={logs.length}
+            actions={(
+                <Button variant="tonal" size="toolbar" icon={Download} onClick={exportLogs}>
+                    Export
+                </Button>
+            )}
+            toolbar={(
+                <>
+                    <ListSearch label="Search system logs" placeholder="Search by user, action, entity or IP…" value={pager.query} onChange={pager.setQuery} />
+                    <Button
+                        variant="tonal"
+                        size="toolbar"
+                        icon={Filter}
+                        aria-expanded={showFilters}
+                        onClick={() => setShowFilters(!showFilters)}
+                        className={showFilters || hasActiveFilters ? 'ring-2 ring-slate-400 ring-offset-1 dark:ring-offset-slate-900' : ''}
+                    >
+                        Filters
+                        <ChevronDown size={13} className={`transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+                    </Button>
+                    {showFilters && (
+                        <>
+                            <select
+                                className="field-sm !h-8 !py-0 w-auto"
+                                aria-label="Action"
+                                value={filters.action}
+                                onChange={e => setFilters({ ...filters, action: e.target.value })}
+                            >
+                                <option value="">All Actions</option>
+                                {uniqueActions.map(a => <option key={a} value={a}>{a}</option>)}
+                            </select>
+                            <select
+                                className="field-sm !h-8 !py-0 w-auto"
+                                aria-label="Entity"
+                                value={filters.entity_type}
+                                onChange={e => setFilters({ ...filters, entity_type: e.target.value })}
+                            >
+                                <option value="">All Entities</option>
+                                {uniqueEntities.map(e => <option key={e} value={e}>{e}</option>)}
+                            </select>
+                            <select
+                                className="field-sm !h-8 !py-0 w-auto"
+                                aria-label="User"
+                                value={filters.user_id}
+                                onChange={e => setFilters({ ...filters, user_id: e.target.value })}
+                            >
+                                <option value="">All Users</option>
+                                {uniqueUsers.map(u => <option key={u} value={u}>{u}</option>)}
+                            </select>
+                            <label className="text-xs text-slate-500 dark:text-slate-400">From</label>
+                            <input
+                                type="date"
+                                aria-label="From Date"
+                                className="field-sm !h-8 !py-0 w-auto"
+                                value={filters.dateFrom}
+                                onChange={e => setFilters({ ...filters, dateFrom: e.target.value })}
+                            />
+                            <label className="text-xs text-slate-500 dark:text-slate-400">to</label>
+                            <input
+                                type="date"
+                                aria-label="To Date"
+                                className="field-sm !h-8 !py-0 w-auto"
+                                value={filters.dateTo}
+                                onChange={e => setFilters({ ...filters, dateTo: e.target.value })}
+                            />
+                        </>
+                    )}
+                    <div className="ml-auto flex items-center gap-2">
+                        <ListIconButton label="Refresh" icon={RefreshCw} onClick={fetchLogs} disabled={loading} spin={loading} />
                     </div>
-                )}
+                </>
+            )}
+            footer={!loading && !error && filteredLogs.length > 0 ? <TablePager controls={pager} noun="log" /> : null}
+        >
+                {/* KPI strip */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 px-4 sm:px-6 py-4 border-b border-slate-200 dark:border-slate-800">
+                    {KPIS.map(kpi => {
+                        const Icon = kpi.icon;
+                        return (
+                            <div
+                                key={kpi.label}
+                                className="rounded-xl border border-slate-200 dark:border-slate-700 bg-app-surface p-3 flex items-center gap-3"
+                            >
+                                <div className={`w-9 h-9 shrink-0 rounded-lg grid place-items-center ${kpi.ring} ${kpi.tint}`}>
+                                    <Icon size={16} />
+                                </div>
+                                <div className="min-w-0">
+                                    <div className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">
+                                        {kpi.label}
+                                    </div>
+                                    <div className="text-xl font-bold tabular-nums text-slate-800 dark:text-slate-100">{kpi.value}</div>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
 
                 {/* Table */}
                 {loading ? (
-                    <div className="p-6 space-y-3">
+                    <div className="px-4 sm:px-6 py-6 space-y-3">
                         {Array.from({ length: 8 }).map((_, i) => (
                             <div key={i} className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
                         ))}
                     </div>
                 ) : error ? (
-                    <div className="py-16 text-center">
+                    <div className="py-20 text-center px-6">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load system logs</h3>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchLogs}>Try again</Button>
                     </div>
                 ) : filteredLogs.length === 0 ? (
-                    <div className="py-16 text-center">
+                    <div className="py-20 text-center px-6">
                         <Activity size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">
                             {hasActiveFilters ? 'No logs match these filters' : 'No system logs yet'}
@@ -267,26 +255,23 @@ export default function SystemLogs() {
                         </p>
                     </div>
                 ) : (
-                    <>
-                    <TableToolbar controls={pager} placeholder="Search by user, action, entity or IP…" />
-                    <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
-                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
+                            <thead className={LIST_THEAD}>
                                 <tr>
-                                    <th className="px-5 py-3 font-semibold w-12">#</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Result</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Action</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Entity</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">User</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">IP Address</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Time</th>
+                                    <th className={`${LIST_TH} ${LIST_EDGE_FIRST} w-12`}>#</th>
+                                    <th className={LIST_TH}>Result</th>
+                                    <th className={LIST_TH}>Action</th>
+                                    <th className={LIST_TH}>Entity</th>
+                                    <th className={LIST_TH}>User</th>
+                                    <th className={LIST_TH}>IP Address</th>
+                                    <th className={`${LIST_TH} ${LIST_EDGE_LAST}`}>Time</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                                 {pager.view.map((log, idx) => (
-                                    <tr key={log.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
-                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{(pager.page - 1) * pager.pageSize + idx + 1}</td>
-                                        <td className="px-5 py-3">
+                                    <tr key={log.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                                        <td className={`${LIST_EDGE_FIRST} pr-4 py-3 text-slate-400 dark:text-slate-500 tabular-nums`}>{(pager.page - 1) * pager.pageSize + idx + 1}</td>
+                                        <td className="px-4 py-3">
                                             <div className="flex items-center gap-2">
                                                 <div className="p-1.5 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700">
                                                     <Monitor size={14} className="text-slate-500 dark:text-slate-400" />
@@ -294,12 +279,12 @@ export default function SystemLogs() {
                                                 <span className={CELL_SOFT}>Success</span>
                                             </div>
                                         </td>
-                                        <td className="px-5 py-3">
+                                        <td className="px-4 py-3">
                                             <span className={`${BADGE} ${getActionStyle(log.action)}`}>
                                                 {dash(log.action)}
                                             </span>
                                         </td>
-                                        <td className="px-5 py-3">
+                                        <td className="px-4 py-3">
                                             <div className="flex flex-col">
                                                 <span className={CELL_STRONG}>{dash(log.entity_type)}</span>
                                                 {log.entity_id && (
@@ -309,7 +294,7 @@ export default function SystemLogs() {
                                                 )}
                                             </div>
                                         </td>
-                                        <td className="px-5 py-3">
+                                        <td className="px-4 py-3">
                                             <div className="flex items-center gap-2.5 min-w-0">
                                                 <span
                                                     aria-hidden="true"
@@ -320,10 +305,10 @@ export default function SystemLogs() {
                                                 <span className={`${CELL_STRONG} truncate`}>{dash(log.username)}</span>
                                             </div>
                                         </td>
-                                        <td className="px-5 py-3">
+                                        <td className="px-4 py-3">
                                             <span className={CELL_MONO}>{dash(log.ip_address)}</span>
                                         </td>
-                                        <td className="px-5 py-3">
+                                        <td className={`pl-4 ${LIST_EDGE_LAST} py-3`}>
                                             <div className="flex flex-col">
                                                 <span className={CELL_STRONG}>
                                                     {formatDate(log.created_at)}
@@ -337,14 +322,8 @@ export default function SystemLogs() {
                                 ))}
                             </tbody>
                         </table>
-                    </div>
-                    </>
                 )}
-
-                {!loading && !error && filteredLogs.length > 0 && (
-                    <TablePager controls={pager} noun="log" />
-                )}
-            </div>
-        </div>
+        </ListPage>
+        </>
     );
 }

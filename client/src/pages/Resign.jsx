@@ -1,11 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api';
-import {
-    UserMinus, Plus, Trash2, Upload, ChevronDown, ChevronLeft, ChevronRight,
-    RefreshCw, Search, RotateCcw, BellOff, Download, AlertCircle
-} from 'lucide-react';
+import { UserMinus, Plus, Trash2, RefreshCw, RotateCcw, BellOff, Download, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useToast, Button, PageHeader } from '../components';
+import { useToast, Button, ListPage, ListSearch, ListSelection, ListIconButton, LIST_THEAD, LIST_TH, LIST_EDGE_FIRST, LIST_EDGE_LAST } from '../components';
 import Modal from '../components/Modal';
 import { formatDate, toLocalDateString } from '../utils/dateFormat';
 
@@ -245,67 +242,74 @@ export default function Resign() {
     const attendanceOptions = ['Disable', 'Enable', 'Keep Current'];
 
     // Pagination
-    const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
-    const paginatedItems = filteredItems.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+    const totalPages = Math.max(1, Math.ceil(filteredItems.length / itemsPerPage));
+    // Narrowing the search can leave the current page past the end.
+    const safePage = Math.min(currentPage, totalPages);
+    const paginatedItems = filteredItems.slice((safePage - 1) * itemsPerPage, safePage * itemsPerPage);
 
     return (
-        <div className="flex flex-col h-[calc(100vh-120px)]">
-            <PageHeader
-                icon={UserMinus}
-                title="Resignations"
-                subtitle="Resigned and terminated employees"
-            />
-            <div className="flex flex-col flex-1 card-base overflow-hidden relative">
-            {/* Toolbar */}
-            <div className="flex items-center gap-3 p-4 border-b border-slate-100 dark:border-slate-700 bg-app-surface text-sm flex-wrap">
-                <Button variant="successSolid" icon={Plus} onClick={() => { resetForm(); setShowModal(true); }}>
-                    Add Resignation
-                </Button>
-
-                <div className="h-8 w-px bg-slate-200 dark:bg-slate-700 mx-2 hidden md:block"></div>
-
-                <Button variant="danger" icon={Trash2} onClick={handleDelete}>
-                    Delete
-                </Button>
-
-                <Button variant="secondary" icon={RotateCcw} onClick={handleRehire}>
-                    Rehire
-                </Button>
-
-                <Button
-                    variant="secondary"
-                    icon={RefreshCw}
-                    onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        fetchData();
-                    }}
-                >
-                    Refresh
-                </Button>
-
-                <Button variant="secondary" icon={Download} onClick={handleExport}>
-                    Export
-                </Button>
-
-                <Button variant="secondary" icon={BellOff} onClick={handleDisableAttendance}>
-                    Disable Attendance
-                </Button>
-
-                <div className="ml-auto w-72 relative">
-                    <input
-                        type="text"
-                        placeholder="Search resigned employees..."
-                        value={searchQuery}
-                        onChange={e => setSearchQuery(e.target.value)}
-                        className="input-base pl-10 py-2 text-sm"
-                    />
-                    <Search size={16} className="absolute left-3.5 top-2.5 text-slate-grey dark:text-slate-400" />
+        <>
+        <ListPage
+            title="Resignations"
+            count={resignations.length}
+            actions={
+                <>
+                    <Button variant="tonal" size="toolbar" icon={Download} onClick={handleExport}>
+                        Export
+                    </Button>
+                    <Button mutating variant="primary" size="toolbar" icon={Plus} onClick={() => { resetForm(); setShowModal(true); }}>
+                        Add Resignation
+                    </Button>
+                </>
+            }
+            toolbarActive={selectedIds.length > 0}
+            toolbar={
+                <>
+                    <ListSearch label="Search resigned employees" placeholder="Search resigned employees..." value={searchQuery} onChange={setSearchQuery} />
+                    <ListSelection count={selectedIds.length} onClear={() => setSelectedIds([])} />
+                    <div className="ml-auto flex items-center gap-2 flex-wrap">
+                        <Button variant="tonal" size="toolbar" icon={BellOff} onClick={handleDisableAttendance}>
+                            Disable Attendance
+                        </Button>
+                        <Button variant="tonal" size="toolbar" icon={RotateCcw} onClick={handleRehire}>
+                            Rehire
+                        </Button>
+                        <Button variant="danger" size="toolbar" icon={Trash2} onClick={handleDelete}>
+                            Delete
+                        </Button>
+                        <ListIconButton
+                            label="Refresh"
+                            icon={RefreshCw}
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                fetchData();
+                            }}
+                            disabled={loading}
+                            spin={loading}
+                        />
+                    </div>
+                </>
+            }
+            footer={
+                // Pages were computed but there was no way to move between them,
+                // so only the first 50 resignations could ever be seen.
+                <div className="flex items-center justify-between gap-3 px-4 sm:px-6 py-2.5">
+                    <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">
+                        {filteredItems.length === 0
+                            ? 'No records'
+                            : `${(safePage - 1) * itemsPerPage + 1}–${Math.min(safePage * itemsPerPage, filteredItems.length)} of ${filteredItems.length}`}
+                    </span>
+                    {totalPages > 1 && (
+                        <div className="flex items-center gap-1">
+                            <ListIconButton label="Previous page" icon={ChevronLeft} onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={safePage === 1} />
+                            <span className="text-xs text-slate-600 dark:text-slate-300 tabular-nums px-1">{safePage} / {totalPages}</span>
+                            <ListIconButton label="Next page" icon={ChevronRight} onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={safePage === totalPages} />
+                        </div>
+                    )}
                 </div>
-            </div>
-
-            {/* Table */}
-            <div className="flex-1 overflow-auto bg-app-surface custom-scrollbar">
+            }
+        >
                 {loading ? (
                     <div className="p-6 space-y-3">
                         {Array.from({ length: 8 }).map((_, i) => (
@@ -313,14 +317,14 @@ export default function Resign() {
                         ))}
                     </div>
                 ) : error ? (
-                    <div className="py-16 text-center">
+                    <div className="py-20 text-center px-6">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load resignations</h3>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchData}>Try again</Button>
                     </div>
                 ) : paginatedItems.length === 0 ? (
-                    <div className="py-16 text-center">
+                    <div className="py-20 text-center px-6">
                         <UserMinus size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">
                             {searchQuery ? 'No matching records' : 'No resignations recorded'}
@@ -333,9 +337,9 @@ export default function Resign() {
                     </div>
                 ) : (
                 <table className="w-full text-left text-sm border-collapse">
-                    <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400 sticky top-0 z-10 border-b border-slate-100 dark:border-slate-700">
+                    <thead className={LIST_THEAD}>
                         <tr>
-                            <th className="px-5 py-3 w-12 text-center">
+                            <th className={`${LIST_TH} ${LIST_EDGE_FIRST} w-12`}>
                                 <input
                                     type="checkbox"
                                     className="rounded border-slate-300 dark:border-slate-700 text-saffron focus:ring-saffron"
@@ -343,18 +347,18 @@ export default function Resign() {
                                     onChange={toggleSelectAll}
                                 />
                             </th>
-                            <th className="px-5 py-3 font-semibold whitespace-nowrap">Employee Id</th>
-                            <th className="px-5 py-3 font-semibold whitespace-nowrap">Full Name</th>
-                            <th className="px-5 py-3 font-semibold whitespace-nowrap">Department</th>
-                            <th className="px-5 py-3 font-semibold whitespace-nowrap">Position</th>
-                            <th className="px-5 py-3 font-semibold whitespace-nowrap">Area Name</th>
-                            <th className="px-5 py-3 font-semibold whitespace-nowrap">Resign Type</th>
+                            <th className={LIST_TH}>Employee Id</th>
+                            <th className={LIST_TH}>Full Name</th>
+                            <th className={LIST_TH}>Department</th>
+                            <th className={LIST_TH}>Position</th>
+                            <th className={LIST_TH}>Area Name</th>
+                            <th className={`${LIST_TH} ${LIST_EDGE_LAST}`}>Resign Type</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                         {paginatedItems.map(emp => (
-                            <tr key={emp.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors group">
-                                <td className="px-5 py-3 text-center">
+                            <tr key={emp.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors group">
+                                <td className={`${LIST_EDGE_FIRST} pr-4 py-3`}>
                                     <input
                                         type="checkbox"
                                         className="rounded border-slate-300 dark:border-slate-700 text-saffron focus:ring-saffron"
@@ -362,12 +366,12 @@ export default function Resign() {
                                         onChange={() => toggleSelect(emp.id)}
                                     />
                                 </td>
-                                <td className="px-5 py-3 font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">{emp.employee_code || '—'}</td>
-                                <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100">{emp.name} {emp.last_name || ''}</td>
-                                <td className="px-5 py-3 text-slate-600 dark:text-slate-300">{emp.department_name || '—'}</td>
-                                <td className="px-5 py-3 text-slate-600 dark:text-slate-300">{emp.position_name || emp.designation || '—'}</td>
-                                <td className="px-5 py-3 text-slate-600 dark:text-slate-300">{emp.area_name || '—'}</td>
-                                <td className="px-5 py-3">
+                                <td className="px-4 py-3 font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">{emp.employee_code || '—'}</td>
+                                <td className="px-4 py-3 font-semibold text-slate-800 dark:text-slate-100">{emp.name} {emp.last_name || ''}</td>
+                                <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{emp.department_name || '—'}</td>
+                                <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{emp.position_name || emp.designation || '—'}</td>
+                                <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{emp.area_name || '—'}</td>
+                                <td className={`pl-4 ${LIST_EDGE_LAST} py-3`}>
                                     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide border ${emp.resignation_type === 'Dismissed' ? 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-900/30 dark:text-rose-300 dark:border-rose-800' :
                                         emp.resignation_type === 'Transfer' ? 'bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-900/30 dark:text-slate-300 dark:border-slate-800' :
                                             'bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-900/30 dark:text-slate-300 dark:border-slate-800'
@@ -380,27 +384,7 @@ export default function Resign() {
                     </tbody>
                 </table>
                 )}
-            </div>
-
-            {/* Pagination Component */}
-            {/* Pagination Component */}
-            <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between text-sm text-slate-500 dark:text-slate-400 bg-slate-50/70 dark:bg-slate-900/50">
-                {/* Left Side: Total Records */}
-                <div className="flex items-center gap-4">
-                    <span className="text-xs font-medium text-slate-500 dark:text-slate-400 bg-app-surface border border-slate-200 dark:border-slate-700 px-3 py-1 rounded-full shadow-sm">
-                        Total Records: <span className="text-slate-800 dark:text-slate-100 font-bold ml-1 tabular-nums">{filteredItems.length}</span>
-                    </span>
-                </div>
-
-                {/* Right Side: Selected Count */}
-                <div className="flex items-center gap-4">
-                    {selectedIds.length > 0 && (
-                        <span className="text-xs font-medium text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800 px-3 py-1 rounded-full shadow-sm">
-                            Selected: <span className="font-bold ml-1 tabular-nums">{selectedIds.length}</span>
-                        </span>
-                    )}
-                </div>
-            </div>
+        </ListPage>
 
             {/* Resignation Modal */}
             <Modal
@@ -522,7 +506,6 @@ export default function Resign() {
                 </div>
                 </div>
             </Modal>
-            </div>
-        </div>
+        </>
     );
 }

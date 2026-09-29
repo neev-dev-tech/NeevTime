@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
-import { Clock, Plus, Edit2, Trash2, Save, CalendarDays, Coffee, Moon, Sun, Check, AlertCircle, RefreshCw } from 'lucide-react';
-import { useToast, Button, PageHeader, ExportMenu } from '../components';
+import { Plus, Edit2, Trash2, Save, CalendarDays, Coffee, Moon, Sun, AlertCircle, RefreshCw } from 'lucide-react';
+import { useToast, Button, ExportMenu, ListPage } from '../components';
 import Modal from '../components/Modal';
 import { confirm } from '../components/ConfirmDialog';
 
@@ -160,12 +160,11 @@ export default function Timetable() {
     };
 
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            <PageHeader
-                icon={CalendarDays}
+        <>
+            <ListPage
                 title="Timetables"
-                subtitle="Check-in and check-out windows, grace periods, and breaks"
+                count={timetables.length}
+                bodyClassName="p-4 sm:p-6"
                 actions={
                     <>
                         <ExportMenu
@@ -187,29 +186,25 @@ export default function Timetable() {
                                 check_out: t.check_out?.substring(0, 5) || ''
                             })}
                         />
-                        <Button variant="successSolid" icon={Plus} onClick={() => setShowModal(true)}>Add Timetable</Button>
+                        <Button mutating variant="primary" size="toolbar" icon={Plus} onClick={() => setShowModal(true)}>Add Timetable</Button>
                     </>
                 }
-            />
-
-            {/* Timetable Grid */}
-            {loading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {Array.from({ length: 6 }).map((_, i) => (
-                        <div key={i} className="h-64 rounded-2xl bg-slate-100 dark:bg-slate-700 animate-pulse" />
-                    ))}
-                </div>
-            ) : error ? (
-                <div className="card-base !p-0 overflow-hidden">
+            >
+                {/* Timetable Grid */}
+                {loading ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {Array.from({ length: 6 }).map((_, i) => (
+                            <div key={i} className="h-64 rounded-2xl bg-slate-100 dark:bg-slate-700 animate-pulse" />
+                        ))}
+                    </div>
+                ) : error ? (
                     <div className="py-16 text-center">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load timetables</h3>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchTimetables}>Try again</Button>
                     </div>
-                </div>
-            ) : timetables.length === 0 ? (
-                <div className="card-base !p-0 overflow-hidden">
+                ) : timetables.length === 0 ? (
                     <div className="py-16 text-center">
                         <CalendarDays size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No timetables yet</h3>
@@ -217,9 +212,7 @@ export default function Timetable() {
                             A timetable sets the check-in and check-out times a shift is measured against.
                         </p>
                     </div>
-                </div>
-            ) : (
-                <div className="space-y-4">
+                ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {timetables.map(tt => (
                             <div
@@ -319,11 +312,8 @@ export default function Timetable() {
                             </div>
                         ))}
                     </div>
-                    <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
-                        {timetables.length} timetable{timetables.length === 1 ? '' : 's'}
-                    </div>
-                </div>
-            )}
+                )}
+            </ListPage>
 
             {/* Add/Edit Timetable Modal */}
             <Modal
@@ -569,6 +559,6 @@ export default function Timetable() {
                     </form>
                 </Modal>
             )}
-        </div>
+        </>
     );
 }

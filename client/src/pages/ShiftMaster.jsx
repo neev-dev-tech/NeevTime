@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api';
 import { Plus, Edit2, Trash2, Clock, Sun, Moon, AlertCircle, RefreshCw } from 'lucide-react';
-import { useToast, Button, PageHeader, ExportMenu } from '../components';
+import { useToast, Button, ExportMenu, ListPage } from '../components';
 import Modal from '../components/Modal';
 import { confirm } from '../components/ConfirmDialog';
 
@@ -72,11 +72,10 @@ export default function ShiftMaster() {
     };
 
     return (
-        <div className="space-y-6">
-            <PageHeader
-                icon={Clock}
+        <>
+            <ListPage
                 title="Shifts"
-                subtitle="Working-hour patterns employees and departments can be assigned to"
+                count={shifts.length}
                 actions={
                     <>
                         <ExportMenu
@@ -100,28 +99,25 @@ export default function ShiftMaster() {
                                 is_night_shift: s.is_night_shift ? 'Yes' : 'No'
                             })}
                         />
-                        <Button variant="successSolid" icon={Plus} onClick={() => { setEditingShift(null); setShowModal(true); }}>Add Shift</Button>
+                        <Button mutating variant="primary" size="toolbar" icon={Plus} onClick={() => { setEditingShift(null); setShowModal(true); }}>Add Shift</Button>
                     </>
                 }
-            />
-
-            {loading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {Array.from({ length: 6 }).map((_, i) => (
-                        <div key={i} className="h-44 rounded-2xl bg-slate-100 dark:bg-slate-700 animate-pulse" />
-                    ))}
-                </div>
-            ) : error ? (
-                <div className="card-base !p-0 overflow-hidden">
+                bodyClassName="p-4 sm:p-6"
+            >
+                {loading ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {Array.from({ length: 6 }).map((_, i) => (
+                            <div key={i} className="h-44 rounded-2xl bg-slate-100 dark:bg-slate-700 animate-pulse" />
+                        ))}
+                    </div>
+                ) : error ? (
                     <div className="py-16 text-center">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load shifts</h3>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchShifts}>Try again</Button>
                     </div>
-                </div>
-            ) : shifts.length === 0 ? (
-                <div className="card-base !p-0 overflow-hidden">
+                ) : shifts.length === 0 ? (
                     <div className="py-16 text-center">
                         <Clock size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No shifts yet</h3>
@@ -129,9 +125,7 @@ export default function ShiftMaster() {
                             A shift defines the start and end of a working day before schedules can use it.
                         </p>
                     </div>
-                </div>
-            ) : (
-                <div className="space-y-4">
+                ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {shifts.map(shift => (
                             <div key={shift.id} className="bg-app-surface/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 hover:-translate-y-0.5 transition-transform">
@@ -188,11 +182,8 @@ export default function ShiftMaster() {
                             </div>
                         ))}
                     </div>
-                    <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
-                        {shifts.length} shift{shifts.length === 1 ? '' : 's'}
-                    </div>
-                </div>
-            )}
+                )}
+            </ListPage>
 
             <Modal
                 open={showModal}
@@ -251,6 +242,6 @@ export default function ShiftMaster() {
                     </div>
                 </form>
             </Modal>
-        </div>
+        </>
     );
 }

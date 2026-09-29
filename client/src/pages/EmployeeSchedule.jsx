@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import api from '../api';
-import { UserCheck, Plus, Edit2, Trash2, Save, Users, Search, Filter, AlertCircle, RefreshCw } from 'lucide-react';
-import { useToast, Button, PageHeader, ExportMenu } from '../components';
+import { UserCheck, Plus, Edit2, Trash2, Save, Users, AlertCircle, RefreshCw } from 'lucide-react';
+import {
+    useToast, Button, ExportMenu, ListPage, ListSearch,
+    LIST_THEAD, LIST_TH, LIST_EDGE_FIRST, LIST_EDGE_LAST
+} from '../components';
 import Modal from '../components/Modal';
 import { toLocalDateString, toDateOnly } from '../utils/dateFormat';
 import { confirm } from '../components/ConfirmDialog';
@@ -187,14 +190,10 @@ export default function EmployeeSchedule({ temporary = false }) {
     const pager = useTableControls(filteredSchedules, { pageSize: 50 });
 
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            <PageHeader
-                icon={UserCheck}
+        <>
+            <ListPage
                 title={temporary ? 'Temporary Schedule' : 'Employee Schedule'}
-                subtitle={temporary
-                    ? 'Short-term shift overrides that end on a set date'
-                    : 'Per-employee shift assignments and temporary overrides'}
+                count={temporary ? schedules.filter(s => s.is_temporary).length : schedules.length}
                 actions={
                     <>
                         <ExportMenu
@@ -218,60 +217,47 @@ export default function EmployeeSchedule({ temporary = false }) {
                                 is_temporary: s.is_temporary ? 'Temporary' : 'Regular'
                             })}
                         />
-                        <Button variant="secondary" icon={Users} onClick={() => setShowBulkModal(true)}>
+                        <Button variant="tonal" size="toolbar" icon={Users} onClick={() => setShowBulkModal(true)}>
                             Bulk Assign
                         </Button>
-                        <Button variant="successSolid" icon={Plus} onClick={() => setShowModal(true)}>
+                        <Button mutating variant="primary" size="toolbar" icon={Plus} onClick={() => setShowModal(true)}>
                             Assign Schedule
                         </Button>
                     </>
                 }
-            />
-
-            {/* Filters */}
-            <div className="flex gap-3 flex-wrap">
-                <div className="flex-1 min-w-[200px] relative">
-                    <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500" />
-                    <input
-                        type="text"
-                        placeholder="Search employee..."
-                        value={searchTerm}
-                        onChange={e => setSearchTerm(e.target.value)}
-                        className="field pl-9 pr-3"
-                    />
-                </div>
-                <div className="relative">
-                    <Filter size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 pointer-events-none" />
-                    <select
-                        value={filterDepartment}
-                        onChange={e => setFilterDepartment(e.target.value)}
-                        className="field pl-9 pr-3"
-                    >
-                        <option value="">All Departments</option>
-                        {departments.map(d => (
-                            <option key={d.id} value={d.name}>{d.name}</option>
-                        ))}
-                    </select>
-                </div>
-            </div>
-
-            {/* Schedules Table */}
-            <div className="card-base !p-0 overflow-hidden">
+                toolbar={
+                    <>
+                        <ListSearch label="Search employee" placeholder="Search employee…" value={searchTerm} onChange={setSearchTerm} />
+                        <select
+                            value={filterDepartment}
+                            onChange={e => setFilterDepartment(e.target.value)}
+                            className="field-sm !h-8 !py-0 w-auto"
+                            aria-label="Filter by department"
+                        >
+                            <option value="">All Departments</option>
+                            {departments.map(d => (
+                                <option key={d.id} value={d.name}>{d.name}</option>
+                            ))}
+                        </select>
+                    </>
+                }
+                footer={!loading && !error && filteredSchedules.length > 0 ? <TablePager controls={pager} noun="schedule" /> : null}
+            >
                 {loading ? (
-                    <div className="p-6 space-y-3">
+                    <div className="p-4 sm:p-6 space-y-3">
                         {Array.from({ length: 6 }).map((_, i) => (
                             <div key={i} className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
                         ))}
                     </div>
                 ) : error ? (
-                    <div className="py-16 text-center">
+                    <div className="py-20 text-center px-6">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load schedules</h3>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchData}>Try again</Button>
                     </div>
                 ) : filteredSchedules.length === 0 ? (
-                    <div className="py-16 text-center">
+                    <div className="py-20 text-center px-6">
                         <UserCheck size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">
                             {searchTerm || filterDepartment ? 'No matching schedules' : 'No employee schedules yet'}
@@ -283,70 +269,64 @@ export default function EmployeeSchedule({ temporary = false }) {
                         </p>
                     </div>
                 ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm text-left">
-                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
-                                <tr>
-                                    <th className="px-5 py-3 font-semibold w-12">#</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Employee</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Department</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Shift</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Effective Period</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Type</th>
-                                    <th className="px-5 py-3 font-semibold text-right whitespace-nowrap">Actions</th>
+                    <table className="w-full text-sm text-left">
+                        <thead className={LIST_THEAD}>
+                            <tr>
+                                <th className={`${LIST_TH} ${LIST_EDGE_FIRST} w-12`}>#</th>
+                                <th className={LIST_TH}>Employee</th>
+                                <th className={LIST_TH}>Department</th>
+                                <th className={LIST_TH}>Shift</th>
+                                <th className={LIST_TH}>Effective Period</th>
+                                <th className={LIST_TH}>Type</th>
+                                <th className={`${LIST_TH} !text-right ${LIST_EDGE_LAST}`}>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                            {pager.view.map((schedule, idx) => (
+                                <tr key={schedule.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                                    <td className={`${LIST_EDGE_FIRST} pr-4 py-3 text-slate-400 dark:text-slate-500 tabular-nums align-top`}>{(pager.page - 1) * pager.pageSize + idx + 1}</td>
+                                    <td className="px-4 py-3">
+                                        <div className="font-semibold text-slate-800 dark:text-slate-100">{schedule.employee_name || '—'}</div>
+                                        <div className="font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">
+                                            {schedule.employee_code || '—'}
+                                        </div>
+                                    </td>
+                                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
+                                        {schedule.department_name || '—'}
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        {(schedule.shift_name || schedule.timetable_name) ? (
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300">
+                                                {schedule.shift_name || schedule.timetable_name}
+                                            </span>
+                                        ) : (
+                                            <span className="text-slate-600 dark:text-slate-300">—</span>
+                                        )}
+                                    </td>
+                                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300 tabular-nums whitespace-nowrap">
+                                        {toDateOnly(schedule.effective_from) || '—'} → {toDateOnly(schedule.effective_to) || 'Ongoing'}
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        {schedule.is_temporary ? (
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">Temporary</span>
+                                        ) : (
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">Regular</span>
+                                        )}
+                                    </td>
+                                    <td className={`pl-4 ${LIST_EDGE_LAST} py-3`}>
+                                        <div className="flex items-center justify-end">
+                                            <div className="dv-quiet">
+                                                <Button variant="ghost" size="sm" icon={Edit2} iconSize={16} onClick={() => openEdit(schedule)} aria-label="Edit schedule" />
+                                                <Button variant="danger" size="sm" icon={Trash2} iconSize={16} onClick={() => handleDelete(schedule.id)} aria-label="Delete schedule" />
+                                            </div>
+                                        </div>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                {pager.view.map((schedule, idx) => (
-                                    <tr key={schedule.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
-                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums align-top">{(pager.page - 1) * pager.pageSize + idx + 1}</td>
-                                        <td className="px-5 py-3">
-                                            <div className="font-semibold text-slate-800 dark:text-slate-100">{schedule.employee_name || '—'}</div>
-                                            <div className="font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">
-                                                {schedule.employee_code || '—'}
-                                            </div>
-                                        </td>
-                                        <td className="px-5 py-3 text-slate-600 dark:text-slate-300">
-                                            {schedule.department_name || '—'}
-                                        </td>
-                                        <td className="px-5 py-3">
-                                            {(schedule.shift_name || schedule.timetable_name) ? (
-                                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300">
-                                                    {schedule.shift_name || schedule.timetable_name}
-                                                </span>
-                                            ) : (
-                                                <span className="text-slate-600 dark:text-slate-300">—</span>
-                                            )}
-                                        </td>
-                                        <td className="px-5 py-3 text-slate-600 dark:text-slate-300 tabular-nums whitespace-nowrap">
-                                            {toDateOnly(schedule.effective_from) || '—'} → {toDateOnly(schedule.effective_to) || 'Ongoing'}
-                                        </td>
-                                        <td className="px-5 py-3">
-                                            {schedule.is_temporary ? (
-                                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">Temporary</span>
-                                            ) : (
-                                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">Regular</span>
-                                            )}
-                                        </td>
-                                        <td className="px-5 py-3">
-                                            <div className="flex items-center justify-end">
-                                                <div className="dv-quiet">
-                                                    <Button variant="ghost" size="sm" icon={Edit2} iconSize={16} onClick={() => openEdit(schedule)} aria-label="Edit schedule" />
-                                                    <Button variant="danger" size="sm" icon={Trash2} iconSize={16} onClick={() => handleDelete(schedule.id)} aria-label="Delete schedule" />
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                            ))}
+                        </tbody>
+                    </table>
                 )}
-
-                {!loading && !error && filteredSchedules.length > 0 && (
-                    <TablePager controls={pager} noun="schedule" />
-                )}
-            </div>
+            </ListPage>
 
             {/* Individual Schedule Modal */}
             <Modal
@@ -547,7 +527,7 @@ export default function EmployeeSchedule({ temporary = false }) {
                     </form>
                 </div>
             </Modal>
-        </div>
+        </>
     );
 }
 

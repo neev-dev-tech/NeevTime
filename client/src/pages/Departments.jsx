@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import api from '../api';
 import Modal from '../components/Modal';
-import { Building2, Plus, Trash2, Edit2, Search, RefreshCw, Save, Download, Upload, AlertCircle, CheckCircle, UserCheck } from 'lucide-react';
-import { useToast, Button, PageHeader, ExportMenu } from '../components';
+import { Building2, Plus, Trash2, Edit2, RefreshCw, Save, Download, Upload, AlertCircle, CheckCircle, UserCheck } from 'lucide-react';
+import { useToast, Button, ExportMenu, ListPage, ListSearch, ListSelection, ListIconButton, LIST_THEAD, LIST_TH, LIST_EDGE_FIRST, LIST_EDGE_LAST } from '../components';
 import { toLocalDateString } from '../utils/dateFormat';
 import useTableControls from '../hooks/useTableControls';
 import { TablePager } from '../components/TableControls';
@@ -228,65 +228,49 @@ export default function Departments() {
     const pager = useTableControls(filteredDepartments, { pageSize: 50 });
 
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            <PageHeader
-                icon={Building2}
-                title="Departments"
-                subtitle="Organisational units employees are grouped under"
-                actions={
-                    <Button
-                        variant="successSolid"
+        <>
+        <ListPage
+            title="Departments"
+            count={departments.length}
+            actions={
+                <>
+                    <Button variant="tonal" size="toolbar" icon={Upload} onClick={() => setShowImportModal(true)}>
+                        Import
+                    </Button>
+                    <ExportMenu
+                        rows={departments}
+                        columns={[
+                            { key: 'id', label: 'ID' },
+                            { key: 'name', label: 'Department Name' }
+                        ]}
+                        filename={`departments_${toLocalDateString()}`}
+                        title="Departments"
+                    />
+                    <Button mutating
+                        variant="primary"
+                        size="toolbar"
                         icon={Plus}
                         onClick={() => { setShowModal(true); setEditingId(null); setName(''); }}
                     >
                         Add Department
                     </Button>
-                }
-            />
-
-            {/* Toolbar */}
-            <div className="flex items-center gap-2 p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-app-surface/70 dark:bg-slate-800/70 text-sm flex-wrap">
-                <Button variant="danger" icon={Trash2} onClick={handleBulkDelete}>
-                    Delete
-                </Button>
-                <Button variant="secondary" icon={RefreshCw} onClick={fetchDepartments}>
-                    Refresh
-                </Button>
-
-                {/* Separator */}
-                <div className="w-px h-6 bg-slate-300 dark:bg-slate-700 mx-1" />
-
-                {/* Export Buttons */}
-                <ExportMenu
-                    rows={departments}
-                    columns={[
-                        { key: 'id', label: 'ID' },
-                        { key: 'name', label: 'Department Name' }
-                    ]}
-                    filename={`departments_${toLocalDateString()}`}
-                    title="Departments"
-                />
-
-                {/* Import Button */}
-                <Button variant="secondary" icon={Upload} onClick={() => setShowImportModal(true)}>
-                    Import
-                </Button>
-
-                <div className="ml-auto w-64 relative">
-                    <input
-                        type="text"
-                        placeholder="Search departments..."
-                        value={searchQuery}
-                        onChange={e => setSearchQuery(e.target.value)}
-                        className="field-sm pl-8 pr-3"
-                    />
-                    <Search size={14} className="absolute left-2.5 top-2 text-slate-400 dark:text-slate-500" />
-                </div>
-            </div>
-
-            {/* Table */}
-            <div className="card-base !p-0 overflow-hidden">
+                </>
+            }
+            toolbarActive={selectedIds.length > 0}
+            toolbar={
+                <>
+                    <ListSearch label="Search departments" placeholder="Search departments..." value={searchQuery} onChange={setSearchQuery} />
+                    <ListSelection count={selectedIds.length} onClear={() => setSelectedIds([])} />
+                    <div className="ml-auto flex items-center gap-2 flex-wrap">
+                        <Button variant="danger" size="toolbar" icon={Trash2} onClick={handleBulkDelete}>
+                            Delete
+                        </Button>
+                        <ListIconButton label="Refresh" icon={RefreshCw} onClick={fetchDepartments} disabled={loading} spin={loading} />
+                    </div>
+                </>
+            }
+            footer={!loading && !error && filteredDepartments.length > 0 ? <TablePager controls={pager} noun="department" /> : null}
+        >
                 {loading ? (
                     <div className="p-6 space-y-3">
                         {Array.from({ length: 8 }).map((_, i) => (
@@ -294,14 +278,14 @@ export default function Departments() {
                         ))}
                     </div>
                 ) : error ? (
-                    <div className="py-16 text-center">
+                    <div className="py-20 text-center px-6">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load departments</h3>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchDepartments}>Try again</Button>
                     </div>
                 ) : filteredDepartments.length === 0 ? (
-                    <div className="py-16 text-center">
+                    <div className="py-20 text-center px-6">
                         <Building2 size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">
                             {searchQuery ? 'No matching departments' : 'No departments yet'}
@@ -313,43 +297,42 @@ export default function Departments() {
                         </p>
                     </div>
                 ) : (
-                    <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
-                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
+                            <thead className={LIST_THEAD}>
                                 <tr>
-                                    <th className="px-5 py-3 font-semibold w-10">
+                                    <th className={`${LIST_TH} ${LIST_EDGE_FIRST} w-10`}>
                                         <input
                                             type="checkbox"
                                             onChange={(e) => setSelectedIds(e.target.checked ? filteredDepartments.map(d => d.id) : [])}
                                             checked={filteredDepartments.length > 0 && selectedIds.length === filteredDepartments.length}
                                         />
                                     </th>
-                                    <th className="px-5 py-3 font-semibold w-12">#</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">ID</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Department Name</th>
-                                    <th className="px-5 py-3 font-semibold text-right whitespace-nowrap">Actions</th>
+                                    <th className={`${LIST_TH} w-12`}>#</th>
+                                    <th className={LIST_TH}>ID</th>
+                                    <th className={LIST_TH}>Department Name</th>
+                                    <th className={`${LIST_TH} ${LIST_EDGE_LAST} text-right`}>Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                                 {pager.view.map((dept, idx) => (
-                                    <tr key={dept.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
-                                        <td className="px-5 py-3">
+                                    <tr key={dept.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                                        <td className={`${LIST_EDGE_FIRST} pr-4 py-3`}>
                                             <input
                                                 type="checkbox"
                                                 checked={selectedIds.includes(dept.id)}
                                                 onChange={() => toggleSelect(dept.id)}
                                             />
                                         </td>
-                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{(pager.page - 1) * pager.pageSize + idx + 1}</td>
-                                        <td className="px-5 py-3">
+                                        <td className="px-4 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{(pager.page - 1) * pager.pageSize + idx + 1}</td>
+                                        <td className="px-4 py-3">
                                             <span className="font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">
                                                 {dept.id ?? '—'}
                                             </span>
                                         </td>
-                                        <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100">
+                                        <td className="px-4 py-3 font-semibold text-slate-800 dark:text-slate-100">
                                             {dept.name || '—'}
                                         </td>
-                                        <td className="px-5 py-3">
+                                        <td className={`pl-4 ${LIST_EDGE_LAST} py-3`}>
                                             <div className="flex items-center justify-end">
                                                 <div className="dv-quiet">
                                                     <Button
@@ -381,13 +364,8 @@ export default function Departments() {
                                 ))}
                             </tbody>
                         </table>
-                    </div>
                 )}
-
-                {!loading && !error && filteredDepartments.length > 0 && (
-                    <TablePager controls={pager} noun="department" />
-                )}
-            </div>
+        </ListPage>
 
             {/* Add/Edit Modal */}
             <Modal
@@ -559,6 +537,6 @@ export default function Departments() {
                     </div>
                 </Modal>
             )}
-        </div>
+        </>
     );
 }

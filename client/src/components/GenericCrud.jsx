@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api';
 import Modal from './Modal';
-import { Plus, Trash2, Edit } from 'lucide-react';
+import { Plus, Trash2, Edit, RefreshCw } from 'lucide-react';
 import { useToast } from './Toast';
 import Button from './ui/Button';
 import useTableControls from '../hooks/useTableControls';
-import { TableToolbar, TablePager } from './TableControls';
+import { TablePager } from './TableControls';
+import ListPage, { ListSearch, ListIconButton, LIST_THEAD, LIST_TH, LIST_EDGE_FIRST, LIST_EDGE_LAST } from './ui/ListPage';
 
-export default function GenericCrud({ title, endpoint, columns, icon: Icon }) {
+export default function GenericCrud({ title, endpoint, columns }) {
     const toast = useToast();
     const [items, setItems] = useState([]);
     const [showModal, setShowModal] = useState(false);
@@ -73,45 +74,58 @@ export default function GenericCrud({ title, endpoint, columns, icon: Icon }) {
     };
 
     return (
-        <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <h2 className="text-xl font-bold text-charcoal dark:text-slate-100 flex items-center gap-2">
-                    {Icon && <Icon className="text-saffron" />} {title}
-                </h2>
-                <Button variant="successSolid" icon={Plus} onClick={() => setShowModal(true)}>
+        <>
+        <ListPage
+            title={title}
+            count={items.length}
+            actions={
+                <Button mutating variant="primary" size="toolbar" icon={Plus} onClick={() => setShowModal(true)}>
                     Add {title}
                 </Button>
-            </div>
-
-            <div className="card-base overflow-hidden">
-                <TableToolbar controls={pager} placeholder={`Search ${title.toLowerCase()}…`} />
-                <table className="w-full text-left">
-                    <thead className="bg-slate-50/50 dark:bg-slate-900/20 border-b border-slate-100 dark:border-slate-800">
+            }
+            toolbar={
+                <>
+                    <ListSearch label={`Search ${title.toLowerCase()}`} placeholder={`Search ${title.toLowerCase()}…`} value={pager.query} onChange={pager.setQuery} />
+                    {pager.isFiltered && (
+                        <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums whitespace-nowrap">
+                            {pager.matched} of {pager.total}
+                        </span>
+                    )}
+                    <div className="ml-auto flex items-center gap-2">
+                        <ListIconButton label="Refresh" icon={RefreshCw} onClick={fetchItems} />
+                    </div>
+                </>
+            }
+            footer={<TablePager controls={pager} noun="record" />}
+        >
+                <table className="w-full text-left text-sm">
+                    <thead className={LIST_THEAD}>
                         <tr>
-                            <th className="px-6 py-4 font-semibold text-charcoal dark:text-slate-100 text-sm">ID</th>
-                            {columns.map(col => <th key={col.key} className="px-6 py-4 font-semibold text-charcoal dark:text-slate-100 capitalize text-sm">{col.label}</th>)}
-                            <th className="px-6 py-4 font-semibold text-charcoal dark:text-slate-100 text-right text-sm">Actions</th>
+                            <th className={`${LIST_TH} ${LIST_EDGE_FIRST}`}>ID</th>
+                            {columns.map(col => <th key={col.key} className={LIST_TH}>{col.label}</th>)}
+                            <th className={`${LIST_TH} ${LIST_EDGE_LAST} !text-right`}>Actions</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                         {pager.view.map((item) => (
-                            <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
-                                <td className="px-6 py-4 text-slate-grey dark:text-slate-400 text-sm font-medium">#{item.id}</td>
+                            <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                                <td className={`${LIST_EDGE_FIRST} pr-4 py-3 text-slate-grey dark:text-slate-400 text-sm font-medium`}>#{item.id}</td>
                                 {columns.map(col => (
-                                    <td key={col.key} className="px-6 py-4 text-slate-grey dark:text-slate-400 text-sm">
+                                    <td key={col.key} className="px-4 py-3 text-slate-grey dark:text-slate-400 text-sm">
                                         {item[col.key] || '-'}
                                     </td>
                                 ))}
-                                <td className="px-6 py-4 text-right flex justify-end gap-2">
-                                    <button onClick={() => handleEdit(item)} className="text-saffron hover:bg-slate-50 dark:hover:bg-slate-900/30 p-2 rounded-full transition-colors"><Edit size={18} /></button>
-                                    <button onClick={() => confirmDelete(item.id)} className="text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 p-2 rounded-full transition-colors"><Trash2 size={18} /></button>
+                                <td className={`pl-4 ${LIST_EDGE_LAST} py-3 text-right`}>
+                                    <div className="flex justify-end gap-2">
+                                        <button onClick={() => handleEdit(item)} className="text-saffron hover:bg-slate-50 dark:hover:bg-slate-900/30 p-2 rounded-full transition-colors"><Edit size={18} /></button>
+                                        <button onClick={() => confirmDelete(item.id)} className="text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 p-2 rounded-full transition-colors"><Trash2 size={18} /></button>
+                                    </div>
                                 </td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
-                <TablePager controls={pager} noun="record" />
-            </div>
+        </ListPage>
 
             {/* Edit/Add Modal */}
             <Modal
@@ -165,6 +179,6 @@ export default function GenericCrud({ title, endpoint, columns, icon: Icon }) {
                     </p>
                 </div>
             </Modal>
-        </div>
+        </>
     );
 }

@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Trash2, RotateCcw, RefreshCw, AlertCircle } from 'lucide-react';
 import api from '../api';
-import { useToast, Button, PageHeader } from '../components';
+import { useToast, Button, ListPage, ListSearch, ListSelection, ListIconButton, LIST_THEAD, LIST_TH, LIST_EDGE_FIRST, LIST_EDGE_LAST } from '../components';
 import Modal from '../components/Modal';
 import useTableControls from '../hooks/useTableControls';
-import { TableToolbar, SortableTh, TablePager } from '../components/TableControls';
+import { SortableTh, TablePager } from '../components/TableControls';
 import { formatDateTime } from '../utils/dateFormat';
 
 /**
@@ -68,29 +68,31 @@ export default function DeletedEmployees() {
     const when = (v) => v ? formatDateTime(v) : '—';
 
     return (
-        <div className="space-y-6">
-            <PageHeader
-                icon={Trash2}
-                title="Deleted Employees"
-                subtitle="Removed from the active list. Their attendance history is kept and they can be restored."
-                actions={
-                    <>
-                        <Button variant="secondary" icon={RefreshCw} onClick={fetchDeleted}>Refresh</Button>
+        <>
+        <ListPage
+            title="Deleted Employees"
+            count={rows.length}
+            toolbarActive={selectedIds.length > 0}
+            toolbar={
+                <>
+                    <ListSearch label="Search deleted employees" placeholder="Search deleted employees…" value={controls.query} onChange={controls.setQuery} />
+                    <ListSelection count={selectedIds.length} onClear={() => setSelectedIds([])} />
+                    <div className="ml-auto flex items-center gap-2 flex-wrap">
                         <Button
                             variant="primary"
+                            size="toolbar"
                             icon={RotateCcw}
                             disabled={selectedIds.length === 0}
                             onClick={() => setConfirmRestore(true)}
                         >
                             Restore{selectedIds.length ? ` (${selectedIds.length})` : ''}
                         </Button>
-                    </>
-                }
-            />
-
-            <div className="card-base p-0 overflow-hidden">
-                <TableToolbar controls={controls} placeholder="Search deleted employees…" />
-
+                        <ListIconButton label="Refresh" icon={RefreshCw} onClick={fetchDeleted} disabled={loading} spin={loading} />
+                    </div>
+                </>
+            }
+            footer={!loading && !error && controls.matched > 0 ? <TablePager controls={controls} noun="deleted employee" /> : null}
+        >
                 {loading ? (
                     <div className="p-5 space-y-2" aria-busy="true">
                         {Array.from({ length: 5 }).map((_, i) => (
@@ -98,14 +100,14 @@ export default function DeletedEmployees() {
                         ))}
                     </div>
                 ) : error ? (
-                    <div className="py-16 text-center">
+                    <div className="py-20 text-center px-6">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load deleted employees</h3>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchDeleted}>Try again</Button>
                     </div>
                 ) : controls.matched === 0 ? (
-                    <div className="py-16 text-center">
+                    <div className="py-20 text-center px-6">
                         <Trash2 size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">
                             {controls.isFiltered ? 'No matching records' : 'Nothing deleted'}
@@ -117,23 +119,21 @@ export default function DeletedEmployees() {
                         </p>
                     </div>
                 ) : (
-                    <>
-                        <div className="overflow-x-auto">
                             <table className="w-full text-left text-sm border-collapse">
-                                <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-700">
+                                <thead className={LIST_THEAD}>
                                     <tr>
-                                        <th className="px-5 py-3 w-10"></th>
-                                        <SortableTh controls={controls} sortKey="employee_code">Employee ID</SortableTh>
-                                        <SortableTh controls={controls} sortKey="name">Full Name</SortableTh>
-                                        <SortableTh controls={controls} sortKey="department_name">Department</SortableTh>
-                                        <SortableTh controls={controls} sortKey="designation">Designation</SortableTh>
-                                        <SortableTh controls={controls} sortKey="deleted_at">Deleted</SortableTh>
+                                        <th className={`${LIST_TH} ${LIST_EDGE_FIRST} w-10`}></th>
+                                        <SortableTh controls={controls} sortKey="employee_code" className={`${LIST_TH} !px-4`}>Employee ID</SortableTh>
+                                        <SortableTh controls={controls} sortKey="name" className={`${LIST_TH} !px-4`}>Full Name</SortableTh>
+                                        <SortableTh controls={controls} sortKey="department_name" className={`${LIST_TH} !px-4`}>Department</SortableTh>
+                                        <SortableTh controls={controls} sortKey="designation" className={`${LIST_TH} !px-4`}>Designation</SortableTh>
+                                        <SortableTh controls={controls} sortKey="deleted_at" className={`${LIST_TH} !pl-4 !pr-4 sm:!pr-6`}>Deleted</SortableTh>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                                     {controls.view.map(emp => (
-                                        <tr key={emp.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/40">
-                                            <td className="px-5 py-3">
+                                        <tr key={emp.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                                            <td className={`${LIST_EDGE_FIRST} pr-4 py-3`}>
                                                 <input
                                                     type="checkbox"
                                                     className="w-4 h-4"
@@ -142,24 +142,21 @@ export default function DeletedEmployees() {
                                                     aria-label={`Select ${emp.name || emp.employee_code}`}
                                                 />
                                             </td>
-                                            <td className="px-5 py-3 font-mono text-xs text-slate-600 dark:text-slate-400">
+                                            <td className="px-4 py-3 font-mono text-xs text-slate-600 dark:text-slate-400">
                                                 {emp.employee_code}
                                             </td>
-                                            <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100">
+                                            <td className="px-4 py-3 font-semibold text-slate-800 dark:text-slate-100">
                                                 {emp.name || '—'}
                                             </td>
-                                            <td className="px-5 py-3 text-slate-600 dark:text-slate-300">{emp.department_name || '—'}</td>
-                                            <td className="px-5 py-3 text-slate-600 dark:text-slate-300">{emp.designation || '—'}</td>
-                                            <td className="px-5 py-3 text-slate-500 dark:text-slate-400 tabular-nums">{when(emp.deleted_at)}</td>
+                                            <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{emp.department_name || '—'}</td>
+                                            <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{emp.designation || '—'}</td>
+                                            <td className={`pl-4 ${LIST_EDGE_LAST} py-3 text-slate-500 dark:text-slate-400 tabular-nums`}>{when(emp.deleted_at)}</td>
                                         </tr>
                                     ))}
                                 </tbody>
                             </table>
-                        </div>
-                        <TablePager controls={controls} noun="deleted employee" />
-                    </>
                 )}
-            </div>
+        </ListPage>
 
             <Modal
                 open={confirmRestore}
@@ -180,6 +177,6 @@ export default function DeletedEmployees() {
                     enrol again before they can open a door.
                 </p>
             </Modal>
-        </div>
+        </>
     );
 }

@@ -1,8 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import api from '../api';
-import { Calendar, Plus, Check, X, Search, RefreshCw, ChevronDown, AlertCircle } from 'lucide-react';
-import { useToast, Button, PageHeader, ExportMenu } from '../components';
+import { Calendar, Plus, Check, X, RefreshCw, AlertCircle } from 'lucide-react';
+import {
+    useToast, Button, ExportMenu,
+    ListPage, ListTabs, ListSearch, ListSelection, ListIconButton,
+    LIST_THEAD, LIST_TH, LIST_EDGE_FIRST, LIST_EDGE_LAST
+} from '../components';
 import Modal from '../components/Modal';
 import { formatDate } from '../utils/dateFormat';
 import useTableControls from '../hooks/useTableControls';
@@ -161,12 +165,48 @@ export default function LeaveApplications() {
 
     const isFiltered = Boolean(searchQuery) || statusFilter !== 'All';
 
+    const tableHead = (
+        <thead className={LIST_THEAD}>
+            <tr>
+                <th className={`${LIST_EDGE_FIRST} pr-2 py-3 w-10`}>
+                    <input
+                        type="checkbox"
+                        aria-label="Select all pending"
+                        checked={allPendingSelected}
+                        disabled={pendingVisible.length === 0}
+                        onChange={toggleAll}
+                        className="rounded border-slate-300"
+                    />
+                </th>
+                <th className={`${LIST_TH} w-12`}>#</th>
+                <th className={LIST_TH}>Employee</th>
+                <th className={LIST_TH}>Leave Type</th>
+                <th className={LIST_TH}>From</th>
+                <th className={LIST_TH}>To</th>
+                <th className={LIST_TH}>Days</th>
+                <th className={LIST_TH}>Status</th>
+                <th className={`${LIST_TH} !text-right ${LIST_EDGE_LAST}`}>Actions</th>
+            </tr>
+        </thead>
+    );
+
     return (
-        <div className="space-y-6">
-            <PageHeader
-                icon={Calendar}
+        <>
+            <ListPage
                 title="Leave Applications"
-                subtitle="Apply and review employee leave requests"
+                count={applications.length}
+                tabs={
+                    <ListTabs
+                        label="Filter by status"
+                        value={statusFilter}
+                        onChange={setStatusFilter}
+                        items={STATUSES.map(s => ({
+                            key: s,
+                            label: s,
+                            count: s === 'All' ? applications.length : applications.filter(a => a.status === s).length
+                        }))}
+                    />
+                }
                 actions={
                     <>
                         <ExportMenu
@@ -180,67 +220,42 @@ export default function LeaveApplications() {
                                 to_date: formatDate(app.to_date)
                             })}
                         />
-                        <Button variant="secondary" icon={RefreshCw} onClick={fetchData}>Refresh</Button>
-                        <Button variant="successSolid" icon={Plus} onClick={() => setShowApply(true)}>Apply Leave</Button>
+                        <Button mutating variant="primary" size="toolbar" icon={Plus} onClick={() => setShowApply(true)}>Apply Leave</Button>
                     </>
                 }
-            />
-
-            {/* Toolbar */}
-            <div className="flex items-center gap-2 p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-app-surface/70 dark:bg-slate-800/70 text-sm flex-wrap">
-                <div className="relative">
-                    <select
-                        value={statusFilter}
-                        onChange={e => setStatusFilter(e.target.value)}
-                        className="field-sm appearance-none pl-3 pr-8 font-semibold cursor-pointer"
-                    >
-                        <option value="All">All Status</option>
-                        <option value="Pending">Pending</option>
-                        <option value="Approved">Approved</option>
-                        <option value="Rejected">Rejected</option>
-                    </select>
-                    <ChevronDown size={14} className="absolute right-2.5 top-2.5 text-slate-400 dark:text-slate-500 pointer-events-none" />
-                </div>
-
-                {selected.size > 0 && (
-                    <div className="flex items-center gap-2">
-                        <span className="text-xs font-medium text-slate-600 dark:text-slate-300 tabular-nums">{selected.size} selected</span>
-                        <Button variant="success" size="sm" icon={Check} onClick={() => openReview([...selected], 'Approved')}>Approve</Button>
-                        <Button variant="danger" size="sm" icon={X} onClick={() => openReview([...selected], 'Rejected')}>Reject</Button>
-                        <Button variant="ghost" size="sm" onClick={() => setSelected(new Set())}>Clear</Button>
-                    </div>
-                )}
-
-                <div className="ml-auto w-full sm:w-64 relative">
-                    <input
-                        type="text"
-                        aria-label="Search employee"
-                        placeholder="Search employee..."
-                        value={searchQuery}
-                        onChange={e => setSearchQuery(e.target.value)}
-                        className="field-sm pl-8 pr-3"
-                    />
-                    <Search size={14} className="absolute left-2.5 top-2 text-slate-400 dark:text-slate-500" />
-                </div>
-            </div>
-
-            {/* Applications Table */}
-            <div className="card-base !p-0 overflow-hidden">
+                toolbarActive={selected.size > 0}
+                toolbar={
+                    <>
+                        <ListSearch label="Search employee" placeholder="Search employee…" value={searchQuery} onChange={setSearchQuery} />
+                        <ListSelection count={selected.size} onClear={() => setSelected(new Set())} />
+                        <div className="ml-auto flex items-center gap-2 flex-wrap">
+                            {selected.size > 0 && (
+                                <>
+                                    <Button variant="success" size="toolbar" icon={Check} onClick={() => openReview([...selected], 'Approved')}>Approve</Button>
+                                    <Button variant="danger" size="toolbar" icon={X} onClick={() => openReview([...selected], 'Rejected')}>Reject</Button>
+                                </>
+                            )}
+                            <ListIconButton label="Refresh" icon={RefreshCw} onClick={fetchData} disabled={loading} spin={loading} />
+                        </div>
+                    </>
+                }
+                footer={!loading && !error && filteredApps.length > 0 ? <TablePager controls={pager} noun="record" /> : null}
+            >
                 {loading ? (
-                    <div className="p-6 space-y-3">
+                    <div className="p-4 sm:p-6 space-y-3">
                         {Array.from({ length: 8 }).map((_, i) => (
                             <div key={i} className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
                         ))}
                     </div>
                 ) : error ? (
-                    <div className="py-16 text-center">
+                    <div className="py-20 text-center px-6">
                         <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load leave applications</h3>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchData}>Try again</Button>
                     </div>
                 ) : filteredApps.length === 0 ? (
-                    <div className="py-16 text-center">
+                    <div className="py-20 text-center px-6">
                         <Calendar size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">
                             {isFiltered ? 'No matching applications' : 'No leave applications yet'}
@@ -252,97 +267,70 @@ export default function LeaveApplications() {
                         </p>
                     </div>
                 ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm text-left">
-                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
-                                <tr>
-                                    <th className="pl-5 pr-2 py-3 w-10">
-                                        <input
-                                            type="checkbox"
-                                            aria-label="Select all pending"
-                                            checked={allPendingSelected}
-                                            disabled={pendingVisible.length === 0}
-                                            onChange={toggleAll}
-                                            className="rounded border-slate-300"
-                                        />
-                                    </th>
-                                    <th className="px-5 py-3 font-semibold w-12">#</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Employee</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Leave Type</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">From</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">To</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Days</th>
-                                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Status</th>
-                                    <th className="px-5 py-3 font-semibold text-right whitespace-nowrap">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                {pager.view.map((app, idx) => (
-                                    <tr key={app.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
-                                        <td className="pl-5 pr-2 py-3">
-                                            {app.status === 'Pending' && (
-                                                <input
-                                                    type="checkbox"
-                                                    aria-label={`Select ${app.employee_name || 'application'}`}
-                                                    checked={selected.has(app.id)}
-                                                    onChange={() => toggleOne(app.id)}
-                                                    className="rounded border-slate-300"
-                                                />
-                                            )}
-                                        </td>
-                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{(pager.page - 1) * pager.pageSize + idx + 1}</td>
-                                        <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">
-                                            {app.employee_name || '—'}
-                                        </td>
-                                        <td className="px-5 py-3 whitespace-nowrap">
-                                            {app.leave_type_name ? (
-                                                <span
-                                                    className={BADGE_BASE}
-                                                    style={{ backgroundColor: (app.color || '#94a3b8') + '20', color: (app.color || '#64748b') }}
-                                                >
-                                                    {app.leave_type_name}
+                    <table className="w-full text-sm text-left">
+                        {tableHead}
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                            {pager.view.map((app, idx) => (
+                                <tr key={app.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                                    <td className={`${LIST_EDGE_FIRST} pr-2 py-3`}>
+                                        {app.status === 'Pending' && (
+                                            <input
+                                                type="checkbox"
+                                                aria-label={`Select ${app.employee_name || 'application'}`}
+                                                checked={selected.has(app.id)}
+                                                onChange={() => toggleOne(app.id)}
+                                                className="rounded border-slate-300"
+                                            />
+                                        )}
+                                    </td>
+                                    <td className="px-4 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{(pager.page - 1) * pager.pageSize + idx + 1}</td>
+                                    <td className="px-4 py-3 font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">
+                                        {app.employee_name || '—'}
+                                    </td>
+                                    <td className="px-4 py-3 whitespace-nowrap">
+                                        {app.leave_type_name ? (
+                                            <span
+                                                className={BADGE_BASE}
+                                                style={{ backgroundColor: (app.color || '#94a3b8') + '20', color: (app.color || '#64748b') }}
+                                            >
+                                                {app.leave_type_name}
+                                            </span>
+                                        ) : (
+                                            <span className="text-slate-600 dark:text-slate-300">—</span>
+                                        )}
+                                    </td>
+                                    <td className="px-4 py-3 whitespace-nowrap text-slate-600 dark:text-slate-300 tabular-nums">
+                                        {formatDate(app.from_date)}
+                                    </td>
+                                    <td className="px-4 py-3 whitespace-nowrap text-slate-600 dark:text-slate-300 tabular-nums">
+                                        {formatDate(app.to_date)}
+                                    </td>
+                                    <td className="px-4 py-3 whitespace-nowrap text-slate-600 dark:text-slate-300 tabular-nums">
+                                        {app.total_days ?? '—'}
+                                    </td>
+                                    <td className="px-4 py-3 whitespace-nowrap">{getStatusBadge(app.status)}</td>
+                                    <td className={`pl-4 ${LIST_EDGE_LAST} py-3`}>
+                                        <div className="flex items-center justify-end">
+                                            {app.status === 'Pending' ? (
+                                                <div className="dv-quiet flex items-center gap-1">
+                                                    <Button variant="success" size="sm" icon={Check} aria-label="Approve" title="Approve" onClick={() => openReview([app.id], 'Approved')} />
+                                                    <Button variant="danger" size="sm" icon={X} aria-label="Reject" title="Reject" onClick={() => openReview([app.id], 'Rejected')} />
+                                                </div>
+                                            ) : app.status === 'Rejected' && app.rejection_reason ? (
+                                                <span className="text-xs text-slate-500 dark:text-slate-400 max-w-[200px] truncate" title={app.rejection_reason}>
+                                                    {app.rejection_reason}
                                                 </span>
                                             ) : (
-                                                <span className="text-slate-600 dark:text-slate-300">—</span>
+                                                <span className="text-slate-400 dark:text-slate-500">—</span>
                                             )}
-                                        </td>
-                                        <td className="px-5 py-3 whitespace-nowrap text-slate-600 dark:text-slate-300 tabular-nums">
-                                            {formatDate(app.from_date)}
-                                        </td>
-                                        <td className="px-5 py-3 whitespace-nowrap text-slate-600 dark:text-slate-300 tabular-nums">
-                                            {formatDate(app.to_date)}
-                                        </td>
-                                        <td className="px-5 py-3 whitespace-nowrap text-slate-600 dark:text-slate-300 tabular-nums">
-                                            {app.total_days ?? '—'}
-                                        </td>
-                                        <td className="px-5 py-3 whitespace-nowrap">{getStatusBadge(app.status)}</td>
-                                        <td className="px-5 py-3">
-                                            <div className="flex items-center justify-end">
-                                                {app.status === 'Pending' ? (
-                                                    <div className="dv-quiet flex items-center gap-1">
-                                                        <Button variant="success" size="sm" icon={Check} aria-label="Approve" title="Approve" onClick={() => openReview([app.id], 'Approved')} />
-                                                        <Button variant="danger" size="sm" icon={X} aria-label="Reject" title="Reject" onClick={() => openReview([app.id], 'Rejected')} />
-                                                    </div>
-                                                ) : app.status === 'Rejected' && app.rejection_reason ? (
-                                                    <span className="text-xs text-slate-500 dark:text-slate-400 max-w-[200px] truncate" title={app.rejection_reason}>
-                                                        {app.rejection_reason}
-                                                    </span>
-                                                ) : (
-                                                    <span className="text-slate-400 dark:text-slate-500">—</span>
-                                                )}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 )}
-
-                {!loading && !error && filteredApps.length > 0 && (
-                    <TablePager controls={pager} noun="record" />
-                )}
-            </div>
+            </ListPage>
 
             <Modal
                 open={Boolean(review)}
@@ -444,6 +432,6 @@ export default function LeaveApplications() {
                     </div>
                 </form>
             </Modal>
-        </div>
+        </>
     );
 }

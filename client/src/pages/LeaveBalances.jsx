@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { PieChart, RefreshCw, PlayCircle, AlertCircle } from 'lucide-react';
 import api from '../api';
-import { Button, PageHeader, ExportMenu, useToast } from '../components';
-import { TableToolbar, SortableTh, TablePager } from '../components/TableControls';
+import {
+    Button, ExportMenu, useToast, ListPage, ListSearch, ListIconButton,
+    LIST_THEAD, LIST_TH, LIST_EDGE_FIRST, LIST_EDGE_LAST
+} from '../components';
+import { SortableTh, TablePager } from '../components/TableControls';
 import useTableControls from '../hooks/useTableControls';
 import { confirm } from '../components/ConfirmDialog';
 import Modal from '../components/Modal';
@@ -102,24 +105,15 @@ export default function LeaveBalances() {
         fetchData();
     };
 
+    const STH = `${LIST_TH} !px-4`;
+
     return (
-        <div className="space-y-6">
-            <PageHeader
-                icon={PieChart}
+        <>
+            <ListPage
                 title="Leave Balances"
-                subtitle="Per-employee leave entitlements and usage"
+                count={balances.length}
                 actions={
                     <>
-                        <select
-                            value={year}
-                            onChange={e => setYear(parseInt(e.target.value))}
-                            className="field font-semibold tabular-nums"
-                        >
-                            {[0, 1, 2].map(off => {
-                                const y = new Date().getFullYear() - off;
-                                return <option key={y} value={y}>{y}</option>;
-                            })}
-                        </select>
                         <ExportMenu
                             rows={balances}
                             columns={[
@@ -133,6 +127,114 @@ export default function LeaveBalances() {
                             filename={`leave_balances_${year}`}
                             title="Leave Balances"
                         />
+                        <Button variant="tonal" size="toolbar" onClick={previewAccrual} disabled={accruing}>
+                            {accruing ? 'Working…' : 'Run accrual'}
+                        </Button>
+                        <Button mutating variant="primary" size="toolbar" icon={PlayCircle} onClick={initializeAll} disabled={initializing}>
+                            {initializing ? 'Initializing...' : 'Initialize Year'}
+                        </Button>
+                    </>
+                }
+                toolbar={
+                    <>
+                        <ListSearch label="Search balances" placeholder="Search by employee, code or leave type…" value={controls.query} onChange={controls.setQuery} />
+                        <select
+                            value={year}
+                            onChange={e => setYear(parseInt(e.target.value))}
+                            className="field-sm !h-8 !py-0 w-auto font-semibold tabular-nums"
+                            aria-label="Year"
+                        >
+                            {[0, 1, 2].map(off => {
+                                const y = new Date().getFullYear() - off;
+                                return <option key={y} value={y}>{y}</option>;
+                            })}
+                        </select>
+                        <select
+                            className="field-sm !h-8 !py-0 w-auto"
+                            value={controls.filters.leave_type_name ?? ''}
+                            onChange={(e) => controls.setFilter('leave_type_name', e.target.value)}
+                            aria-label="Filter by leave type"
+                        >
+                            <option value="">All leave types</option>
+                            {leaveTypeNames.map(n => <option key={n} value={n}>{n}</option>)}
+                        </select>
+                        <div className="ml-auto flex items-center gap-2">
+                            <ListIconButton label="Refresh" icon={RefreshCw} onClick={fetchData} disabled={loading} spin={loading} />
+                        </div>
+                    </>
+                }
+                footer={!loading && !error && balances.length > 0 ? <TablePager controls={controls} noun="balance" /> : null}
+            >
+                {loading ? (
+                    <div className="p-4 sm:p-6 space-y-3">
+                        {Array.from({ length: 8 }).map((_, i) => (
+                            <div key={i} className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
+                        ))}
+                    </div>
+                ) : error ? (
+                    <div className="py-20 text-center px-6">
+                        <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load leave balances</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+                        <Button variant="secondary" icon={RefreshCw} onClick={fetchData}>Try again</Button>
+                    </div>
+                ) : balances.length === 0 ? (
+                    <div className="py-20 text-center px-6">
+                        <PieChart size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No balances for {year}</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            Use “Initialize Year” to create them from leave-type quotas, or pick a different year.
+                        </p>
+                    </div>
+                ) : (
+                    <table className="w-full text-sm text-left">
+                        <thead className={LIST_THEAD}>
+                            <tr>
+                                <th className={`${LIST_TH} ${LIST_EDGE_FIRST} w-12`}>#</th>
+                                <SortableTh controls={controls} sortKey="employee_name" className={STH}>Employee</SortableTh>
+                                <SortableTh controls={controls} sortKey="employee_code" className={STH}>Code</SortableTh>
+                                <SortableTh controls={controls} sortKey="leave_type_name" className={STH}>Leave Type</SortableTh>
+                                <SortableTh controls={controls} sortKey="opening_balance" className={STH}>Opening</SortableTh>
+                                <SortableTh controls={controls} sortKey="used" className={STH}>Used</SortableTh>
+                                <SortableTh controls={controls} sortKey="balance" className={`${LIST_TH} !pl-4 !pr-4 sm:!pr-6`}>Balance</SortableTh>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                            {controls.view.map((b, idx) => (
+                                <tr key={b.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                                    <td className={`${LIST_EDGE_FIRST} pr-4 py-3 text-slate-400 dark:text-slate-500 tabular-nums`}>{(controls.page - 1) * controls.pageSize + idx + 1}</td>
+                                    <td className="px-4 py-3 font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">
+                                        {b.employee_name || '—'}
+                                    </td>
+                                    <td className="px-4 py-3 whitespace-nowrap">
+                                        <span className="font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">
+                                            {b.employee_code || '—'}
+                                        </span>
+                                    </td>
+                                    <td className="px-4 py-3 whitespace-nowrap">
+                                        <span className="inline-flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
+                                            <span
+                                                className="w-2.5 h-2.5 rounded-full ring-1 ring-black/5 dark:ring-white/10"
+                                                style={{ backgroundColor: b.color || '#94a3b8' }}
+                                            />
+                                            {b.leave_type_name || '—'}
+                                        </span>
+                                    </td>
+                                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300 tabular-nums">
+                                        {b.opening_balance ?? '—'}
+                                    </td>
+                                    <td className="px-4 py-3 font-semibold tabular-nums text-amber-600 dark:text-amber-400">
+                                        {b.used ?? 0}
+                                    </td>
+                                    <td className={`pl-4 ${LIST_EDGE_LAST} py-3 font-bold tabular-nums text-emerald-600 dark:text-emerald-400`}>
+                                        {b.balance ?? '—'}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                )}
+            </ListPage>
 
             {/* What the accrual would do, before it does it. */}
             {accrualPreview && (
@@ -180,104 +282,6 @@ export default function LeaveBalances() {
                     </div>
                 </Modal>
             )}
-                        <Button variant="secondary" icon={RefreshCw} onClick={fetchData} disabled={loading}>Refresh</Button>
-                        <Button variant="primary" onClick={previewAccrual} disabled={accruing}>
-                            {accruing ? 'Working…' : 'Run accrual'}
-                        </Button>
-                        <Button variant="successSolid" icon={PlayCircle} onClick={initializeAll} disabled={initializing}>
-                            {initializing ? 'Initializing...' : 'Initialize Year'}
-                        </Button>
-                    </>
-                }
-            />
-
-            <div className="card-base !p-0 overflow-hidden">
-                {loading ? (
-                    <div className="p-6 space-y-3">
-                        {Array.from({ length: 8 }).map((_, i) => (
-                            <div key={i} className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
-                        ))}
-                    </div>
-                ) : error ? (
-                    <div className="py-16 text-center">
-                        <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
-                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load leave balances</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{error}</p>
-                        <Button variant="secondary" icon={RefreshCw} onClick={fetchData}>Try again</Button>
-                    </div>
-                ) : balances.length === 0 ? (
-                    <div className="py-16 text-center">
-                        <PieChart size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
-                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">No balances for {year}</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
-                            Use “Initialize Year” to create them from leave-type quotas, or pick a different year.
-                        </p>
-                    </div>
-                ) : (
-                    <>
-                    <TableToolbar controls={controls} placeholder="Search by employee, code or leave type…">
-                        <select
-                            className="field-sm w-auto"
-                            value={controls.filters.leave_type_name ?? ''}
-                            onChange={(e) => controls.setFilter('leave_type_name', e.target.value)}
-                            aria-label="Filter by leave type"
-                        >
-                            <option value="">All leave types</option>
-                            {leaveTypeNames.map(n => <option key={n} value={n}>{n}</option>)}
-                        </select>
-                    </TableToolbar>
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm text-left">
-                            <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
-                                <tr>
-                                    <th className="px-5 py-3 font-semibold w-12">#</th>
-                                    <SortableTh controls={controls} sortKey="employee_name" className="whitespace-nowrap">Employee</SortableTh>
-                                    <SortableTh controls={controls} sortKey="employee_code" className="whitespace-nowrap">Code</SortableTh>
-                                    <SortableTh controls={controls} sortKey="leave_type_name" className="whitespace-nowrap">Leave Type</SortableTh>
-                                    <SortableTh controls={controls} sortKey="opening_balance" className="whitespace-nowrap">Opening</SortableTh>
-                                    <SortableTh controls={controls} sortKey="used" className="whitespace-nowrap">Used</SortableTh>
-                                    <SortableTh controls={controls} sortKey="balance" className="whitespace-nowrap">Balance</SortableTh>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                {controls.view.map((b, idx) => (
-                                    <tr key={b.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
-                                        <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{(controls.page - 1) * controls.pageSize + idx + 1}</td>
-                                        <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">
-                                            {b.employee_name || '—'}
-                                        </td>
-                                        <td className="px-5 py-3 whitespace-nowrap">
-                                            <span className="font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">
-                                                {b.employee_code || '—'}
-                                            </span>
-                                        </td>
-                                        <td className="px-5 py-3 whitespace-nowrap">
-                                            <span className="inline-flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
-                                                <span
-                                                    className="w-2.5 h-2.5 rounded-full ring-1 ring-black/5 dark:ring-white/10"
-                                                    style={{ backgroundColor: b.color || '#94a3b8' }}
-                                                />
-                                                {b.leave_type_name || '—'}
-                                            </span>
-                                        </td>
-                                        <td className="px-5 py-3 text-slate-600 dark:text-slate-300 tabular-nums">
-                                            {b.opening_balance ?? '—'}
-                                        </td>
-                                        <td className="px-5 py-3 font-semibold tabular-nums text-amber-600 dark:text-amber-400">
-                                            {b.used ?? 0}
-                                        </td>
-                                        <td className="px-5 py-3 font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
-                                            {b.balance ?? '—'}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                    <TablePager controls={controls} noun="balance" />
-                    </>
-                )}
-            </div>
-        </div>
+        </>
     );
 }
