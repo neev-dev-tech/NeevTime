@@ -2,10 +2,13 @@ import React, { useEffect, useState, useRef } from 'react';
 import api from '../api';
 import Modal from '../components/Modal';
 import { Building2, Plus, Trash2, Edit2, RefreshCw, Save, Download, Upload, AlertCircle, CheckCircle, UserCheck } from 'lucide-react';
-import { useToast, Button, ExportMenu, ListPage, ListSearch, ListSelection, ListIconButton, LIST_THEAD, LIST_TH, LIST_EDGE_FIRST, LIST_EDGE_LAST } from '../components';
+import { useToast, Button, ExportMenu, ListPage, ListSearch, ListSelection, ListIconButton } from '../components';
 import { toLocalDateString } from '../utils/dateFormat';
-import useTableControls from '../hooks/useTableControls';
-import { TablePager } from '../components/TableControls';
+import OrgDirectory from '../components/OrgDirectory';
+
+// An employee belongs to a department by id, or by name for rows that only
+// carry the name.
+const inDepartment = (dept, e) => e.department_id === dept.id || (!e.department_id && e.department_name === dept.name);
 
 export default function Departments() {
     const toast = useToast();
@@ -225,8 +228,6 @@ export default function Departments() {
         setImportResult(null);
     };
 
-    const pager = useTableControls(filteredDepartments, { pageSize: 50 });
-
     return (
         <>
         <ListPage
@@ -269,7 +270,7 @@ export default function Departments() {
                     </div>
                 </>
             }
-            footer={!loading && !error && filteredDepartments.length > 0 ? <TablePager controls={pager} noun="department" /> : null}
+            bodyClassName="!overflow-hidden"
         >
                 {loading ? (
                     <div className="p-6 space-y-3">
@@ -284,86 +285,37 @@ export default function Departments() {
                         <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchDepartments}>Try again</Button>
                     </div>
-                ) : filteredDepartments.length === 0 ? (
-                    <div className="py-20 text-center px-6">
-                        <Building2 size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
-                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">
-                            {searchQuery ? 'No matching departments' : 'No departments yet'}
-                        </h3>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">
-                            {searchQuery
-                                ? `Nothing matches “${searchQuery}”. Try a different search.`
-                                : 'Add a department to start grouping employees by team.'}
-                        </p>
-                    </div>
                 ) : (
-                        <table className="w-full text-sm text-left">
-                            <thead className={LIST_THEAD}>
-                                <tr>
-                                    <th className={`${LIST_TH} ${LIST_EDGE_FIRST} w-10`}>
-                                        <input
-                                            type="checkbox"
-                                            onChange={(e) => setSelectedIds(e.target.checked ? filteredDepartments.map(d => d.id) : [])}
-                                            checked={filteredDepartments.length > 0 && selectedIds.length === filteredDepartments.length}
-                                        />
-                                    </th>
-                                    <th className={`${LIST_TH} w-12`}>#</th>
-                                    <th className={LIST_TH}>ID</th>
-                                    <th className={LIST_TH}>Department Name</th>
-                                    <th className={`${LIST_TH} ${LIST_EDGE_LAST} text-right`}>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                {pager.view.map((dept, idx) => (
-                                    <tr key={dept.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
-                                        <td className={`${LIST_EDGE_FIRST} pr-4 py-3`}>
-                                            <input
-                                                type="checkbox"
-                                                checked={selectedIds.includes(dept.id)}
-                                                onChange={() => toggleSelect(dept.id)}
-                                            />
-                                        </td>
-                                        <td className="px-4 py-3 text-slate-500 dark:text-slate-400 tabular-nums">{(pager.page - 1) * pager.pageSize + idx + 1}</td>
-                                        <td className="px-4 py-3">
-                                            <span className="font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">
-                                                {dept.id ?? '—'}
-                                            </span>
-                                        </td>
-                                        <td className="px-4 py-3 font-semibold text-slate-800 dark:text-slate-100">
-                                            {dept.name || '—'}
-                                        </td>
-                                        <td className={`pl-4 ${LIST_EDGE_LAST} py-3`}>
-                                            <div className="flex items-center justify-end">
-                                                <div className="dv-quiet">
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        icon={UserCheck}
-                                                        aria-label="Set approvers"
-                                                        title="Who approves this department's leave"
-                                                        onClick={() => openApprovers(dept)}
-                                                    />
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        icon={Edit2}
-                                                        aria-label="Edit department"
-                                                        onClick={() => handleEdit(dept)}
-                                                    />
-                                                    <Button
-                                                        variant="danger"
-                                                        size="sm"
-                                                        icon={Trash2}
-                                                        aria-label="Delete department"
-                                                        onClick={(e) => handleDelete(e, dept.id)}
-                                                    />
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                    <OrgDirectory
+                        items={filteredDepartments}
+                        noun="department"
+                        icon={Building2}
+                        memberOf={inDepartment}
+                        memberColumn={{ label: 'Position', value: e => e.designation }}
+                        selectedIds={selectedIds}
+                        onToggleSelect={toggleSelect}
+                        onToggleAll={on => setSelectedIds(on ? filteredDepartments.map(d => d.id) : [])}
+                        detailActions={dept => (
+                            <>
+                                <Button variant="tonal" size="toolbar" icon={UserCheck} onClick={() => openApprovers(dept)}>Approvers</Button>
+                                <Button variant="tonal" size="toolbar" icon={Edit2} onClick={() => handleEdit(dept)}>Edit</Button>
+                                <Button variant="danger" size="toolbar" icon={Trash2} onClick={(e) => handleDelete(e, dept.id)}>Delete</Button>
+                            </>
+                        )}
+                        emptyState={
+                            <div className="py-20 text-center px-6">
+                                <Building2 size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
+                                <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">
+                                    {searchQuery ? 'No matching departments' : 'No departments yet'}
+                                </h3>
+                                <p className="text-sm text-slate-600 dark:text-slate-400">
+                                    {searchQuery
+                                        ? `Nothing matches “${searchQuery}”. Try a different search.`
+                                        : 'Add a department to start grouping employees by team.'}
+                                </p>
+                            </div>
+                        }
+                    />
                 )}
         </ListPage>
 

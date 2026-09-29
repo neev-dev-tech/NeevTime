@@ -1,60 +1,19 @@
 import React, { useEffect, useState, useRef } from 'react';
 import api from '../api';
-import {
-    Plus, Trash2, Folder,
-    ChevronRight, ChevronDown,
-    Upload, RefreshCw,
-    ArrowRightLeft, Download, Map, AlertCircle
-} from 'lucide-react';
-import { useToast, Button, ListPage, ListSearch, ListSelection, LIST_THEAD, LIST_TH, LIST_EDGE_FIRST, LIST_EDGE_LAST } from '../components';
+import { Plus, Trash2, Upload, RefreshCw, ArrowRightLeft, Download, Map, AlertCircle, MapPin } from 'lucide-react';
+import { useToast, Button, ListPage, ListSearch, ListSelection } from '../components';
 import Modal from '../components/Modal';
-import useTableControls from '../hooks/useTableControls';
-import { TablePager } from '../components/TableControls';
+import OrgDirectory from '../components/OrgDirectory';
 
-const AreaTreeItem = ({ area, areas, onSelect, selectedId, level = 0 }) => {
-    const [expanded, setExpanded] = useState(true);
-    const children = areas.filter(a => a.parent_area_id === area.id);
-    const isSelected = selectedId === area.id;
+const inArea = (area, e) => e.area_id === area.id || (!e.area_id && e.area_name === area.name);
 
-    return (
-        <div className="">
-            <div
-                className={`flex items-center gap-2 py-2 px-3 cursor-pointer rounded-lg transition-colors mb-0.5 ${isSelected
-                    ? 'bg-slate-50 dark:bg-slate-900/30 text-slate-600 dark:text-slate-400 font-semibold'
-                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}
-                style={{ paddingLeft: `${level * 16 + 12}px` }}
-                onClick={() => onSelect(area)}
-            >
-                <button
-                    onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
-                    className={`text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-400 transition-colors ${children.length === 0 ? 'invisible' : ''}`}
-                >
-                    {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                </button>
-
-                <Folder size={16} className={isSelected ? 'text-slate-600 dark:text-slate-400 fill-orange-200/60 dark:fill-orange-400/20' : 'text-amber-400 dark:text-amber-300 fill-amber-100 dark:fill-amber-400/20'} />
-                <span className="text-sm font-medium truncate">{area.name}</span>
-            </div>
-            {expanded && children.map(child => (
-                <AreaTreeItem
-                    key={child.id}
-                    area={child}
-                    areas={areas}
-                    onSelect={onSelect}
-                    selectedId={selectedId}
-                    level={level + 1}
-                />
-            ))}
-        </div>
-    );
-};
-
-// Force rebuild for HMR
 export default function Area() {
     const toast = useToast();
     const [areas, setAreas] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    // Parent for the Add form: null from the header (top level), the selected
+    // area from its "Add sub-area" action.
     const [selectedArea, setSelectedArea] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [showImportModal, setShowImportModal] = useState(false);
@@ -218,24 +177,25 @@ export default function Area() {
         );
     };
 
-    const toggleAllRows = () => {
-        if (selectedRows.length === tableData.length) {
-            setSelectedRows([]);
-        } else {
-            setSelectedRows(tableData.map(a => a.id));
-        }
+
+    // Areas in tree order (each parent followed by its children) with depth,
+    // filtered by search while keeping that order.
+    const depthOf = {};
+    const ordered = [];
+    const walk = (parentId, depth) => {
+        areas.filter(a => (a.parent_area_id || null) === parentId).forEach(a => {
+            depthOf[a.id] = depth;
+            ordered.push(a);
+            walk(a.id, depth + 1);
+        });
     };
-
-    // Derived Display Data
-    const rootAreas = areas.filter(a => !a.parent_area_id);
-    const tableData = (selectedArea
-        ? areas.filter(a => a.parent_area_id === selectedArea.id)
-        : areas).filter(a =>
-            String(a.name ?? '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-            String(a.code ?? '').toLowerCase().includes(searchQuery.toLowerCase())
-        );
-
-    const pager = useTableControls(tableData, { pageSize: 50 });
+    walk(null, 0);
+    // Orphans (parent missing) still appear, at the top level.
+    areas.forEach(a => { if (!(a.id in depthOf)) { depthOf[a.id] = 0; ordered.push(a); } });
+    const q = searchQuery.toLowerCase();
+    const tableData = ordered.filter(a =>
+        String(a.name ?? '').toLowerCase().includes(q) || String(a.code ?? '').toLowerCase().includes(q)
+    );
 
     return (
         <>
@@ -250,8 +210,8 @@ export default function Area() {
                     <Button variant="tonal" size="toolbar" icon={ArrowRightLeft} onClick={() => setShowTransferModal(true)}>
                         Personnel Transfer
                     </Button>
-                    <Button mutating variant="primary" size="toolbar" icon={Plus} onClick={() => { setFormData({}); setShowModal(true); }}>
-                        Add
+                    <Button mutating variant="primary" size="toolbar" icon={Plus} onClick={() => { setSelectedArea(null); setFormData({}); setShowModal(true); }}>
+                        Add area
                     </Button>
                 </>
             }
@@ -267,140 +227,62 @@ export default function Area() {
                     </div>
                 </>
             }
-            footer={!loading && !error && tableData.length > 0 ? <TablePager controls={pager} noun="area" /> : null}
-            bodyClassName="flex !overflow-hidden"
+            bodyClassName="!overflow-hidden"
         >
-                {/* Tree View Sidebar */}
-                <div className="w-64 border-r border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden shrink-0">
-                    <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
-                        <h3 className="text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-600 dark:text-slate-400">Area Structure</h3>
+                {loading ? (
+                    <div className="p-6 space-y-3">
+                        {Array.from({ length: 8 }).map((_, i) => (
+                            <div key={i} className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
+                        ))}
                     </div>
-                    <div className="p-2 flex-1 overflow-y-auto custom-scrollbar">
-                        {loading ? (
-                            <div className="p-2 space-y-2">
-                                {Array.from({ length: 6 }).map((_, i) => (
-                                    <div key={i} className="h-8 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
-                                ))}
-                            </div>
-                        ) : (
+                ) : error ? (
+                    <div className="py-20 text-center px-6">
+                        <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load areas</h3>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{error}</p>
+                        <Button variant="secondary" icon={RefreshCw} onClick={fetchAreas}>Try again</Button>
+                    </div>
+                ) : (
+                    <OrgDirectory
+                        items={tableData}
+                        noun="area"
+                        icon={MapPin}
+                        memberOf={inArea}
+                        memberColumn={{ label: 'Department', value: e => e.department_name }}
+                        itemDepth={a => depthOf[a.id] || 0}
+                        selectedIds={selectedRows}
+                        onToggleSelect={toggleRowSelection}
+                        onToggleAll={on => setSelectedRows(on ? tableData.map(a => a.id) : [])}
+                        detailMeta={area => [
+                            area.code && `Code ${area.code}`,
+                            area.parent_area_name ? `Inside ${area.parent_area_name}` : 'Top level',
+                            `${area.device_count || 0} device${Number(area.device_count) === 1 ? '' : 's'}`,
+                            `${area.fp_count || 0} fingerprint · ${area.face_count || 0} face · ${area.card_count || 0} card`
+                        ].filter(Boolean).join('  ·  ')}
+                        detailActions={area => (
                             <>
-                                <div
-                                    className={`flex items-center gap-2 py-2 px-3 cursor-pointer rounded-lg mb-0.5 transition-colors ${!selectedArea
-                                        ? 'bg-slate-50 dark:bg-slate-900/30 text-slate-600 dark:text-slate-400 font-semibold'
-                                        : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}
-                                    onClick={() => setSelectedArea(null)}
-                                >
-                                    <Folder size={16} className={!selectedArea ? 'text-slate-600 dark:text-slate-400 fill-orange-200/60 dark:fill-orange-400/20' : 'text-amber-400 dark:text-amber-300 fill-amber-100 dark:fill-amber-400/20'} />
-                                    <span className="text-sm font-medium">All Areas</span>
-                                </div>
-                                {rootAreas.map(area => (
-                                    <AreaTreeItem
-                                        key={area.id}
-                                        area={area}
-                                        areas={areas}
-                                        onSelect={setSelectedArea}
-                                        selectedId={selectedArea?.id}
-                                    />
-                                ))}
-                                {!error && rootAreas.length === 0 && (
-                                    <p className="px-3 py-4 text-xs text-slate-600 dark:text-slate-400">
-                                        No areas defined yet.
-                                    </p>
-                                )}
+                                <Button mutating variant="tonal" size="toolbar" icon={Plus}
+                                    onClick={() => { setSelectedArea(area); setFormData({}); setShowModal(true); }}>
+                                    Add sub-area
+                                </Button>
+                                <Button variant="danger" size="toolbar" icon={Trash2} onClick={() => handleDelete(area.id)}>Delete</Button>
                             </>
                         )}
-                    </div>
-                </div>
-
-                {/* Table */}
-                <div className="flex-1 min-w-0 overflow-auto custom-scrollbar">
-                        {loading ? (
-                            <div className="p-6 space-y-3">
-                                {Array.from({ length: 8 }).map((_, i) => (
-                                    <div key={i} className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
-                                ))}
-                            </div>
-                        ) : error ? (
-                            <div className="py-20 text-center px-6">
-                                <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
-                                <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load areas</h3>
-                                <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{error}</p>
-                                <Button variant="secondary" icon={RefreshCw} onClick={fetchAreas}>Try again</Button>
-                            </div>
-                        ) : tableData.length === 0 ? (
+                        emptyState={
                             <div className="py-20 text-center px-6">
                                 <Map size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
                                 <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">
-                                    {searchQuery ? 'No matching areas' : 'No areas here'}
+                                    {searchQuery ? 'No matching areas' : 'No areas yet'}
                                 </h3>
                                 <p className="text-sm text-slate-600 dark:text-slate-400">
                                     {searchQuery
                                         ? `Nothing matches “${searchQuery}”. Try a different search.`
-                                        : selectedArea
-                                            ? `${selectedArea.name} has no sub-areas yet. Use Add to create one.`
-                                            : 'Add an area to start mapping sites, floors and zones.'}
+                                        : 'Add an area to start mapping sites, floors and zones.'}
                                 </p>
                             </div>
-                        ) : (
-                            <table className="w-full text-sm text-left">
-                                <thead className={LIST_THEAD}>
-                                    <tr>
-                                        <th className={`${LIST_TH} ${LIST_EDGE_FIRST} w-10`}>
-                                            <input type="checkbox" checked={selectedRows.length === tableData.length && tableData.length > 0} onChange={toggleAllRows} className="rounded text-slate-600 focus:ring-slate-500" />
-                                        </th>
-                                        <th className={`${LIST_TH} w-12`}>#</th>
-                                        <th className={LIST_TH}>Area Code</th>
-                                        <th className={LIST_TH}>Area Name</th>
-                                        <th className={LIST_TH}>Parent</th>
-                                        <th className={LIST_TH}>Device Count</th>
-                                        <th className={LIST_TH}>Employee Count</th>
-                                        <th className={LIST_TH}>Resigned Count</th>
-                                        <th className={LIST_TH}>FP Count</th>
-                                        <th className={LIST_TH}>Face Count</th>
-                                        <th className={LIST_TH}>Card Count</th>
-                                        <th className={`${LIST_TH} ${LIST_EDGE_LAST} text-right w-20`}>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                    {pager.view.map((area, idx) => (
-                                        <tr key={area.id} className={`hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors ${selectedRows.includes(area.id) ? 'bg-slate-50/60 dark:bg-slate-900/20' : ''}`}>
-                                            <td className={`${LIST_EDGE_FIRST} pr-4 py-3`}>
-                                                <input type="checkbox" checked={selectedRows.includes(area.id)} onChange={() => toggleRowSelection(area.id)} className="rounded text-slate-600 focus:ring-slate-500" />
-                                            </td>
-                                            <td className="px-4 py-3 text-slate-500 dark:text-slate-400 tabular-nums">{(pager.page - 1) * pager.pageSize + idx + 1}</td>
-                                            <td className="px-4 py-3">
-                                                <span className="font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">
-                                                    {area.code || '—'}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-3 font-semibold text-slate-800 dark:text-slate-100">{area.name || '—'}</td>
-                                            <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{area.parent_area_name || '—'}</td>
-                                            <td className="px-4 py-3 text-slate-600 dark:text-slate-300 tabular-nums">{area.device_count || 0}</td>
-                                            <td className="px-4 py-3 text-slate-600 dark:text-slate-300 tabular-nums">{area.employee_count || 0}</td>
-                                            <td className="px-4 py-3 text-slate-600 dark:text-slate-300 tabular-nums">{area.resigned_count || 0}</td>
-                                            <td className="px-4 py-3 text-slate-600 dark:text-slate-300 tabular-nums">{area.fp_count || 0}</td>
-                                            <td className="px-4 py-3 text-slate-600 dark:text-slate-300 tabular-nums">{area.face_count || 0}</td>
-                                            <td className="px-4 py-3 text-slate-600 dark:text-slate-300 tabular-nums">{area.card_count || 0}</td>
-                                            <td className={`pl-4 ${LIST_EDGE_LAST} py-3`}>
-                                                <div className="flex items-center justify-end">
-                                                    <div className="dv-quiet">
-                                                        <Button
-                                                            variant="danger"
-                                                            size="sm"
-                                                            icon={Trash2}
-                                                            title="Delete Area"
-                                                            aria-label="Delete Area"
-                                                            onClick={() => handleDelete(area.id)}
-                                                        />
-                                                    </div>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        )}
-                </div>
+                        }
+                    />
+                )}
         </ListPage>
 
             {/* Modals - Simplified Styling for Consistency */}

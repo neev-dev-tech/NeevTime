@@ -2,10 +2,14 @@ import React, { useEffect, useState, useRef } from 'react';
 import api from '../api';
 import Modal from '../components/Modal';
 import { Briefcase, Plus, Trash2, Edit2, RefreshCw, Save, Download, Upload, AlertCircle, CheckCircle } from 'lucide-react';
-import { useToast, Button, ExportMenu, ListPage, ListSearch, ListSelection, ListIconButton, LIST_THEAD, LIST_TH, LIST_EDGE_FIRST, LIST_EDGE_LAST } from '../components';
+import { useToast, Button, ExportMenu, ListPage, ListSearch, ListSelection, ListIconButton } from '../components';
 import { toLocalDateString } from '../utils/dateFormat';
-import useTableControls from '../hooks/useTableControls';
-import { TablePager } from '../components/TableControls';
+import OrgDirectory from '../components/OrgDirectory';
+
+// Employees record their position as a title (designation); match on the id
+// when present, otherwise on the title text, case-insensitively.
+const inPosition = (pos, e) => (e.position_id != null && e.position_id === pos.id)
+    || String(e.designation || '').trim().toLowerCase() === String(pos.name || '').trim().toLowerCase();
 
 export default function Positions() {
     const toast = useToast();
@@ -23,6 +27,30 @@ export default function Positions() {
     const [importing, setImporting] = useState(false);
     const [importResult, setImportResult] = useState(null);
     const fileInputRef = useRef(null);
+
+    // Job titles already typed on employee records but not yet set up as
+    // positions, offered on the empty page so the list isn't rebuilt by hand.
+    const [unlistedTitles, setUnlistedTitles] = useState([]);
+    const [creatingTitles, setCreatingTitles] = useState(false);
+    useEffect(() => {
+        api.get('/api/employees').then(res => {
+            const known = new Set(positions.map(p => String(p.name || '').trim().toLowerCase()));
+            const titles = [...new Set((res.data || []).map(e => String(e.designation || '').trim()).filter(Boolean))];
+            setUnlistedTitles(titles.filter(t => !known.has(t.toLowerCase())).sort());
+        }).catch(() => setUnlistedTitles([]));
+    }, [positions]);
+
+    const createFromTitles = async () => {
+        setCreatingTitles(true);
+        let made = 0;
+        for (const name of unlistedTitles) {
+            try { await api.post('/api/positions', { name }); made += 1; } catch { /* reported below */ }
+        }
+        setCreatingTitles(false);
+        if (made) toast.success(`Created ${made} position${made === 1 ? '' : 's'}`);
+        if (made < unlistedTitles.length) toast.error(`${unlistedTitles.length - made} could not be created`);
+        fetchPositions();
+    };
 
     const fetchPositions = async () => {
         try {
@@ -188,7 +216,6 @@ export default function Positions() {
         setImportResult(null);
     };
 
-    const pager = useTableControls(filteredPositions, { pageSize: 50 });
 
     return (
         <>
@@ -234,7 +261,7 @@ export default function Positions() {
                     </div>
                 </>
             }
-            footer={!loading && !error && filteredPositions.length > 0 ? <TablePager controls={pager} noun="position" /> : null}
+            bodyClassName="!overflow-hidden"
         >
                 {loading ? (
                     <div className="p-6 space-y-3">
@@ -249,82 +276,48 @@ export default function Positions() {
                         <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{error}</p>
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchPositions}>Try again</Button>
                     </div>
-                ) : filteredPositions.length === 0 ? (
-                    <div className="py-20 text-center px-6">
-                        <Briefcase size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
-                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">
-                            {searchQuery ? 'No matching positions' : 'No positions yet'}
-                        </h3>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">
-                            {searchQuery
-                                ? `Nothing matches “${searchQuery}”. Try a different search.`
-                                : 'Add a position to define the job titles employees can hold.'}
-                        </p>
-                    </div>
                 ) : (
-                        <table className="w-full text-sm text-left">
-                            <thead className={LIST_THEAD}>
-                                <tr>
-                                    <th className={`${LIST_TH} ${LIST_EDGE_FIRST} w-10`}>
-                                        <input
-                                            type="checkbox"
-                                            onChange={(e) => setSelectedIds(e.target.checked ? filteredPositions.map(p => p.id) : [])}
-                                            checked={filteredPositions.length > 0 && selectedIds.length === filteredPositions.length}
-                                        />
-                                    </th>
-                                    <th className={`${LIST_TH} w-12`}>#</th>
-                                    <th className={LIST_TH}>ID</th>
-                                    <th className={LIST_TH}>Position Name</th>
-                                    <th className={LIST_TH}>Description</th>
-                                    <th className={`${LIST_TH} ${LIST_EDGE_LAST} text-right`}>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                {pager.view.map((pos, idx) => (
-                                    <tr key={pos.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
-                                        <td className={`${LIST_EDGE_FIRST} pr-4 py-3`}>
-                                            <input
-                                                type="checkbox"
-                                                checked={selectedIds.includes(pos.id)}
-                                                onChange={() => toggleSelect(pos.id)}
-                                            />
-                                        </td>
-                                        <td className="px-4 py-3 text-slate-500 dark:text-slate-400 tabular-nums">{(pager.page - 1) * pager.pageSize + idx + 1}</td>
-                                        <td className="px-4 py-3">
-                                            <span className="font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">
-                                                {pos.id ?? '—'}
-                                            </span>
-                                        </td>
-                                        <td className="px-4 py-3 font-semibold text-slate-800 dark:text-slate-100">
-                                            {pos.name || '—'}
-                                        </td>
-                                        <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
-                                            {pos.description || '—'}
-                                        </td>
-                                        <td className={`pl-4 ${LIST_EDGE_LAST} py-3`}>
-                                            <div className="flex items-center justify-end">
-                                                <div className="dv-quiet">
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        icon={Edit2}
-                                                        aria-label="Edit position"
-                                                        onClick={() => handleEdit(pos)}
-                                                    />
-                                                    <Button
-                                                        variant="danger"
-                                                        size="sm"
-                                                        icon={Trash2}
-                                                        aria-label="Delete position"
-                                                        onClick={(e) => handleDelete(e, pos.id)}
-                                                    />
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                    <OrgDirectory
+                        items={filteredPositions}
+                        noun="position"
+                        icon={Briefcase}
+                        memberOf={inPosition}
+                        memberColumn={{ label: 'Department', value: e => e.department_name }}
+                        selectedIds={selectedIds}
+                        onToggleSelect={toggleSelect}
+                        onToggleAll={on => setSelectedIds(on ? filteredPositions.map(p => p.id) : [])}
+                        detailMeta={pos => pos.description || 'No description'}
+                        detailActions={pos => (
+                            <>
+                                <Button variant="tonal" size="toolbar" icon={Edit2} onClick={() => handleEdit(pos)}>Edit</Button>
+                                <Button variant="danger" size="toolbar" icon={Trash2} onClick={(e) => handleDelete(e, pos.id)}>Delete</Button>
+                            </>
+                        )}
+                        emptyState={
+                            <div className="py-20 text-center px-6">
+                                <Briefcase size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
+                                <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">
+                                    {searchQuery ? 'No matching positions' : 'No positions yet'}
+                                </h3>
+                                <p className="text-sm text-slate-600 dark:text-slate-400">
+                                    {searchQuery
+                                        ? `Nothing matches “${searchQuery}”. Try a different search.`
+                                        : 'Add a position to define the job titles employees can hold.'}
+                                </p>
+                                {!searchQuery && unlistedTitles.length > 0 && (
+                                    <div className="mt-6 mx-auto max-w-md text-left rounded-xl border border-slate-200 dark:border-slate-800 p-4">
+                                        <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                                            {unlistedTitles.length} job title{unlistedTitles.length === 1 ? ' is' : 's are'} already used on employee records
+                                        </p>
+                                        <p className="mt-1 text-[13px] text-slate-600 dark:text-slate-400">{unlistedTitles.slice(0, 8).join(', ')}{unlistedTitles.length > 8 ? '…' : ''}</p>
+                                        <Button mutating variant="primary" size="toolbar" icon={Plus} className="mt-3" onClick={createFromTitles} disabled={creatingTitles}>
+                                            {creatingTitles ? 'Creating…' : `Create ${unlistedTitles.length} position${unlistedTitles.length === 1 ? '' : 's'} from these`}
+                                        </Button>
+                                    </div>
+                                )}
+                            </div>
+                        }
+                    />
                 )}
         </ListPage>
 
