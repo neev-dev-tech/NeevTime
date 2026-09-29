@@ -27,7 +27,7 @@ export const personnelSidebar = [
     items: [
       { label: 'Employee', path: '/employees', icon: UserCircle, iconColor: '#64748B' },
       { label: 'Contractors', path: '/contractors', icon: Building2, iconColor: '#64748B' },
-      { label: 'Resign', path: '/resign', icon: UserX, iconColor: '#64748B' },
+      { label: 'Resignations', path: '/resign', icon: UserX, iconColor: '#64748B' },
       { label: 'Deleted', path: '/employees/deleted', icon: Trash2, iconColor: '#64748B' },
     ]
   },
@@ -89,23 +89,57 @@ export const deviceSidebar = [
 
 export const attendanceSidebar = [
   {
-    group: 'Rule',
-    icon: ShieldCheck,
+    // Daily work first: the queues someone clears every morning.
+    group: 'Approvals',
+    icon: ClipboardList,
     iconColor: '#64748B',
     items: [
-      { label: 'Attendance Rules', path: '/attendance-rules', icon: ShieldCheck, iconColor: '#64748B' },
-      { label: 'Holiday & Locations', path: '/holiday-locations', icon: MapPin, iconColor: '#64748B' },
-      { label: 'Geofences', path: '/geofences', icon: MapPin, iconColor: '#64748B' },
+      { label: 'Leave Applications', path: '/leaves', icon: Plane, iconColor: '#64748B' },
+      { label: 'Regularization', path: '/regularizations', icon: FileCheck, iconColor: '#64748B' },
     ]
   },
   {
+    // Direct fixes an admin makes, not requests awaiting a decision.
+    group: 'Corrections',
+    icon: FileCheck,
+    iconColor: '#64748B',
+    items: [
+      { label: 'Manual Entry', path: '/attendance/manual', icon: FileCheck, iconColor: '#64748B' },
+      { label: 'Test Punch', path: '/mobile/punch', icon: TabletSmartphone, iconColor: '#64748B' },
+    ]
+  },
+  {
+    group: 'Data',
+    icon: Database,
+    iconColor: '#64748B',
+    items: [
+      { label: 'Attendance Logs', path: '/logs', icon: Activity, iconColor: '#64748B' },
+      { label: 'Attendance Register', path: '/attendance-register', icon: ClipboardList, iconColor: '#64748B' },
+      { label: 'Attendance Calendar', path: '/attendance-calendar', icon: CalendarDays, iconColor: '#64748B' },
+      { label: 'Import Wizard', path: '/import', icon: Upload, iconColor: '#64748B' },
+    ]
+  },
+  {
+    group: 'Reports',
+    icon: BarChart3,
+    iconColor: '#64748B',
+    items: [
+      { label: 'All Reports', path: '/reports', icon: BarChart3, iconColor: '#64748B' },
+      { label: 'Payroll Export', path: '/reports/payroll', icon: Calculator, iconColor: '#64748B' },
+      { label: 'Statutory Registers', path: '/reports/registers', icon: FileText, iconColor: '#64748B' },
+      { label: 'Insights', path: '/reports/insights', icon: TrendingUp, iconColor: '#64748B' },
+      { label: 'Export Center', path: '/export', icon: Download, iconColor: '#64748B' },
+    ]
+  },
+  {
+    // Break times live inside Timetable, where they get the times and
+    // timetable they need; the standalone name-only editor is gone.
     group: 'Shift',
     icon: Timer,
     iconColor: '#64748B',
     items: [
-      { label: 'Break Time', path: '/break-times', icon: Clock, iconColor: '#64748B' },
-      { label: 'Timetable', path: '/timetables', icon: CalendarDays, iconColor: '#64748B' },
-      { label: 'Shift', path: '/shifts', icon: Timer, iconColor: '#64748B' },
+      { label: 'Timetables', path: '/timetables', icon: CalendarDays, iconColor: '#64748B' },
+      { label: 'Shifts', path: '/shifts', icon: Timer, iconColor: '#64748B' },
       { label: 'Rotations', path: '/shift-rotations', icon: RefreshCw, iconColor: '#64748B' },
     ]
   },
@@ -121,58 +155,22 @@ export const attendanceSidebar = [
     ]
   },
   {
-    group: 'Approvals',
-    icon: ClipboardList,
-    iconColor: '#64748B',
-    items: [
-      { label: 'Manual Log', path: '/attendance/manual', icon: FileCheck, iconColor: '#64748B' },
-      { label: 'Mobile Entry', path: '/mobile/punch', icon: TabletSmartphone, iconColor: '#64748B' },
-      { label: 'Leave', path: '/leaves', icon: Plane, iconColor: '#64748B' },
-      { label: 'Regularization', path: '/regularizations', icon: FileCheck, iconColor: '#64748B' },
-    ]
-  },
-  {
-    group: 'Holiday',
-    icon: Plane,
-    iconColor: '#64748B',
-    items: [
-      { label: 'Holiday', path: '/holidays', icon: Plane, iconColor: '#64748B' },
-    ]
-  },
-  {
-    group: 'Leave Management',
+    group: 'Leave Setup',
     icon: Calendar,
     iconColor: '#64748B',
     items: [
-      { label: 'Leave Type', path: '/leave-types', icon: FileText, iconColor: '#64748B' },
-      { label: 'Leave Balance', path: '/leave-balance', icon: PieChart, iconColor: '#64748B' },
-      // The applications screen always existed — filed under Approvals, where
-      // nobody managing leave thought to look. It stays there too; a screen
-      // reachable from both places beats a debate about which is correct.
-      { label: 'Leave Applications', path: '/leaves', icon: Plane, iconColor: '#64748B' },
+      { label: 'Leave Types', path: '/leave-types', icon: FileText, iconColor: '#64748B' },
+      { label: 'Leave Balances', path: '/leave-balance', icon: PieChart, iconColor: '#64748B' },
     ]
   },
   {
-    group: 'Reports',
-    icon: BarChart3,
+    group: 'Rules & Holidays',
+    icon: ShieldCheck,
     iconColor: '#64748B',
     items: [
-      { label: 'Statutory Registers', path: '/reports/registers', icon: FileText, iconColor: '#64748B' },
-      { label: 'Insights', path: '/reports/insights', icon: TrendingUp, iconColor: '#64748B' },
-      { label: 'Payroll Export', path: '/reports/payroll', icon: Calculator, iconColor: '#64748B' },
-      { label: 'All Reports', path: '/reports', icon: BarChart3, iconColor: '#64748B' },
-      { label: 'Export Center', path: '/export', icon: Download, iconColor: '#64748B' },
-    ]
-  },
-  {
-    group: 'Data',
-    icon: Database,
-    iconColor: '#64748B',
-    items: [
-      { label: 'Live Logs', path: '/logs', icon: Activity, iconColor: '#64748B' },
-      { label: 'Attendance Register', path: '/attendance-register', icon: ClipboardList, iconColor: '#64748B' },
-      { label: 'Attendance Calendar', path: '/attendance-calendar', icon: CalendarDays, iconColor: '#64748B' },
-      { label: 'Import Wizard', path: '/import', icon: Upload, iconColor: '#64748B' },
+      { label: 'Attendance Rules', path: '/attendance-rules', icon: ShieldCheck, iconColor: '#64748B' },
+      { label: 'Holidays & Locations', path: '/holiday-locations', icon: Plane, iconColor: '#64748B' },
+      { label: 'Geofences', path: '/geofences', icon: MapPin, iconColor: '#64748B' },
     ]
   },
 ];
@@ -183,7 +181,7 @@ export const systemSidebar = [
     icon: Shield,
     iconColor: '#64748B',
     items: [
-      { label: 'User', path: '/users', icon: Users, iconColor: '#64748B' },
+      { label: 'Users', path: '/users', icon: Users, iconColor: '#64748B' },
       { label: 'Audit Trail', path: '/audit', icon: ShieldCheck, iconColor: '#64748B' },
     ]
   },
@@ -215,7 +213,7 @@ export const systemSidebar = [
       // hunting a pill bar. All resolve to the Settings page, which opens the
       // named tab in read-only view.
       { label: 'Company', path: '/settings/company', icon: Building, iconColor: '#64748B' },
-      { label: 'Attendance Rules', path: '/settings/attendance', icon: Timer, iconColor: '#64748B' },
+      { label: 'Attendance Defaults', path: '/settings/attendance', icon: Timer, iconColor: '#64748B' },
       { label: 'Weekend Rules', path: '/settings/weekend', icon: CalendarDays, iconColor: '#64748B' },
       { label: 'Email / SMTP', path: '/settings/notifications', icon: Mail, iconColor: '#64748B' },
       { label: 'Security', path: '/settings/security', icon: Shield, iconColor: '#64748B' },

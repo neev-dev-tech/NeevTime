@@ -532,7 +532,7 @@ export default function Dashboard() {
                             <LayoutDashboard size={19} />
                         </div>
                         <div className="min-w-0">
-                            <h1 className="text-[22px] leading-tight font-semibold tracking-tight text-slate-900 dark:text-slate-50">Worktable</h1>
+                            <h1 className="text-[22px] leading-tight font-semibold tracking-tight text-slate-900 dark:text-slate-50">Dashboard</h1>
                             <div className="mt-0.5 flex items-center gap-3 flex-wrap text-sm text-slate-500 dark:text-slate-400">
                                 <span>Overview of today's attendance and device status</span>
                                 {lastUpdated && (

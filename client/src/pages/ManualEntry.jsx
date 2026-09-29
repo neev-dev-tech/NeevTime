@@ -94,7 +94,7 @@ export default function ManualEntry() {
         <div className="max-w-2xl mx-auto space-y-6">
             <PageHeader
                 icon={ClipboardEdit}
-                title="Manual Attendance Entry"
+                title="Manual Entry"
                 subtitle="Add a missed punch record for an employee"
             />
 

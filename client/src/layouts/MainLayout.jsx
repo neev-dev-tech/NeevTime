@@ -21,7 +21,13 @@ export default function MainLayout({ children }) {
   const { auth, logout } = useStore();
   const { isViewer } = usePermissions();
   const [activeModule, setActiveModule] = useState('Dashboard');
-  const [expandedGroups, setExpandedGroups] = useState({});
+  // Remembered per browser so the groups someone works in stay open.
+  const [expandedGroups, setExpandedGroups] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('nav-expanded-groups')) || {}; } catch { return {}; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem('nav-expanded-groups', JSON.stringify(expandedGroups)); } catch { /* storage unavailable */ }
+  }, [expandedGroups]);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const profileMenuRef = useRef(null);
   const profileTriggerRef = useRef(null);

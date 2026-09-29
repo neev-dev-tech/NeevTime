@@ -20,7 +20,6 @@ import Devices from './pages/Devices';
 import Departments from './pages/Departments';
 import Positions from './pages/Positions';
 import Login from './pages/Login';
-import GenericCrud from './components/GenericCrud';
 import Area from './pages/Area';
 import Resign from './pages/Resign';
 import AuditTrail from './pages/AuditTrail';
@@ -186,14 +185,16 @@ export default function App() {
                         <Route path="/attendance-rules" element={<AttendanceRules />} />
                         <Route path="/holiday-locations" element={<HolidayLocation />} />
                         <Route path="/geofences" element={<Geofences />} />
-                        <Route path="/break-times" element={<GenericCrud title="Break Times" endpoint="/api/break-times" columns={[{ key: 'name', label: 'Name' }]} />} />
+                        {/* Breaks need a timetable and times; the name-only editor created
+                            incomplete rows. Old links land on Timetable instead. */}
+                        <Route path="/break-times" element={<Navigate to="/timetables" replace />} />
                         <Route path="/timetables" element={<Timetable />} />
                         <Route path="/shifts" element={<ShiftMaster />} />
                         <Route path="/shift-rotations" element={<ShiftRotations />} />
                         <Route path="/schedule/department" element={<DepartmentSchedule />} />
                         <Route path="/schedule/employee" element={<EmployeeSchedule />} />
                         {/* Temporary schedules are employee schedules flagged is_temporary */}
-                        <Route path="/schedule/temporary" element={<EmployeeSchedule />} />
+                        <Route path="/schedule/temporary" element={<EmployeeSchedule key="temporary" temporary />} />
                         <Route path="/schedule/calendar" element={<ScheduleCalendar />} />
                         <Route path="/attendance/manual" element={<ManualEntry />} />
                         <Route path="/leaves" element={<LeaveApplications />} />
@@ -232,7 +233,6 @@ export default function App() {
                             '/reports/att-status': 'att_status',
                             '/reports/att-summary': 'att_summary',
                             '/reports/device-health': 'device_health',
-                            '/reports/payroll': 'payroll',
                             '/reports/biometric-summary': 'biometric_summary',
                         }).map(([path, type]) => (
                             <Route key={path} path={path} element={<ReportsLegacy type={type} />} />

@@ -41,8 +41,7 @@ export default function ReportsDashboard() {
                 { id: 'transaction', name: "Transaction", icon: ArrowLeftRight, path: "/reports/transactions", description: "All employee punch transactions", tier: 'primary' },
                 { id: 'mobile_trans', name: "Mobile Transaction", icon: Smartphone, path: "/reports/mobile-transactions", description: "Mobile app punch records", tier: 'secondary' },
                 { id: 'total_punches', name: "Total Punches", icon: List, path: "/reports/total-punches", description: "Summary of all punch counts", tier: 'primary' },
-                { id: 'first_last', name: "First & Last", icon: ArrowLeftRight, path: "/reports/first-last", description: "First and last punch of day", tier: 'secondary' },
-                { id: 'first_in_last_out', name: "First In Last Out", icon: ArrowLeftRight, path: "/reports/first-last", description: "Entry and exit punch details", tier: 'secondary' }
+                { id: 'first_last', name: "First & Last", icon: ArrowLeftRight, path: "/reports/first-last", description: "First and last punch of day", tier: 'secondary' }
             ]
         },
         {
@@ -58,8 +57,6 @@ export default function ReportsDashboard() {
                 { id: 'birthday', name: "Birthday", icon: Activity, path: "/reports/birthday", description: "Employee birthday calendar", tier: 'utility' },
                 { id: 'overtime', name: "Overtime", icon: Clock, path: "/reports/overtime", description: "Overtime hours analysis", tier: 'secondary' },
                 { id: 'absent', name: "Absent", icon: UserX, path: "/reports/absent", description: "Employee absence tracking", tier: 'secondary' },
-                { id: 'multiple', name: "Multiple Transaction", icon: List, path: "/reports/transactions", description: "Multiple punch records", tier: 'utility' },
-                { id: 'break', name: "Break Time", icon: Clock, path: "/break-times", description: "Break duration analysis", tier: 'secondary' },
                 { id: 'half_day', name: "Half Day", icon: PieChart, path: "/reports/half-day", description: "Half day leave records", tier: 'utility' }
             ]
         },

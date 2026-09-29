@@ -297,8 +297,8 @@ const MobilePunch = () => {
         <div className="h-full flex flex-col bg-slate-50 dark:bg-slate-900/50">
             <PageHeader
                 icon={MapPin}
-                title="Mobile Punch"
-                subtitle="GPS geofenced attendance punch"
+                title="Test Punch"
+                subtitle="Record a GPS punch as admin to check geofences — employees punch from the portal"
             />
             <div className="flex-1 flex flex-col items-center justify-center">
                 <div className="w-full max-w-md bg-app-surface/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-3xl shadow-xl overflow-hidden border border-slate-200 dark:border-slate-700">

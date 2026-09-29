@@ -163,7 +163,7 @@ export default function Timetable() {
             {/* Header */}
             <PageHeader
                 icon={CalendarDays}
-                title="Timetable Management"
+                title="Timetables"
                 subtitle="Check-in and check-out windows, grace periods, and breaks"
                 actions={
                     <>

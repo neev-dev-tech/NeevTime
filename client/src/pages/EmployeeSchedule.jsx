@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import api from '../api';
 import { UserCheck, Plus, Edit2, Trash2, Save, Users, Search, Filter, AlertCircle, RefreshCw } from 'lucide-react';
 import { useToast, Button, PageHeader, ExportMenu } from '../components';
 import Modal from '../components/Modal';
 import { toLocalDateString } from '../utils/dateFormat';
 
-export default function EmployeeSchedule() {
+// `temporary` turns the page into the Temporary Schedule view: it lists only
+// temporary overrides and new assignments default to temporary.
+export default function EmployeeSchedule({ temporary = false }) {
     const toast = useToast();
     const [schedules, setSchedules] = useState([]);
     const [employees, setEmployees] = useState([]);
@@ -27,7 +30,7 @@ export default function EmployeeSchedule() {
         timetable_id: '',
         effective_from: toLocalDateString(),
         effective_to: '',
-        is_temporary: false,
+        is_temporary: temporary,
         reason: '',
         week_off_days: ['saturday', 'sunday']
     });
@@ -140,7 +143,7 @@ export default function EmployeeSchedule() {
             timetable_id: '',
             effective_from: toLocalDateString(),
             effective_to: '',
-            is_temporary: false,
+            is_temporary: temporary,
             reason: '',
             week_off_days: ['saturday', 'sunday']
         });
@@ -167,7 +170,8 @@ export default function EmployeeSchedule() {
             s.employee_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             s.employee_code?.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesDept = !filterDepartment || s.department_name === filterDepartment;
-        return matchesSearch && matchesDept;
+        const matchesKind = !temporary || Boolean(s.is_temporary);
+        return matchesSearch && matchesDept && matchesKind;
     });
 
     const filteredEmployees = employees.filter(e => {
@@ -182,8 +186,10 @@ export default function EmployeeSchedule() {
             {/* Header */}
             <PageHeader
                 icon={UserCheck}
-                title="Employee Schedule"
-                subtitle="Per-employee shift assignments and temporary overrides"
+                title={temporary ? 'Temporary Schedule' : 'Employee Schedule'}
+                subtitle={temporary
+                    ? 'Short-term shift overrides that end on a set date'
+                    : 'Per-employee shift assignments and temporary overrides'}
                 actions={
                     <>
                         <ExportMenu
@@ -541,3 +547,7 @@ export default function EmployeeSchedule() {
         </div>
     );
 }
+
+EmployeeSchedule.propTypes = {
+    temporary: PropTypes.bool
+};

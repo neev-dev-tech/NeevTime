@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import api from '../api';
 import { Scale, Plus, Edit2, Trash2, Save, Globe, Building2, Clock, AlertTriangle, CheckCircle, Calendar, AlertCircle, RefreshCw } from 'lucide-react';
 import { useToast, Button, PageHeader } from '../components';
@@ -239,6 +240,23 @@ export default function AttendanceRules() {
                 }
             />
 
+            {/* The attendance engine does not read these rules yet. Saying so
+                here stops anyone tuning a grace period that changes nothing. */}
+            <div role="note" className="flex gap-3 p-4 rounded-xl border border-amber-200 bg-amber-50 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+                <AlertTriangle size={18} className="shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                    <p className="font-semibold">These rules are saved but not yet used in attendance calculation.</p>
+                    <p>
+                        Late marks and grace come from the employee's assigned shift
+                        (<Link to="/shifts" className="underline underline-offset-2">Shifts</Link>, grace-in minutes),
+                        and otherwise from{' '}
+                        <Link to="/settings/attendance" className="underline underline-offset-2">System › Attendance Defaults</Link>.
+                        Week-offs come from{' '}
+                        <Link to="/settings/weekend" className="underline underline-offset-2">Weekend Rules</Link>.
+                    </p>
+                </div>
+            </div>
+
             {/* Tabs */}
             <div className="flex flex-wrap gap-1.5">
                 <button
@@ -268,7 +286,7 @@ export default function AttendanceRules() {
                 </div>
                 <div className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
                     <strong className="block mb-0.5 text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500 dark:text-slate-400">How Rules Work</strong>
-                    Global rules apply to all employees by default. Department-specific rules override global rules for employees in that department. Keep at least one global rule.
+                    Global rules are meant for all employees; a department rule is meant to override them for that department. Keep at least one global rule.
                 </div>
             </div>
 

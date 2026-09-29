@@ -74,7 +74,7 @@ export default function ShiftMaster() {
         <div className="space-y-6">
             <PageHeader
                 icon={Clock}
-                title="Shift Master"
+                title="Shifts"
                 subtitle="Working-hour patterns employees and departments can be assigned to"
                 actions={
                     <>
