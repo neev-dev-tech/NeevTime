@@ -189,6 +189,7 @@ export default function App() {
                         <Route path="/break-times" element={<GenericCrud title="Break Times" endpoint="/api/break-times" columns={[{ key: 'name', label: 'Name' }]} />} />
                         <Route path="/timetables" element={<Timetable />} />
                         <Route path="/shifts" element={<ShiftMaster />} />
+                        <Route path="/shift-rotations" element={<ShiftRotations />} />
                         <Route path="/schedule/department" element={<DepartmentSchedule />} />
                         <Route path="/schedule/employee" element={<EmployeeSchedule />} />
                         {/* Temporary schedules are employee schedules flagged is_temporary */}
