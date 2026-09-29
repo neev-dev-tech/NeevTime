@@ -123,7 +123,9 @@ export default function EmployeeProfile() {
 api.get('/api/contractors').then(r => setContractors(r.data.filter(c => c.is_active))).catch(() => {});
             setDepartments(d.data);
             setAreas(a.data);
-        } catch (err) { }
+        } catch (err) {
+            toast.error(`Could not load departments and areas: ${err.response?.data?.error || err.message}`);
+        }
     };
 
     // Delete Confirmation State

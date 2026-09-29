@@ -10,6 +10,10 @@ import { confirm } from '../components/ConfirmDialog';
 
 export default function ApprovalRole() {
     const toast = useToast();
+    // True when the member list could not be loaded for the role being edited.
+    // Saving must then leave members alone: sending the empty list would
+    // delete every member the role actually has.
+    const [membersUnknown, setMembersUnknown] = useState(false);
     const [roles, setRoles] = useState([]);
     const [employees, setEmployees] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -67,7 +71,9 @@ export default function ApprovalRole() {
         try {
             if (editItem) {
                 await api.put(`/api/approval/roles/${editItem.id}`, formData);
-                await api.put(`/api/approval/roles/${editItem.id}/members`, { employee_ids: memberIds });
+                if (!membersUnknown) {
+                    await api.put(`/api/approval/roles/${editItem.id}/members`, { employee_ids: memberIds });
+                }
             } else {
                 const created = await api.post('/api/approval/roles', formData);
                 if (created.data?.id) await api.put(`/api/approval/roles/${created.data.id}/members`, { employee_ids: memberIds });
@@ -77,16 +83,20 @@ export default function ApprovalRole() {
             setEditItem(null);
             fetchRoles();
         } catch (err) {
-            toast.error('Failed to save role');
+            toast.error(err.response?.data?.error || 'Failed to save role');
         }
     };
 
     const handleEdit = (role) => {
         setEditItem(role);
         setMemberIds([]);
+        setMembersUnknown(false);
         api.get(`/api/approval/roles/${role.id}/members`)
             .then(r => setMemberIds(r.data.map(m => m.employee_id)))
-            .catch(() => {});
+            .catch((err) => {
+                setMembersUnknown(true);
+                toast.error(`Could not load this role's members (${err.response?.data?.error || err.message}). Saving will keep the existing members unchanged.`);
+            });
         setFormData({
             role_code: role.role_code || '',
             role_name: role.role_name || role.name || '',
