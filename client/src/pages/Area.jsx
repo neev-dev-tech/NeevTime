@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import api from '../api';
 import { Plus, Trash2, Upload, RefreshCw, ArrowRightLeft, Download, Map, AlertCircle, MapPin } from 'lucide-react';
-import { useToast, Button, ListPage, ListSearch, ListSelection } from '../components';
+import { useToast, Button, ListPage, ListSearch, ListSelection, ListIconButton } from '../components';
 import Modal from '../components/Modal';
 import OrgDirectory from '../components/OrgDirectory';
 
@@ -221,9 +221,7 @@ export default function Area() {
                     <ListSearch label="Search areas" placeholder="Search areas..." value={searchQuery} onChange={setSearchQuery} />
                     <ListSelection count={selectedRows.length} onClear={() => setSelectedRows([])} />
                     <div className="ml-auto flex items-center gap-2 flex-wrap">
-                        <Button variant="danger" size="toolbar" icon={Trash2} onClick={handleBulkDelete}>
-                            Delete
-                        </Button>
+                        <ListIconButton label="Refresh" icon={RefreshCw} onClick={fetchAreas} disabled={loading} spin={loading} />
                     </div>
                 </>
             }
@@ -265,7 +263,7 @@ export default function Area() {
                                     onClick={() => { setSelectedArea(area); setFormData({}); setShowModal(true); }}>
                                     Add sub-area
                                 </Button>
-                                <Button variant="danger" size="toolbar" icon={Trash2} onClick={() => handleDelete(area.id)}>Delete</Button>
+                                <Button variant="danger" size="toolbar" icon={Trash2} onClick={() => (selectedRows.length ? handleBulkDelete() : handleDelete(area.id))}>{selectedRows.length ? `Delete ${selectedRows.length}` : 'Delete'}</Button>
                             </>
                         )}
                         emptyState={

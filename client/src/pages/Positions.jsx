@@ -254,9 +254,6 @@ export default function Positions() {
                     <ListSearch label="Search positions" placeholder="Search positions..." value={searchQuery} onChange={setSearchQuery} />
                     <ListSelection count={selectedIds.length} onClear={() => setSelectedIds([])} />
                     <div className="ml-auto flex items-center gap-2 flex-wrap">
-                        <Button variant="danger" size="toolbar" icon={Trash2} onClick={handleBulkDelete}>
-                            Delete
-                        </Button>
                         <ListIconButton label="Refresh" icon={RefreshCw} onClick={fetchPositions} disabled={loading} spin={loading} />
                     </div>
                 </>
@@ -290,7 +287,7 @@ export default function Positions() {
                         detailActions={pos => (
                             <>
                                 <Button variant="tonal" size="toolbar" icon={Edit2} onClick={() => handleEdit(pos)}>Edit</Button>
-                                <Button variant="danger" size="toolbar" icon={Trash2} onClick={(e) => handleDelete(e, pos.id)}>Delete</Button>
+                                <Button variant="danger" size="toolbar" icon={Trash2} onClick={(e) => (selectedIds.length ? handleBulkDelete(e) : handleDelete(e, pos.id))}>{selectedIds.length ? `Delete ${selectedIds.length}` : 'Delete'}</Button>
                             </>
                         )}
                         emptyState={

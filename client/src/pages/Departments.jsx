@@ -263,9 +263,6 @@ export default function Departments() {
                     <ListSearch label="Search departments" placeholder="Search departments..." value={searchQuery} onChange={setSearchQuery} />
                     <ListSelection count={selectedIds.length} onClear={() => setSelectedIds([])} />
                     <div className="ml-auto flex items-center gap-2 flex-wrap">
-                        <Button variant="danger" size="toolbar" icon={Trash2} onClick={handleBulkDelete}>
-                            Delete
-                        </Button>
                         <ListIconButton label="Refresh" icon={RefreshCw} onClick={fetchDepartments} disabled={loading} spin={loading} />
                     </div>
                 </>
@@ -299,7 +296,7 @@ export default function Departments() {
                             <>
                                 <Button variant="tonal" size="toolbar" icon={UserCheck} onClick={() => openApprovers(dept)}>Approvers</Button>
                                 <Button variant="tonal" size="toolbar" icon={Edit2} onClick={() => handleEdit(dept)}>Edit</Button>
-                                <Button variant="danger" size="toolbar" icon={Trash2} onClick={(e) => handleDelete(e, dept.id)}>Delete</Button>
+                                <Button variant="danger" size="toolbar" icon={Trash2} onClick={(e) => (selectedIds.length ? handleBulkDelete(e) : handleDelete(e, dept.id))}>{selectedIds.length ? `Delete ${selectedIds.length}` : 'Delete'}</Button>
                             </>
                         )}
                         emptyState={
