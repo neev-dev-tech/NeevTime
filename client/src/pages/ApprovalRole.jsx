@@ -6,6 +6,7 @@ import {
     RefreshCw, Search, Users, X, AlertCircle
 } from 'lucide-react';
 import { useToast, Button, PageHeader } from '../components';
+import { confirm } from '../components/ConfirmDialog';
 
 export default function ApprovalRole() {
     const toast = useToast();
@@ -95,7 +96,7 @@ export default function ApprovalRole() {
     };
 
     const handleDelete = async (id) => {
-        if (!confirm('Are you sure you want to delete this role?')) return;
+        if (!(await confirm({ title: 'Delete', confirmText: 'Delete', type: 'danger', message: 'Are you sure you want to delete this role?' }))) return;
         try {
             await api.delete(`/api/approval/roles/${id}`);
             fetchRoles();
@@ -106,7 +107,7 @@ export default function ApprovalRole() {
 
     const handleBulkDelete = async () => {
         if (selectedIds.length === 0) return toast.warning('Select roles to delete');
-        if (!confirm(`Delete ${selectedIds.length} roles?`)) return;
+        if (!(await confirm({ title: 'Delete', confirmText: 'Delete', type: 'danger', message: `Delete ${selectedIds.length} roles?` }))) return;
         try {
             await Promise.all(selectedIds.map(id => api.delete(`/api/approval/roles/${id}`)));
             setSelectedIds([]);

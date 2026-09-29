@@ -4,6 +4,7 @@ import api from '../api';
 import { Button, PageHeader, ExportMenu, useToast } from '../components';
 import { TableToolbar, SortableTh, TablePager } from '../components/TableControls';
 import useTableControls from '../hooks/useTableControls';
+import { confirm } from '../components/ConfirmDialog';
 
 export default function LeaveBalances() {
     const toast = useToast();
@@ -86,7 +87,7 @@ export default function LeaveBalances() {
 
     // Create current-year balances from leave-type quotas for every active employee
     const initializeAll = async () => {
-        if (!window.confirm(`Initialize ${new Date().getFullYear()} leave balances for all ${employees.length} employees? Existing balances are kept.`)) return;
+        if (!(await confirm({ title: 'Initialize balances', confirmText: 'Initialize', type: 'info', message: `Initialize ${new Date().getFullYear()} leave balances for all ${employees.length} employees? Existing balances are kept.` }))) return;
         setInitializing(true);
         let ok = 0, fail = 0;
         for (const emp of employees) {

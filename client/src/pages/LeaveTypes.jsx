@@ -5,6 +5,7 @@ import { Button, PageHeader, useToast } from '../components';
 import { TableToolbar, SortableTh, TablePager } from '../components/TableControls';
 import useTableControls from '../hooks/useTableControls';
 import Modal from '../components/Modal';
+import { confirm } from '../components/ConfirmDialog';
 
 const DEFAULT_FORM = { code: '', name: '', annual_quota: 12, carry_forward: false, max_carry_forward: 0, is_paid: true, encashable: false, color: '#3b82f6' };
 const BADGE_BASE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide';
@@ -73,7 +74,7 @@ export default function LeaveTypes() {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm('Delete this leave type?')) return;
+        if (!(await confirm({ title: 'Delete', confirmText: 'Delete', type: 'danger', message: 'Delete this leave type?' }))) return;
         try {
             await api.delete(`/api/leave-types/${id}`);
             toast.success('Deleted');

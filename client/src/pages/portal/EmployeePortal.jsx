@@ -7,7 +7,7 @@ import {
 import api from '../../api';
 import PunchCard from './PunchCard';
 import useStore from '../../store/useStore';
-import { Button } from '../../components';
+import { Button, useToast } from '../../components';
 import { toLocalDateString, formatDate, formatDateWithWeekday } from '../../utils/dateFormat';
 
 const firstOfMonth = () => {
@@ -60,6 +60,7 @@ const RowCount = ({ n, noun }) => (
 );
 
 export default function EmployeePortal() {
+    const toast = useToast();
     const navigate = useNavigate();
     const { auth, logout } = useStore();
     const [tab, setTab] = useState('attendance');
@@ -109,14 +110,14 @@ export default function EmployeePortal() {
             setSwapForm({ counterpart_code: '', requester_date: '', counterpart_date: '', reason: '' });
             loadSwaps();
         } catch (err) {
-            alert(err.response?.data?.error || 'Could not request the swap');
+            toast.error(err.response?.data?.error || 'Could not request the swap');
         } finally { setSwapBusy(false); }
     };
     const respondSwap = async (id, accept) => {
         try {
             await api.post(`/api/portal/swaps/${id}/respond`, { accept });
             loadSwaps();
-        } catch (err) { alert(err.response?.data?.error || 'Could not respond'); }
+        } catch (err) { toast.error(err.response?.data?.error || 'Could not respond'); }
     };
 
     const decide = async (item, decision, comment = null) => {
@@ -128,7 +129,7 @@ export default function EmployeePortal() {
         } catch (err) {
             // 409 means somebody else got there first, which is normal when two
             // approvers share a queue and worth saying rather than swallowing.
-            alert(err.response?.data?.error || 'Could not record that decision');
+            toast.error(err.response?.data?.error || 'Could not record that decision');
             await loadApprovals();
         } finally {
             setDeciding(null);

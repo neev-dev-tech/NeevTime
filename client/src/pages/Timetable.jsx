@@ -3,6 +3,7 @@ import api from '../api';
 import { Clock, Plus, Edit2, Trash2, Save, CalendarDays, Coffee, Moon, Sun, Check, AlertCircle, RefreshCw } from 'lucide-react';
 import { useToast, Button, PageHeader, ExportMenu } from '../components';
 import Modal from '../components/Modal';
+import { confirm } from '../components/ConfirmDialog';
 
 export default function Timetable() {
     const toast = useToast();
@@ -82,7 +83,7 @@ export default function Timetable() {
     };
 
     const handleDelete = async (id) => {
-        if (!confirm('Are you sure you want to delete this timetable?')) return;
+        if (!(await confirm({ title: 'Delete', confirmText: 'Delete', type: 'danger', message: 'Are you sure you want to delete this timetable?' }))) return;
         try {
             await api.delete(`/api/timetables/${id}`);
             fetchTimetables();

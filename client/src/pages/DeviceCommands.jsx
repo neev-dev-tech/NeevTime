@@ -5,6 +5,7 @@ import {
     Clock, Power, Trash2, Download, Upload, AlertTriangle, Wifi, WifiOff
 } from 'lucide-react';
 import { useToast, Button, PageHeader, ExportMenu } from '../components';
+import { confirm } from '../components/ConfirmDialog';
 
 export default function DeviceCommands() {
     const toast = useToast();
@@ -63,7 +64,7 @@ export default function DeviceCommands() {
         const confirmCommands = ['CLEAR LOG', 'CLEAR DATA', 'REBOOT'];
         if (confirmCommands.includes(commandId)) {
             const cmdLabel = commandList.find(c => c.id === commandId)?.label;
-            if (!confirm(`Are you sure you want to execute "${cmdLabel}" on ${selectedDevice.device_name || selectedDevice.serial_number}?`)) {
+            if (!(await confirm({ title: 'Run device command', confirmText: 'Run', type: 'danger', message: `Are you sure you want to execute "${cmdLabel}" on ${selectedDevice.device_name || selectedDevice.serial_number}?` }))) {
                 return;
             }
         }

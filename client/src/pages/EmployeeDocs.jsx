@@ -4,6 +4,7 @@ import api from '../api';
 import { Button, PageHeader } from '../components';
 import Modal from '../components/Modal';
 import { formatDate as formatDateUtil } from '../utils/dateFormat';
+import { confirm } from '../components/ConfirmDialog';
 
 export default function EmployeeDocs() {
     const [documents, setDocuments] = useState([]);
@@ -148,7 +149,7 @@ export default function EmployeeDocs() {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this document?')) {
+        if (!(await confirm({ title: 'Delete', confirmText: 'Delete', type: 'danger', message: 'Are you sure you want to delete this document?' }))) {
             return;
         }
         try {

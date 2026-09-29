@@ -3,6 +3,7 @@ import api from '../api';
 import { Plus, Edit2, Trash2, Clock, Sun, Moon, AlertCircle, RefreshCw } from 'lucide-react';
 import { useToast, Button, PageHeader, ExportMenu } from '../components';
 import Modal from '../components/Modal';
+import { confirm } from '../components/ConfirmDialog';
 
 export default function ShiftMaster() {
     const toast = useToast();
@@ -63,7 +64,7 @@ export default function ShiftMaster() {
     };
 
     const handleDelete = async (id) => {
-        if (!confirm('Delete this shift?')) return;
+        if (!(await confirm({ title: 'Delete', confirmText: 'Delete', type: 'danger', message: 'Delete this shift?' }))) return;
         try {
             await api.delete(`/api/shifts/${id}`);
             fetchShifts();

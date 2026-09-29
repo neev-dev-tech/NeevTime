@@ -7,6 +7,7 @@ import {
 import { useToast, Button, PageHeader } from '../components';
 import Modal from '../components/Modal';
 import { toLocalDateString } from '../utils/dateFormat';
+import { confirm } from '../components/ConfirmDialog';
 
 export default function ApprovalFlow() {
     const toast = useToast();
@@ -95,14 +96,14 @@ export default function ApprovalFlow() {
     };
 
     const handleDelete = async (id) => {
-        if (!confirm('Delete this flow?')) return;
+        if (!(await confirm({ title: 'Delete', confirmText: 'Delete', type: 'danger', message: 'Delete this flow?' }))) return;
         try { await api.delete(`/api/approval/flows/${id}`); fetchData(); }
         catch (err) { toast.error('Delete failed'); }
     };
 
     const handleBulkDelete = async () => {
         if (selectedIds.length === 0) return toast.warning('Select flows to delete');
-        if (!confirm(`Delete ${selectedIds.length} flows?`)) return;
+        if (!(await confirm({ title: 'Delete', confirmText: 'Delete', type: 'danger', message: `Delete ${selectedIds.length} flows?` }))) return;
         try {
             await Promise.all(selectedIds.map(id => api.delete(`/api/approval/flows/${id}`)));
             toast.success(`Deleted ${selectedIds.length} flow${selectedIds.length > 1 ? 's' : ''}`);

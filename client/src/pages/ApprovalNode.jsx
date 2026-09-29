@@ -6,6 +6,7 @@ import {
     RefreshCw, Search, X, AlertCircle
 } from 'lucide-react';
 import { useToast, Button, PageHeader } from '../components';
+import { confirm } from '../components/ConfirmDialog';
 
 export default function ApprovalNode() {
     const toast = useToast();
@@ -88,14 +89,14 @@ export default function ApprovalNode() {
     };
 
     const handleDelete = async (id) => {
-        if (!confirm('Delete this node?')) return;
+        if (!(await confirm({ title: 'Delete', confirmText: 'Delete', type: 'danger', message: 'Delete this node?' }))) return;
         try { await api.delete(`/api/approval/nodes/${id}`); fetchData(); }
         catch (err) { toast.error('Delete failed'); }
     };
 
     const handleBulkDelete = async () => {
         if (selectedIds.length === 0) return toast.warning('Select nodes to delete');
-        if (!confirm(`Delete ${selectedIds.length} nodes?`)) return;
+        if (!(await confirm({ title: 'Delete', confirmText: 'Delete', type: 'danger', message: `Delete ${selectedIds.length} nodes?` }))) return;
         try {
             await Promise.all(selectedIds.map(id => api.delete(`/api/approval/nodes/${id}`)));
             setSelectedIds([]);

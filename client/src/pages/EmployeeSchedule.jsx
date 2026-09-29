@@ -5,6 +5,7 @@ import { UserCheck, Plus, Edit2, Trash2, Save, Users, Search, Filter, AlertCircl
 import { useToast, Button, PageHeader, ExportMenu } from '../components';
 import Modal from '../components/Modal';
 import { toLocalDateString } from '../utils/dateFormat';
+import { confirm } from '../components/ConfirmDialog';
 
 // `temporary` turns the page into the Temporary Schedule view: it lists only
 // temporary overrides and new assignments default to temporary.
@@ -110,7 +111,7 @@ export default function EmployeeSchedule({ temporary = false }) {
     };
 
     const handleDelete = async (id) => {
-        if (!confirm('Are you sure you want to delete this schedule?')) return;
+        if (!(await confirm({ title: 'Delete', confirmText: 'Delete', type: 'danger', message: 'Are you sure you want to delete this schedule?' }))) return;
         try {
             await api.delete(`/api/schedules/employee/${id}`);
             fetchData();

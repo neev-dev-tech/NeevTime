@@ -26,6 +26,7 @@ import {
 } from '@mui/icons-material';
 import { integrationsAPI } from '../api';
 import { Button, useToast } from '../components';
+import { confirm } from '../components/ConfirmDialog';
 
 const Integrations = () => {
     const toast = useToast();
@@ -184,7 +185,7 @@ const Integrations = () => {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this integration?')) return;
+        if (!(await confirm({ title: 'Delete', confirmText: 'Delete', type: 'danger', message: 'Are you sure you want to delete this integration?' }))) return;
         try {
             await integrationsAPI.delete(id);
             fetchIntegrations();

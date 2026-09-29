@@ -4,6 +4,7 @@ import { MapPin, Plus, Search, Trash2, Edit2, AlertCircle, CheckCircle, Navigati
 import api from '../api';
 import { Button, PageHeader, ExportMenu } from '../components';
 import Modal from '../components/Modal';
+import { confirm } from '../components/ConfirmDialog';
 
 const Geofences = () => {
     const [geofences, setGeofences] = useState([]);
@@ -56,7 +57,7 @@ const Geofences = () => {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this geofence?')) return;
+        if (!(await confirm({ title: 'Delete', confirmText: 'Delete', type: 'danger', message: 'Are you sure you want to delete this geofence?' }))) return;
         try {
             await api.delete(`/api/mobile/geofences/${id}`);
             showToast('success', 'Geofence deleted');

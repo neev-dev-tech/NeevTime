@@ -3,6 +3,7 @@ import api from '../api';
 import { useToast, Button, PageHeader } from '../components';
 import Modal from '../components/Modal';
 import { Plus, RefreshCw, Trash2, Shield, Check } from 'lucide-react';
+import { confirm } from '../components/ConfirmDialog';
 
 const KNOWN_SCOPES = ['attendance:read', 'employees:read'];
 
@@ -68,7 +69,7 @@ export default function ApiAccess() {
     };
 
     const rotate = async (c) => {
-        if (!window.confirm(`Rotate "${c.name}"? The current key stops working immediately.`)) return;
+        if (!(await confirm({ title: 'Rotate key', confirmText: 'Rotate', type: 'warning', message: `Rotate "${c.name}"? The current key stops working immediately.` }))) return;
         try {
             const res = await api.post(`/api/api-clients/${c.id}/rotate`);
             setIssued({ token: res.data.token, name: c.name, note: res.data.note });
@@ -80,7 +81,7 @@ export default function ApiAccess() {
     };
 
     const revoke = async (c) => {
-        if (!window.confirm(`Revoke "${c.name}"? Calls with that key will answer 401.`)) return;
+        if (!(await confirm({ title: 'Revoke key', confirmText: 'Revoke', type: 'danger', message: `Revoke "${c.name}"? Calls with that key will answer 401.` }))) return;
         try {
             await api.post(`/api/api-clients/${c.id}/revoke`);
             showToast(`Revoked "${c.name}"`, 'success');

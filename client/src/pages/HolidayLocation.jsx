@@ -4,6 +4,7 @@ import { MapPin, Plus, Edit2, Trash2, Save, Calendar, Globe, AlertCircle, Refres
 import { useToast, Button, PageHeader, ExportMenu } from '../components';
 import Modal from '../components/Modal';
 import { formatDate, formatDateWithWeekday } from '../utils/dateFormat';
+import { confirm } from '../components/ConfirmDialog';
 
 export default function HolidayLocation({ initialTab = 'locations' }) {
     const toast = useToast();
@@ -69,7 +70,7 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
     };
 
     const handleDelete = async (id) => {
-        if (!confirm('Are you sure you want to delete this location?')) return;
+        if (!(await confirm({ title: 'Delete', confirmText: 'Delete', type: 'danger', message: 'Are you sure you want to delete this location?' }))) return;
         try {
             await api.delete(`/api/holiday-locations/${id}`);
             fetchData();
@@ -111,7 +112,7 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
     };
 
     const handleHolidayDelete = async (id) => {
-        if (!confirm('Are you sure you want to delete this holiday?')) return;
+        if (!(await confirm({ title: 'Delete', confirmText: 'Delete', type: 'danger', message: 'Are you sure you want to delete this holiday?' }))) return;
         try {
             await api.delete(`/api/holidays/${id}`);
             fetchData();

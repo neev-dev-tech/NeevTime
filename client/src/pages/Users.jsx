@@ -4,6 +4,7 @@ import api from '../api';
 import { Button, PageHeader, ExportMenu } from '../components';
 import Modal from '../components/Modal';
 import { formatDate } from '../utils/dateFormat';
+import { confirm } from '../components/ConfirmDialog';
 
 // Tiers enforced by server/utils/rbac.js. 'user' is retired — legacy accounts
 // still holding it are treated as hr — so it is not offered for new accounts.
@@ -98,7 +99,7 @@ export default function UsersPage() {
     };
 
     const handleDelete = async (user) => {
-        if (!confirm(`Delete user "${user.username}"?`)) return;
+        if (!(await confirm({ title: 'Delete', confirmText: 'Delete', type: 'danger', message: `Delete user "${user.username}"?` }))) return;
 
         try {
             await api.delete(`/api/users/${user.id}`);

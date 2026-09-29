@@ -4,6 +4,7 @@ import { Building2, Plus, Edit2, Trash2, Save, Calendar, Clock, AlertCircle, Ref
 import { useToast, Button, PageHeader } from '../components';
 import Modal from '../components/Modal';
 import { toLocalDateString } from '../utils/dateFormat';
+import { confirm } from '../components/ConfirmDialog';
 
 export default function DepartmentSchedule() {
     const toast = useToast();
@@ -74,7 +75,7 @@ export default function DepartmentSchedule() {
     };
 
     const handleDelete = async (id) => {
-        if (!confirm('Are you sure you want to delete this schedule?')) return;
+        if (!(await confirm({ title: 'Delete', confirmText: 'Delete', type: 'danger', message: 'Are you sure you want to delete this schedule?' }))) return;
         try {
             await api.delete(`/api/schedules/department/${id}`);
             fetchData();

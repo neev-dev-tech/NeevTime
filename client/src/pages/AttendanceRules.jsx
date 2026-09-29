@@ -4,6 +4,7 @@ import api from '../api';
 import { Scale, Plus, Edit2, Trash2, Save, Globe, Building2, Clock, AlertTriangle, CheckCircle, Calendar, AlertCircle, RefreshCw } from 'lucide-react';
 import { useToast, Button, PageHeader } from '../components';
 import Modal from '../components/Modal';
+import { confirm } from '../components/ConfirmDialog';
 
 export default function AttendanceRules() {
     const toast = useToast();
@@ -82,7 +83,7 @@ export default function AttendanceRules() {
     };
 
     const handleDelete = async (id) => {
-        if (!confirm('Are you sure you want to delete this rule?')) return;
+        if (!(await confirm({ title: 'Delete', confirmText: 'Delete', type: 'danger', message: 'Are you sure you want to delete this rule?' }))) return;
         try {
             await api.delete(`/api/rules/${id}`);
             fetchData();
