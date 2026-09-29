@@ -35,6 +35,8 @@ const VARIANTS = {
 const MUTATING = new Set(['successSolid', 'success', 'danger', 'dangerSolid']);
 
 const SIZES = {
+    // Toolbar controls on list pages: every button in a bar the same 32px.
+    toolbar: 'h-8 px-3 text-[13px] gap-1.5',
     sm: 'px-3 py-1.5 text-xs gap-1.5',
     md: 'px-4 py-2 text-sm gap-2',
     lg: 'px-5 py-2.5 text-sm gap-2'
@@ -64,7 +66,7 @@ export default function Button({
                 ${VARIANTS[variant] || VARIANTS.primary} ${SIZES[size] || SIZES.md} ${className}`}
             {...rest}
         >
-            {Icon && <Icon size={iconSize || (size === 'sm' ? 14 : 16)} />}
+            {Icon && <Icon size={iconSize || (size === 'sm' || size === 'toolbar' ? 15 : 16)} />}
             {children}
         </button>
     );

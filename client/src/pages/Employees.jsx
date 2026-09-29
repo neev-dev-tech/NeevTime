@@ -2,13 +2,13 @@ import React, { useEffect, useState, useRef } from 'react';
 import api from '../api';
 import {
     Plus, Trash2, Upload, Download,
-    ChevronDown, Search, RefreshCw,
+    RefreshCw,
     Smartphone, ArrowRightLeft, Settings,
     Fingerprint, ScanFace, Users, AlertCircle, SearchX, X
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import ResignationModal from '../components/ResignationModal';
-import { Button } from '../components';
+import { Button, ListPage, ListTabs, ListSearch, ListSelection, ListMenu, ListMenuItem, ListIconButton } from '../components';
 import Modal from '../components/Modal';
 import { toLocalDateString } from '../utils/dateFormat';
 import useTableControls from '../hooks/useTableControls';
@@ -45,11 +45,6 @@ export default function Employees() {
     // Quick filter chips above the table; composes with the search box.
     const [quickFilter, setQuickFilter] = useState('all');
 
-    // Menus
-    const [showTransferMenu, setShowTransferMenu] = useState(false);
-    const [showAppMenu, setShowAppMenu] = useState(false);
-    const [showMoreMenu, setShowMoreMenu] = useState(false);
-    const [showSyncMenu, setShowSyncMenu] = useState(false);
 
     // Modals & Refs
     const [showAddModal, setShowAddModal] = useState(false);
@@ -116,25 +111,6 @@ export default function Employees() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
-
-    // Close dropdowns when clicking outside
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            // Check if click is outside any dropdown container
-            const isClickInsideDropdown = event.target.closest('.dropdown-container') ||
-                event.target.closest('.dropdown-menu');
-
-            if (!isClickInsideDropdown) {
-                setShowTransferMenu(false);
-                setShowAppMenu(false);
-                setShowMoreMenu(false);
-                setShowSyncMenu(false);
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
 
     useEffect(() => {
         fetchEmployees();
@@ -389,28 +365,6 @@ export default function Employees() {
         }
     };
 
-    // Dropdown Item Component
-    const DropdownItem = ({ label, onClick, danger = false }) => (
-        <button
-            type="button"
-            onMouseDown={(e) => { e.preventDefault(); }}
-            onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onClick?.();
-                // Close all dropdowns after action
-                setShowTransferMenu(false);
-                setShowAppMenu(false);
-                setShowMoreMenu(false);
-                setShowSyncMenu(false);
-            }}
-            role="menuitem"
-            className={`block w-full text-left px-3.5 py-2 text-[13px] hover:bg-slate-100 dark:hover:bg-slate-800 ${danger ? 'text-rose-600 dark:text-rose-400' : 'text-slate-700 dark:text-slate-200'}`}
-        >
-            {label}
-        </button>
-    );
-
     /**
      * Door access without attendance.
      *
@@ -473,7 +427,6 @@ export default function Employees() {
             try {
                 const res = await api.post(endpoints[action], { employee_ids: selectedIds });
                 showToast('Success: ' + res.data.message, 'success');
-                setShowMoreMenu(false);
             } catch (err) {
                 console.error(err);
                 showToast('Operation failed: ' + (err.response?.data?.error || err.message), 'error');
@@ -495,42 +448,7 @@ export default function Employees() {
     const someSelected = selectedIds.length > 0 && !allSelected;
     const TH = 'px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400 whitespace-nowrap';
 
-    const closeMenus = () => {
-        setShowTransferMenu(false);
-        setShowAppMenu(false);
-        setShowMoreMenu(false);
-        setShowSyncMenu(false);
-    };
-
-    // One size for every toolbar control on this page: 32px tall, 13px text.
-    const TB = '!h-8 !px-3 !py-0 !text-[13px] !gap-1.5';
-
-    // Bulk-action menu: button plus a panel of DropdownItems. Always clickable;
-    // with nothing ticked the panel says so instead of listing actions.
-    const BulkMenu = ({ label, icon: Icon, open, onToggle, width = 'w-56', children }) => (
-        <div className="relative dropdown-container">
-            <Button
-                variant="tonal"
-                icon={Icon}
-                iconSize={15}
-                className={TB}
-                aria-haspopup="menu"
-                aria-expanded={open}
-                onClick={(e) => { e.stopPropagation(); const was = open; closeMenus(); if (!was) onToggle(); }}
-            >
-                {label} <ChevronDown size={13} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
-            </Button>
-            {open && (
-                <div role="menu" className={`absolute top-full right-0 mt-1.5 ${width} bg-app-surface border border-slate-200 dark:border-slate-700 shadow-lg rounded-xl z-30 overflow-hidden py-1 dropdown-menu`}>
-                    {selectedIds.length ? children : (
-                        <p className="px-3.5 py-2.5 text-[13px] text-slate-500 dark:text-slate-400">
-                            Tick one or more employees in the list first.
-                        </p>
-                    )}
-                </div>
-            )}
-        </div>
-    );
+    const pickFirst = selectedIds.length ? null : 'Tick one or more employees in the list first.';
 
     const tableHead = (
         <thead className="sticky top-0 z-10 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
@@ -573,105 +491,57 @@ export default function Employees() {
     };
 
     return (
-        // Full-bleed: cancels the layout padding and fills the content area edge
-        // to edge. Header, toolbar and pager stay put; only the rows scroll.
-        <div className="relative -m-4 sm:-m-6 h-[calc(100%+2rem)] sm:h-[calc(100%+3rem)] flex flex-col bg-app-surface">
-            {/* Row 1: title + count, view tabs, page actions */}
-            <div className="flex items-center gap-x-4 gap-y-2 px-4 sm:px-6 min-h-14 py-2.5 border-b border-slate-200 dark:border-slate-800 flex-wrap">
-                <h1 className="flex items-baseline gap-2 text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-50">
-                    Employees
-                    <span className="text-sm font-medium text-slate-400 tabular-nums">{employees.length}</span>
-                </h1>
-                <div role="tablist" aria-label="Filter employees" className="flex items-center gap-0.5 flex-wrap">
-                    {QUICK_FILTERS.map(f => {
-                        const n = employees.filter(f.test).length;
-                        const on = quickFilter === f.key;
-                        return (
-                            <button
-                                key={f.key}
-                                type="button"
-                                role="tab"
-                                aria-selected={on}
-                                onClick={() => setQuickFilter(f.key)}
-                                className={`inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-[13px] font-medium transition-colors ${on
-                                    ? 'bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-white'
-                                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-200'}`}
-                            >
-                                {f.label}
-                                <span className="tabular-nums text-xs text-slate-400">{n}</span>
-                            </button>
-                        );
-                    })}
-                </div>
-                <div className="ml-auto flex items-center gap-2">
-                    <Button variant="tonal" icon={Upload} iconSize={15} className={TB} onClick={() => setShowImportModal(true)}>Import</Button>
-                    <Button variant="tonal" icon={Download} iconSize={15} className={TB} onClick={handleExport}>Export</Button>
-                    <Button variant="successSolid" icon={Plus} iconSize={15} className={TB} onClick={() => setShowAddModal(true)}>Add employee</Button>
-                </div>
-            </div>
-
-            <div className="flex-1 min-h-0 flex flex-col">
-                {/* Row 2: search, selection, actions on the ticked employees */}
-                <div className={`flex items-center gap-2 px-4 sm:px-6 py-2 border-b border-slate-200 dark:border-slate-800 flex-wrap ${selectedIds.length ? 'bg-slate-50 dark:bg-slate-800/50' : ''}`}>
-                    <div className="relative w-full sm:w-64">
-                        <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true" />
-                        <input
-                            type="search"
-                            aria-label="Search employees"
-                            placeholder="Search name, code or department"
-                            value={searchQuery}
-                            onChange={e => setSearchQuery(e.target.value)}
-                            className="field-sm !h-8 !py-0 pl-9"
-                        />
-                    </div>
-                    {selectedIds.length > 0 && (
-                        <div className="flex items-center gap-1 pl-1">
-                            <span className="text-[13px] font-semibold text-slate-900 dark:text-slate-100 tabular-nums">{selectedIds.length} selected</span>
-                            <button
-                                type="button"
-                                onClick={() => { setSelectedIds([]); closeMenus(); }}
-                                className="inline-flex items-center gap-1 h-7 px-2 rounded-md text-xs font-medium text-slate-500 hover:bg-slate-200/70 hover:text-slate-800 dark:hover:bg-slate-700 dark:hover:text-slate-100"
-                            >
-                                <X size={13} /> Clear
-                            </button>
-                        </div>
-                    )}
+        <>
+        <ListPage
+            title="Employees"
+            count={employees.length}
+            tabs={
+                <ListTabs
+                    label="Filter employees"
+                    value={quickFilter}
+                    onChange={setQuickFilter}
+                    items={QUICK_FILTERS.map(f => ({ key: f.key, label: f.label, count: employees.filter(f.test).length }))}
+                />
+            }
+            actions={
+                <>
+                    <Button variant="tonal" size="toolbar" icon={Upload} onClick={() => setShowImportModal(true)}>Import</Button>
+                    <Button variant="tonal" size="toolbar" icon={Download} onClick={handleExport}>Export</Button>
+                    <Button variant="primary" size="toolbar" icon={Plus} onClick={() => setShowAddModal(true)}>Add employee</Button>
+                </>
+            }
+            toolbarActive={selectedIds.length > 0}
+            toolbar={
+                <>
+                    <ListSearch label="Search employees" placeholder="Search name, code or department" value={searchQuery} onChange={setSearchQuery} />
+                    <ListSelection count={selectedIds.length} onClear={() => setSelectedIds([])} />
                     <div className="ml-auto flex items-center gap-2 flex-wrap">
-                        <BulkMenu label="Sync" icon={RefreshCw} open={showSyncMenu} onToggle={() => setShowSyncMenu(true)} width="w-60">
-                            <DropdownItem label="Resynchronize to device" onClick={() => { closeMenus(); handleMoreSettings('push'); }} />
-                            <DropdownItem label="Re-upload from device" onClick={() => { closeMenus(); handleMoreSettings('pull'); }} />
-                            <DropdownItem label="Delete Biometric Template" danger onClick={() => { closeMenus(); handleMoreSettings('delete-bio'); }} />
-                        </BulkMenu>
-                        <BulkMenu label="Transfer" icon={ArrowRightLeft} open={showTransferMenu} onToggle={() => setShowTransferMenu(true)}>
-                            <DropdownItem label="Department Transfer" onClick={() => { closeMenus(); handleTransfer('Department'); }} />
-                            <DropdownItem label="Position Transfer" onClick={() => { closeMenus(); handleTransfer('Position'); }} />
-                            <DropdownItem label="Move to New Area" onClick={() => { closeMenus(); handleTransfer('Area'); }} />
-                            <DropdownItem label="Resignation" danger onClick={() => { closeMenus(); setShowResignationModal(true); }} />
-                        </BulkMenu>
-                        <BulkMenu label="App access" icon={Smartphone} open={showAppMenu} onToggle={() => setShowAppMenu(true)} width="w-48">
-                            <DropdownItem label="Enable Access" onClick={() => { closeMenus(); handleAppAccess(true); }} />
-                            <DropdownItem label="Disable Access" danger onClick={() => { closeMenus(); handleAppAccess(false); }} />
-                        </BulkMenu>
-                        <BulkMenu label="More" icon={Settings} open={showMoreMenu} onToggle={() => setShowMoreMenu(true)} width="w-60">
-                            <DropdownItem label="Mark as door access only" onClick={() => { closeMenus(); handleDoorAccessOnly(true); }} />
-                            <DropdownItem label="Restore attendance tracking" onClick={() => { closeMenus(); handleDoorAccessOnly(false); }} />
-                        </BulkMenu>
-                        <Button variant="danger" icon={Trash2} iconSize={15} className={TB} onClick={handleDelete}>Delete</Button>
-                        <button
-                            type="button"
-                            onClick={refreshAll}
-                            disabled={refreshing}
-                            className="grid place-items-center w-8 h-8 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800 disabled:opacity-50 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
-                            aria-label="Refresh"
-                            title="Refresh"
-                        >
-                            <RefreshCw size={15} className={refreshing ? 'animate-spin' : ''} />
-                        </button>
+                        <ListMenu label="Sync" icon={RefreshCw} width="w-60" emptyHint={pickFirst}>
+                            <ListMenuItem onClick={() => handleMoreSettings('push')}>Resynchronize to device</ListMenuItem>
+                            <ListMenuItem onClick={() => handleMoreSettings('pull')}>Re-upload from device</ListMenuItem>
+                            <ListMenuItem danger onClick={() => handleMoreSettings('delete-bio')}>Delete Biometric Template</ListMenuItem>
+                        </ListMenu>
+                        <ListMenu label="Transfer" icon={ArrowRightLeft} emptyHint={pickFirst}>
+                            <ListMenuItem onClick={() => handleTransfer('Department')}>Department Transfer</ListMenuItem>
+                            <ListMenuItem onClick={() => handleTransfer('Position')}>Position Transfer</ListMenuItem>
+                            <ListMenuItem onClick={() => handleTransfer('Area')}>Move to New Area</ListMenuItem>
+                            <ListMenuItem danger onClick={() => setShowResignationModal(true)}>Resignation</ListMenuItem>
+                        </ListMenu>
+                        <ListMenu label="App access" icon={Smartphone} width="w-48" emptyHint={pickFirst}>
+                            <ListMenuItem onClick={() => handleAppAccess(true)}>Enable Access</ListMenuItem>
+                            <ListMenuItem danger onClick={() => handleAppAccess(false)}>Disable Access</ListMenuItem>
+                        </ListMenu>
+                        <ListMenu label="More" icon={Settings} width="w-60" emptyHint={pickFirst}>
+                            <ListMenuItem onClick={() => handleDoorAccessOnly(true)}>Mark as door access only</ListMenuItem>
+                            <ListMenuItem onClick={() => handleDoorAccessOnly(false)}>Restore attendance tracking</ListMenuItem>
+                        </ListMenu>
+                        <Button variant="danger" size="toolbar" icon={Trash2} onClick={handleDelete}>Delete</Button>
+                        <ListIconButton label="Refresh" icon={RefreshCw} onClick={refreshAll} disabled={refreshing} spin={refreshing} />
                     </div>
-                </div>
-
-                {/* Table */}
-                <div className="flex-1 overflow-auto custom-scrollbar">
+                </>
+            }
+            footer={<TablePager controls={pager} noun="employee" />}
+        >
                     {loading ? (
                         <table className="w-full text-left text-sm">
                             {tableHead}
@@ -818,14 +688,7 @@ export default function Employees() {
                             </tbody>
                         </table>
                     )}
-                </div>
-
-                <div className="border-t border-slate-200 dark:border-slate-700">
-                    <div className="[&>div]:border-t-0">
-                        <TablePager controls={pager} noun="employee" />
-                    </div>
-                </div>
-            </div>
+        </ListPage>
 
             {/* Add Employee Modal */}
             <Modal
@@ -1178,6 +1041,6 @@ export default function Employees() {
                 </div>
                 )
             }
-        </div >
+        </>
     );
 }

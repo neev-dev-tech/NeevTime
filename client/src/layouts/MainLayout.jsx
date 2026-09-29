@@ -177,9 +177,6 @@ export default function MainLayout({ children }) {
             ))}
           </nav>
 
-          <div className="px-5 py-3 border-t border-slate-200 dark:border-slate-800 flex-shrink-0">
-            <VersionDisplay />
-          </div>
         </div>
       </aside>
 
