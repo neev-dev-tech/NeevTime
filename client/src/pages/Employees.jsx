@@ -49,6 +49,7 @@ export default function Employees() {
     const [showTransferMenu, setShowTransferMenu] = useState(false);
     const [showAppMenu, setShowAppMenu] = useState(false);
     const [showMoreMenu, setShowMoreMenu] = useState(false);
+    const [showSyncMenu, setShowSyncMenu] = useState(false);
 
     // Modals & Refs
     const [showAddModal, setShowAddModal] = useState(false);
@@ -127,6 +128,7 @@ export default function Employees() {
                 setShowTransferMenu(false);
                 setShowAppMenu(false);
                 setShowMoreMenu(false);
+                setShowSyncMenu(false);
             }
         };
 
@@ -400,6 +402,7 @@ export default function Employees() {
                 setShowTransferMenu(false);
                 setShowAppMenu(false);
                 setShowMoreMenu(false);
+                setShowSyncMenu(false);
             }}
             role="menuitem"
             className={`block w-full text-left px-3.5 py-2 text-[13px] hover:bg-slate-100 dark:hover:bg-slate-800 ${danger ? 'text-rose-600 dark:text-rose-400' : 'text-slate-700 dark:text-slate-200'}`}
@@ -496,10 +499,11 @@ export default function Employees() {
         setShowTransferMenu(false);
         setShowAppMenu(false);
         setShowMoreMenu(false);
+        setShowSyncMenu(false);
     };
 
     // Bulk-action menu: button plus a panel of DropdownItems.
-    const BulkMenu = ({ label, icon: Icon, open, onToggle, width = 'w-56', children }) => (
+    const BulkMenu = ({ label, icon: Icon, open, onToggle, width = 'w-56', disabled = false, children }) => (
         <div className="relative dropdown-container">
             <Button
                 variant="tonal"
@@ -507,6 +511,8 @@ export default function Employees() {
                 icon={Icon}
                 aria-haspopup="menu"
                 aria-expanded={open}
+                disabled={disabled}
+                title={disabled ? 'Select employees first' : undefined}
                 onClick={(e) => { e.stopPropagation(); const was = open; closeMenus(); if (!was) onToggle(); }}
             >
                 {label} <ChevronDown size={13} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
@@ -581,83 +587,91 @@ export default function Employees() {
             </div>
 
             <div className="flex-1 min-h-0 flex flex-col border-t border-slate-200 dark:border-slate-800">
-                {/* Toolbar: search + quick filters, or the bulk bar when rows are selected */}
-                {selectedIds.length === 0 ? (
-                    <div className="flex items-center gap-3 px-4 sm:px-6 py-3 border-b border-slate-200 dark:border-slate-700 flex-wrap">
-                        <div className="relative w-full sm:w-72">
-                            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true" />
-                            <input
-                                type="search"
-                                aria-label="Search employees"
-                                placeholder="Search name, code or department"
-                                value={searchQuery}
-                                onChange={e => setSearchQuery(e.target.value)}
-                                className="field-sm pl-9"
-                            />
-                        </div>
-                        <div role="group" aria-label="Filter employees" className="flex items-center gap-1 flex-wrap">
-                            {QUICK_FILTERS.map(f => {
-                                const n = employees.filter(f.test).length;
-                                const on = quickFilter === f.key;
-                                return (
-                                    <button
-                                        key={f.key}
-                                        type="button"
-                                        aria-pressed={on}
-                                        onClick={() => setQuickFilter(f.key)}
-                                        className={`inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-[13px] font-medium transition-colors ${on
-                                            ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
-                                            : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'}`}
-                                    >
-                                        {f.label}
-                                        <span className={`tabular-nums text-xs ${on ? 'opacity-70' : 'text-slate-400'}`}>{n}</span>
-                                    </button>
-                                );
-                            })}
-                        </div>
-                        <button
-                            type="button"
-                            onClick={refreshAll}
-                            disabled={refreshing}
-                            className="ml-auto grid place-items-center w-9 h-9 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800 disabled:opacity-50 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
-                            aria-label="Refresh"
-                            title="Refresh"
-                        >
-                            <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
-                        </button>
+                {/* Row 1: search, quick filters, refresh */}
+                <div className="flex items-center gap-3 px-4 sm:px-6 py-3 border-b border-slate-200 dark:border-slate-700 flex-wrap">
+                    <div className="relative w-full sm:w-72">
+                        <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true" />
+                        <input
+                            type="search"
+                            aria-label="Search employees"
+                            placeholder="Search name, code or department"
+                            value={searchQuery}
+                            onChange={e => setSearchQuery(e.target.value)}
+                            className="field-sm pl-9"
+                        />
                     </div>
-                ) : (
-                    <div className="flex items-center gap-2 px-4 sm:px-6 py-2.5 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 flex-wrap">
-                        <span className="text-sm font-semibold text-slate-900 dark:text-slate-100 tabular-nums">{selectedIds.length} selected</span>
-                        <button
-                            type="button"
-                            onClick={() => { setSelectedIds([]); closeMenus(); }}
-                            className="inline-flex items-center gap-1 h-7 px-2 rounded-md text-xs font-medium text-slate-500 hover:bg-slate-200/70 hover:text-slate-800 dark:hover:bg-slate-700 dark:hover:text-slate-100"
-                        >
-                            <X size={13} /> Clear
-                        </button>
-                        <div className="h-5 w-px bg-slate-200 dark:bg-slate-700 mx-1" aria-hidden="true" />
-                        <BulkMenu label="Transfer" icon={ArrowRightLeft} open={showTransferMenu} onToggle={() => setShowTransferMenu(true)}>
+                    <div role="group" aria-label="Filter employees" className="flex items-center gap-1 flex-wrap">
+                        {QUICK_FILTERS.map(f => {
+                            const n = employees.filter(f.test).length;
+                            const on = quickFilter === f.key;
+                            return (
+                                <button
+                                    key={f.key}
+                                    type="button"
+                                    aria-pressed={on}
+                                    onClick={() => setQuickFilter(f.key)}
+                                    className={`inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-[13px] font-medium transition-colors ${on
+                                        ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
+                                        : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'}`}
+                                >
+                                    {f.label}
+                                    <span className={`tabular-nums text-xs ${on ? 'opacity-70' : 'text-slate-400'}`}>{n}</span>
+                                </button>
+                            );
+                        })}
+                    </div>
+                    <button
+                        type="button"
+                        onClick={refreshAll}
+                        disabled={refreshing}
+                        className="ml-auto grid place-items-center w-9 h-9 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800 disabled:opacity-50 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+                        aria-label="Refresh"
+                        title="Refresh"
+                    >
+                        <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
+                    </button>
+                </div>
+
+                {/* Row 2: actions on the selected employees — always on screen,
+                    enabled once something is ticked. */}
+                <div className={`flex items-center gap-2 px-4 sm:px-6 py-2 border-b border-slate-200 dark:border-slate-700 flex-wrap ${selectedIds.length ? 'bg-slate-50 dark:bg-slate-800/60' : ''}`}>
+                    {selectedIds.length ? (
+                        <>
+                            <span className="text-sm font-semibold text-slate-900 dark:text-slate-100 tabular-nums">{selectedIds.length} selected</span>
+                            <button
+                                type="button"
+                                onClick={() => { setSelectedIds([]); closeMenus(); }}
+                                className="inline-flex items-center gap-1 h-7 px-2 rounded-md text-xs font-medium text-slate-500 hover:bg-slate-200/70 hover:text-slate-800 dark:hover:bg-slate-700 dark:hover:text-slate-100"
+                            >
+                                <X size={13} /> Clear
+                            </button>
+                        </>
+                    ) : (
+                        <span className="text-xs text-slate-500 dark:text-slate-400">Tick employees to sync, transfer or change access</span>
+                    )}
+                    <div className="ml-auto flex items-center gap-2 flex-wrap">
+                        <BulkMenu label="Sync" icon={RefreshCw} open={showSyncMenu} onToggle={() => setShowSyncMenu(true)} width="w-60" disabled={!selectedIds.length}>
+                            <DropdownItem label="Resynchronize to device" onClick={() => { closeMenus(); handleMoreSettings('push'); }} />
+                            <DropdownItem label="Re-upload from device" onClick={() => { closeMenus(); handleMoreSettings('pull'); }} />
+                            <DropdownItem label="Delete Biometric Template" danger onClick={() => { closeMenus(); handleMoreSettings('delete-bio'); }} />
+                        </BulkMenu>
+                        <BulkMenu label="Transfer" icon={ArrowRightLeft} open={showTransferMenu} onToggle={() => setShowTransferMenu(true)} disabled={!selectedIds.length}>
                             <DropdownItem label="Department Transfer" onClick={() => { closeMenus(); handleTransfer('Department'); }} />
                             <DropdownItem label="Position Transfer" onClick={() => { closeMenus(); handleTransfer('Position'); }} />
                             <DropdownItem label="Move to New Area" onClick={() => { closeMenus(); handleTransfer('Area'); }} />
                             <DropdownItem label="Resignation" danger onClick={() => { closeMenus(); setShowResignationModal(true); }} />
                         </BulkMenu>
-                        <BulkMenu label="App access" icon={Smartphone} open={showAppMenu} onToggle={() => setShowAppMenu(true)} width="w-44">
+                        <BulkMenu label="App access" icon={Smartphone} open={showAppMenu} onToggle={() => setShowAppMenu(true)} width="w-44" disabled={!selectedIds.length}>
                             <DropdownItem label="Enable Access" onClick={() => { closeMenus(); handleAppAccess(true); }} />
                             <DropdownItem label="Disable Access" danger onClick={() => { closeMenus(); handleAppAccess(false); }} />
                         </BulkMenu>
-                        <BulkMenu label="More" icon={Settings} open={showMoreMenu} onToggle={() => setShowMoreMenu(true)} width="w-60">
-                            <DropdownItem label="Resynchronize to device" onClick={() => { closeMenus(); handleMoreSettings('push'); }} />
-                            <DropdownItem label="Re-upload from device" onClick={() => { closeMenus(); handleMoreSettings('pull'); }} />
-                            <DropdownItem label="Delete Biometric Template" danger onClick={() => { closeMenus(); handleMoreSettings('delete-bio'); }} />
-                            <div className="my-1 border-t border-slate-100 dark:border-slate-700" />
+                        <BulkMenu label="More" icon={Settings} open={showMoreMenu} onToggle={() => setShowMoreMenu(true)} width="w-60" disabled={!selectedIds.length}>
                             <DropdownItem label="Mark as door access only" onClick={() => { closeMenus(); handleDoorAccessOnly(true); }} />
                             <DropdownItem label="Restore attendance tracking" onClick={() => { closeMenus(); handleDoorAccessOnly(false); }} />
                         </BulkMenu>
-                        <Button variant="danger" size="sm" icon={Trash2} onClick={handleDelete} className="ml-auto">Delete</Button>
+                        <Button variant="danger" size="sm" icon={Trash2} onClick={handleDelete} disabled={!selectedIds.length} title={selectedIds.length ? undefined : 'Select employees first'}>Delete</Button>
                     </div>
-                )}
+                </div>
 
                 {/* Table */}
                 <div className="flex-1 overflow-auto custom-scrollbar">
