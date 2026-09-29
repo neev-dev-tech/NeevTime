@@ -39,6 +39,7 @@ import ApprovalRole from './pages/ApprovalRole';
 import ApprovalFlow from './pages/ApprovalFlow';
 import ApprovalNode from './pages/ApprovalNode';
 import Settings from './pages/Settings';
+import SettingsHome from './pages/SettingsHome';
 import UsersPage from './pages/Users';
 import Timetable from './pages/Timetable';
 import ScheduleCalendar from './pages/ScheduleCalendar';
@@ -246,7 +247,7 @@ export default function App() {
                         <Route path="/audit" element={<AdminRoute><AuditTrail /></AdminRoute>} />
                         <Route path="/database/backup" element={<AdminRoute><DatabaseTools /></AdminRoute>} />
                         <Route path="/system-logs" element={<AdminRoute><SystemLogs /></AdminRoute>} />
-                        <Route path="/settings" element={<AdminRoute><Settings /></AdminRoute>} />
+                        <Route path="/settings" element={<AdminRoute><SettingsHome /></AdminRoute>} />
                         <Route path="/settings/:tab" element={<AdminRoute><Settings /></AdminRoute>} />
                         <Route path="/integrations" element={<AdminRoute><Integrations /></AdminRoute>} />
                         <Route path="/api-access" element={<AdminRoute><ApiAccess /></AdminRoute>} />

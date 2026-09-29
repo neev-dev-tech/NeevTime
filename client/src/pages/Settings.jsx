@@ -1,43 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Save, RefreshCw, Send, Loader2, AlertCircle, Building, Timer, CalendarDays, Mail, ShieldCheck, BarChart3, FileCheck, Database as DatabaseIcon, Globe, Settings as SettingsIcon, BellRing, Palette, KeyRound, Edit2 } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import PropTypes from 'prop-types';
+import { Save, RefreshCw, Send, Loader2, AlertCircle, BellRing, ChevronLeft, ChevronUp, ChevronDown } from 'lucide-react';
 import api from '../api';
-import { Button, PageHeader, useToast } from '../components';
+import { Button, ListPage, useToast } from '../components';
 import LogoUpload from '../components/LogoUpload';
 import ThemeSettings from '../components/ThemeSettings';
-
-const CATEGORIES = [
-    { id: 'company', label: 'Company', icon: Building, iconClass: 'text-slate-600 dark:text-slate-400' },
-    { id: 'attendance', label: 'Attendance Rules', icon: Timer, iconClass: 'text-slate-600 dark:text-slate-400' },
-    { id: 'weekend', label: 'Weekend Rules', icon: CalendarDays, iconClass: 'text-slate-600 dark:text-slate-400' },
-    { id: 'notifications', label: 'Email/SMTP', icon: Mail, iconClass: 'text-emerald-500 dark:text-emerald-400' },
-    { id: 'security', label: 'Security', icon: ShieldCheck, iconClass: 'text-rose-500 dark:text-rose-400' },
-    // Employee sign-in: single sign-on and directory settings. The rows were
-    // seeded into app_settings and rendered nowhere, so the whole feature was
-    // configurable only by editing the database — the same mistake as the
-    // backup path that lived on a page nobody would think to open.
-    //
-    // The client secret and LDAP bind password are deliberately NOT here. They
-    // come from the environment, so this tab shows what an administrator may
-    // safely see on a screen someone else might be standing behind.
-    { id: 'auth', label: 'Employee Sign-in', icon: KeyRound, iconClass: 'text-slate-600 dark:text-slate-400' },
-    // Fields render generically from app_settings, so this tab needed only the
-    // entry. Placed next to Email/SMTP because it depends on it: alerting is
-    // email-only, and a broken SMTP means no alerts at all.
-    { id: 'alerts', label: 'Alerts', icon: BellRing, iconClass: 'text-amber-500 dark:text-amber-400' },
-    // Appearance lives in the browser, not app_settings, so this tab renders its
-    // own component instead of the generic field list. It is here because this
-    // is where people look — the controls previously existed only in a slide-over
-    // panel behind a palette icon in the header, which is why the theme toggle
-    // was reported as not working when it worked fine.
-    { id: 'appearance', label: 'Appearance', icon: Palette, iconClass: 'text-slate-600 dark:text-slate-400' },
-    // SMS and WhatsApp tabs removed — the server has no provider integration for
-    // either, so every field on them was saved and never read by anything.
-    { id: 'reports', label: 'Auto Reports', icon: BarChart3, iconClass: 'text-emerald-500 dark:text-emerald-400' },
-    { id: 'pdf', label: 'PDF Settings', icon: FileCheck, iconClass: 'text-amber-500 dark:text-amber-400' },
-    { id: 'database', label: 'Database', icon: DatabaseIcon, iconClass: 'text-slate-600 dark:text-slate-400' },
-    { id: 'timezone', label: 'Timezone', icon: Globe, iconClass: 'text-slate-600 dark:text-slate-400' },
-];
+import { sectionById, isOn } from '../config/settingsMeta';
 
 // Zones the app is realistically deployed in. Kept short deliberately — the
 // full IANA list is hundreds of entries and unusable in a dropdown.
@@ -48,41 +17,45 @@ const TIMEZONES = [
     'Europe/Paris', 'America/New_York', 'America/Chicago', 'America/Denver',
     'America/Los_Angeles', 'Australia/Sydney', 'UTC'
 ];
+const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+// Title-casing a key mangles initialisms: ldap_base_dn became "Ldap Base Dn"
+// on a screen where the administrator copies values from Azure and Active
+// Directory documentation that write them as LDAP, DN and OIDC.
+const INITIALISMS = { ldap: 'LDAP', oidc: 'OIDC', dn: 'DN', url: 'URL', id: 'ID', uri: 'URI', smtp: 'SMTP', gst: 'GST', hr: 'HR', pdf: 'PDF' };
+const defaultLabel = (key) => key.replace(/_/g, ' ').replace(/\b\w+/g, w => INITIALISMS[w.toLowerCase()] || w[0].toUpperCase() + w.slice(1));
+const csv = (v) => String(v || '').split(',').map(s => s.trim()).filter(Boolean);
+const asList = (v) => Array.isArray(v) ? v : (() => { try { const p = JSON.parse(v); return Array.isArray(p) ? p : csv(v); } catch { return csv(v); } })();
+
+function Switch({ checked, onChange, id }) {
+    return (
+        <button id={id} type="button" role="switch" aria-checked={checked} onClick={() => onChange(!checked)}
+            className={`relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors ${checked ? 'bg-[rgb(var(--brand))]' : 'bg-slate-300 dark:bg-slate-600'}`}>
+            <span className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-[#fff] shadow transition-transform ${checked ? 'translate-x-5' : ''}`} />
+        </button>
+    );
+}
+Switch.propTypes = { checked: PropTypes.bool, onChange: PropTypes.func, id: PropTypes.string };
+
+function Group({ title, hint, children }) {
+    return (
+        <section className="grid md:grid-cols-[260px_minmax(0,1fr)] gap-x-10 gap-y-4 px-4 sm:px-6 py-6 border-b border-slate-200 dark:border-slate-800">
+            <div>
+                <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">{title}</h2>
+                {hint && <p className="mt-1 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">{hint}</p>}
+            </div>
+            <div className="max-w-2xl">{children}</div>
+        </section>
+    );
+}
+Group.propTypes = { title: PropTypes.node, hint: PropTypes.node, children: PropTypes.node };
 
 export default function Settings() {
-    const globalToast = useToast();
-    // The URL owns the tab: /settings/security opens Security directly, so
-    // each component can live in the sidebar as its own entry. The pill bar
-    // stays as a secondary switcher; both write the URL.
-    const { tab: tabParam } = useParams();
-    const navigate = useNavigate();
-    const [activeTab, setActiveTabState] = useState(tabParam || 'company');
-    const setActiveTab = (id) => { setActiveTabState(id); navigate(`/settings/${id}`, { replace: true }); };
-    useEffect(() => {
-        if (tabParam && tabParam !== activeTab) setActiveTabState(tabParam);
-    }, [tabParam]);
+    const toast = useToast();
+    const { tab = 'company' } = useParams();
+    const section = sectionById(tab);
+    const activeTab = section ? tab : 'company';
 
-    /**
-     * View after save. A settings component opens as a read-only summary of
-     * what is currently configured; Edit switches to the form; Save returns to
-     * the summary showing exactly what was written. Configuration should read
-     * like a statement of fact, and a form left open reads like an unfinished
-     * action.
-     */
-    const [viewMode, setViewMode] = useState(true);
-    useEffect(() => { setViewMode(true); }, [activeTab]);
-
-    /**
-     * Live usability of the sign-in modes — the answer to "did what I typed
-     * actually work". The server's own modes endpoint reports what is usable
-     * and, crucially, WHY something is not (including a missing environment
-     * secret, which no field on this page can show). Refreshed on save, so
-     * the status reflects what was just written.
-     */
-    const [authStatus, setAuthStatus] = useState(null);
-    const loadAuthStatus = () =>
-        api.get('/api/portal/auth/modes').then(r => setAuthStatus(r.data)).catch(() => setAuthStatus(null));
-    useEffect(() => { if (activeTab === 'auth') loadAuthStatus(); }, [activeTab]);
     const [settings, setSettings] = useState({});
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -91,69 +64,67 @@ export default function Settings() {
     const [testEmail, setTestEmail] = useState('');
     const [testingEmail, setTestingEmail] = useState(false);
     const [testingAlert, setTestingAlert] = useState(false);
+    const [drilling, setDrilling] = useState(false);
 
-    // Fetch all settings on mount
-    useEffect(() => {
-        fetchSettings();
-    }, []);
+    /**
+     * Live usability of the sign-in modes — the answer to "did what I typed
+     * actually work". The server reports what is usable and why something is
+     * not (including a missing environment secret no field here can show).
+     */
+    const [authStatus, setAuthStatus] = useState(null);
+    const loadAuthStatus = () =>
+        api.get('/api/portal/auth/modes').then(r => setAuthStatus(r.data)).catch(() => setAuthStatus(null));
+    useEffect(() => { if (activeTab === 'auth') loadAuthStatus(); }, [activeTab]);
+
+    const showToast = (message, type = 'info') => (toast[type] || toast.info)(message);
+
+    const savedValues = (tabId, all = settings) =>
+        Object.fromEntries(Object.entries(all[tabId] || {}).map(([k, c]) => [k, c.value]));
 
     const fetchSettings = async () => {
         setLoading(true);
         try {
             const res = await api.get('/api/settings');
             setSettings(res.data);
-            // Set initial form data for current tab
-            if (res.data[activeTab]) {
-                const tabData = {};
-                Object.entries(res.data[activeTab]).forEach(([key, config]) => {
-                    tabData[key] = config.value;
-                });
-                setFormData(tabData);
-            }
+            setFormData(savedValues(activeTab, res.data));
             setError(null);
         } catch (err) {
             setError(err.response?.data?.error || 'Failed to load settings');
-            showToast('Failed to load settings', 'error');
         } finally {
             setLoading(false);
         }
     };
+    useEffect(() => { fetchSettings(); }, []);
+    useEffect(() => { setFormData(savedValues(activeTab)); }, [activeTab, settings]);
 
-    // Update form data when tab changes
+    // Edited in place; the save bar appears only while something differs from
+    // what is saved.
+    const saved = savedValues(activeTab);
+    const dirtyKeys = Object.keys(formData).filter(k => JSON.stringify(formData[k]) !== JSON.stringify(saved[k]));
+    const dirty = dirtyKeys.length > 0;
     useEffect(() => {
-        if (settings[activeTab]) {
-            const tabData = {};
-            Object.entries(settings[activeTab]).forEach(([key, config]) => {
-                tabData[key] = config.value;
-            });
-            setFormData(tabData);
-        }
-    }, [activeTab, settings]);
+        if (!dirty) return undefined;
+        const warn = (e) => { e.preventDefault(); e.returnValue = ''; };
+        window.addEventListener('beforeunload', warn);
+        return () => window.removeEventListener('beforeunload', warn);
+    }, [dirty]);
 
-    const handleChange = (key, value) => {
-        setFormData(prev => ({ ...prev, [key]: value }));
-    };
+    const handleChange = (key, value) => setFormData(prev => ({ ...prev, [key]: value }));
 
     const handleSave = async () => {
         setSaving(true);
         try {
             await api.put(`/api/settings/${activeTab}`, formData);
             if (activeTab === 'auth') loadAuthStatus();
-            setViewMode(true);
-            // Update local state
-            const updatedSettings = { ...settings };
+            const next = { ...settings, [activeTab]: { ...settings[activeTab] } };
             Object.keys(formData).forEach(key => {
-                if (updatedSettings[activeTab]?.[key]) {
-                    updatedSettings[activeTab][key].value = formData[key];
-                }
+                if (next[activeTab][key]) next[activeTab][key] = { ...next[activeTab][key], value: formData[key] };
             });
-            setSettings(updatedSettings);
-            showToast('Settings saved successfully!', 'success');
+            setSettings(next);
+            showToast('Settings saved', 'success');
         } catch (err) {
-            // Show what the server said. A rejected value — a Windows path in
-            // the backup field, say — comes back with the reason and the exact
-            // commands to fix it, and "Failed to save settings" threw all of
-            // that away and left someone guessing at their own screen.
+            // Show what the server said: a rejected value comes back with the
+            // reason and how to fix it.
             const d = err.response?.data || {};
             showToast([d.error, d.hint].filter(Boolean).join('\n\n') || 'Failed to save settings', 'error');
         } finally {
@@ -161,24 +132,10 @@ export default function Settings() {
         }
     };
 
-    const handleReset = () => {
-        if (settings[activeTab]) {
-            const tabData = {};
-            Object.entries(settings[activeTab]).forEach(([key, config]) => {
-                tabData[key] = config.value;
-            });
-            setFormData(tabData);
-            showToast('Form reset to saved values', 'info');
-        }
-    };
-
-    const showToast = (message, type = 'info') => {
-        (globalToast[type] || globalToast.info)(message);
-    };
+    const handleDiscard = () => setFormData(savedValues(activeTab));
 
     // Fires a real alert through raise()/resolve() rather than calling the mail
-    // service directly — a test that skips the plumbing only proves SMTP works,
-    // which the Email tab already tells you.
+    // service directly — a test that skips the plumbing only proves SMTP works.
     const handleTestAlert = async () => {
         setTestingAlert(true);
         try {
@@ -192,25 +149,20 @@ export default function Settings() {
         }
     };
 
-    const [drilling, setDrilling] = useState(false);
     const handleNoPunchDrill = async () => {
         setDrilling(true);
         try {
             const res = await api.post('/api/settings/test-alert/no-punches');
             showToast(res.data.message || 'Drill sent', 'success');
         } catch (err) {
-            const d = err.response?.data || {};
-            showToast(d.error || 'Drill failed', 'error');
+            showToast(err.response?.data?.error || 'Drill failed', 'error');
         } finally {
             setDrilling(false);
         }
     };
 
     const handleTestEmail = async () => {
-        if (!testEmail) {
-            showToast('Enter a recipient address first', 'warning');
-            return;
-        }
+        if (!testEmail) { showToast('Enter a recipient address first', 'warning'); return; }
         setTestingEmail(true);
         try {
             const res = await api.post('/api/settings/test-email', { test_email: testEmail });
@@ -222,489 +174,316 @@ export default function Settings() {
         }
     };
 
-    const getSortedSettings = () => {
-        if (!settings[activeTab]) return [];
+    // Groups from the section definition; anything the server sends that no
+    // group lists still appears under "Other", so nothing is silently hidden.
+    const groups = useMemo(() => {
+        if (!section || section.custom) return [];
+        const available = Object.keys(settings[activeTab] || {}).filter(k => !(section.hidden || []).includes(k));
+        const listed = new Set();
+        const out = (section.groups || []).map(g => {
+            const keys = g.keys.filter(k => available.includes(k));
+            keys.forEach(k => listed.add(k));
+            return { ...g, keys };
+        }).filter(g => g.keys.length);
+        const rest = available.filter(k => !listed.has(k));
+        if (rest.length) out.push({ title: 'Other', keys: rest });
+        return out;
+    }, [section, settings, activeTab]);
 
-        const entries = Object.entries(settings[activeTab]);
-
-        if (activeTab === 'company') {
-            const priority = [
-                'company_name',
-                'company_address',
-                'company_email',
-                'company_phone',
-                'company_website',
-                'company_city',
-                'company_state',
-                'company_country',
-                'company_pincode',
-                'company_logo'
-            ];
-
-            return entries.sort((a, b) => {
-                const indexA = priority.indexOf(a[0]);
-                const indexB = priority.indexOf(b[0]);
-
-                if (indexA !== -1 && indexB !== -1) return indexA - indexB;
-                if (indexA !== -1) return -1;
-                if (indexB !== -1) return 1;
-                return a[0].localeCompare(b[0]);
-            });
-        }
-
-        return entries;
-    };
-
-    // Shared with the read-only view so a field's label reads identically in
-    // both modes.
-    const labelFor = (key) => {
-        const INITIALISMS = { ldap: 'LDAP', oidc: 'OIDC', dn: 'DN', url: 'URL',
-            id: 'ID', uri: 'URI', smtp: 'SMTP', gst: 'GST', hr: 'HR', pdf: 'PDF' };
-        return key.replace(/_/g, ' ')
-            .replace(/\b\w+/g, w => INITIALISMS[w.toLowerCase()] || w[0].toUpperCase() + w.slice(1));
-    };
-
-    /** One field, read-only: label and the value as it stands, secrets masked. */
-    const renderReadonly = (key, config) => {
+    const renderField = (key) => {
+        const config = settings[activeTab]?.[key] || {};
+        const meta = section.fields?.[key] || {};
+        const label = meta.label || defaultLabel(key);
+        const help = config.description;
         const value = formData[key];
-        const isSecret = key.toLowerCase().includes('password') || key.toLowerCase().includes('api_key');
-        let shown;
-        if (key === 'company_logo') {
-            shown = value ? <img src={value} alt="logo" className="h-10 rounded" /> : <span className="text-slate-500">Not set</span>;
-        } else if (config?.data_type === 'boolean' || value === 'true' || value === 'false') {
-            shown = <span className={`text-xs font-bold uppercase px-2 py-0.5 rounded-full ${String(value) === 'true' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400'}`}>{String(value) === 'true' ? 'On' : 'Off'}</span>;
-        } else if (isSecret && value) {
-            shown = <span className="font-mono text-slate-600">••••••••</span>;
-        } else if (value === '' || value === null || value === undefined) {
-            shown = <span className="text-slate-500 dark:text-slate-400 italic">Not set</span>;
-        } else {
-            shown = <span className="text-slate-800 dark:text-slate-100 break-words">{String(value)}</span>;
-        }
-        return (
-            <div key={key} className="py-2.5 border-b border-slate-100 dark:border-slate-700/60 grid grid-cols-3 gap-3">
-                <dt className="text-sm text-slate-600 dark:text-slate-400">{labelFor(key)}</dt>
-                <dd className="col-span-2 text-sm">{shown}</dd>
-            </div>
-        );
-    };
+        const inert = (section.inert || []).includes(key);
+        const id = `set-${key}`;
+        const Inert = inert ? <span className="ml-2 px-1.5 rounded text-[11px] font-medium bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400" title="Saved, but not used by the server yet">Not applied yet</span> : null;
+        const Help = help ? <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">{help}</p> : null;
+        const Label = <label htmlFor={id} className="block text-sm font-medium text-slate-800 dark:text-slate-200 mb-1.5">{label}{Inert}</label>;
 
-    const renderInput = (key, config) => {
-        const value = formData[key];
-        // Title-casing a key mangles initialisms: ldap_base_dn became
-        // "Ldap Base Dn" on a screen where the administrator is copying values
-        // from Azure and Active Directory documentation that write them as
-        // LDAP, DN and OIDC. Getting them wrong reads as not knowing what they
-        // are.
-        const INITIALISMS = { ldap: 'LDAP', oidc: 'OIDC', dn: 'DN', url: 'URL',
-            id: 'ID', uri: 'URI', smtp: 'SMTP', gst: 'GST', hr: 'HR', pdf: 'PDF' };
-        const label = key.replace(/_/g, ' ')
-            .replace(/\b\w+/g, w => INITIALISMS[w.toLowerCase()] || w[0].toUpperCase() + w.slice(1));
-
-        // The logo is a picture, not a string. It was rendered as a text input
-        // because the generic renderer keys off data_type, and the setting is
-        // stored as a base64 data URI — which is technically a string and
-        // completely unusable as one.
-        if (key === 'company_logo') {
-            return (
-                <LogoUpload
-                    key={key}
-                    value={value || ''}
-                    onChange={(v) => handleChange(key, v)}
-                    label={label}
-                    description={config.description}
-                />
-            );
-        }
-
+        // Switches: label and help on the left, the switch on the right.
         if (config.data_type === 'boolean') {
             return (
-                <label key={key} className="flex items-center justify-between p-4 rounded-xl transition-colors border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900/50 group hover:border-slate-200 dark:hover:border-slate-800 hover:shadow-sm cursor-pointer">
-                    <div className="flex-1">
-                        <span className="font-medium block mb-1 text-slate-700 dark:text-slate-300 group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors">{label}</span>
-                        {config.description && (
-                            <p className="text-xs text-slate-600 dark:text-slate-400">{config.description}</p>
-                        )}
+                <div key={key} className="sm:col-span-2 flex items-start justify-between gap-6 py-1">
+                    <div className="min-w-0">
+                        <label htmlFor={id} className="text-sm font-medium text-slate-800 dark:text-slate-200">{label}{Inert}</label>
+                        {help && <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400">{help}</p>}
                     </div>
-                    <div className={`toggle-switch ml-4 ${value === true || value === 'true' ? 'active' : ''}`}>
-                        <input
-                            type="checkbox"
-                            checked={value === true || value === 'true'}
-                            onChange={(e) => handleChange(key, e.target.checked)}
-                            className="sr-only"
-                        />
-                        <span className="toggle-thumb"></span>
-                    </div>
-                </label>
-            );
-        }
-
-        if (config.data_type === 'number') {
-            return (
-                <div key={key} className="space-y-2">
-                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">{label}</label>
-                    <input
-                        type="number"
-                        value={value ?? ''}
-                        onChange={(e) => handleChange(key, parseFloat(e.target.value) || 0)}
-                        className="input-premium transition-ui duration-200"
-                    />
-                    {config.description && (
-                        <p className="text-xs text-slate-600 dark:text-slate-400 ml-1">{config.description}</p>
-                    )}
+                    <Switch id={id} checked={isOn(value)} onChange={(v) => handleChange(key, v)} />
                 </div>
             );
         }
 
-        // Shown, but not editable here.
-        //
-        // The description has said "read-only here" since the destination
-        // picker was built, and the box stayed typeable — so a Windows path was
-        // pasted into it three times in a row, refused three times, with the
-        // real screen one click away. A field that rejects everything you type
-        // should not accept typing.
-        //
-        // It stays visible because someone looking for the backup path should
-        // find it where the other backup settings are, and see its value.
+        // The logo is a picture, not a string.
+        if (key === 'company_logo') {
+            return (
+                <div key={key} className="sm:col-span-2">
+                    <LogoUpload value={value || ''} onChange={(v) => handleChange(key, v)} label={label} description={help} />
+                </div>
+            );
+        }
+
+        // Shown, but not editable here: the destination picker lives in Backup
+        // and tests the destination before saving.
         if (key === 'backup_external_path') {
             return (
-                <div key={key} className="space-y-2">
-                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">{label}</label>
-                    <input
-                        type="text"
-                        value={value || ''}
-                        readOnly
-                        disabled
-                        placeholder="Not set — configure it in Database Tools"
-                        className="input-premium opacity-60 cursor-not-allowed"
-                    />
-                    <p className="text-xs text-slate-600 dark:text-slate-400 ml-1">
-                        Set this in <a href="/database/backup" className="underline font-medium">System &rarr; Database &rarr; Backup</a>, under &ldquo;Second copy&rdquo; —
-                        which can also send to a Windows share, S3, SFTP or SharePoint — and tests
-                        the destination before saving.
+                <div key={key} className="sm:col-span-2">
+                    {Label}
+                    <input id={id} type="text" value={value || ''} readOnly disabled placeholder="Not set" className="field opacity-70 cursor-not-allowed" />
+                    <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
+                        Set it in <Link to="/database/backup" className="underline underline-offset-2">System › Backup</Link> under “Second copy” — Windows share, S3, SFTP or SharePoint — which tests the destination before saving.
                     </p>
                 </div>
             );
         }
 
-        // Times get a real time control. Typed as free text, "2:00", "2 AM" or
-        // "0200" all look reasonable and none of them parse — the scheduler
-        // compares against HH:MM, so a near-miss means the backup silently
-        // never runs. The browser's own picker cannot produce an invalid value.
+        if (meta.type === 'select' || key === 'system_timezone') {
+            const options = key === 'system_timezone' ? TIMEZONES.map(t => [t, t]) : meta.options;
+            return (
+                <div key={key}>
+                    {Label}
+                    <select id={id} className="field" value={value ?? ''} onChange={(e) => handleChange(key, e.target.value)}>
+                        {options.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                    </select>
+                    {Help}
+                </div>
+            );
+        }
+
+        // Several choices stored as a comma-separated list.
+        if (meta.type === 'multi') {
+            const chosen = csv(value);
+            return (
+                <div key={key} className="sm:col-span-2">
+                    <span className="block text-sm font-medium text-slate-800 dark:text-slate-200 mb-1.5">{label}</span>
+                    <div className="flex flex-wrap gap-2">
+                        {meta.options.map(([v, l]) => {
+                            const sel = chosen.includes(v);
+                            return (
+                                <label key={v} className={`inline-flex items-center gap-2 h-9 px-3 rounded-lg border text-sm cursor-pointer ${sel ? 'border-slate-900 bg-slate-50 dark:border-slate-100 dark:bg-slate-800' : 'border-slate-200 dark:border-slate-700'}`}>
+                                    <input type="checkbox" checked={sel}
+                                        onChange={() => handleChange(key, (sel ? chosen.filter(x => x !== v) : [...chosen, v]).join(','))} />
+                                    {l}
+                                </label>
+                            );
+                        })}
+                    </div>
+                    {Help}
+                </div>
+            );
+        }
+
+        // An ordered list: move items up and down; stored comma-separated.
+        if (meta.type === 'order') {
+            const order = csv(value);
+            const names = Object.fromEntries(meta.options);
+            const move = (i, d) => { const n = [...order]; [n[i], n[i + d]] = [n[i + d], n[i]]; handleChange(key, n.join(',')); };
+            return (
+                <div key={key} className="sm:col-span-2">
+                    <span className="block text-sm font-medium text-slate-800 dark:text-slate-200 mb-1.5">{label}</span>
+                    <ol className="max-w-md divide-y divide-slate-100 dark:divide-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg">
+                        {order.map((v, i) => (
+                            <li key={v} className="flex items-center gap-3 px-3 h-10 text-sm">
+                                <span className="w-5 text-xs font-semibold text-slate-500 tabular-nums">{i + 1}</span>
+                                <span className="flex-1 text-slate-800 dark:text-slate-200">{names[v] || v}</span>
+                                <button type="button" aria-label={`Move ${names[v] || v} up`} disabled={i === 0} onClick={() => move(i, -1)} className="p-1 rounded text-slate-500 hover:bg-slate-100 disabled:opacity-30 dark:hover:bg-slate-800"><ChevronUp size={14} /></button>
+                                <button type="button" aria-label={`Move ${names[v] || v} down`} disabled={i === order.length - 1} onClick={() => move(i, 1)} className="p-1 rounded text-slate-500 hover:bg-slate-100 disabled:opacity-30 dark:hover:bg-slate-800"><ChevronDown size={14} /></button>
+                            </li>
+                        ))}
+                    </ol>
+                    {/* The server's description explains the comma-separated
+                        storage format, which this control makes moot. */}
+                </div>
+            );
+        }
+
+        // Days of the week, stored as a list.
+        if (meta.type === 'days') {
+            const chosen = asList(value).map(d => String(d).toLowerCase());
+            const setDays = (next) => handleChange(key, Array.isArray(value) || config.data_type === 'json' ? next : next.join(','));
+            return (
+                <div key={key} className="sm:col-span-2">
+                    <span className="block text-sm font-medium text-slate-800 dark:text-slate-200 mb-1.5">{label}</span>
+                    <div className="flex flex-wrap gap-1.5">
+                        {WEEKDAYS.map(d => {
+                            const sel = chosen.includes(d.toLowerCase());
+                            return (
+                                <button key={d} type="button" aria-pressed={sel}
+                                    onClick={() => setDays(sel ? asList(value).filter(x => String(x).toLowerCase() !== d.toLowerCase()) : [...asList(value), d])}
+                                    className={`h-9 w-12 rounded-lg text-sm font-medium ${sel ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900' : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200'}`}>
+                                    {d.slice(0, 3)}
+                                </button>
+                            );
+                        })}
+                    </div>
+                    {Help}
+                </div>
+            );
+        }
+
+        // Times get a real time control: free text like "2 AM" never parses,
+        // and a near-miss means a schedule silently never runs.
         if (/(^|_)time$/.test(key) && config.data_type !== 'number') {
             return (
-                <div key={key} className="space-y-2">
-                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">{label}</label>
-                    <input
-                        type="time"
-                        value={String(value ?? '').slice(0, 5)}
-                        onChange={(e) => handleChange(key, e.target.value)}
-                        className="input-premium transition-ui duration-200"
-                    />
-                    {config.description && (
-                        <p className="text-xs text-slate-600 dark:text-slate-400 ml-1">{config.description}</p>
-                    )}
+                <div key={key}>
+                    {Label}
+                    <input id={id} type="time" className="field !w-auto" value={String(value ?? '').slice(0, 5)} onChange={(e) => handleChange(key, e.target.value)} />
+                    {Help}
                 </div>
             );
         }
 
-        // A free-text timezone is easy to typo, and a typo silently falls back
-        // to the default inside the attendance engine.
-        if (key === 'system_timezone') {
+        if (config.data_type === 'number') {
             return (
-                <div key={key} className="space-y-2">
-                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">{label}</label>
-                    <select
-                        value={value ?? 'Asia/Kolkata'}
-                        onChange={(e) => handleChange(key, e.target.value)}
-                        className="input-premium"
-                    >
-                        {TIMEZONES.map(tz => <option key={tz} value={tz}>{tz}</option>)}
-                    </select>
-                    {config.description && (
-                        <p className="text-xs text-slate-600 dark:text-slate-400 ml-1">{config.description}</p>
-                    )}
+                <div key={key}>
+                    {Label}
+                    <div className="flex items-center gap-2">
+                        <input id={id} type="number" className="field !w-32 tabular-nums" value={value ?? ''}
+                            onChange={(e) => handleChange(key, e.target.value === '' ? '' : parseFloat(e.target.value))} />
+                        {meta.suffix && <span className="text-sm text-slate-600 dark:text-slate-400">{meta.suffix}</span>}
+                    </div>
+                    {Help}
                 </div>
             );
         }
 
-        // Default: string input
-        const isPassword = key.toLowerCase().includes('password') || key.toLowerCase().includes('api_key');
-        const isTextarea = key.toLowerCase().includes('address') || key.toLowerCase().includes('template') || key.toLowerCase().includes('description');
-
-        if (isTextarea) {
+        const isPassword = /password|api_key/.test(key);
+        const isLong = /address|template|description/.test(key);
+        if (config.data_type === 'json' && typeof value !== 'string') {
             return (
-                <div key={key} className="space-y-2 md:col-span-2">
-                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">{label}</label>
-                    <textarea
-                        value={value ?? ''}
-                        onChange={(e) => handleChange(key, e.target.value)}
-                        rows={3}
-                        className="input-premium resize-y min-h-[100px] transition-ui duration-200"
-                    />
-                    {config.description && (
-                        <p className="text-xs text-slate-600 dark:text-slate-400 ml-1">{config.description}</p>
-                    )}
+                <div key={key} className="sm:col-span-2">
+                    {Label}
+                    <input id={id} type="text" className="field" value={asList(value).join(', ')} placeholder={meta.placeholder}
+                        onChange={(e) => handleChange(key, csv(e.target.value))} />
+                    {Help}
                 </div>
             );
         }
-
         return (
-            <div key={key} className="space-y-2">
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">{label}</label>
-                <input
-                    type={isPassword ? 'password' : 'text'}
-                    value={value ?? ''}
-                    onChange={(e) => handleChange(key, e.target.value)}
-                    className="input-premium transition-ui duration-200"
-                />
-                {config.description && (
-                    <p className="text-xs text-slate-600 dark:text-slate-400 ml-1">{config.description}</p>
+            <div key={key} className={isLong ? 'sm:col-span-2' : ''}>
+                {Label}
+                {isLong ? (
+                    <textarea id={id} rows={3} className="field resize-y" value={value ?? ''} onChange={(e) => handleChange(key, e.target.value)} />
+                ) : (
+                    <input id={id} type={isPassword ? 'password' : 'text'} className="field" value={value ?? ''} placeholder={meta.placeholder}
+                        autoComplete={isPassword ? 'new-password' : 'off'} onChange={(e) => handleChange(key, e.target.value)} />
                 )}
+                {Help}
             </div>
         );
     };
 
-    if (loading) {
-        return (
-            <div className="space-y-6">
-                <PageHeader
-                    icon={SettingsIcon}
-                    title="Settings"
-                    subtitle="Configure your application preferences"
-                />
-                <div className="card-base !p-0 overflow-hidden">
-                    <div className="flex gap-1.5 p-2 bg-slate-50/70 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700">
-                        {CATEGORIES.slice(0, 6).map(cat => (
-                            <div key={cat.id} className="h-9 w-28 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
-                        ))}
-                    </div>
-                    <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6 bg-app-surface/70 dark:bg-slate-800/70">
-                        {Array.from({ length: 8 }).map((_, i) => (
-                            <div key={i} className="h-16 rounded-xl bg-slate-100 dark:bg-slate-700 animate-pulse" />
-                        ))}
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    if (error) {
-        return (
-            <div className="space-y-6">
-                <PageHeader
-                    icon={SettingsIcon}
-                    title="Settings"
-                    subtitle="Configure your application preferences"
-                />
-                <div className="card-base !p-0 overflow-hidden">
-                    <div className="py-16 text-center">
-                        <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
-                        <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Could not load settings</h3>
-                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{error}</p>
-                        <Button variant="secondary" icon={RefreshCw} onClick={fetchSettings}>Try again</Button>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    const sortedSettings = getSortedSettings();
-
     return (
-        <div className="space-y-6">
-            <PageHeader
-                icon={SettingsIcon}
-                title="Settings"
-                subtitle="Configure your application preferences"
-            />
+        <ListPage
+            title={section?.label || 'Settings'}
+            actions={
+                <Link to="/settings" className="inline-flex items-center gap-1 h-8 px-3 rounded-lg text-[13px] font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200">
+                    <ChevronLeft size={15} /> All settings
+                </Link>
+            }
+            bodyClassName="flex flex-col !overflow-hidden"
+        >
+            <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
+                {section?.description && (
+                    <p className="px-4 sm:px-6 py-3 border-b border-slate-200 dark:border-slate-800 text-[13px] text-slate-600 dark:text-slate-400">{section.description}</p>
+                )}
 
-            {/* Tabs + Content */}
-            <div className="card-base !p-0 overflow-hidden">
-                {/* Tab Navigation — pill segmented control */}
-                <div className="flex gap-1.5 p-2 border-b border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900/50 overflow-x-auto custom-scrollbar">
-                    {CATEGORIES.map(cat => {
-                        const Icon = cat.icon;
-                        const isActive = activeTab === cat.id;
-                        return (
-                            <button
-                                key={cat.id}
-                                onClick={() => setActiveTab(cat.id)}
-                                className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors border ${isActive
-                                    ? 'bg-slate-600 text-white border-transparent shadow-sm'
-                                    : 'bg-app-surface/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300 hover:text-slate-600 dark:hover:text-slate-400'
-                                    }`}
-                            >
-                                <Icon size={15} className={isActive ? 'text-white' : cat.iconClass} />
-                                {cat.label}
-                            </button>
-                        );
-                    })}
-                </div>
-
-                {/* Tab Content */}
-                <div className="p-6 bg-app-surface/70 dark:bg-slate-800/70">
-                    {activeTab === 'appearance' ? (
-                        <ThemeSettings />
-                    ) : sortedSettings.length === 0 ? (
-                        <div className="py-12 text-center">
-                            <SettingsIcon size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
-                            <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-1">Nothing to configure here</h3>
-                            <p className="text-sm text-slate-600 dark:text-slate-400">
-                                This section has no settings defined yet.
-                            </p>
-                        </div>
-                    ) : (
-                        activeTab === 'auth' ? (
-                            /* Grouped, because the generic grid interleaved
-                               LDAP and OIDC fields alphabetically and gave no
-                               sign of whether any of it worked. Each method is
-                               its own section, and the status panel above them
-                               is the server's own verdict. */
-                            <div className="space-y-8">
-                                {authStatus && (
-                                    <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-4">
-                                        <p className="text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-slate-400 mb-3">Sign-in methods — live status</p>
-                                        <div className="flex flex-wrap gap-2">
-                                            {[['local', 'Employee code + password'], ['oidc', 'Single sign-on (SSO)'], ['ldap', 'Active Directory (LDAP)']].map(([mode, label]) => (
-                                                <span key={mode} className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${authStatus[mode]
-                                                    ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
-                                                    : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400'}`}>
-                                                    <span className={`w-1.5 h-1.5 rounded-full ${authStatus[mode] ? 'bg-emerald-500' : 'bg-slate-400'}`} />
-                                                    {label}: {authStatus[mode] ? 'working' : 'off'}
-                                                </span>
-                                            ))}
-                                        </div>
-                                        {authStatus.problems?.length > 0 && (
-                                            <div className="mt-3 space-y-1">
-                                                {authStatus.problems.map((prob, i) => (
-                                                    <p key={i} className="text-xs text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 rounded-lg px-3 py-2">{prob}</p>
-                                                ))}
-                                            </div>
-                                        )}
-                                        <p className="mt-3 text-xs text-slate-600 dark:text-slate-400">
-                                            The portal login page offers exactly the methods shown green here.
-                                            Client secrets live in <code className="font-mono">.env</code>
-                                            {' '}(<code className="font-mono">OIDC_CLIENT_SECRET</code>, <code className="font-mono">LDAP_BIND_PASSWORD</code>) —
-                                            after changing them, restart the server container; this panel updates on save.
-                                        </p>
-                                    </div>
+                {loading ? (
+                    <div className="p-6 space-y-3">
+                        {Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-12 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />)}
+                    </div>
+                ) : error ? (
+                    <div className="py-20 text-center px-6">
+                        <AlertCircle size={40} className="mx-auto mb-3 text-rose-400 dark:text-rose-500" />
+                        <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-1">Could not load settings</h3>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{error}</p>
+                        <Button variant="tonal" icon={RefreshCw} onClick={fetchSettings}>Try again</Button>
+                    </div>
+                ) : section?.custom ? (
+                    // Appearance lives in this browser and applies immediately, so
+                    // it has its own component and no Save.
+                    <div className="px-4 sm:px-6 py-6 max-w-3xl"><ThemeSettings /></div>
+                ) : (
+                    <>
+                        {activeTab === 'auth' && authStatus && (
+                            <Group title="Live status" hint="The portal login page offers exactly the methods shown as working. Secrets live in .env (OIDC_CLIENT_SECRET, LDAP_BIND_PASSWORD); restart the server after changing them.">
+                                <div className="flex flex-wrap gap-2">
+                                    {[['local', 'Employee code + password'], ['oidc', 'Single sign-on'], ['ldap', 'Active Directory']].map(([mode, label]) => (
+                                        <span key={mode} className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border border-slate-200 dark:border-slate-700 text-[13px] text-slate-800 dark:text-slate-200">
+                                            <span aria-hidden="true" className={`w-2 h-2 rounded-full ${authStatus[mode] ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'}`} />
+                                            {label}: <span className="font-semibold">{authStatus[mode] ? 'working' : 'off'}</span>
+                                        </span>
+                                    ))}
+                                </div>
+                                {authStatus.problems?.length > 0 && (
+                                    <ul className="mt-3 space-y-1">
+                                        {authStatus.problems.map((prob, i) => (
+                                            <li key={i} className="text-xs text-amber-800 dark:text-amber-300">{prob}</li>
+                                        ))}
+                                    </ul>
                                 )}
+                            </Group>
+                        )}
 
-                                {[
-                                    { title: 'General', hint: 'Which methods the portal offers. Comma-separated: local, oidc, ldap.',
-                                      match: (k) => !k.startsWith('oidc_') && !k.startsWith('ldap_') },
-                                    { title: 'Single sign-on (Microsoft 365 / Google / Okta)', hint: 'Register an app with your identity provider, then fill these. The client secret goes in .env, never here.',
-                                      match: (k) => k.startsWith('oidc_') },
-                                    { title: 'Active Directory (LDAP)', hint: 'Needs a read-only service account and LDAPS. The bind password goes in .env, never here.',
-                                      match: (k) => k.startsWith('ldap_') },
-                                ].map(section => {
-                                    const fields = sortedSettings.filter(([k]) => section.match(k));
-                                    if (!fields.length) return null;
-                                    return (
-                                        <div key={section.title}>
-                                            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">{section.title}</h3>
-                                            <p className="text-xs text-slate-600 dark:text-slate-400 mb-4">{section.hint}</p>
-                                            {viewMode ? (
-                                                <dl>{fields.map(([key, config]) => renderReadonly(key, config))}</dl>
-                                            ) : (
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                    {fields.map(([key, config]) => renderInput(key, config))}
-                                                </div>
-                                            )}
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        ) : (
-                        viewMode ? (
-                            <dl>
-                                {sortedSettings.map(([key, config]) => renderReadonly(key, config))}
-                            </dl>
-                        ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {sortedSettings.map(([key, config]) =>
-                                    renderInput(key, config)
-                                )}
-                            </div>
-                        )
-                        )
-                    )}
+                        {groups.map((g, i) => (
+                            <Group key={`${g.title}-${i}`} title={g.title} hint={g.hint}>
+                                <div className="grid sm:grid-cols-2 gap-x-6 gap-y-5">
+                                    {g.keys.map(renderField)}
+                                </div>
+                            </Group>
+                        ))}
 
-                    {/* Alert test — only on the Alerts tab */}
-                    {activeTab === 'alerts' && (
-                        <div className="mt-6 p-4 bg-slate-50/70 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl">
-                            <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 mb-1">Send a test alert</p>
-                            <p className="text-xs text-slate-600 dark:text-slate-400 mb-3">
-                                Goes to the recipients above, through the same path a real alert takes.
-                                Expect two messages: the alert, then confirmation it cleared. Save your
-                                settings first.
-                            </p>
-                            <Button variant="dark" icon={BellRing} onClick={handleTestAlert} disabled={testingAlert}>
-                                {testingAlert ? 'Sending...' : 'Send Test Alert'}
-                            </Button>
-
-                            {/* The test above proves the pipeline with a synthetic
-                                alert. This one fires the real no-punches check —
-                                the one written to catch a dead ingest — with only
-                                its verdict forced, so its query and gates run
-                                against this installation rather than being assumed.
-                                An alert that has never fired is monitoring nobody
-                                has ever seen work. */}
-                            <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 mb-1 mt-5">
-                                Fire drill: the no-attendance alert
-                            </p>
-                            <p className="text-xs text-slate-600 dark:text-slate-400 mb-3">
-                                Runs the real "no punches recorded today" check with the verdict forced,
-                                so the exact alert a collection outage would send is seen once on purpose.
-                                The subject is prefixed [DRILL].
-                            </p>
-                            <Button variant="secondary" icon={BellRing} onClick={handleNoPunchDrill} disabled={drilling}>
-                                {drilling ? 'Firing...' : 'Run Fire Drill'}
-                            </Button>
-                        </div>
-                    )}
-
-                    {/* SMTP test — only on the Email tab */}
-                    {activeTab === 'notifications' && (
-                        <div className="mt-6 p-4 bg-slate-50/70 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl">
-                            <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 mb-1">Test email delivery</p>
-                            <p className="text-xs text-slate-600 dark:text-slate-400 mb-3">Save your SMTP settings first, then send a test message.</p>
-                            <div className="flex gap-2 flex-wrap">
-                                <input
-                                    type="email"
-                                    value={testEmail}
-                                    onChange={e => setTestEmail(e.target.value)}
-                                    placeholder="recipient@example.com"
-                                    className="field flex-1 min-w-[220px]"
-                                />
-                                <Button variant="dark" icon={Send} onClick={handleTestEmail} disabled={testingEmail}>
-                                    {testingEmail ? 'Sending...' : 'Send Test Email'}
-                                </Button>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Actions. Hidden on Appearance: those preferences live in
-                        this browser and apply the moment they are chosen, so a
-                        Save button would either do nothing or PUT to a settings
-                        category that does not exist. */}
-                    {activeTab !== 'appearance' && (
-                        <div className="flex items-center gap-3 mt-8 pt-6 border-t border-slate-100 dark:border-slate-700">
-                            {viewMode ? (
-                                <Button icon={Edit2} onClick={() => setViewMode(false)}>Edit</Button>
-                            ) : (
-                                <>
-                                    <Button icon={saving ? Loader2 : Save} onClick={handleSave} disabled={saving}>
-                                        {saving ? 'Saving...' : 'Save Changes'}
+                        {section?.test === 'email' && (
+                            <Group title="Test delivery" hint="Save your mail server settings first, then send a test message.">
+                                <div className="flex gap-2 flex-wrap">
+                                    <input type="email" value={testEmail} onChange={e => setTestEmail(e.target.value)}
+                                        aria-label="Test recipient" placeholder="recipient@example.com" className="field flex-1 min-w-[220px]" />
+                                    <Button variant="tonal" icon={testingEmail ? Loader2 : Send} onClick={handleTestEmail} disabled={testingEmail}>
+                                        {testingEmail ? 'Sending…' : 'Send test email'}
                                     </Button>
-                                    <Button variant="secondary" onClick={() => { handleReset(); setViewMode(true); }}>Cancel</Button>
-                                </>
-                            )}
-                        </div>
-                    )}
-                </div>
+                                </div>
+                            </Group>
+                        )}
+
+                        {section?.test === 'alerts' && (
+                            <Group title="Test alerts" hint="Save first. These go to the recipients above through the same path a real alert takes.">
+                                <div className="space-y-4">
+                                    <div className="flex items-start justify-between gap-6">
+                                        <div>
+                                            <p className="text-sm font-medium text-slate-800 dark:text-slate-200">Send a test alert</p>
+                                            <p className="text-xs text-slate-600 dark:text-slate-400">Expect two messages: the alert, then confirmation it cleared.</p>
+                                        </div>
+                                        <Button variant="tonal" icon={BellRing} onClick={handleTestAlert} disabled={testingAlert}>{testingAlert ? 'Sending…' : 'Send test'}</Button>
+                                    </div>
+                                    <div className="flex items-start justify-between gap-6">
+                                        <div>
+                                            <p className="text-sm font-medium text-slate-800 dark:text-slate-200">Fire drill: no-attendance alert</p>
+                                            <p className="text-xs text-slate-600 dark:text-slate-400">Runs the real “no punches recorded today” check with the verdict forced. Subject prefixed [DRILL].</p>
+                                        </div>
+                                        <Button variant="tonal" icon={BellRing} onClick={handleNoPunchDrill} disabled={drilling}>{drilling ? 'Firing…' : 'Run drill'}</Button>
+                                    </div>
+                                </div>
+                            </Group>
+                        )}
+                    </>
+                )}
             </div>
 
-        </div>
+            {/* Save bar: only while there are unsaved changes. */}
+            {dirty && !section?.custom && (
+                <div className="flex items-center gap-3 px-4 sm:px-6 py-3 border-t border-slate-200 dark:border-slate-800 bg-app-surface shadow-[0_-4px_12px_rgb(15_23_42/0.06)]">
+                    <span className="text-sm text-slate-700 dark:text-slate-300">
+                        <span className="font-semibold">{dirtyKeys.length}</span> unsaved change{dirtyKeys.length === 1 ? '' : 's'}
+                    </span>
+                    <div className="ml-auto flex items-center gap-2">
+                        <Button variant="tonal" size="toolbar" onClick={handleDiscard} disabled={saving}>Discard</Button>
+                        <Button mutating variant="primary" size="toolbar" icon={saving ? Loader2 : Save} onClick={handleSave} disabled={saving}>
+                            {saving ? 'Saving…' : 'Save changes'}
+                        </Button>
+                    </div>
+                </div>
+            )}
+        </ListPage>
     );
 }
