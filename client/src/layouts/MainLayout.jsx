@@ -9,6 +9,7 @@ import useDismissable from '../hooks/useDismissable';
 import GlobalSearch from '../components/GlobalSearch';
 import AnimatedBackground from '../components/AnimatedBackground';
 import NotificationCenter from '../components/NotificationCenter';
+import { DarkModeToggle } from '../components/Theme';
 import VersionDisplay from '../components/VersionDisplay';
 import useStore from '../store/useStore';
 import { usePermissions } from '../hooks/usePermissions';
@@ -164,6 +165,7 @@ export default function MainLayout({ children }) {
                 duplicated Settings > Appearance. Two places to change the same
                 thing, and the one in the header was the one nobody could find a
                 use for. Removed; Settings is where the working controls are. */}
+            <DarkModeToggle />
             <NotificationCenter />
 
             <div className="relative">
