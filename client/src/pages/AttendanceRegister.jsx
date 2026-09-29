@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import api from '../api';
 import { Calendar, Clock, AlertTriangle, CheckCircle, XCircle, Filter, FileDown, FileSpreadsheet, RefreshCw, AlertCircle } from 'lucide-react';
 import { exportToPDF } from '../utils/pdfExport';
@@ -14,7 +15,14 @@ export default function AttendanceRegister() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [date, setDate] = useState(toLocalDateString());
-    const [filters, setFilters] = useState({ status: '', department: '' });
+    // Seeded from the URL so dashboard cards can open the register already
+    // filtered (?status=Absent, ?late=1).
+    const [searchParams] = useSearchParams();
+    const [filters, setFilters] = useState(() => ({
+        status: searchParams.get('status') || '',
+        department: '',
+        late: searchParams.get('late') === '1'
+    }));
 
     // Only the date needs a refetch — filtering is client-side, and the raw rows
     // are kept so the filter dropdowns can list every value, not just the ones
@@ -38,12 +46,13 @@ export default function AttendanceRegister() {
         let rows = rawData;
         if (filters.status) rows = rows.filter(r => r.status === filters.status);
         if (filters.department) rows = rows.filter(r => r.department === filters.department);
+        if (filters.late) rows = rows.filter(r => (r.late_minutes || 0) > 0);
         return rows;
     }, [rawData, filters]);
 
     const statusOptions = useMemo(
-        () => [...new Set(rawData.map(r => r.status).filter(Boolean))].sort(),
-        [rawData]
+        () => [...new Set([...rawData.map(r => r.status), filters.status].filter(Boolean))].sort(),
+        [rawData, filters.status]
     );
     const departmentOptions = useMemo(
         () => [...new Set(rawData.map(r => r.department).filter(Boolean))].sort(),
@@ -127,7 +136,7 @@ export default function AttendanceRegister() {
         });
     };
 
-    const isFiltered = Boolean(filters.status || filters.department);
+    const isFiltered = Boolean(filters.status || filters.department || filters.late);
 
     const stats = [
         { label: 'Present', value: summary.present, icon: CheckCircle, tone: 'text-emerald-600 dark:text-emerald-400' },
@@ -148,6 +157,7 @@ export default function AttendanceRegister() {
                             type="date"
                             value={date}
                             onChange={e => setDate(e.target.value)}
+                            aria-label="Date"
                             className="field-sm tabular-nums"
                         />
                         {/* The filter state and predicates already existed; this is the
@@ -155,6 +165,7 @@ export default function AttendanceRegister() {
                         <select
                             value={filters.status}
                             onChange={e => setFilters(f => ({ ...f, status: e.target.value }))}
+                            aria-label="Status"
                             className="field-sm"
                         >
                             <option value="">All statuses</option>
@@ -163,13 +174,23 @@ export default function AttendanceRegister() {
                         <select
                             value={filters.department}
                             onChange={e => setFilters(f => ({ ...f, department: e.target.value }))}
+                            aria-label="Department"
                             className="field-sm"
                         >
                             <option value="">All departments</option>
                             {departmentOptions.map(d => <option key={d} value={d}>{d}</option>)}
                         </select>
+                        <label className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={filters.late}
+                                onChange={e => setFilters(f => ({ ...f, late: e.target.checked }))}
+                                className="rounded border-slate-300"
+                            />
+                            Late only
+                        </label>
                         {isFiltered && (
-                            <Button variant="ghost" size="sm" icon={Filter} onClick={() => setFilters({ status: '', department: '' })}>
+                            <Button variant="ghost" size="sm" icon={Filter} onClick={() => setFilters({ status: '', department: '', late: false })}>
                                 Clear
                             </Button>
                         )}

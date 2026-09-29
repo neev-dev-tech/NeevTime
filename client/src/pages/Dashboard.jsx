@@ -57,6 +57,9 @@ export default function Dashboard() {
     const [statusMix, setStatusMix] = useState([]);
     const [loading, setLoading] = useState(true);
     const [lastUpdated, setLastUpdated] = useState(null);
+    // Set when some dashboard requests fail, so a zero caused by a broken
+    // query is never mistaken for a real zero.
+    const [loadWarning, setLoadWarning] = useState(null);
     const socketRef = useRef(null);
 
     useEffect(() => {
@@ -169,6 +172,9 @@ export default function Dashboard() {
 
             const failed = [employeesRes, devicesRes, summaryRes, logsRes, yesterdaySummaryRes, punchCountRes]
                 .filter(r => r.status === 'rejected');
+            setLoadWarning(failed.length
+                ? `${failed.length} of 6 dashboard requests failed (${failed[0].reason?.response?.data?.error || failed[0].reason?.message || 'network error'}). Figures showing 0 may be wrong.`
+                : null);
             if (failed.length) {
                 // Logged rather than swallowed: a panel quietly showing zero is
                 // indistinguishable from a genuine zero, which is what made the
@@ -548,6 +554,14 @@ export default function Dashboard() {
                 </button>
             </div>
 
+            {loadWarning && (
+                <div role="alert" className="flex items-center gap-3 flex-wrap p-3 rounded-xl border border-amber-200 bg-amber-50 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+                    <AlertTriangle size={16} className="shrink-0" />
+                    <span className="flex-1 min-w-0">{loadWarning}</span>
+                    <button type="button" onClick={fetchAllData} className="font-semibold underline underline-offset-2">Retry</button>
+                </div>
+            )}
+
             {/* Stats + insights rail */}
             <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-4 items-start">
             <div className="order-2 xl:order-1 space-y-4">
@@ -584,7 +598,7 @@ export default function Dashboard() {
                             trend={yesterdayStats.present > 0
                                 ? `${stats.present >= yesterdayStats.present ? '↑' : '↓'} ${Math.abs(Math.round(((stats.present - yesterdayStats.present) / yesterdayStats.present) * 100))}% vs yesterday`
                                 : undefined}
-                            onClick={() => navigate('/attendance-register')}
+                            onClick={() => navigate('/attendance-register?status=Present')}
                         />
                         <HeroStat
                             icon={XCircle}
@@ -595,16 +609,16 @@ export default function Dashboard() {
                             shareLabel={stats.onLeave
                                 ? `${stats.onLeave} more on approved leave`
                                 : `${stats.absent || 0} of ${stats.employees || 0}, excluding leave`}
-                            onClick={() => navigate('/attendance-register')}
+                            onClick={() => navigate('/attendance-register?status=Absent')}
                         />
                         <HeroStat
                             icon={Timer}
-                            label="Late Corners"
+                            label="Late Comers"
                             value={stats.late || 0}
                             accent={themeColors.warning}
                             share={stats.present ? stats.late / stats.present : null}
                             shareLabel={`${stats.late || 0} of ${stats.present || 0} who came in`}
-                            onClick={() => navigate('/reports/first-last')}
+                            onClick={() => navigate('/attendance-register?late=1')}
                         />
                     </div>
 
@@ -745,7 +759,7 @@ export default function Dashboard() {
                     emptyMessage="No employees on the payroll yet"
                 />
                 <DonutCard
-                    title="Late Corners — last 7 days"
+                    title="Late Comers — last 7 days"
                     subtitle="Arrivals after shift start"
                     loading={loading}
                     data={attendanceTrends.map(d => ({ name: d.date, value: d.late }))}
