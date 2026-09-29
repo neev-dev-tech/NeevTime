@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../api';
 import { Calendar, ChevronLeft, ChevronRight, Clock, CheckCircle, XCircle, AlertCircle, RefreshCw } from 'lucide-react';
 import { Button, PageHeader } from '../components';
-import { toLocalDateString } from '../utils/dateFormat';
+import { toLocalDateString, toDateOnly } from '../utils/dateFormat';
 
 export default function AttendanceCalendar() {
     const [currentDate, setCurrentDate] = useState(new Date());
@@ -31,7 +31,7 @@ export default function AttendanceCalendar() {
             });
             const grouped = {};
             res.data.forEach(row => {
-                const date = row.date?.split('T')[0];
+                const date = toDateOnly(row.date);
                 if (!grouped[date]) grouped[date] = { present: 0, absent: 0, late: 0, total: 0 };
 
                 grouped[date].total++;

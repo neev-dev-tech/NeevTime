@@ -8,11 +8,13 @@ import api from '../../api';
 import PunchCard from './PunchCard';
 import useStore from '../../store/useStore';
 import { Button, useToast } from '../../components';
-import { toLocalDateString, formatDate, formatDateWithWeekday } from '../../utils/dateFormat';
+import { toLocalDateString, formatDate, formatDateWithWeekday, toDateOnly } from '../../utils/dateFormat';
 
 const firstOfMonth = () => {
     const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+    // Local calendar date: toISOString() would convert local midnight to UTC,
+    // which east of Greenwich is the last day of the previous month.
+    return toLocalDateString(new Date(now.getFullYear(), now.getMonth(), 1));
 };
 const today = () => toLocalDateString();
 
@@ -139,7 +141,7 @@ export default function EmployeePortal() {
     const downloadMonth = async () => {
         setDownloading(true);
         try {
-            const month = new Date().toISOString().slice(0, 7);
+            const month = toLocalDateString().slice(0, 7);
             const res = await api.get(`/api/portal/attendance/export?month=${month}`,
                 { responseType: 'blob' });
             const url = URL.createObjectURL(res.data);
@@ -483,7 +485,7 @@ export default function EmployeePortal() {
                                                 <div className="min-w-0">
                                                     <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">{app.leave_type_name || '—'}</p>
                                                     <p className="text-xs text-slate-600 dark:text-slate-300 tabular-nums">
-                                                        {String(app.from_date).split('T')[0]} → {String(app.to_date).split('T')[0]} · {app.total_days} day{app.total_days > 1 ? 's' : ''}
+                                                        {toDateOnly(app.from_date)} → {toDateOnly(app.to_date)} · {app.total_days} day{app.total_days > 1 ? 's' : ''}
                                                     </p>
                                                     {/* The why, not just the no. */}
                                                     {app.rejection_reason && (

@@ -3,6 +3,7 @@ import { RefreshCw, Plus, Users, Zap } from 'lucide-react';
 import api from '../api';
 import { Button, PageHeader, useToast } from '../components';
 import Modal from '../components/Modal';
+import { toDateOnly } from '../utils/dateFormat';
 
 /**
  * Rotation patterns: week A days, week B nights, generated into the schedule
@@ -178,7 +179,7 @@ export default function ShiftRotations() {
                                 {crew.map(m => (
                                     <p key={m.id} className="py-1.5 text-slate-600 dark:text-slate-300">
                                         <span className="font-mono text-xs">{m.employee_code}</span> {m.name}
-                                        <span className="text-xs text-slate-400"> · offset {m.slot_offset}, from {String(m.starts_on).split('T')[0]}</span>
+                                        <span className="text-xs text-slate-400"> · offset {m.slot_offset}, from {toDateOnly(m.starts_on)}</span>
                                     </p>
                                 ))}
                             </div>

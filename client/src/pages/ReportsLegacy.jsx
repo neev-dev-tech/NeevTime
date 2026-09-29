@@ -11,7 +11,7 @@ import {
 import { exportToPDF } from '../utils/pdfExport';
 import { exportToExcel as exportToExcelUtil } from '../utils/excelExport';
 import { Button } from '../components';
-import { formatDate, toLocalDateString } from '../utils/dateFormat';
+import { formatDate, toLocalDateString, toDateOnly } from '../utils/dateFormat';
 
 // Stat tile tones — written out in full so Tailwind's scanner keeps the classes
 const STAT_TONES = {
@@ -351,7 +351,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
         return rowsOf(res).map(row => ({
             ...row,
             employee_name: row.name,
-            date: row.date ? String(row.date).split('T')[0] : dateFrom,
+            date: row.date ? toDateOnly(row.date) : dateFrom,
             in_time: toHHMM(row.in_time),
             out_time: toHHMM(row.out_time),
             total_hours: minutesToHours(row.duration_minutes),
@@ -381,7 +381,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                     employee_name: row.employee_name,
                     employee_code: row.employee_code,
                     department: row.department_name,
-                    date: row.attendance_date ? String(row.attendance_date).split('T')[0] : null,
+                    date: row.attendance_date ? toDateOnly(row.attendance_date) : null,
                     scheduled_in: '09:00',
                     scheduled_out: '18:00',
                     actual_in: toHHMM(row.first_in),
@@ -396,7 +396,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                     employee_name: row.employee_name,
                     employee_code: row.employee_code,
                     department: row.department_name,
-                    date: row.absent_date ? String(row.absent_date).split('T')[0] : null,
+                    date: row.absent_date ? toDateOnly(row.absent_date) : null,
                     status: 'Absent'
                 }));
             } else if (['missed_punch'].includes(reportType)) {
@@ -411,7 +411,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                     employee_name: row.employee_name,
                     employee_code: row.employee_code,
                     department: row.department_name,
-                    date: row.work_date ? String(row.work_date).split('T')[0] : null,
+                    date: row.work_date ? toDateOnly(row.work_date) : null,
                     regular_hours: '8.0',
                     total_hours: row.total_hours != null ? Number(row.total_hours).toFixed(1) : null,
                     overtime_hours: row.overtime_hours != null ? Number(row.overtime_hours).toFixed(1) : null
@@ -447,7 +447,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                 data = rowsOf(res).map(row => ({
                     ...row,
                     department: row.department_name,
-                    last_updated: row.last_updated ? String(row.last_updated).split('T')[0] : null
+                    last_updated: row.last_updated ? toDateOnly(row.last_updated) : null
                 }));
             } else if (reportType === 'birthday') {
                 const today = new Date();
@@ -459,7 +459,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                         employee_name: emp.name,
                         employee_code: emp.employee_code,
                         department: emp.department_name,
-                        dob: String(emp.dob).split('T')[0],
+                        dob: toDateOnly(emp.dob),
                         age: today.getFullYear() - dob.getFullYear(),
                         upcoming: toLocalDateString(next)
                     };

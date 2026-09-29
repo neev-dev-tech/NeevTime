@@ -2,6 +2,12 @@ import React, { useState, useEffect } from 'react';
 import api from '../api';
 import { CalendarDays, ChevronLeft, ChevronRight, Users, Building2, Clock, Filter, AlertCircle, RefreshCw } from 'lucide-react';
 import { PageHeader, Button } from '../components';
+import { toLocalDateString } from '../utils/dateFormat';
+
+// DATE columns arrive either as 'YYYY-MM-DD' or as the UTC instant of local
+// midnight ('2026-08-31T18:30:00Z' for 1 Sep in IST). Both mean a calendar day;
+// read the second in local time so it is not a day early.
+const dayOf = (v) => (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : toLocalDateString(v));
 
 export default function ScheduleCalendar() {
     const [currentDate, setCurrentDate] = useState(new Date());
@@ -85,11 +91,12 @@ export default function ScheduleCalendar() {
 
     const getScheduleForEmployeeOnDate = (employeeId, date) => {
         if (!date) return null;
-        const dateStr = date.toISOString().split('T')[0];
+        // The cell's own calendar date, not its UTC instant (a day early in IST).
+        const dateStr = toLocalDateString(date);
         return schedules.find(s =>
             s.employee_id === employeeId &&
-            dateStr >= s.effective_from?.split('T')[0] &&
-            (!s.effective_to || dateStr <= s.effective_to?.split('T')[0])
+            s.effective_from && dateStr >= dayOf(s.effective_from) &&
+            (!s.effective_to || dateStr <= dayOf(s.effective_to))
         );
     };
 

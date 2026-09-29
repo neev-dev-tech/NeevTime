@@ -123,6 +123,24 @@ export const toLocalDateString = (value = new Date()) => {
 };
 
 /**
+ * The calendar day a DATE (or timestamp) value from the API stands for.
+ *
+ * The server runs with TZ=Asia/Kolkata and node-postgres turns a DATE column
+ * into local midnight, which JSON-serialises as the UTC instant before it:
+ * 2 Oct arrives as '2026-10-01T18:30:00.000Z'. `.split('T')[0]` on that reads
+ * 1 Oct — a day early in every list, and an edit form that saves it back moves
+ * the record a day earlier each time. Plain 'YYYY-MM-DD' strings pass through.
+ *
+ * @param {Date|string|number|null} value
+ * @returns {string} 'YYYY-MM-DD', or '' for empty/invalid input
+ */
+export const toDateOnly = (value) => {
+    if (value === null || value === undefined || value === '') return '';
+    if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+    return toLocalDateString(value);
+};
+
+/**
  * Format time only (for in_time, out_time display)
  * @param {string} timestamp - Database timestamp string
  * @returns {string} 'h:mm:ss AM/PM' or '-' if null

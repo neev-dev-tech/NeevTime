@@ -4,7 +4,7 @@ import api from '../api';
 import { User, Mail, Phone, Building, Briefcase, Calendar, Clock, ArrowLeft, Edit2, Trash2, AlertCircle, FileText, RefreshCw } from 'lucide-react';
 import { useToast, Button } from '../components';
 import Modal from '../components/Modal';
-import { formatDate } from '../utils/dateFormat';
+import { formatDate, toDateOnly } from '../utils/dateFormat';
 
 export default function EmployeeProfile() {
     const { id } = useParams();
@@ -563,7 +563,7 @@ api.get('/api/contractors').then(r => setContractors(r.data.filter(c => c.is_act
                             <option value="Other">Other</option>
                         </select>
                     </div>
-                    <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">DOB</label><input type="date" className="field-sm" value={editForm.dob ? editForm.dob.split('T')[0] : ''} onChange={e => setEditForm({ ...editForm, dob: e.target.value })} /></div>
+                    <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">DOB</label><input type="date" className="field-sm" value={toDateOnly(editForm.dob)} onChange={e => setEditForm({ ...editForm, dob: e.target.value })} /></div>
                     <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Mobile</label><input type="text" className="field-sm" value={editForm.mobile} onChange={e => setEditForm({ ...editForm, mobile: e.target.value })} /></div>
                     <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Email</label><input type="email" className="field-sm" value={editForm.email} onChange={e => setEditForm({ ...editForm, email: e.target.value })} /></div>
                     <div className="col-span-1 md:col-span-3"><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Address</label><textarea rows={2} className="field-sm" value={editForm.address} onChange={e => setEditForm({ ...editForm, address: e.target.value })} /></div>
@@ -592,7 +592,7 @@ api.get('/api/contractors').then(r => setContractors(r.data.filter(c => c.is_act
                             {contractors.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                         </select>
                     </div>
-                    <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Joining Date</label><input type="date" className="field-sm" value={editForm.joining_date ? editForm.joining_date.split('T')[0] : ''} onChange={e => setEditForm({ ...editForm, joining_date: e.target.value })} /></div>
+                    <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Joining Date</label><input type="date" className="field-sm" value={toDateOnly(editForm.joining_date)} onChange={e => setEditForm({ ...editForm, joining_date: e.target.value })} /></div>
                     <div>
                         <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">Status</label>
                         <select className="field-sm" value={editForm.status} onChange={e => setEditForm({ ...editForm, status: e.target.value })}>
