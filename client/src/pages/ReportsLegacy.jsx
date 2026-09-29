@@ -11,7 +11,7 @@ import {
 import { exportToPDF } from '../utils/pdfExport';
 import { exportToExcel as exportToExcelUtil } from '../utils/excelExport';
 import { Button } from '../components';
-import { formatDate, toLocalDateString, toDateOnly } from '../utils/dateFormat';
+import { formatDate, toLocalDateString, toDateOnly, formatDateTime, formatTime } from '../utils/dateFormat';
 
 // Stat tile tones — written out in full so Tailwind's scanner keeps the classes
 const STAT_TONES = {
@@ -162,7 +162,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                         render: (row) => (
                             <div className="flex flex-col">
                                 <span className="text-sm font-semibold tabular-nums text-slate-800 dark:text-slate-100">
-                                    {row.punch_time ? new Date(row.punch_time).toLocaleTimeString() : '—'}
+                                    {row.punch_time ? formatTime(row.punch_time) : '—'}
                                 </span>
                                 <span className="text-xs tabular-nums text-slate-500 dark:text-slate-400">
                                     {formatDate(row.punch_time)}
@@ -523,7 +523,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                     const name = row.employee_name || row.emp_name || 'Unknown';
                     out['Employee'] = `${name} (${row.employee_code || ''})`;
                 } else if (col.label === 'Time') {
-                    out['Time'] = row.punch_time ? new Date(row.punch_time).toLocaleString() : '';
+                    out['Time'] = row.punch_time ? formatDateTime(row.punch_time) : '';
                 } else if (col.label === 'Type') {
                     out['Type'] = getDirection(row);
                 }

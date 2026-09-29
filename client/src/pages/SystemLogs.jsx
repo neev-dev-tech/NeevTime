@@ -5,7 +5,7 @@ import {
     Database, Users, ChevronDown, Monitor, AlertCircle
 } from 'lucide-react';
 import { Button, PageHeader } from '../components';
-import { formatDate, toLocalDateString } from '../utils/dateFormat';
+import { formatDate, toLocalDateString, formatDateTime, formatTime } from '../utils/dateFormat';
 import useTableControls from '../hooks/useTableControls';
 import { TablePager, TableToolbar } from '../components/TableControls';
 
@@ -76,7 +76,7 @@ export default function SystemLogs() {
         const csv = [
             ['Time', 'User', 'Action', 'Entity Type', 'Entity ID', 'IP Address'].join(','),
             ...logs.map(log => [
-                new Date(log.created_at).toLocaleString(),
+                formatDateTime(log.created_at),
                 log.username,
                 log.action,
                 log.entity_type,
@@ -329,7 +329,7 @@ export default function SystemLogs() {
                                                     {formatDate(log.created_at)}
                                                 </span>
                                                 <span className="text-xs text-slate-400 dark:text-slate-500 tabular-nums">
-                                                    {log.created_at ? new Date(log.created_at).toLocaleTimeString() : ''}
+                                                    {log.created_at ? formatTime(log.created_at) : ''}
                                                 </span>
                                             </div>
                                         </td>

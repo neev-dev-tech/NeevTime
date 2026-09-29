@@ -4,6 +4,7 @@ import { useToast, Button, PageHeader } from '../components';
 import Modal from '../components/Modal';
 import { Plus, RefreshCw, Trash2, Shield, Check } from 'lucide-react';
 import { confirm } from '../components/ConfirmDialog';
+import { formatDateTime } from '../utils/dateFormat';
 
 const KNOWN_SCOPES = ['attendance:read', 'employees:read'];
 
@@ -96,7 +97,7 @@ export default function ApiAccess() {
         catch { /* clipboard blocked — user can select manually */ }
     };
 
-    const fmt = (t) => t ? new Date(t).toLocaleString() : '—';
+    const fmt = (t) => t ? formatDateTime(t) : '—';
 
     return (
         <div className="p-6">

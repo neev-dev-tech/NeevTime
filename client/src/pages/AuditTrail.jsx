@@ -3,6 +3,7 @@ import { Shield, RefreshCw, AlertCircle, ChevronRight, ChevronLeft } from 'lucid
 import api from '../api';
 import { Button, PageHeader } from '../components';
 import Modal from '../components/Modal';
+import { formatDateTime } from '../utils/dateFormat';
 
 /**
  * Who changed what, and what it said before.
@@ -82,7 +83,7 @@ export default function AuditTrail() {
 
     const page = Math.floor(offset / PAGE) + 1;
     const pages = Math.max(1, Math.ceil(total / PAGE));
-    const when = (v) => new Date(v).toLocaleString();
+    const when = (v) => formatDateTime(v);
 
     return (
         <div className="space-y-6">

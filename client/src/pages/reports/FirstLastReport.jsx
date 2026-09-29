@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { exportToPDF } from '../../utils/pdfExport';
 import { exportToExcel as exportToExcelUtil } from '../../utils/excelExport';
 import { Button, useToast } from '../../components';
-import { toLocalDateString } from '../../utils/dateFormat';
+import { toLocalDateString, formatDateTime } from '../../utils/dateFormat';
 
 function FirstLastReport() {
     const navigate = useNavigate();
@@ -98,7 +98,7 @@ function FirstLastReport() {
                     'Report Type': 'First & Last Punch Report',
                     'Date Range': `${startDate} to ${endDate}`,
                     'Total Records': data.length,
-                    'Generated At': new Date().toLocaleString()
+                    'Generated At': formatDateTime(new Date())
                 },
                 onProgress: (progress) => setExportProgress(progress),
                 onSuccess: ({ filename, recordCount }) => {

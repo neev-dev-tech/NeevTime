@@ -7,7 +7,7 @@ import {
 
 import { confirm } from '../components/ConfirmDialog';
 import { Button, PageHeader, useToast } from '../components';
-import { formatDate, toLocalDateString } from '../utils/dateFormat';
+import { formatDate, toLocalDateString, formatTime } from '../utils/dateFormat';
 
 const BADGE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide';
 const BADGE_AUTO = 'bg-slate-50 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300';
@@ -464,7 +464,7 @@ export default function DatabaseTools() {
                                                     {formatDate(backup.created_at)}
                                                 </span>
                                                 <span className="text-xs text-slate-400 dark:text-slate-500 tabular-nums">
-                                                    {backup.created_at ? new Date(backup.created_at).toLocaleTimeString() : ''}
+                                                    {backup.created_at ? formatTime(backup.created_at) : ''}
                                                 </span>
                                             </div>
                                         </td>

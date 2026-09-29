@@ -5,7 +5,7 @@ import { Calendar, Clock, AlertTriangle, CheckCircle, XCircle, Filter, FileDown,
 import { exportToPDF } from '../utils/pdfExport';
 import { exportToExcel } from '../utils/excelExport';
 import { useToast, Button, PageHeader } from '../components';
-import { toLocalDateString } from '../utils/dateFormat';
+import { toLocalDateString, formatDateTime, formatTime } from '../utils/dateFormat';
 import useTableControls from '../hooks/useTableControls';
 import { TablePager, TableToolbar } from '../components/TableControls';
 
@@ -93,8 +93,8 @@ export default function AttendanceRegister() {
                 employee: row.name,
                 employee_code: row.employee_code || '-',
                 department: row.department || '-',
-                in_time: row.in_time ? new Date(row.in_time).toLocaleTimeString() : '-',
-                out_time: row.out_time ? new Date(row.out_time).toLocaleTimeString() : '-',
+                in_time: row.in_time ? formatTime(row.in_time) : '-',
+                out_time: row.out_time ? formatTime(row.out_time) : '-',
                 duration: row.duration_minutes ? `${Math.floor(row.duration_minutes / 60)}h ${row.duration_minutes % 60}m` : '-',
                 late_minutes: row.late_minutes > 0 ? row.late_minutes : '-',
                 status: row.status
@@ -116,7 +116,7 @@ export default function AttendanceRegister() {
         const metadata = {
             'Report Type': 'Attendance Register',
             'Date': date,
-            'Generated At': new Date().toLocaleString()
+            'Generated At': formatDateTime(new Date())
         };
         if (filterObj.status) metadata['Status Filter'] = filterObj.status;
         if (filterObj.department) metadata['Department Filter'] = filterObj.department;
@@ -126,8 +126,8 @@ export default function AttendanceRegister() {
                 'Employee Name': row.name,
                 'Employee Code': row.employee_code || '-',
                 'Department': row.department || '-',
-                'In Time': row.in_time ? new Date(row.in_time).toLocaleTimeString() : '-',
-                'Out Time': row.out_time ? new Date(row.out_time).toLocaleTimeString() : '-',
+                'In Time': row.in_time ? formatTime(row.in_time) : '-',
+                'Out Time': row.out_time ? formatTime(row.out_time) : '-',
                 'Duration': row.duration_minutes ? `${Math.floor(row.duration_minutes / 60)}h ${row.duration_minutes % 60}m` : '-',
                 'Late (min)': row.late_minutes > 0 ? row.late_minutes : '-',
                 'Status': row.status
@@ -289,12 +289,12 @@ export default function AttendanceRegister() {
                                         </td>
                                         <td className="px-5 py-3 whitespace-nowrap">
                                             <span className="font-mono text-xs tabular-nums text-slate-600 dark:text-slate-300">
-                                                {row.in_time ? new Date(row.in_time).toLocaleTimeString() : '—'}
+                                                {row.in_time ? formatTime(row.in_time) : '—'}
                                             </span>
                                         </td>
                                         <td className="px-5 py-3 whitespace-nowrap">
                                             <span className="font-mono text-xs tabular-nums text-slate-600 dark:text-slate-300">
-                                                {row.out_time ? new Date(row.out_time).toLocaleTimeString() : '—'}
+                                                {row.out_time ? formatTime(row.out_time) : '—'}
                                             </span>
                                         </td>
                                         <td className="px-5 py-3 whitespace-nowrap">

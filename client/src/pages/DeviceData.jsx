@@ -6,11 +6,11 @@ import {
 } from 'lucide-react';
 import api from '../api';
 import { Button, PageHeader, ExportMenu } from '../components';
-import { formatDate } from '../utils/dateFormat';
+import { formatDate, formatDateTime } from '../utils/dateFormat';
 import useTableControls from '../hooks/useTableControls';
 import { TablePager, TableToolbar } from '../components/TableControls';
 
-const fmtTime = (v) => (v ? new Date(v).toLocaleString() : '—');
+const fmtTime = (v) => (v ? formatDateTime(v) : '—');
 const fmtDate = (v) => formatDate(v);
 
 /**

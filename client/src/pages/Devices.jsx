@@ -12,7 +12,7 @@ import { TableSkeleton } from '../components/SkeletonLoader';
 import { useToast, Button, PageHeader } from '../components';
 import Modal from '../components/Modal';
 import { exportToExcel, exportToCSV } from '../utils/excelExport';
-import { formatDate, toLocalDateString } from '../utils/dateFormat';
+import { formatDate, toLocalDateString, formatDateTime } from '../utils/dateFormat';
 import useTableControls from '../hooks/useTableControls';
 import { TablePager, TableToolbar } from '../components/TableControls';
 
@@ -880,7 +880,7 @@ export default function Devices() {
                 return <DataView title="Transactions" endpoint="/api/devices/data/transaction" columns={[
                     { label: 'Device', key: 'device_name' },
                     { label: 'Employee', key: 'emp_name' },
-                    { label: 'Time', render: r => new Date(r.punch_time).toLocaleString() },
+                    { label: 'Time', render: r => formatDateTime(r.punch_time) },
                     { label: 'State', key: 'punch_state' },
                     { label: 'Verify', key: 'verification_mode' }
                 ]} />;
@@ -889,7 +889,7 @@ export default function Devices() {
                 return <DataView title="Work Codes" endpoint="/api/devices/data/work-code" columns={[
                     { label: 'ID', key: 'id' },
                     { label: 'Details', key: 'details' },
-                    { label: 'Timestamp', render: r => new Date(r.timestamp).toLocaleString() }
+                    { label: 'Timestamp', render: r => formatDateTime(r.timestamp) }
                 ]} />;
 
             case 'bio-template':
@@ -900,7 +900,7 @@ export default function Devices() {
                     { label: 'Type', key: 'type_name' },
                     { label: 'Template No', key: 'template_no' },
                     { label: 'Source Device', key: 'source_device' },
-                    { label: 'Created', render: r => r.created_at ? new Date(r.created_at).toLocaleString() : '' }
+                    { label: 'Created', render: r => r.created_at ? formatDateTime(r.created_at) : '' }
                 ]} />;
 
             case 'bio-photo':
@@ -914,7 +914,7 @@ export default function Devices() {
                     { label: 'Device', key: 'device_name' },
                     { label: 'Operator', key: 'operator' },
                     { label: 'Op Code', key: 'operation_type' },
-                    { label: 'Time', render: r => new Date(r.log_time).toLocaleString() },
+                    { label: 'Time', render: r => formatDateTime(r.log_time) },
                     { label: 'Details', key: 'details' }
                 ]} />;
 
@@ -922,7 +922,7 @@ export default function Devices() {
                 return <DataView title="Error Logs" endpoint="/api/devices/data/error-log" columns={[
                     { label: 'Device', key: 'device_name' },
                     { label: 'Error Code', key: 'error_code' },
-                    { label: 'Time', render: r => new Date(r.log_time).toLocaleString() },
+                    { label: 'Time', render: r => formatDateTime(r.log_time) },
                     { label: 'Details', key: 'details' }
                 ]} />;
 

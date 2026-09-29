@@ -4,6 +4,7 @@ import api from '../api';
 import { Button, PageHeader, useToast } from '../components';
 import useTableControls from '../hooks/useTableControls';
 import { TablePager, TableToolbar } from '../components/TableControls';
+import { formatDateTime } from '../utils/dateFormat';
 
 export default function DeviceMessages() {
     const toast = useToast();
@@ -108,7 +109,7 @@ export default function DeviceMessages() {
                                         {m.status || 'pending'}
                                     </span>
                                 </td>
-                                <td className="px-6 py-3 text-xs text-slate-500 dark:text-slate-400">{m.created_at ? new Date(m.created_at).toLocaleString() : '-'}</td>
+                                <td className="px-6 py-3 text-xs text-slate-500 dark:text-slate-400">{m.created_at ? formatDateTime(m.created_at) : '-'}</td>
                             </tr>
                         ))}
                     </tbody>

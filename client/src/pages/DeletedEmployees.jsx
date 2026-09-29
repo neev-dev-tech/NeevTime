@@ -5,6 +5,7 @@ import { useToast, Button, PageHeader } from '../components';
 import Modal from '../components/Modal';
 import useTableControls from '../hooks/useTableControls';
 import { TableToolbar, SortableTh, TablePager } from '../components/TableControls';
+import { formatDateTime } from '../utils/dateFormat';
 
 /**
  * Employees who have been removed.
@@ -64,7 +65,7 @@ export default function DeletedEmployees() {
         setConfirmRestore(false);
     };
 
-    const when = (v) => v ? new Date(v).toLocaleString() : '—';
+    const when = (v) => v ? formatDateTime(v) : '—';
 
     return (
         <div className="space-y-6">

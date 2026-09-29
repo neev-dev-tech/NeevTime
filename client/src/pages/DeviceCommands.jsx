@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useToast, Button, PageHeader, ExportMenu } from '../components';
 import { confirm } from '../components/ConfirmDialog';
+import { formatDateTime } from '../utils/dateFormat';
 
 export default function DeviceCommands() {
     const toast = useToast();
@@ -116,7 +117,7 @@ export default function DeviceCommands() {
 
     const formatTime = (timestamp) => {
         if (!timestamp) return '-';
-        return new Date(timestamp).toLocaleString();
+        return formatDateTime(timestamp);
     };
 
     // Filter commands for selected device
