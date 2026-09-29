@@ -14,7 +14,10 @@ const KNOWN_SCOPES = ['attendance:read', 'employees:read'];
  * The secret is shown exactly once, on issue/rotate.
  */
 export default function ApiAccess() {
-    const { showToast } = useToast();
+    // useToast() returns the toast function (with .success/.error/...), not an
+    // object with showToast — destructuring it left every message undefined.
+    const toast = useToast();
+    const showToast = (message, type = 'info') => (toast[type] || toast.info)(message);
     const [clients, setClients] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
