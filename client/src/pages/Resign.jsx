@@ -150,7 +150,7 @@ export default function Resign() {
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.setAttribute('href', url);
-        link.setAttribute('download', `resignations_${new Date().toISOString().slice(0, 10)}.csv`);
+        link.setAttribute('download', `resignations_${toLocalDateString()}.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);

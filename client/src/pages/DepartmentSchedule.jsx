@@ -3,7 +3,7 @@ import api from '../api';
 import { Building2, Plus, Edit2, Trash2, Save, Calendar, Clock, AlertCircle, RefreshCw } from 'lucide-react';
 import { useToast, Button, PageHeader } from '../components';
 import Modal from '../components/Modal';
-import { toLocalDateString } from '../utils/dateFormat';
+import { toLocalDateString, toDateOnly } from '../utils/dateFormat';
 import { confirm } from '../components/ConfirmDialog';
 import useTableControls from '../hooks/useTableControls';
 import { TablePager, TableToolbar } from '../components/TableControls';
@@ -91,8 +91,8 @@ export default function DepartmentSchedule() {
             department_id: schedule.department_id?.toString() || '',
             shift_id: schedule.shift_id?.toString() || '',
             timetable_id: schedule.timetable_id?.toString() || '',
-            effective_from: schedule.effective_from?.split('T')[0] || '',
-            effective_to: schedule.effective_to?.split('T')[0] || '',
+            effective_from: toDateOnly(schedule.effective_from) || '',
+            effective_to: toDateOnly(schedule.effective_to) || '',
             week_off_days: schedule.week_off_days || ['saturday', 'sunday']
         });
         setEditingId(schedule.id);
@@ -202,10 +202,10 @@ export default function DepartmentSchedule() {
                                             {schedule.timetable_name || '—'}
                                         </td>
                                         <td className="px-5 py-3 text-slate-600 dark:text-slate-300 tabular-nums whitespace-nowrap">
-                                            {schedule.effective_from?.split('T')[0] || '—'}
+                                            {toDateOnly(schedule.effective_from) || '—'}
                                         </td>
                                         <td className="px-5 py-3 text-slate-600 dark:text-slate-300 tabular-nums whitespace-nowrap">
-                                            {schedule.effective_to?.split('T')[0] || 'Ongoing'}
+                                            {toDateOnly(schedule.effective_to) || 'Ongoing'}
                                         </td>
                                         <td className="px-5 py-3">
                                             <div className="flex flex-wrap gap-1">

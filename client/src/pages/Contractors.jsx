@@ -3,7 +3,7 @@ import { Building2, Plus, Users, Trash2, Edit2, FileText } from 'lucide-react';
 import api from '../api';
 import { Button, PageHeader } from '../components';
 import Modal from '../components/Modal';
-import { formatDate } from '../utils/dateFormat';
+import { formatDate, toLocalDateString } from '../utils/dateFormat';
 import useTableControls from '../hooks/useTableControls';
 import { TablePager, TableToolbar } from '../components/TableControls';
 
@@ -20,7 +20,7 @@ export default function Contractors() {
     const [error, setError] = useState('');
     const [editing, setEditing] = useState(null);      // contractor being added or edited
     const [summary, setSummary] = useState(null);      // { contractor, employees, totals }
-    const [month, setMonth] = useState(new Date().toISOString().slice(0, 7));
+    const [month, setMonth] = useState(toLocalDateString().slice(0, 7));
 
     const load = async () => {
         try {

@@ -4,7 +4,7 @@ import api from '../api';
 import { UserCheck, Plus, Edit2, Trash2, Save, Users, Search, Filter, AlertCircle, RefreshCw } from 'lucide-react';
 import { useToast, Button, PageHeader, ExportMenu } from '../components';
 import Modal from '../components/Modal';
-import { toLocalDateString } from '../utils/dateFormat';
+import { toLocalDateString, toDateOnly } from '../utils/dateFormat';
 import { confirm } from '../components/ConfirmDialog';
 import useTableControls from '../hooks/useTableControls';
 import { TablePager } from '../components/TableControls';
@@ -127,8 +127,8 @@ export default function EmployeeSchedule({ temporary = false }) {
             employee_id: schedule.employee_id?.toString() || '',
             shift_id: schedule.shift_id?.toString() || '',
             timetable_id: schedule.timetable_id?.toString() || '',
-            effective_from: schedule.effective_from?.split('T')[0] || '',
-            effective_to: schedule.effective_to?.split('T')[0] || '',
+            effective_from: toDateOnly(schedule.effective_from) || '',
+            effective_to: toDateOnly(schedule.effective_to) || '',
             is_temporary: schedule.is_temporary || false,
             reason: schedule.reason || '',
             week_off_days: schedule.week_off_days || ['saturday', 'sunday']
@@ -213,8 +213,8 @@ export default function EmployeeSchedule({ temporary = false }) {
                             title="Employee Schedules"
                             mapRow={s => ({
                                 ...s,
-                                effective_from: s.effective_from?.split('T')[0] || '',
-                                effective_to: s.effective_to?.split('T')[0] || 'Ongoing',
+                                effective_from: toDateOnly(s.effective_from) || '',
+                                effective_to: toDateOnly(s.effective_to) || 'Ongoing',
                                 is_temporary: s.is_temporary ? 'Temporary' : 'Regular'
                             })}
                         />
@@ -319,7 +319,7 @@ export default function EmployeeSchedule({ temporary = false }) {
                                             )}
                                         </td>
                                         <td className="px-5 py-3 text-slate-600 dark:text-slate-300 tabular-nums whitespace-nowrap">
-                                            {schedule.effective_from?.split('T')[0] || '—'} → {schedule.effective_to?.split('T')[0] || 'Ongoing'}
+                                            {toDateOnly(schedule.effective_from) || '—'} → {toDateOnly(schedule.effective_to) || 'Ongoing'}
                                         </td>
                                         <td className="px-5 py-3">
                                             {schedule.is_temporary ? (

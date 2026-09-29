@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { useToast, Button, PageHeader } from '../components';
 import Modal from '../components/Modal';
-import { toLocalDateString } from '../utils/dateFormat';
+import { toLocalDateString, toDateOnly } from '../utils/dateFormat';
 import { confirm } from '../components/ConfirmDialog';
 
 export default function ApprovalFlow() {
@@ -87,7 +87,7 @@ export default function ApprovalFlow() {
         setEditItem(flow);
         setFormData({
             flow_code: flow.flow_code || '', name: flow.name || '',
-            start_date: flow.start_date?.split('T')[0] || '', end_date: flow.end_date?.split('T')[0] || '',
+            start_date: toDateOnly(flow.start_date) || '', end_date: toDateOnly(flow.end_date) || '',
             request_type: flow.request_type || '', requester: flow.requester || '',
             position_id: flow.position_id || '', department_id: flow.department_id || ''
         });
@@ -258,8 +258,8 @@ export default function ApprovalFlow() {
                                 </td>
                                 <td className="px-5 py-3 font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">{flow.flow_code || '—'}</td>
                                 <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100">{flow.name || '—'}</td>
-                                <td className="px-5 py-3 text-slate-600 dark:text-slate-300 tabular-nums">{flow.start_date?.split('T')[0] || '—'}</td>
-                                <td className="px-5 py-3 text-slate-600 dark:text-slate-300 tabular-nums">{flow.end_date?.split('T')[0] || '—'}</td>
+                                <td className="px-5 py-3 text-slate-600 dark:text-slate-300 tabular-nums">{toDateOnly(flow.start_date) || '—'}</td>
+                                <td className="px-5 py-3 text-slate-600 dark:text-slate-300 tabular-nums">{toDateOnly(flow.end_date) || '—'}</td>
                                 <td className="px-5 py-3">
                                     <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-slate-50 text-slate-700 border border-slate-200 dark:bg-slate-900/30 dark:text-slate-300 dark:border-slate-800">
                                         {flow.request_type || '—'}

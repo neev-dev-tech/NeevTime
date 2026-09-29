@@ -3,7 +3,7 @@ import api from '../api';
 import { MapPin, Plus, Edit2, Trash2, Save, Calendar, Globe, AlertCircle, RefreshCw } from 'lucide-react';
 import { useToast, Button, PageHeader, ExportMenu } from '../components';
 import Modal from '../components/Modal';
-import { formatDate, formatDateWithWeekday } from '../utils/dateFormat';
+import { formatDate, formatDateWithWeekday, toDateOnly } from '../utils/dateFormat';
 import { confirm } from '../components/ConfirmDialog';
 import useTableControls from '../hooks/useTableControls';
 import { TablePager, TableToolbar } from '../components/TableControls';
@@ -126,7 +126,7 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
     const openHolidayEdit = (holiday) => {
         setHolidayForm({
             name: holiday.name || '',
-            date: holiday.date?.split('T')[0] || '',
+            date: toDateOnly(holiday.date) || '',
             holiday_type: holiday.holiday_type || 'national',
             is_optional: holiday.is_optional || false,
             description: holiday.description || ''
@@ -193,7 +193,7 @@ export default function HolidayLocation({ initialTab = 'locations' }) {
                                 title="Holidays"
                                 mapRow={h => ({
                                     ...h,
-                                    date: h.date?.split('T')[0] || '',
+                                    date: toDateOnly(h.date) || '',
                                     is_optional: h.is_optional ? 'Yes' : 'No'
                                 })}
                             />
