@@ -155,7 +155,8 @@ export default function MainLayout({ children }) {
                   {group.items.map((item) => {
                     const itemActive = item.path.includes('?')
                       ? (location.pathname + location.search) === item.path
-                      : location.pathname === item.path;
+                      : location.pathname === item.path
+                        || (item.matchPrefix && location.pathname.startsWith(`${item.path}/`));
                     return (
                       <li key={item.path}>
                         <Link

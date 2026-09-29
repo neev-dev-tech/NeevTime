@@ -208,25 +208,10 @@ export const systemSidebar = [
     icon: Settings2,
     iconColor: '#64748B',
     items: [
-      // "All settings" is the overview with each section's current state;
-      // every section is also its own entry and URL, so "Email / SMTP" or
-      // "Employee sign-in" is one click away. Order follows the overview.
-      { label: 'All settings', path: '/settings', icon: Grid, iconColor: '#64748B' },
-      { label: 'Company', path: '/settings/company', icon: Building, iconColor: '#64748B' },
-      { label: 'Timezone', path: '/settings/timezone', icon: Globe, iconColor: '#64748B' },
-      { label: 'Appearance', path: '/settings/appearance', icon: Settings2, iconColor: '#64748B' },
-      { label: 'Attendance defaults', path: '/settings/attendance', icon: Timer, iconColor: '#64748B' },
-      { label: 'Weekend rules', path: '/settings/weekend', icon: CalendarDays, iconColor: '#64748B' },
-      { label: 'Approval chain', path: '/settings/approvals', icon: Workflow, iconColor: '#64748B' },
-      { label: 'Email / SMTP', path: '/settings/notifications', icon: Mail, iconColor: '#64748B' },
-      { label: 'Alerts', path: '/settings/alerts', icon: BellRing, iconColor: '#64748B' },
-      { label: 'Auto reports', path: '/settings/reports', icon: BarChart3, iconColor: '#64748B' },
-      { label: 'PDF & print', path: '/settings/pdf', icon: FileCheck, iconColor: '#64748B' },
-      { label: 'Security', path: '/settings/security', icon: Shield, iconColor: '#64748B' },
-      { label: 'Employee sign-in', path: '/settings/auth', icon: UserCheck, iconColor: '#64748B' },
-      // Backup schedule and retention. The Backup entry above is the full
-      // backup-and-restore tools page.
-      { label: 'Backups', path: '/settings/database', icon: Database, iconColor: '#64748B' },
+      // One entry: the Settings overview lists every section with its
+      // current state, so listing the sections here too only repeated it.
+      // Stays highlighted on each /settings/:section page.
+      { label: 'Settings', path: '/settings', icon: Settings2, iconColor: '#64748B', matchPrefix: true },
     ]
   },
 ];
