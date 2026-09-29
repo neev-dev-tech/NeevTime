@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api';
 import { Plus, Edit2, Trash2, Save, Globe, Building2, Clock, AlertTriangle, CheckCircle, Calendar, AlertCircle, RefreshCw } from 'lucide-react';
-import { useToast, Button, ListPage, ListTabs } from '../components';
+import { useToast, Button, ListPage, ListTabs, LIST_THEAD, LIST_TH, LIST_EDGE_FIRST, LIST_EDGE_LAST } from '../components';
 import Modal from '../components/Modal';
 import { confirm } from '../components/ConfirmDialog';
 
@@ -153,80 +153,50 @@ export default function AttendanceRules() {
     const departmentRules = rules.filter(r => r.rule_type === 'department');
     const weekDays = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
 
-    const RuleCard = ({ rule }) => (
-        <div className="bg-app-surface/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 hover:-translate-y-0.5 transition-transform">
-            <div className="flex items-start justify-between gap-3 mb-3">
-                <div className="min-w-0">
-                    <h3 className="font-semibold text-slate-800 dark:text-slate-100 truncate">{rule.name || '—'}</h3>
-                    <span className={`mt-1 inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide ${rule.rule_type === 'global'
-                        ? 'bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300'
-                        : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
-                        }`}>
-                        {rule.rule_type === 'global' ? 'Global Rule' : (rule.department_name || '—')}
-                    </span>
-                </div>
-                <div className="flex gap-1 shrink-0">
-                    <Button variant="ghost" size="sm" icon={Edit2} iconSize={16} onClick={() => openEdit(rule)} title="Edit Rule" aria-label="Edit Rule" />
-                    <Button variant="danger" size="sm" icon={Trash2} iconSize={16} onClick={() => handleDelete(rule.id)} title="Delete Rule" aria-label="Delete Rule" />
-                </div>
-            </div>
-
-            <dl className="grid grid-cols-2 gap-2 mb-3">
-                <div className="bg-app-surface/60 dark:bg-slate-900/50 rounded-xl px-3 py-2 border border-slate-100 dark:border-slate-700">
-                    <dt className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-600 dark:text-slate-400 mb-0.5">Late Threshold</dt>
-                    <dd className="font-semibold text-slate-800 dark:text-slate-100 tabular-nums flex items-center gap-1.5">
-                        <Clock size={13} className="text-amber-500 dark:text-amber-400" />
-                        {rule.late_threshold_minutes ?? '—'} min
-                    </dd>
-                </div>
-                <div className="bg-app-surface/60 dark:bg-slate-900/50 rounded-xl px-3 py-2 border border-slate-100 dark:border-slate-700">
-                    <dt className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-600 dark:text-slate-400 mb-0.5">Early Leave</dt>
-                    <dd className="font-semibold text-slate-800 dark:text-slate-100 tabular-nums flex items-center gap-1.5">
-                        <Clock size={13} className="text-rose-500 dark:text-rose-400" />
-                        {rule.early_leave_threshold_minutes ?? '—'} min
-                    </dd>
-                </div>
-                <div className="bg-app-surface/60 dark:bg-slate-900/50 rounded-xl px-3 py-2 border border-slate-100 dark:border-slate-700">
-                    <dt className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-600 dark:text-slate-400 mb-0.5">Grace Period</dt>
-                    <dd className="font-semibold text-slate-800 dark:text-slate-100 tabular-nums flex items-center gap-1.5">
-                        <CheckCircle size={13} className="text-emerald-500 dark:text-emerald-400" />
-                        {rule.grace_period_minutes ?? '—'} min
-                    </dd>
-                </div>
-                <div className="bg-app-surface/60 dark:bg-slate-900/50 rounded-xl px-3 py-2 border border-slate-100 dark:border-slate-700">
-                    <dt className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-600 dark:text-slate-400 mb-0.5">Half Day</dt>
-                    <dd className="font-semibold text-slate-800 dark:text-slate-100 tabular-nums flex items-center gap-1.5">
-                        <AlertTriangle size={13} className="text-slate-600 dark:text-slate-400" />
-                        {rule.half_day_threshold_minutes ?? '—'} min
-                    </dd>
-                </div>
-            </dl>
-
-            <div className="pt-3 border-t border-slate-100 dark:border-slate-700 space-y-2">
-                <div className="flex flex-wrap items-center gap-1.5">
-                    <span className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-600 dark:text-slate-400">Week Off</span>
-                    {rule.week_off_days?.length ? rule.week_off_days.map(day => (
-                        <span key={day} className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300">
-                            {day.substring(0, 3)}
-                        </span>
-                    )) : <span className="text-xs text-slate-600 dark:text-slate-300">—</span>}
-                </div>
-                {(rule.overtime_enabled || rule.alternate_saturday) && (
-                    <div className="flex flex-wrap items-center gap-1.5">
-                        {rule.overtime_enabled && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
-                                <Clock size={10} /> <span className="tabular-nums">OT {rule.overtime_multiplier}x</span>
-                            </span>
-                        )}
-                        {rule.alternate_saturday && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300">
-                                <Calendar size={10} /> Alt. Sat
-                            </span>
-                        )}
-                    </div>
-                )}
-            </div>
-        </div>
+    // One row per rule: thresholds as columns so rules compare side by side.
+    const RuleTable = ({ items, showDepartment }) => (
+        <table className="w-full text-sm text-left">
+            <thead className={LIST_THEAD}>
+                <tr>
+                    <th className={`${LIST_TH} ${LIST_EDGE_FIRST}`}>Rule</th>
+                    {showDepartment && <th className={LIST_TH}>Department</th>}
+                    <th className={`${LIST_TH} !text-right`}>Late after</th>
+                    <th className={`${LIST_TH} !text-right`}>Early leave</th>
+                    <th className={`${LIST_TH} !text-right`}>Grace</th>
+                    <th className={`${LIST_TH} !text-right`}>Half day</th>
+                    <th className={LIST_TH}>Week off</th>
+                    <th className={LIST_TH}>Overtime</th>
+                    <th className={`${LIST_TH} ${LIST_EDGE_LAST}`}><span className="sr-only">Actions</span></th>
+                </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                {items.map(rule => (
+                    <tr key={rule.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                        <td className={`${LIST_EDGE_FIRST} pr-4 py-3 font-medium text-slate-900 dark:text-slate-100`}>{rule.name || '—'}</td>
+                        {showDepartment && <td className="px-4 py-3 text-slate-700 dark:text-slate-300">{rule.department_name || '—'}</td>}
+                        <td className="px-4 py-3 text-right tabular-nums text-slate-700 dark:text-slate-300">{rule.late_threshold_minutes ?? '—'} min</td>
+                        <td className="px-4 py-3 text-right tabular-nums text-slate-700 dark:text-slate-300">{rule.early_leave_threshold_minutes ?? '—'} min</td>
+                        <td className="px-4 py-3 text-right tabular-nums text-slate-700 dark:text-slate-300">{rule.grace_period_minutes ?? '—'} min</td>
+                        <td className="px-4 py-3 text-right tabular-nums text-slate-700 dark:text-slate-300">{rule.half_day_threshold_minutes ?? '—'} min</td>
+                        <td className="px-4 py-3 text-slate-700 dark:text-slate-300">
+                            {rule.week_off_days?.length
+                                ? rule.week_off_days.map(d => d.charAt(0).toUpperCase() + d.slice(1, 3)).join(', ')
+                                : '—'}
+                            {rule.alternate_saturday && <span className="block text-xs text-slate-600 dark:text-slate-400">+ alternate Saturdays</span>}
+                        </td>
+                        <td className="px-4 py-3 text-slate-700 dark:text-slate-300 tabular-nums">
+                            {rule.overtime_enabled ? `On · ${rule.overtime_multiplier}×` : 'Off'}
+                        </td>
+                        <td className={`pl-4 ${LIST_EDGE_LAST} py-3`}>
+                            <div className="flex items-center justify-end gap-1.5">
+                                <Button variant="tonal" size="toolbar" icon={Edit2} onClick={() => openEdit(rule)}>Edit</Button>
+                                <Button variant="danger" size="toolbar" icon={Trash2} aria-label={`Delete ${rule.name}`} title="Delete" onClick={() => handleDelete(rule.id)} />
+                            </div>
+                        </td>
+                    </tr>
+                ))}
+            </tbody>
+        </table>
     );
 
     return (
@@ -248,41 +218,26 @@ export default function AttendanceRules() {
                 actions={
                     <Button mutating variant="primary" size="toolbar" icon={Plus} onClick={() => setShowModal(true)}>Add Rule</Button>
                 }
-                bodyClassName="p-4 sm:p-6 space-y-4"
             >
                 {/* The attendance engine does not read these rules yet. Saying so
                     here stops anyone tuning a grace period that changes nothing. */}
-                <div role="note" className="flex gap-3 p-4 rounded-xl border border-amber-200 bg-amber-50 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
-                    <AlertTriangle size={18} className="shrink-0 mt-0.5" />
-                    <div className="space-y-1">
-                        <p className="font-semibold">These rules are saved but not yet used in attendance calculation.</p>
-                        <p>
-                            Late marks and grace come from the employee's assigned shift
-                            (<Link to="/shifts" className="underline underline-offset-2">Shifts</Link>, grace-in minutes),
-                            and otherwise from{' '}
-                            <Link to="/settings/attendance" className="underline underline-offset-2">System › Attendance Defaults</Link>.
-                            Week-offs come from{' '}
-                            <Link to="/settings/weekend" className="underline underline-offset-2">Weekend Rules</Link>.
-                        </p>
-                    </div>
-                </div>
-
-                {/* Info Banner */}
-                <div className="bg-app-surface/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 flex items-start gap-3">
-                    <div className="p-2 rounded-xl bg-slate-100 dark:bg-slate-900/30 text-slate-600 dark:text-slate-300 shrink-0">
-                        <AlertTriangle size={16} />
-                    </div>
-                    <div className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                        <strong className="block mb-0.5 text-[11px] font-bold uppercase tracking-[0.09em] text-slate-600 dark:text-slate-400">How Rules Work</strong>
+                <details role="note" className="px-4 sm:px-6 py-2 border-b border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/30 text-[13px] text-amber-900 dark:text-amber-200">
+                    <summary className="cursor-pointer list-none flex items-center gap-2">
+                        <AlertTriangle size={15} className="shrink-0" />
+                        <span><strong className="font-semibold">Saved, but not yet used in attendance calculation.</strong> Late marks and grace come from <Link to="/shifts" className="underline underline-offset-2">Shifts</Link>, then <Link to="/settings/attendance" className="underline underline-offset-2">Attendance Defaults</Link>.</span>
+                        <span className="text-xs underline underline-offset-2">More</span>
+                    </summary>
+                    <p className="mt-1.5 pl-6">
+                        Week-offs come from <Link to="/settings/weekend" className="underline underline-offset-2">Weekend Rules</Link>.
                         Global rules are meant for all employees; a department rule is meant to override them for that department. Keep at least one global rule.
-                    </div>
-                </div>
+                    </p>
+                </details>
 
                 {/* Rules Grid */}
                 {loading ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                        {Array.from({ length: 6 }).map((_, i) => (
-                            <div key={i} className="h-64 rounded-2xl bg-slate-100 dark:bg-slate-700 animate-pulse" />
+                    <div className="p-6 space-y-3">
+                        {Array.from({ length: 4 }).map((_, i) => (
+                            <div key={i} className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />
                         ))}
                     </div>
                 ) : error ? (
@@ -303,9 +258,7 @@ export default function AttendanceRules() {
                             <Button mutating variant="primary" onClick={() => setShowModal(true)}>Create Now</Button>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                            {globalRules.map(rule => <RuleCard key={rule.id} rule={rule} />)}
-                        </div>
+                        <RuleTable items={globalRules} />
                     )
                 ) : (
                     departmentRules.length === 0 ? (
@@ -317,9 +270,7 @@ export default function AttendanceRules() {
                             </p>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                            {departmentRules.map(rule => <RuleCard key={rule.id} rule={rule} />)}
-                        </div>
+                        <RuleTable items={departmentRules} showDepartment />
                     )
                 )}
             </ListPage>
