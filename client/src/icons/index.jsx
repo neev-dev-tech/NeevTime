@@ -301,6 +301,8 @@ export const WifiOff = solid(PWifiSlash, 'WifiOff');
 export const CloudOff = solid(PCloudSlash, 'CloudOff');
 export const BellRing = solid(PBellRinging, 'BellRing');
 export const Workflow = solid(PFlowArrow, 'Workflow');
+// Hamburger for the mobile navigation drawer.
+export const Menu = solid(PList, 'Menu');
 export const X = solid(PX, 'X');
 export const XCircle = solid(PXCircle, 'XCircle');
 export const XSquare = solid(PXSquare, 'XSquare');

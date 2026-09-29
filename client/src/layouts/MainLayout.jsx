@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ChevronDown, ChevronRight, LogOut, Info, HelpCircle, Search } from 'lucide-react';
+import { ChevronDown, ChevronRight, LogOut, Info, HelpCircle, Search, Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import PropTypes from 'prop-types';
 import { modules, personnelSidebar, deviceSidebar, attendanceSidebar, systemSidebar } from '../config/navigation';
@@ -30,6 +30,16 @@ export default function MainLayout({ children }) {
   useDismissable(showProfileMenu, () => setShowProfileMenu(false), profileMenuRef, profileTriggerRef);
   const [showAbout, setShowAbout] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  // Below lg the sidebar is an off-canvas drawer. It closes on every route
+  // change so tapping a link both navigates and gets the menu out of the way.
+  const [navOpen, setNavOpen] = useState(false);
+  useEffect(() => { setNavOpen(false); }, [location.pathname, location.search]);
+  useEffect(() => {
+    if (!navOpen) return undefined;
+    const onKey = (e) => { if (e.key === 'Escape') setNavOpen(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [navOpen]);
 
   const toggleGroup = (groupName) => {
     setExpandedGroups(prev => ({
@@ -81,8 +91,22 @@ export default function MainLayout({ children }) {
       <AnimatedBackground />
       <GlobalSearch />
 
-      {/* ── Persistent left sidebar ─────────────────────────────────────── */}
-      <aside className="w-64 flex-shrink-0 flex flex-col border-r border-slate-200 dark:border-slate-700 bg-app-surface z-40">
+      {/* Drawer backdrop (small screens only) */}
+      {navOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-slate-900/40 lg:hidden"
+          onClick={() => setNavOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* ── Left sidebar: persistent from lg, off-canvas drawer below ──── */}
+      <aside
+        id="app-sidebar"
+        className={`fixed inset-y-0 left-0 z-50 w-64 flex flex-col border-r border-slate-200 dark:border-slate-700 bg-app-surface
+                    transition-transform duration-200 ease-out lg:static lg:z-auto lg:translate-x-0 lg:flex-shrink-0
+                    ${navOpen ? 'translate-x-0 shadow-xl' : '-translate-x-full'}`}
+      >
         {/* Logo */}
         <div className="h-16 flex items-center gap-2.5 px-5 border-b border-slate-200 dark:border-slate-700 flex-shrink-0">
           {hasLogo ? (
@@ -95,6 +119,14 @@ export default function MainLayout({ children }) {
               </span>
             </>
           )}
+          <button
+            type="button"
+            onClick={() => setNavOpen(false)}
+            className="ml-auto grid place-items-center w-9 h-9 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 lg:hidden"
+            aria-label="Close menu"
+          >
+            <X size={18} />
+          </button>
         </div>
 
         {/* Nav: modules, with the active one expanded to its groups/items */}
@@ -177,27 +209,40 @@ export default function MainLayout({ children }) {
         )}
 
         {/* Top bar */}
-        <header className="h-16 flex-shrink-0 flex items-center justify-between px-6 border-b border-slate-200 dark:border-slate-700 bg-app-surface/80 backdrop-blur-md">
+        <header className="h-16 flex-shrink-0 flex items-center justify-between gap-3 px-4 lg:px-6 border-b border-slate-200 dark:border-slate-700 bg-app-surface/80 backdrop-blur-md">
           {/* Visible search that opens the existing Ctrl/⌘+K palette — same
               component, just discoverable. Dispatches the shortcut it already
               listens for, so search behaviour is untouched. */}
           <button
             type="button"
+            onClick={() => setNavOpen(true)}
+            className="grid place-items-center w-10 h-10 -ml-1 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 lg:hidden flex-shrink-0"
+            aria-label="Open menu"
+            aria-controls="app-sidebar"
+            aria-expanded={navOpen}
+          >
+            <Menu size={20} />
+          </button>
+          <button
+            type="button"
             onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true }))}
-            className="flex items-center gap-2.5 w-full min-w-0 max-w-md h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-app-hover/60 text-sm text-slate-400 hover:border-slate-300 dark:hover:border-slate-600 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer"
+            className="flex items-center justify-center sm:justify-start gap-2.5 w-10 sm:w-full min-w-0 max-w-md h-10 px-0 sm:px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-app-hover/60 text-sm text-slate-400 hover:border-slate-300 dark:hover:border-slate-600 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer"
             aria-label="Search employees, devices and pages"
           >
             <Search size={16} aria-hidden="true" />
-            <span className="flex-1 min-w-0 text-left truncate whitespace-nowrap">Search employees, devices, pages…</span>
+            <span className="hidden sm:block flex-1 min-w-0 text-left truncate whitespace-nowrap">Search employees, devices, pages…</span>
             <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded-md border border-slate-200 dark:border-slate-600 bg-app-surface text-[11px] font-medium text-slate-500">⌘K</kbd>
           </button>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
             <DarkModeToggle />
             <NotificationCenter />
             <div className="relative">
               <button
                 ref={profileTriggerRef}
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
+                aria-label="Account menu"
+                aria-haspopup="menu"
+                aria-expanded={showProfileMenu}
                 className="flex items-center gap-2 px-2 py-1.5 rounded-full hover:bg-app-hover transition-colors"
               >
                 <div className="w-9 h-9 bg-slate-900 dark:bg-slate-100 dark:text-slate-900 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm">
@@ -239,7 +284,7 @@ export default function MainLayout({ children }) {
         </header>
 
         <main className="flex-1 min-h-0 overflow-auto">
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             {children}
           </div>
         </main>
