@@ -183,134 +183,43 @@ body {
     box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
   }
 
-  /* Card System - Premium Enterprise Style with Glassmorphism Corners */
-  .card-base {
-    background: linear-gradient(180deg, #FFFFFF 0%, #FAFAFA 100%);
-    border-radius: 16px;
-    border: 1px solid rgba(0, 0, 0, 0.04);
-    box-shadow:
-      0 1px 2px rgba(0, 0, 0, 0.04),
-      0 6px 20px rgba(0, 0, 0, 0.06);
-    padding: 24px;
-    transition: var(--transition-props) 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
+  /* Card system — one clean, tokenized surface (Swiss/minimal, theme-aware).
+     Flat surface + 1px border + one subtle shadow. Hover lifts the border and
+     shadow slightly; no gimmicky translate or radial glows. */
+  .card-base, .card-tier-1, .card-tier-2 {
+    background: rgb(var(--surface));
+    border: 1px solid rgb(var(--border) / 0.6);
+    border-radius: 12px;
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
+    padding: 20px;
+    transition: border-color 200ms var(--ease-out), box-shadow 200ms var(--ease-out);
   }
 
-  /* Tier 1 - CEO Glance Cards (Primary KPIs) */
-  .card-tier-1 {
-    background: linear-gradient(180deg, #FFFFFF 0%, #FAFAFA 100%);
-    border-radius: 16px;
-    border: 1px solid rgba(0, 0, 0, 0.04);
-    box-shadow:
-      0 1px 2px rgba(0, 0, 0, 0.04),
-      0 8px 24px rgba(0, 0, 0, 0.08);
-    padding: 24px;
-    transition: var(--transition-props) 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
+  .card-base:hover, .card-tier-1:hover, .card-tier-2:hover {
+    border-color: rgb(var(--border));
+    box-shadow: 0 2px 8px rgb(15 23 42 / 0.06);
   }
 
-  .card-tier-1:hover {
-    transform: translateY(-2px);
-    box-shadow:
-      0 2px 4px rgba(0, 0, 0, 0.06),
-      0 12px 32px rgba(0, 0, 0, 0.1);
-  }
+  /* Legacy accent-top card — now a plain card (no orange border-image). */
+  .card-premium { @apply card-base; }
 
-  /* Tier 2 - Secondary Cards */
-  .card-tier-2 {
-    background: linear-gradient(180deg, #FFFFFF 0%, #FAFAFA 100%);
-    border-radius: 16px;
-    border: 1px solid rgba(0, 0, 0, 0.04);
-    box-shadow:
-      0 1px 2px rgba(0, 0, 0, 0.04),
-      0 4px 10px rgba(0, 0, 0, 0.06);
-    padding: 24px;
-    transition: var(--transition-props) 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
-  }
-
-  .card-tier-2:hover {
-    transform: translateY(-1px);
-    box-shadow:
-      0 2px 4px rgba(0, 0, 0, 0.05),
-      0 8px 16px rgba(0, 0, 0, 0.08);
-  }
-
-  /* Glassmorphism Corner Effects */
-  .card-base::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 120px;
-    height: 120px;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, transparent 70%);
-    border-radius: 0 0 100% 0;
-    pointer-events: none;
-    opacity: 0.6;
-  }
-
-  .card-base::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    width: 100px;
-    height: 100px;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
-    border-radius: 100% 0 0 0;
-    pointer-events: none;
-    opacity: 0.5;
-  }
-
-  .card-base:hover {
-    transform: translateY(-2px);
-    box-shadow:
-      0 2px 4px rgba(0, 0, 0, 0.06),
-      0 12px 32px rgba(0, 0, 0, 0.08);
-  }
-
-  .card-base:hover::before,
-  .card-base:hover::after {
-    opacity: 0.8;
-  }
-
-  /* Card with Gradient Border Top */
-  .card-premium {
-    @apply card-base;
-    border-top: 4px solid;
-    border-image: linear-gradient(135deg, #F97316 0%, #EA580C 100%) 1;
-  }
-
-  /* Input Fields - Enhanced Focus States with Warm Tint */
+  /* Inputs — tokenized surface, brand focus ring (not orange). */
   .input-base {
-    @apply w-full border rounded-[10px] px-4 py-2.5;
-    background: linear-gradient(135deg, #FFFFFF 0%, #FFFBF5 100%);
-    border-color: #E5E7EB;
-    @apply placeholder:text-gray-400 text-charcoal;
+    @apply w-full border rounded-[10px] px-4 py-2.5 text-charcoal;
+    background: rgb(var(--surface));
+    border-color: rgb(var(--border));
     transition: var(--transition-props) var(--transition-fast) var(--ease-snappy);
   }
 
+  .input-base::placeholder { color: rgb(var(--text-muted) / 0.7); }
+
   .input-base:focus {
-    background: #FFFFFF;
-    border-color: #F97316;
-    box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.15), 0 2px 4px rgba(249, 115, 22, 0.1);
+    outline: none;
+    border-color: rgb(var(--brand));
+    box-shadow: 0 0 0 3px rgb(var(--brand) / 0.12);
   }
 
-  .input-premium {
-    @apply input-base;
-    background: #FFFFFF;
-    border-color: #CBD5E1;
-  }
-
-  .input-premium:focus {
-    border-color: #F97316;
-    box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.15);
-  }
-
+  .input-premium { @apply input-base; }
 
   /* Badges - Pastel Style */
   .badge-base {
@@ -373,7 +282,7 @@ body {
     background: linear-gradient(90deg, #FFF7ED 0%, #FFFBEB 100%);
     border-color: #FED7AA;
     transform: scale(1.002);
-    box-shadow: 0 2px 8px rgba(249, 115, 22, 0.08);
+    box-shadow: 0 2px 8px rgb(15 23 42 / 0.06);
   }
 
   /* Sticky table header */
@@ -398,7 +307,7 @@ body {
 
   /* Premium Report Container */
   .report-container {
-    background: linear-gradient(180deg, #FFFFFF 0%, #FAFBFC 100%);
+    background: rgb(var(--surface));
     border-radius: 20px;
     border: 1px solid rgba(0, 0, 0, 0.04);
     box-shadow:
@@ -416,7 +325,7 @@ body {
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, #F97316 0%, #FB923C 50%, #FDBA74 100%);
+    background: rgb(var(--brand));
     opacity: 0.8;
   }
 
@@ -426,7 +335,7 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 20px 24px;
-    background: linear-gradient(180deg, #FFFFFF 0%, #FAFBFC 100%);
+    background: rgb(var(--surface));
     border-bottom: 1px solid #F1F5F9;
   }
 
@@ -444,7 +353,7 @@ body {
     padding: 10px;
     background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%);
     border-radius: 12px;
-    color: #F97316;
+    color: #64748B;
   }
 
   .report-meta {
@@ -538,13 +447,13 @@ body {
   }
 
   .table-premium tbody tr:nth-child(even) {
-    background: linear-gradient(90deg, #FAFBFC 0%, #FFFFFF 100%);
+    background: rgb(var(--surface));
   }
 
   .table-premium tbody tr:hover {
     background: linear-gradient(90deg, #FFF7ED 0%, #FFFBEB 50%, #FEF3C7 100%);
     transform: translateX(4px);
-    box-shadow: -4px 0 0 0 #F97316, 0 2px 8px rgba(249, 115, 22, 0.1);
+    box-shadow: -3px 0 0 0 rgb(var(--brand)), 0 2px 8px rgb(15 23 42 / 0.06);
   }
 
   .table-premium tbody tr:last-child {
@@ -941,7 +850,7 @@ body {
   .category-item:hover {
     @apply border-saffron;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.15);
+    box-shadow: 0 4px 12px rgb(15 23 42 / 0.06);
   }
 
   /* Summary Card - Premium Light Tinted Style with Glassmorphism */
@@ -1204,7 +1113,7 @@ body {
   right: 0;
   width: 200px;
   height: 200px;
-  background: radial-gradient(circle at 100% 0%, rgba(249, 115, 22, 0.08) 0%, transparent 50%);
+  background: radial-gradient(circle at 100% 0%, rgb(15 23 42 / 0.06) 0%, transparent 50%);
   pointer-events: none;
 }
 
@@ -1215,13 +1124,13 @@ body {
     0 20px 25px -5px rgba(0, 0, 0, 0.1),
     0 25px 50px -12px rgba(0, 0, 0, 0.15),
     inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  border-color: rgba(249, 115, 22, 0.2);
+  border-color: rgb(15 23 42 / 0.06);
 }
 
 .device-card.selected {
-  border: 2px solid #F97316;
+  border: 2px solid #64748B;
   box-shadow:
-    0 0 0 4px rgba(249, 115, 22, 0.1),
+    0 0 0 4px rgb(15 23 42 / 0.06),
     0 8px 12px -2px rgba(0, 0, 0, 0.08),
     0 20px 25px -5px rgba(0, 0, 0, 0.1);
 }
@@ -1457,7 +1366,7 @@ body {
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  background: linear-gradient(135deg, #F97316 0%, #EA580C 50%, #DC2626 100%);
+  background: linear-gradient(135deg, #64748B 0%, #475569 50%, #DC2626 100%);
   color: white;
   border-radius: 50px;
   font-weight: 600;
@@ -1467,7 +1376,7 @@ body {
   overflow: hidden;
   transition: var(--transition-props) 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow:
-    0 4px 14px rgba(249, 115, 22, 0.35),
+    0 4px 14px rgb(15 23 42 / 0.06),
     inset 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 
@@ -1485,7 +1394,7 @@ body {
 .btn-header-primary:hover {
   transform: translateY(-2px) scale(1.02);
   box-shadow:
-    0 8px 20px rgba(249, 115, 22, 0.45),
+    0 8px 20px rgb(15 23 42 / 0.06),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
@@ -1741,7 +1650,7 @@ body {
 .badge-direction {
   background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%);
   color: #C2410C;
-  box-shadow: 0 2px 4px rgba(249, 115, 22, 0.15);
+  box-shadow: 0 2px 4px rgb(15 23 42 / 0.06);
 }
 
 /* Premium checkbox styling */
@@ -1758,9 +1667,9 @@ body {
 }
 
 .checkbox-premium:checked {
-  background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
-  border-color: #F97316;
-  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.3);
+  background: linear-gradient(135deg, #64748B 0%, #475569 100%);
+  border-color: #64748B;
+  box-shadow: 0 2px 8px rgb(15 23 42 / 0.06);
 }
 
 .checkbox-premium:checked::after {
@@ -1774,8 +1683,8 @@ body {
 }
 
 .checkbox-premium:hover {
-  border-color: #F97316;
-  box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.1);
+  border-color: #64748B;
+  box-shadow: 0 0 0 4px rgb(15 23 42 / 0.06);
 }
 
 /* Dark mode for device cards */
@@ -1907,7 +1816,7 @@ body {
   input:focus+.floating-label,
   input:not(:placeholder-shown)+.floating-label {
     @apply text-xs -translate-y-full top-0 bg-white px-1;
-    color: #F97316;
+    color: #64748B;
   }
 
   /* Required field asterisk styling */
@@ -1968,7 +1877,7 @@ body {
 
 /* Form input focus ring colors */
 .focus-ring-orange {
-  --tw-ring-color: rgba(249, 115, 22, 0.2);
+  --tw-ring-color: rgb(15 23 42 / 0.06);
 }
 
 .focus-ring-red {
@@ -2019,7 +1928,7 @@ body {
   /* Row highlight on selection */
   .table-row-selected {
     @apply bg-orange-50;
-    box-shadow: inset 3px 0 0 #F97316;
+    box-shadow: inset 3px 0 0 #64748B;
   }
 
   /* Sticky column shadow */
@@ -2337,12 +2246,12 @@ body {
   0%,
   100% {
     transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.4);
+    box-shadow: 0 0 0 0 rgb(15 23 42 / 0.06);
   }
 
   50% {
     transform: scale(1.02);
-    box-shadow: 0 0 0 10px rgba(249, 115, 22, 0);
+    box-shadow: 0 0 0 10px rgb(15 23 42 / 0.06);
   }
 }
 
@@ -2371,10 +2280,10 @@ body {
 
 :root {
   /* Primary Colors - Default Orange Theme */
-  --color-primary: #F97316;
-  --color-primary-dark: #EA580C;
+  --color-primary: #64748B;
+  --color-primary-dark: #475569;
   --color-primary-light: #FFEDD5;
-  --color-accent: #F97316;
+  --color-accent: #64748B;
 
   /* Semantic Colors */
   --color-success: #22C55E;
@@ -2527,7 +2436,7 @@ body {
 .dark .input-base:focus,
 .dark .input-premium:focus {
   background: #0F172A;
-  border-color: #F97316;
+  border-color: #64748B;
 }
 
 .dark .input-base::placeholder,
@@ -2638,8 +2547,8 @@ body {
   bottom: -40%;
   height: 90%;
   background-image:
-    linear-gradient(to right, rgba(249, 115, 22, 0.16) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(249, 115, 22, 0.16) 1px, transparent 1px);
+    linear-gradient(to right, rgb(15 23 42 / 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(15 23 42 / 0.06) 1px, transparent 1px);
   background-size: 64px 64px;
   transform: rotateX(72deg);
   transform-origin: 50% 100%;
@@ -2650,8 +2559,8 @@ body {
 
 .dark .app-bg__grid {
   background-image:
-    linear-gradient(to right, rgba(249, 115, 22, 0.16) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(249, 115, 22, 0.16) 1px, transparent 1px);
+    linear-gradient(to right, rgb(15 23 42 / 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(15 23 42 / 0.06) 1px, transparent 1px);
 }
 
 @keyframes bg-grid-drift {
@@ -2733,7 +2642,7 @@ body {
   transform: translateY(-2px);
   box-shadow:
     0 2px 4px rgba(15, 23, 42, 0.05),
-    0 20px 44px -16px rgba(249, 115, 22, 0.26);
+    0 20px 44px -16px rgb(15 23 42 / 0.06);
 }
 
 .dark .card-base,
@@ -2752,7 +2661,7 @@ body {
 .dark .card-tier-2:hover {
   box-shadow:
     0 2px 4px rgba(0, 0, 0, 0.32),
-    0 22px 48px -18px rgba(249, 115, 22, 0.28);
+    0 22px 48px -18px rgb(15 23 42 / 0.06);
 }
 
 /* Any page-level white panel picks up the same glass treatment */
@@ -2817,13 +2726,13 @@ body {
 .table-premium tbody tr:hover {
   background: rgba(255, 237, 213, 0.55);
   transform: none;
-  box-shadow: inset 3px 0 0 #F97316;
+  box-shadow: inset 3px 0 0 #64748B;
 }
 
 .dark .table-row:hover,
 .dark .table-premium tbody tr:hover {
   background: rgba(51, 65, 85, 0.55);
-  box-shadow: inset 3px 0 0 #F97316;
+  box-shadow: inset 3px 0 0 #64748B;
 }
 
 /* Data typing — codes, times and numbers read as data, not prose */
@@ -2865,8 +2774,8 @@ body {
 
 .input-base:focus,
 .input-premium:focus {
-  border-color: #F97316;
-  box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.13);
+  border-color: #64748B;
+  box-shadow: 0 0 0 4px rgb(15 23 42 / 0.06);
   background: #FFFFFF;
 }
 
@@ -2981,7 +2890,7 @@ body {
 .dark .table-row:nth-child(even),
 .dark .table-premium tbody tr:nth-child(even) { background: rgba(255, 255, 255, 0.022); }
 .dark .table-row:hover,
-.dark .table-premium tbody tr:hover { background: rgba(249, 115, 22, 0.09); }
+.dark .table-premium tbody tr:hover { background: rgb(15 23 42 / 0.06); }
 
 .dark .input-base,
 .dark .input-premium {
@@ -2991,7 +2900,7 @@ body {
 }
 
 .dark .input-base:focus,
-.dark .input-premium:focus { background: #131315; border-color: #F97316; }
+.dark .input-premium:focus { background: #131315; border-color: #64748B; }
 
 .dark .sticky-action { background: rgba(28, 28, 31, 0.82) !important; }
 
@@ -3038,7 +2947,7 @@ body {
   top: -6%; left: -4%;
   /* Fallback first: color-mix needs Chrome 111 / Safari 16.2, and without
      this an older browser gets no wash at all rather than a plain tint. */
-  background: radial-gradient(circle at 50% 50%, rgba(249, 115, 22, 0.26), transparent 68%);
+  background: radial-gradient(circle at 50% 50%, rgb(15 23 42 / 0.06), transparent 68%);
   background: radial-gradient(circle at 50% 50%,
               color-mix(in srgb, var(--color-primary) 26%, transparent),
               transparent 68%);
@@ -3174,8 +3083,8 @@ body {
 }
 
 .dv-card.is-selected {
-  border-color: rgba(249, 115, 22, 0.55);
-  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.16), 0 18px 40px -18px rgba(249, 115, 22, 0.4);
+  border-color: rgb(15 23 42 / 0.06);
+  box-shadow: 0 0 0 3px rgb(15 23 42 / 0.06), 0 18px 40px -18px rgb(15 23 42 / 0.06);
 }
 
 /* status rail down the left edge */
@@ -3248,12 +3157,12 @@ body {
   padding: 2px 7px;
   border-radius: 6px;
   text-transform: uppercase;
-  background: rgba(249, 115, 22, 0.12);
+  background: rgb(15 23 42 / 0.06);
   color: #C2410C;
-  border: 1px solid rgba(249, 115, 22, 0.2);
+  border: 1px solid rgb(15 23 42 / 0.06);
 }
 .dv-dir--out { background: rgba(139, 92, 246, 0.12); color: #6D28D9; border-color: rgba(139, 92, 246, 0.2); }
-.dark .dv-dir { color: #FDBA74; }
+.dark .dv-dir { color: #CBD5E1; }
 .dark .dv-dir--out { color: #C4B5FD; }
 
 /* selection checkbox */
@@ -3268,8 +3177,8 @@ body {
 }
 .dark .dv-check span { border-color: #3F3F46; background: rgba(19, 19, 21, 0.7); }
 .dv-check input:checked + span {
-  background: #F97316;
-  border-color: #F97316;
+  background: #64748B;
+  border-color: #64748B;
 }
 .dv-check input:checked + span::after {
   content: '';
@@ -3375,8 +3284,8 @@ tr:focus-within .dv-quiet { opacity: 1; transform: none; }
 
 .cmd-tile:hover:not(:disabled) {
   transform: translateY(-2px);
-  border-color: rgba(249, 115, 22, 0.45);
-  box-shadow: 0 10px 24px -12px rgba(249, 115, 22, 0.45);
+  border-color: rgb(15 23 42 / 0.06);
+  box-shadow: 0 10px 24px -12px rgb(15 23 42 / 0.06);
   background: rgba(255, 255, 255, 0.8);
 }
 .dark .cmd-tile:hover:not(:disabled) { background: rgba(28, 28, 31, 0.8); }
@@ -3587,7 +3496,7 @@ select:focus-visible,
 textarea:focus-visible,
 summary:focus-visible,
 [tabindex]:focus-visible {
-  outline: 2px solid var(--color-primary, #F97316) !important;
+  outline: 2px solid var(--color-primary, #64748B) !important;
   outline-offset: 2px !important;
 }
 
@@ -3703,8 +3612,8 @@ code, kbd, samp, .font-mono, .employee-code, .device-serial {
   .field:focus,
   .field-sm:focus {
     outline: none;
-    border-color: var(--color-primary, #F97316);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary, #F97316) 18%, transparent);
+    border-color: var(--color-primary, #64748B);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary, #64748B) 18%, transparent);
   }
 
   .field:disabled,
