@@ -3451,8 +3451,8 @@ code, kbd, samp, .font-mono, .employee-code, .device-serial {
   .field:focus,
   .field-sm:focus {
     outline: none;
-    border-color: var(--color-primary, #64748B);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary, #64748B) 18%, transparent);
+    border-color: rgb(var(--brand));
+    box-shadow: 0 0 0 3px rgb(var(--brand) / 0.12);
   }
 
   .field:disabled,

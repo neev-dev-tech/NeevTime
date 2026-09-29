@@ -18,11 +18,13 @@ import { Sun, Moon, Palette, Check, RotateCcw } from 'lucide-react';
 // Theme presets
 const THEME_PRESETS = {
     default: {
-        name: 'NeevTime Orange',
-        primary: '#F97316',
-        primaryDark: '#EA580C',
-        primaryLight: '#FFEDD5',
-        accent: '#F97316',
+        // Monochrome to match the black theme; the coloured presets below
+        // remain for customers who want a brand tint.
+        name: 'NeevTime Slate',
+        primary: '#334155',
+        primaryDark: '#1E293B',
+        primaryLight: '#F1F5F9',
+        accent: '#334155',
         success: '#22C55E',
         warning: '#F59E0B',
         error: '#EF4444',

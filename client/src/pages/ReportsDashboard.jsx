@@ -23,38 +23,14 @@ export default function ReportsDashboard() {
         return 'secondary';
     };
 
-    // Color discipline: 1 color per category, all within the brand family.
-    // Red stays reserved for destructive/error UI, blue for semantic info.
-    const getCategoryColor = (category) => {
-        const colors = {
-            'attendance': {
-                color: '#059669',
-                bgColor: 'linear-gradient(135deg, rgba(5, 150, 105, 0.10) 0%, rgba(20, 184, 166, 0.20) 100%)',
-                hoverGradient: 'linear-gradient(135deg, rgba(5, 150, 105, 0.15) 0%, rgba(20, 184, 166, 0.25) 100%)'
-            },
-            'time': {
-                color: '#EA580C',
-                bgColor: 'linear-gradient(135deg, rgba(234, 88, 12, 0.10) 0%, rgba(251, 146, 60, 0.20) 100%)',
-                hoverGradient: 'linear-gradient(135deg, rgba(234, 88, 12, 0.15) 0%, rgba(251, 146, 60, 0.25) 100%)'
-            },
-            'exception': {
-                color: '#D97706',
-                bgColor: 'linear-gradient(135deg, rgba(217, 119, 6, 0.10) 0%, rgba(245, 158, 11, 0.20) 100%)',
-                hoverGradient: 'linear-gradient(135deg, rgba(217, 119, 6, 0.15) 0%, rgba(245, 158, 11, 0.25) 100%)'
-            },
-            'log': {
-                color: '#475569',
-                bgColor: 'linear-gradient(135deg, rgba(71, 85, 105, 0.08) 0%, rgba(100, 116, 139, 0.16) 100%)',
-                hoverGradient: 'linear-gradient(135deg, rgba(71, 85, 105, 0.12) 0%, rgba(100, 116, 139, 0.22) 100%)'
-            },
-            'utility': { 
-                color: '#6B7280', 
-                bgColor: 'linear-gradient(135deg, rgba(107, 114, 128, 0.06) 0%, rgba(156, 163, 175, 0.12) 100%)',
-                hoverGradient: 'linear-gradient(135deg, rgba(107, 114, 128, 0.10) 0%, rgba(156, 163, 175, 0.18) 100%)'
-            }
-        };
-        return colors[category] || colors.log;
+    // Monochrome, like the rest of the app: every category shares one neutral
+    // chip. Section headings and grouping carry the category, not colour.
+    const NEUTRAL = {
+        color: '#475569',
+        bgColor: 'rgba(100, 116, 139, 0.10)',
+        hoverGradient: 'rgba(100, 116, 139, 0.16)'
     };
+    const getCategoryColor = () => NEUTRAL;
 
     const sections = [
         {
@@ -152,24 +128,16 @@ export default function ReportsDashboard() {
         const categoryColors = useMemo(() => getCategoryColor(section.category), [section.category]);
 
         // Card size based on tier - 2 TIERS for visual hierarchy
-        const cardStyles = useMemo(() => ({
-            primary: {
-                height: '170px',
-                border: '1px solid rgba(0, 0, 0, 0.08)',
-                borderTop: `3px solid ${categoryColors.color}`,
-                boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.06), 0px 12px 32px rgba(0, 0, 0, 0.10)'
-            },
-            secondary: {
-                height: '160px',
-                border: '1px solid rgba(0, 0, 0, 0.04)',
-                boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.04), 0px 6px 16px rgba(0, 0, 0, 0.06)'
-            },
-            utility: {
-                height: '160px',
-                border: '1px solid rgba(0, 0, 0, 0.03)',
-                boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.03), 0px 4px 12px rgba(0, 0, 0, 0.05)'
-            }
-        }), [categoryColors.color]);
+        // One card style for every tier — same surface, hairline and shadow as
+        // the card system. Tier now only nudges height.
+        const cardStyles = useMemo(() => {
+            const base = { border: '1px solid rgb(var(--border) / 0.6)', boxShadow: '0 1px 2px rgb(15 23 42 / 0.04)' };
+            return {
+                primary: { ...base, height: '160px' },
+                secondary: { ...base, height: '160px' },
+                utility: { ...base, height: '160px' }
+            };
+        }, []);
 
         const currentStyle = cardStyles[tier];
         const cardId = `report-card-${item.id}`;
@@ -186,11 +154,9 @@ export default function ReportsDashboard() {
                 <button
                     id={cardId}
                     onClick={onNavigate}
-                    className="report-card-button w-full p-5 rounded-[16px] cursor-pointer flex flex-col items-center justify-center gap-3 text-center relative overflow-hidden bg-app-surface"
+                    className="report-card-button w-full p-5 rounded-xl cursor-pointer flex flex-col items-center justify-center gap-3 text-center relative overflow-hidden bg-app-surface"
                     style={{
                         ...currentStyle,
-                        border: tier === 'primary' ? `1px solid rgba(0, 0, 0, 0.08)` : currentStyle.border,
-                        borderTop: tier === 'primary' ? `3px solid ${categoryColors.color}` : currentStyle.border,
                         position: 'relative',
                         zIndex: 1
                     }}
@@ -268,7 +234,7 @@ export default function ReportsDashboard() {
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-bold flex items-center gap-3 text-charcoal dark:text-slate-100">
                     <div className="p-2 bg-slate-50 dark:bg-slate-900/30 rounded-lg">
-                        <FileBarChart className="text-saffron" size={24} />
+                        <FileBarChart className="text-slate-600 dark:text-slate-300" size={24} />
                     </div>
                     Reports
                 </h1>
