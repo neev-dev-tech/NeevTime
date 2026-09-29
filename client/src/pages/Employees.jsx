@@ -522,7 +522,7 @@ export default function Employees() {
     const tableHead = (
         <thead className="sticky top-0 z-10 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
             <tr>
-                <th className="pl-5 pr-2 py-3 w-10">
+                <th className="pl-4 sm:pl-6 pr-2 py-3 w-10">
                     <input
                         type="checkbox"
                         aria-label="Select all employees in this list"
@@ -542,7 +542,7 @@ export default function Employees() {
                 <th className={`${TH} text-center`}>Biometrics</th>
                 <th className={TH}>App access</th>
                 <th className={TH}>Area</th>
-                <th className={TH}>Mobile</th>
+                <th className={`${TH} pr-4 sm:pr-6`}>Mobile</th>
             </tr>
         </thead>
     );
@@ -560,8 +560,12 @@ export default function Employees() {
     };
 
     return (
-        <div className="relative">
+        // Full-bleed: cancels the layout padding and fills the content area edge
+        // to edge. Header, toolbar and pager stay put; only the rows scroll.
+        <div className="relative -m-4 sm:-m-6 h-[calc(100%+2rem)] sm:h-[calc(100%+3rem)] flex flex-col bg-app-surface">
+            <div className="px-4 sm:px-6 pt-5">
             <PageHeader
+                className="!mb-0 !border-b-0 !pb-4"
                 icon={Users}
                 title="Employees"
                 subtitle="Personnel records, biometric enrolment and app access"
@@ -574,10 +578,12 @@ export default function Employees() {
                 }
             />
 
-            <div className="flex flex-col h-[calc(100vh-210px)] min-h-[420px] card-base !p-0 overflow-hidden">
+            </div>
+
+            <div className="flex-1 min-h-0 flex flex-col border-t border-slate-200 dark:border-slate-800">
                 {/* Toolbar: search + quick filters, or the bulk bar when rows are selected */}
                 {selectedIds.length === 0 ? (
-                    <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-200 dark:border-slate-700 flex-wrap">
+                    <div className="flex items-center gap-3 px-4 sm:px-6 py-3 border-b border-slate-200 dark:border-slate-700 flex-wrap">
                         <div className="relative w-full sm:w-72">
                             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true" />
                             <input
@@ -621,7 +627,7 @@ export default function Employees() {
                         </button>
                     </div>
                 ) : (
-                    <div className="flex items-center gap-2 px-4 py-2.5 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 flex-wrap">
+                    <div className="flex items-center gap-2 px-4 sm:px-6 py-2.5 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 flex-wrap">
                         <span className="text-sm font-semibold text-slate-900 dark:text-slate-100 tabular-nums">{selectedIds.length} selected</span>
                         <button
                             type="button"
@@ -661,7 +667,7 @@ export default function Employees() {
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                                 {Array.from({ length: 8 }).map((_, i) => (
                                     <tr key={i}>
-                                        <td className="pl-5 pr-2 py-3"><div className="h-4 w-4 rounded bg-slate-100 dark:bg-slate-700 animate-pulse" /></td>
+                                        <td className="pl-4 sm:pl-6 pr-2 py-3"><div className="h-4 w-4 rounded bg-slate-100 dark:bg-slate-700 animate-pulse" /></td>
                                         <td className="px-4 py-3">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 animate-pulse" />
@@ -725,7 +731,7 @@ export default function Employees() {
                                             onClick={open}
                                             className={`cursor-pointer transition-colors ${selected ? 'bg-slate-50 dark:bg-slate-800/60' : 'hover:bg-slate-50 dark:hover:bg-slate-800/40'}`}
                                         >
-                                            <td className="pl-5 pr-2 py-3" onClick={e => e.stopPropagation()}>
+                                            <td className="pl-4 sm:pl-6 pr-2 py-3" onClick={e => e.stopPropagation()}>
                                                 <input
                                                     type="checkbox"
                                                     aria-label={`Select ${emp.name || emp.employee_code}`}
@@ -794,7 +800,7 @@ export default function Employees() {
                                                 </span>
                                             </td>
                                             <td className="px-4 py-3"><span className={CELL_SOFT}>{dash(emp.area_name)}</span></td>
-                                            <td className="px-4 py-3"><span className={CELL_MONO}>{dash(emp.mobile)}</span></td>
+                                            <td className="px-4 pr-4 sm:pr-6 py-3"><span className={CELL_MONO}>{dash(emp.mobile)}</span></td>
                                         </tr>
                                     );
                                 })}

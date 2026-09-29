@@ -267,7 +267,8 @@ export default function MainLayout({ children }) {
         </header>
 
         <main className="flex-1 min-h-0 overflow-auto">
-          <div className="p-4 sm:p-6">
+          {/* h-full gives full-bleed pages a definite height to fill. */}
+          <div className="h-full p-4 sm:p-6">
             {children}
           </div>
         </main>
