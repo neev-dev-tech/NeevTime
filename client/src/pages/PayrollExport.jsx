@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Calculator, RefreshCw, Download, AlertCircle, AlertTriangle } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Calculator, RefreshCw, Download, AlertCircle, AlertTriangle, CheckCircle } from 'lucide-react';
 import api from '../api';
 import { useToast, Button, PageHeader } from '../components';
+import { confirm } from '../components/ConfirmDialog';
 import { toLocalDateString } from '../utils/dateFormat';
 
 /**
@@ -47,6 +49,8 @@ export default function PayrollExport() {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    // Open items that would change these numbers if resolved after export.
+    const [readiness, setReadiness] = useState(null);
 
     useEffect(() => {
         api.get('/api/reports/payroll-templates')
@@ -62,6 +66,9 @@ export default function PayrollExport() {
                 params: { from: range.from, to: range.to }
             });
             setData(res.data);
+            api.get('/api/reports/payroll-readiness', { params: { from: range.from, to: range.to } })
+                .then(r => setReadiness(r.data))
+                .catch(() => setReadiness(null));
         } catch (err) {
             setError(err.response?.data?.error || 'Could not build the payroll summary');
             setData(null);
@@ -72,7 +79,20 @@ export default function PayrollExport() {
 
     useEffect(() => { fetchSummary(); }, [fetchSummary]);
 
+    const openItems = readiness
+        ? readiness.pending_leave + readiness.pending_regularizations + readiness.missed_punches
+        : 0;
+
     const download = async () => {
+        if (openItems > 0) {
+            const ok = await confirm({
+                title: 'Export with open items?',
+                message: `${openItems} item(s) in this period still need a decision. Numbers exported now may change once they are resolved.`,
+                confirmText: 'Export anyway',
+                type: 'warning'
+            });
+            if (!ok) return;
+        }
         try {
             const res = await api.get('/api/reports/payroll-export', {
                 params: { from: range.from, to: range.to, template, format: 'csv' },
@@ -135,6 +155,39 @@ export default function PayrollExport() {
                     </p>
                 )}
             </div>
+
+            {readiness && (
+                <div className="card-base">
+                    <div className="flex items-center justify-between gap-3 mb-3">
+                        <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Before you export</h2>
+                        {openItems === 0 && (
+                            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-300">
+                                <CheckCircle size={14} /> Nothing pending for this period
+                            </span>
+                        )}
+                    </div>
+                    <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+                        {[
+                            { n: readiness.pending_leave, label: 'Leave requests awaiting approval', to: '/leaves?status=Pending' },
+                            { n: readiness.pending_regularizations, label: 'Regularization requests awaiting approval', to: '/regularizations' },
+                            { n: readiness.missed_punches, label: 'Days with an IN but no OUT', to: '/attendance/manual' }
+                        ].map(item => (
+                            <li key={item.label} className="flex items-center gap-3 py-2.5 text-sm">
+                                {item.n > 0
+                                    ? <AlertTriangle size={16} className="shrink-0 text-amber-500" />
+                                    : <CheckCircle size={16} className="shrink-0 text-emerald-500" />}
+                                <span className="flex-1 text-slate-700 dark:text-slate-300">{item.label}</span>
+                                <span className="tabular-nums font-semibold text-slate-900 dark:text-slate-100">{item.n}</span>
+                                {item.n > 0 && (
+                                    <Link to={item.to} className="text-xs font-medium underline underline-offset-2 text-slate-600 dark:text-slate-300">
+                                        Review
+                                    </Link>
+                                )}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
 
             {totalUncollected > 0 && (
                 <div className="flex items-start gap-3 p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/20">

@@ -631,6 +631,43 @@ router.get('/payroll-templates', (req, res) => {
     res.json(payrollExport.listTemplates());
 });
 
+// What still needs a decision before a payroll run for the period: requests
+// nobody has acted on, and days with an IN but no OUT. Read-only — the
+// payroll screen shows it above the download so the numbers are not exported
+// while they are still going to change.
+router.get('/payroll-readiness', validateDateRange, async (req, res) => {
+    try {
+        const db = require('../db');
+        const { from, to } = req.query;
+        if (!from || !to) {
+            return res.status(400).json({ error: 'from and to dates are required' });
+        }
+        const [leave, regs, missed] = await Promise.all([
+            db.query(
+                `SELECT count(*)::int AS n FROM leave_applications
+                  WHERE status = 'Pending' AND from_date <= $2 AND to_date >= $1`,
+                [from, to]),
+            db.query(
+                `SELECT count(*)::int AS n FROM attendance_regularizations
+                  WHERE LOWER(status) = 'pending' AND date BETWEEN $1 AND $2`,
+                [from, to]),
+            // Today is excluded: an IN without an OUT is normal until the shift ends.
+            db.query(
+                `SELECT count(*)::int AS n FROM attendance_daily_summary
+                  WHERE date BETWEEN $1 AND $2 AND date < CURRENT_DATE
+                    AND ((in_time IS NOT NULL AND out_time IS NULL) OR status = 'Miss Punch')`,
+                [from, to])
+        ]);
+        res.json({
+            pending_leave: leave.rows[0].n,
+            pending_regularizations: regs.rows[0].n,
+            missed_punches: missed.rows[0].n
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 router.get('/payroll-export', validateDateRange, async (req, res) => {
     try {
         const { from, to, department_id, template = 'generic', format = 'json' } = req.query;
