@@ -182,11 +182,14 @@ export default function Login({ setAuth }) {
                     /* Login Form */
                     <form onSubmit={handleLogin} className="space-y-6">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-charcoal">Username</label>
+                            <label htmlFor="login-username" className="text-sm font-medium text-charcoal">Username</label>
                             <div className="relative">
                                 <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                                 <input
+                                    id="login-username"
                                     type="text"
+                                    autoComplete="username"
+                                    autoFocus
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value)}
                                     className="field pl-12 pr-4"
@@ -196,11 +199,13 @@ export default function Login({ setAuth }) {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-charcoal">Password</label>
+                            <label htmlFor="login-password" className="text-sm font-medium text-charcoal">Password</label>
                             <div className="relative">
                                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                                 <input
+                                    id="login-password"
                                     type="password"
+                                    autoComplete="current-password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     className="field pl-12 pr-4"
@@ -212,15 +217,21 @@ export default function Login({ setAuth }) {
                         {/* Session length is set by the Security settings, so there is
                             no "remember me" for the user to choose. */}
                         <div className="flex items-center justify-end text-sm">
-                            <a href="/forgot-password" className="text-saffron hover:underline font-medium">Forgot password?</a>
+                            <a href="/forgot-password" className="text-slate-700 dark:text-slate-300 hover:underline font-medium">Forgot password?</a>
                         </div>
 
                         <button
                             disabled={busy}
-                            className="w-full btn-primary py-3.5 rounded-xl shadow-lg shadow-slate-200 transition-ui hover:scale-[1.02] hover:shadow-xl text-base font-semibold disabled:opacity-60 disabled:hover:scale-100"
+                            className="w-full btn-primary py-3 rounded-xl transition-ui text-base font-semibold disabled:opacity-60"
                         >
                             {busy ? 'Signing in…' : 'Sign In'}
                         </button>
+                        {/* Employees sign in to their own portal; without this link
+                            they had to know the /portal/login address. */}
+                        <p className="text-center text-sm text-slate-grey">
+                            Employee?{' '}
+                            <a href="/portal/login" className="font-medium text-slate-800 dark:text-slate-200 hover:underline">Sign in to the employee portal</a>
+                        </p>
                     </form>
                     ) : (
                     /* First-sign-in: replace the bootstrap password */
@@ -230,11 +241,13 @@ export default function Login({ setAuth }) {
                         </p>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-charcoal">New password</label>
+                            <label htmlFor="login-new" className="text-sm font-medium text-charcoal">New password</label>
                             <div className="relative">
                                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                                 <input
+                                    id="login-new"
                                     type="password"
+                                    autoComplete="new-password"
                                     value={newPassword}
                                     onChange={(e) => setNewPassword(e.target.value)}
                                     className="field pl-12 pr-4"
@@ -245,11 +258,13 @@ export default function Login({ setAuth }) {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-charcoal">Confirm new password</label>
+                            <label htmlFor="login-confirm" className="text-sm font-medium text-charcoal">Confirm new password</label>
                             <div className="relative">
                                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                                 <input
+                                    id="login-confirm"
                                     type="password"
+                                    autoComplete="new-password"
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
                                     className="field pl-12 pr-4"
@@ -260,7 +275,7 @@ export default function Login({ setAuth }) {
 
                         <button
                             disabled={busy}
-                            className="w-full btn-primary py-3.5 rounded-xl shadow-lg shadow-slate-200 transition-ui hover:scale-[1.02] hover:shadow-xl text-base font-semibold disabled:opacity-60 disabled:hover:scale-100"
+                            className="w-full btn-primary py-3 rounded-xl transition-ui text-base font-semibold disabled:opacity-60"
                         >
                             {busy ? 'Saving…' : 'Set password & continue'}
                         </button>
