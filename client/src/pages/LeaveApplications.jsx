@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import api from '../api';
 import { Calendar, Plus, Check, X, Search, RefreshCw, ChevronDown, AlertCircle } from 'lucide-react';
 import { useToast, Button, PageHeader, ExportMenu } from '../components';
@@ -16,8 +17,23 @@ export default function LeaveApplications() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [showApply, setShowApply] = useState(false);
+    const [searchParams, setSearchParams] = useSearchParams();
     const [searchQuery, setSearchQuery] = useState('');
-    const [statusFilter, setStatusFilter] = useState('All');
+    // The status filter lives in the URL so links (the notification bell)
+    // can open straight onto the Pending queue.
+    const STATUSES = ['All', 'Pending', 'Approved', 'Rejected'];
+    const urlStatus = searchParams.get('status');
+    const statusFilter = STATUSES.includes(urlStatus) ? urlStatus : 'All';
+    const setStatusFilter = (v) => {
+        const next = new URLSearchParams(searchParams);
+        if (v === 'All') next.delete('status'); else next.set('status', v);
+        setSearchParams(next, { replace: true });
+    };
+    // Review dialog: one application or a bulk selection, approve or reject.
+    const [review, setReview] = useState(null); // { ids, status }
+    const [rejectReason, setRejectReason] = useState('');
+    const [acting, setActing] = useState(false);
+    const [selected, setSelected] = useState(() => new Set());
     const [form, setForm] = useState({
         employee_code: '', leave_type_id: '', from_date: '', to_date: '', is_half_day: false, reason: ''
     });
@@ -68,12 +84,54 @@ export default function LeaveApplications() {
         } catch (err) { toast.error(err.response?.data?.error || 'Failed to apply'); }
     };
 
-    const handleAction = async (id, status) => {
-        try {
-            await api.put(`/api/leave-applications/${id}/status`, { status });
-            fetchData();
-        } catch (err) { toast.error('Action failed'); }
+    const openReview = (ids, status) => {
+        setRejectReason('');
+        setReview({ ids, status });
     };
+
+    const confirmReview = async () => {
+        if (!review) return;
+        const { ids, status } = review;
+        if (status === 'Rejected' && !rejectReason.trim()) {
+            toast.warning('Give a reason so the employee knows why');
+            return;
+        }
+        setActing(true);
+        const failures = [];
+        // Sequential on purpose: each call locks its row and adjusts the
+        // balance in its own transaction on the server.
+        for (const id of ids) {
+            try {
+                await api.put(`/api/leave-applications/${id}/status`, {
+                    status,
+                    rejection_reason: status === 'Rejected' ? rejectReason.trim() : null
+                });
+            } catch (err) {
+                failures.push(err.response?.data?.error || 'Request failed');
+            }
+        }
+        setActing(false);
+        setReview(null);
+        setSelected(new Set());
+        const done = ids.length - failures.length;
+        const verb = status === 'Approved' ? 'approved' : 'rejected';
+        if (done > 0) toast.success(`${done} leave request${done === 1 ? '' : 's'} ${verb}`);
+        if (failures.length > 0) toast.error(`${failures.length} could not be ${verb}: ${failures[0]}`);
+        fetchData();
+    };
+
+    const pendingVisible = useMemo(
+        () => filteredApps.filter(a => a.status === 'Pending').map(a => a.id),
+        [filteredApps]
+    );
+    const allPendingSelected = pendingVisible.length > 0 && pendingVisible.every(id => selected.has(id));
+    const toggleOne = (id) => setSelected(prev => {
+        const next = new Set(prev);
+        if (next.has(id)) next.delete(id); else next.add(id);
+        return next;
+    });
+    const toggleAll = () => setSelected(allPendingSelected ? new Set() : new Set(pendingVisible));
+    const reviewApps = review ? applications.filter(a => review.ids.includes(a.id)) : [];
 
     const getStatusBadge = (status) => {
         const colors = {
@@ -140,9 +198,19 @@ export default function LeaveApplications() {
                     <ChevronDown size={14} className="absolute right-2.5 top-2.5 text-slate-400 dark:text-slate-500 pointer-events-none" />
                 </div>
 
-                <div className="ml-auto w-64 relative">
+                {selected.size > 0 && (
+                    <div className="flex items-center gap-2">
+                        <span className="text-xs font-medium text-slate-600 dark:text-slate-300 tabular-nums">{selected.size} selected</span>
+                        <Button variant="success" size="sm" icon={Check} onClick={() => openReview([...selected], 'Approved')}>Approve</Button>
+                        <Button variant="danger" size="sm" icon={X} onClick={() => openReview([...selected], 'Rejected')}>Reject</Button>
+                        <Button variant="ghost" size="sm" onClick={() => setSelected(new Set())}>Clear</Button>
+                    </div>
+                )}
+
+                <div className="ml-auto w-full sm:w-64 relative">
                     <input
                         type="text"
+                        aria-label="Search employee"
                         placeholder="Search employee..."
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
@@ -184,6 +252,16 @@ export default function LeaveApplications() {
                         <table className="w-full text-sm text-left">
                             <thead className="bg-slate-50/70 dark:bg-slate-900/50 text-[11px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
                                 <tr>
+                                    <th className="pl-5 pr-2 py-3 w-10">
+                                        <input
+                                            type="checkbox"
+                                            aria-label="Select all pending"
+                                            checked={allPendingSelected}
+                                            disabled={pendingVisible.length === 0}
+                                            onChange={toggleAll}
+                                            className="rounded border-slate-300"
+                                        />
+                                    </th>
                                     <th className="px-5 py-3 font-semibold w-12">#</th>
                                     <th className="px-5 py-3 font-semibold whitespace-nowrap">Employee</th>
                                     <th className="px-5 py-3 font-semibold whitespace-nowrap">Leave Type</th>
@@ -197,6 +275,17 @@ export default function LeaveApplications() {
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                                 {filteredApps.map((app, idx) => (
                                     <tr key={app.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
+                                        <td className="pl-5 pr-2 py-3">
+                                            {app.status === 'Pending' && (
+                                                <input
+                                                    type="checkbox"
+                                                    aria-label={`Select ${app.employee_name || 'application'}`}
+                                                    checked={selected.has(app.id)}
+                                                    onChange={() => toggleOne(app.id)}
+                                                    className="rounded border-slate-300"
+                                                />
+                                            )}
+                                        </td>
                                         <td className="px-5 py-3 text-slate-400 dark:text-slate-500 tabular-nums">{idx + 1}</td>
                                         <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">
                                             {app.employee_name || '—'}
@@ -227,9 +316,13 @@ export default function LeaveApplications() {
                                             <div className="flex items-center justify-end">
                                                 {app.status === 'Pending' ? (
                                                     <div className="dv-quiet flex items-center gap-1">
-                                                        <Button variant="success" size="sm" icon={Check} aria-label="Approve" title="Approve" onClick={() => handleAction(app.id, 'Approved')} />
-                                                        <Button variant="danger" size="sm" icon={X} aria-label="Reject" title="Reject" onClick={() => handleAction(app.id, 'Rejected')} />
+                                                        <Button variant="success" size="sm" icon={Check} aria-label="Approve" title="Approve" onClick={() => openReview([app.id], 'Approved')} />
+                                                        <Button variant="danger" size="sm" icon={X} aria-label="Reject" title="Reject" onClick={() => openReview([app.id], 'Rejected')} />
                                                     </div>
+                                                ) : app.status === 'Rejected' && app.rejection_reason ? (
+                                                    <span className="text-xs text-slate-500 dark:text-slate-400 max-w-[200px] truncate" title={app.rejection_reason}>
+                                                        {app.rejection_reason}
+                                                    </span>
                                                 ) : (
                                                     <span className="text-slate-400 dark:text-slate-500">—</span>
                                                 )}
@@ -248,6 +341,61 @@ export default function LeaveApplications() {
                     </div>
                 )}
             </div>
+
+            <Modal
+                open={Boolean(review)}
+                onClose={() => !acting && setReview(null)}
+                title={review ? `${review.status === 'Approved' ? 'Approve' : 'Reject'} ${review.ids.length === 1 ? 'leave request' : `${review.ids.length} leave requests`}` : ''}
+                size="md"
+            >
+                {review && (
+                    <div className="space-y-4">
+                        <ul className="max-h-56 overflow-auto divide-y divide-slate-100 dark:divide-slate-700 rounded-lg border border-slate-200 dark:border-slate-700">
+                            {reviewApps.map(a => (
+                                <li key={a.id} className="px-3 py-2.5 text-sm">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <span className="font-semibold text-slate-800 dark:text-slate-100">{a.employee_name || a.employee_code}</span>
+                                        <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums whitespace-nowrap">
+                                            {formatDate(a.from_date)} – {formatDate(a.to_date)} · {a.total_days ?? '—'} day{Number(a.total_days) === 1 ? '' : 's'}
+                                        </span>
+                                    </div>
+                                    <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                                        {a.leave_type_name || 'Leave'}{a.reason ? ` — “${a.reason}”` : ''}
+                                    </p>
+                                </li>
+                            ))}
+                        </ul>
+                        {review.status === 'Approved' ? (
+                            <p className="text-sm text-slate-600 dark:text-slate-300">
+                                Approving deducts these days from each employee's leave balance.
+                            </p>
+                        ) : (
+                            <div>
+                                <label htmlFor="reject-reason" className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">Reason for rejection *</label>
+                                <textarea
+                                    id="reject-reason"
+                                    className="field"
+                                    rows={3}
+                                    value={rejectReason}
+                                    onChange={e => setRejectReason(e.target.value)}
+                                    placeholder="Shown to the employee"
+                                    autoFocus
+                                />
+                            </div>
+                        )}
+                        <div className="flex justify-end gap-3 pt-4 border-t dark:border-slate-700">
+                            <Button variant="secondary" onClick={() => setReview(null)} disabled={acting}>Cancel</Button>
+                            <Button
+                                variant={review.status === 'Approved' ? 'successSolid' : 'dangerSolid'}
+                                onClick={confirmReview}
+                                disabled={acting}
+                            >
+                                {acting ? 'Saving…' : review.status === 'Approved' ? 'Approve' : 'Reject'}
+                            </Button>
+                        </div>
+                    </div>
+                )}
+            </Modal>
 
             <Modal
                 open={showApply}
