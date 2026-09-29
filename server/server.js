@@ -493,31 +493,52 @@ app.get('/api/reports/first-last', authenticateToken, async (req, res) => {
 // Manual Attendance Entry
 app.post('/api/attendance/manual', authenticateToken, async (req, res) => {
     try {
-        const { employee_code, date, in_time, out_time, reason } = req.body;
-        if (!employee_code || !date || !in_time || !out_time || !reason) {
-            return res.status(400).json({ error: 'All fields required' });
+        // Either side may be corrected on its own: the common case is a missed
+        // OUT, where the device already has the IN. A side left out keeps
+        // whatever the day already holds. out_time may fall on the next
+        // calendar day for a night shift; the client sends the full timestamp.
+        const { employee_code, date, reason } = req.body;
+        const in_time = req.body.in_time || null;
+        const out_time = req.body.out_time || null;
+        if (!employee_code || !date || !reason || (!in_time && !out_time)) {
+            return res.status(400).json({ error: 'Employee, date, reason and at least one of IN or OUT are required' });
+        }
+        // Validate against the day as it will end up, not just the fields sent:
+        // an OUT-only fix must still land after the IN already on record.
+        const existing = await db.query(
+            'SELECT in_time, out_time FROM attendance_daily_summary WHERE employee_code = $1 AND date = $2',
+            [employee_code, date]
+        );
+        const prev = existing.rows[0] || {};
+        const finalIn = in_time ? new Date(in_time) : prev.in_time;
+        const finalOut = out_time ? new Date(out_time) : prev.out_time;
+        if (finalIn && finalOut && new Date(finalOut) <= new Date(finalIn)) {
+            return res.status(400).json({ error: 'OUT must be after IN. For a night shift, mark OUT as next day.' });
         }
 
-        // Calculate duration
-        const inDate = new Date(in_time);
-        const outDate = new Date(out_time);
-        const durationMinutes = Math.round((outDate - inDate) / 60000);
-
-        // Insert or update attendance_daily_summary
         const result = await db.query(`
             INSERT INTO attendance_daily_summary (employee_code, date, in_time, out_time, duration_minutes, status, remarks, is_finalized)
-            VALUES ($1, $2, $3, $4, $5, 'Present', $6, true)
+            VALUES ($1, $2, $3::timestamp, $4::timestamp,
+                    CASE WHEN $3::timestamp IS NOT NULL AND $4::timestamp IS NOT NULL
+                         THEN ROUND(EXTRACT(EPOCH FROM ($4::timestamp - $3::timestamp)) / 60) END,
+                    'Present', $5, true)
             ON CONFLICT (employee_code, date) DO UPDATE SET
-                in_time = EXCLUDED.in_time,
-                out_time = EXCLUDED.out_time,
-                duration_minutes = EXCLUDED.duration_minutes,
+                in_time = COALESCE(EXCLUDED.in_time, attendance_daily_summary.in_time),
+                out_time = COALESCE(EXCLUDED.out_time, attendance_daily_summary.out_time),
+                duration_minutes = CASE
+                    WHEN COALESCE(EXCLUDED.in_time, attendance_daily_summary.in_time) IS NOT NULL
+                     AND COALESCE(EXCLUDED.out_time, attendance_daily_summary.out_time) IS NOT NULL
+                    THEN ROUND(EXTRACT(EPOCH FROM (
+                        COALESCE(EXCLUDED.out_time, attendance_daily_summary.out_time)
+                        - COALESCE(EXCLUDED.in_time, attendance_daily_summary.in_time))) / 60)
+                    END,
                 status = EXCLUDED.status,
                 remarks = EXCLUDED.remarks,
                 -- Marks the row as hand-corrected so a later recompute from raw
                 -- punches cannot silently overwrite it
                 is_finalized = true
             RETURNING *
-        `, [employee_code, date, in_time, out_time, durationMinutes, `Manual Entry: ${reason}`]);
+        `, [employee_code, date, in_time, out_time, `Manual Entry: ${reason}`]);
 
         res.json({ success: true, data: result.rows[0] });
     } catch (err) {
