@@ -3,31 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api';
 import io from 'socket.io-client';
 import {
-    LayoutDashboard, Users, Clock, AlertTriangle, CheckCircle, XCircle, Wifi, WifiOff,
-    TrendingUp, Calendar, UserPlus, UserMinus, Tablet, Fingerprint, RefreshCw,
-    ArrowUpRight, ArrowDownRight, Timer, LogIn, LogOut as LogOutIcon, Percent,
-    Activity, Target, Zap, BarChart3, TrendingDown, Brain, Info, ExternalLink,
-    ChevronRight, Circle
+    AlertTriangle, CheckCircle, WifiOff, RefreshCw, ChevronRight, Circle,
+    Plane, FileCheck, LogIn, LogOut as LogOutIcon, Timer
 } from 'lucide-react';
 import { formatTimeShort, toLocalDateString } from '../utils/dateFormat';
-import { useTheme } from '../components/Theme';
-import HeroStat from '../components/HeroStat';
-import useReveal from '../hooks/useReveal';
-import useTilt from '../hooks/useTilt';
-import DonutCard from '../components/DonutCard';
-import { categoricalPalette } from '../utils/chartPalette';
 import SetupChecklist from '../components/SetupChecklist';
 
 export default function Dashboard() {
     const navigate = useNavigate();
-    // Charts follow the palette chosen in Settings → Appearance rather than
-    // hardcoding orange, so a rebranded deployment does not end up with an
-    // orange dashboard sitting inside its own colours.
-    const { themeColors, isDarkMode } = useTheme();
-    // A fixed, validated categorical order rather than anything derived from
-    // the brand colour — see chartPalette for why generated hues were the wrong
-    // trade for slices that only need to be told apart.
-    const donutPalette = useMemo(() => categoricalPalette(isDarkMode), [isDarkMode]);
     const [stats, setStats] = useState({
         employees: 0,
         newJoinees: 0,
@@ -56,6 +39,10 @@ export default function Dashboard() {
     const [recentLogs, setRecentLogs] = useState([]);
     const [attendanceTrends, setAttendanceTrends] = useState([]);
     const [statusMix, setStatusMix] = useState([]);
+    // Today's summary rows (one per expected employee) for the department table.
+    const [todayRows, setTodayRows] = useState([]);
+    // Pending approvals, from the same endpoint the notification bell uses.
+    const [pending, setPending] = useState({ pending_leave: 0, pending_regularizations: 0 });
     const [loading, setLoading] = useState(true);
     const [lastUpdated, setLastUpdated] = useState(null);
     // Set when some dashboard requests fail, so a zero caused by a broken
@@ -137,7 +124,8 @@ export default function Dashboard() {
             fetchStats(),
             fetchDevices(),
             fetchRecentLogs(),
-            fetchAttendanceTrends()
+            fetchAttendanceTrends(),
+            api.get('/api/notifications/summary').then(r => setPending(r.data || {})).catch(() => {})
         ]);
         setLoading(false);
     };
@@ -187,6 +175,7 @@ export default function Dashboard() {
             const employees = rowsOfSettled(employeesRes);
             const devicesList = rowsOfSettled(devicesRes);
             const summary = rowsOfSettled(summaryRes);
+            setTodayRows(summary);
             const yesterdaySummary = rowsOfSettled(yesterdaySummaryRes);
 
             // Calculate stats
@@ -404,682 +393,291 @@ export default function Dashboard() {
     };
 
 
-    /**
-     * A stat tile.
-     *
-     * Colour carries meaning rather than decorating: plain counts stay neutral so
-     * the eye is not pulled nine ways at once, and only figures that represent a
-     * judgement — a rate that is good or bad, a device that is offline — take a
-     * semantic tone. The previous version gave all nine tiles a different pastel,
-     * which made everything equally loud and therefore nothing readable.
-     *
-     * tone: 'neutral' | 'good' | 'warn' | 'bad'
-     */
-    const TONES = {
-        neutral: {
-            chip: 'bg-slate-100 text-slate-600 dark:bg-slate-700/60 dark:text-slate-300',
-            value: 'text-slate-900 dark:text-slate-50',
-            rule: 'bg-slate-400'
-        },
-        // Identity colours: the icon is coloured by what it counts, while the
-        // figure itself stays near-black so the numbers remain the thing you read.
-        people: {
-            chip: 'bg-slate-100 text-slate-600 dark:bg-slate-900/40 dark:text-slate-300',
-            value: 'text-slate-900 dark:text-slate-50',
-            rule: 'bg-slate-500'
-        },
-        device: {
-            chip: 'bg-slate-100 text-slate-600 dark:bg-slate-900/40 dark:text-slate-300',
-            value: 'text-slate-900 dark:text-slate-50',
-            rule: 'bg-slate-500'
-        },
-        biometric: {
-            chip: 'bg-slate-100 text-slate-600 dark:bg-slate-900/40 dark:text-slate-300',
-            value: 'text-slate-900 dark:text-slate-50',
-            rule: 'bg-slate-500'
-        },
-        activity: {
-            chip: 'bg-slate-100 text-slate-600 dark:bg-slate-900/40 dark:text-slate-300',
-            value: 'text-slate-900 dark:text-slate-50',
-            rule: 'bg-slate-500'
-        },
-        time: {
-            chip: 'bg-slate-100 text-slate-600 dark:bg-slate-900/40 dark:text-slate-300',
-            value: 'text-slate-900 dark:text-slate-50',
-            rule: 'bg-slate-500'
-        },
-        good: {
-            chip: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
-            value: 'text-emerald-700 dark:text-emerald-300',
-            rule: 'bg-emerald-500'
-        },
-        warn: {
-            chip: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
-            value: 'text-amber-700 dark:text-amber-300',
-            rule: 'bg-amber-500'
-        },
-        bad: {
-            chip: 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300',
-            value: 'text-rose-700 dark:text-rose-300',
-            rule: 'bg-rose-500'
+    // ── Derived figures for the layout ───────────────────────────────────
+    // Today's attendance split into parts that add up to the headcount, so one
+    // bar can show the whole day: on time + late + on leave + not in.
+    const onTime = Math.max(0, stats.present - stats.late);
+    const notIn = Math.max(0, stats.employees - stats.present - stats.onLeave);
+    const dayParts = [
+        { key: 'ontime', label: 'On time', value: onTime, bar: 'bg-emerald-500', to: '/attendance-register?status=Present' },
+        { key: 'late', label: 'Late', value: stats.late, bar: 'bg-amber-400', to: '/attendance-register?late=1' },
+        { key: 'leave', label: 'On leave', value: stats.onLeave, bar: 'bg-sky-400', to: '/leaves?status=Approved' },
+        { key: 'out', label: 'Not in', value: notIn, bar: 'bg-slate-200 dark:bg-slate-700', to: '/attendance-register?status=Absent' }
+    ];
+    const dayTotal = dayParts.reduce((n, p) => n + p.value, 0);
+    const presentDelta = stats.attendanceRate - (yesterdayStats.attendanceRate || 0);
+
+    // What needs someone's attention now. Only non-zero items are listed.
+    const offline = Math.max(0, stats.devices - stats.devicesOnline);
+    const attention = [
+        offline > 0 && { icon: WifiOff, tone: 'critical', label: `${offline} device${offline === 1 ? '' : 's'} offline`, hint: `${stats.devicesOnline} of ${stats.devices} online`, to: '/devices' },
+        pending.pending_leave > 0 && { icon: Plane, tone: 'warning', label: `${pending.pending_leave} leave request${pending.pending_leave === 1 ? '' : 's'} to approve`, to: '/leaves?status=Pending' },
+        pending.pending_regularizations > 0 && { icon: FileCheck, tone: 'warning', label: `${pending.pending_regularizations} regularization${pending.pending_regularizations === 1 ? '' : 's'} to review`, to: '/regularizations' },
+        stats.late > 0 && { icon: Timer, tone: 'warning', label: `${stats.late} late today`, to: '/attendance-register?late=1' },
+        stats.earlyLeave > 0 && { icon: LogOutIcon, tone: 'neutral', label: `${stats.earlyLeave} left early today`, to: '/reports/early-leaving' }
+    ].filter(Boolean);
+
+    // Today by department: staff, in, late, not in.
+    const byDepartment = useMemo(() => {
+        const NON_ATTENDING = ['Absent', 'Weekly Off', 'Holiday', 'On Leave'];
+        const map = {};
+        for (const r of todayRows) {
+            const name = r.department || r.department_name || 'Unassigned';
+            const d = (map[name] ||= { name, staff: 0, present: 0, late: 0, absent: 0 });
+            d.staff += 1;
+            if (!NON_ATTENDING.includes(r.status)) d.present += 1;
+            if ((r.late_minutes || 0) > 0) d.late += 1;
+            if (r.status === 'Absent') d.absent += 1;
         }
-    };
+        return Object.values(map).sort((a, b) => b.staff - a.staff);
+    }, [todayRows]);
 
-    /**
-     * The same glass language as the headline cards, dialled down: no bloom, a
-     * thinner ring, and the figure in near-black rather than the accent. These
-     * are reference numbers rather than headlines, and eight cards each glowing
-     * in their own colour would undo the point of having a headline row at all.
-     */
-    const StatCard = ({ icon: Icon, label, value, subtitle, tooltip, trend, tone = 'neutral' }) => {
-        const t = TONES[tone] || TONES.neutral;
-        const revealRef = useReveal();
-        // Pointer-tracked tilt replaces the old flat hover-lift: the card
-        // leans toward the cursor. The hook refuses touch and reduced-motion,
-        // so phones and accessibility settings see a plain card.
-        const tilt = useTilt(3);
-        return (
-            <div ref={revealRef} {...tilt} className="tilt-3d group relative overflow-hidden rounded-xl !p-3 flex items-center gap-3
-                            bg-app-surface/70 dark:bg-slate-800/60 backdrop-blur-xl
-                            shadow-sm ring-1 ring-slate-900/[0.06] dark:ring-white/[0.07]
-                            transition-ui duration-300">
-                {/* A hairline that lights up on hover, so the row still has
-                    motion without every tile carrying a permanent colour. */}
-                <span
-                    aria-hidden="true"
-                    className={`absolute inset-x-0 top-0 h-px opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${t.rule || 'bg-slate-400'}`}
-                />
-                <div className={`shrink-0 w-9 h-9 rounded-lg flex items-center justify-center transition-transform duration-300 group-hover:scale-105 ${t.chip}`}>
-                    <Icon size={17} strokeWidth={2.2} />
-                </div>
-                <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1">
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.05em] text-slate-500 dark:text-slate-400 leading-tight">{label}</p>
-                        {tooltip && <Info size={11} className="text-slate-400 cursor-help shrink-0" title={tooltip} />}
-                    </div>
-                    <p className="text-xl leading-tight font-bold tabular-nums tracking-tight text-charcoal">{value}</p>
-                    {(trend || subtitle) && (
-                        <p className="text-xs leading-snug"
-                           style={trend?.color ? { color: trend.color } : undefined}>
-                            <span className={trend ? 'font-semibold' : 'text-slate-500 dark:text-slate-400'}>
-                                {trend ? trend.text : subtitle}
-                            </span>
-                        </p>
-                    )}
-                </div>
-            </div>
-        );
-    };
-
-    /** Rates read as good/warn/bad; everything else stays neutral. */
-    const rateTone = (pct) => (pct >= 85 ? 'good' : pct >= 60 ? 'warn' : 'bad');
-
-
-    // Calculate device status percentages for pie chart visualization
-    const onlinePercent = stats.devices > 0 ? (stats.devicesOnline / stats.devices) * 100 : 0;
-    const offlinePercent = 100 - onlinePercent;
+    const trendMax = Math.max(1, ...attendanceTrends.map(d => (d.absent || 0) + (d.late || 0)));
+    const minsAgo = lastUpdated ? Math.floor((new Date() - lastUpdated) / 60000) : null;
 
     return (
-        <div className="space-y-6">
-            {/* Header — same rhythm as the shared PageHeader: eyebrow, title,
-                quiet subtitle, one action on the right, hairline beneath. */}
-            <div className="flex items-end justify-between flex-wrap gap-4 pb-5 border-b border-slate-200/70 dark:border-slate-800">
-                <div className="min-w-0">
-                    <p className="mb-2 text-xs font-medium text-slate-400 dark:text-slate-500">
-                        {new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-                    </p>
-                    <div className="flex items-center gap-3">
-                        <div className="grid place-items-center w-10 h-10 rounded-xl border border-slate-200 bg-slate-100 text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 shrink-0">
-                            <LayoutDashboard size={19} />
-                        </div>
-                        <div className="min-w-0">
-                            <h1 className="text-[22px] leading-tight font-semibold tracking-tight text-slate-900 dark:text-slate-50">Dashboard</h1>
-                            <div className="mt-0.5 flex items-center gap-3 flex-wrap text-sm text-slate-500 dark:text-slate-400">
-                                <span>Overview of today's attendance and device status</span>
-                                {lastUpdated && (
-                                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border border-emerald-200 bg-emerald-50 text-[11px] font-medium text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300">
-                                        <Circle size={6} className="text-emerald-500 fill-emerald-500 animate-pulse" />
-                                        Live · {Math.floor((new Date() - lastUpdated) / 1000 / 60)} min{Math.floor((new Date() - lastUpdated) / 1000 / 60) !== 1 ? 's' : ''} ago
-                                    </span>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        // Full-bleed, like the list pages: bands separated by hairlines rather
+        // than a grid of floating cards.
+        <div className="-m-4 sm:-m-6 min-h-[calc(100%+2rem)] sm:min-h-[calc(100%+3rem)] bg-app-surface">
+            {/* Title bar */}
+            <div className="flex items-center gap-x-4 gap-y-1 px-4 sm:px-6 min-h-14 py-2.5 border-b border-slate-200 dark:border-slate-800 flex-wrap">
+                <h1 className="text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-50">Dashboard</h1>
+                <span className="text-[13px] text-slate-500 dark:text-slate-400">
+                    {new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })}
+                </span>
+                {minsAgo !== null && (
+                    <span className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                        <Circle size={6} className="text-emerald-500 fill-emerald-500" aria-hidden="true" />
+                        Live · updated {minsAgo === 0 ? 'just now' : `${minsAgo} min${minsAgo === 1 ? '' : 's'} ago`}
+                    </span>
+                )}
                 <button
+                    type="button"
                     onClick={fetchAllData}
-                    className="btn-primary flex items-center gap-2"
+                    className="ml-auto grid place-items-center w-8 h-8 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+                    aria-label="Refresh"
+                    title="Refresh"
                 >
-                    <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-                    Refresh
+                    <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
                 </button>
             </div>
 
-            <SetupChecklist />
-
-            {loadWarning && (
-                <div role="alert" className="flex items-center gap-3 flex-wrap p-3 rounded-xl border border-amber-200 bg-amber-50 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
-                    <AlertTriangle size={16} className="shrink-0" />
-                    <span className="flex-1 min-w-0">{loadWarning}</span>
-                    <button type="button" onClick={fetchAllData} className="font-semibold underline underline-offset-2">Retry</button>
-                </div>
-            )}
-
-            {/* Stats + insights rail */}
-            <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-4 items-start">
-            <div className="order-2 xl:order-1 space-y-4">
-            {/* Primary Stats Row - Premium Grid */}
-            {loading ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {Array.from({ length: 10 }).map((_, i) => (
-                        <div key={i} className="h-24 bg-slate-100 dark:bg-slate-700 rounded-xl animate-pulse"></div>
-                    ))}
-                </div>
-            ) : (
-                <div className="space-y-4">
-                    {/* The four headline counts. Who is on the payroll, who is
-                        in, who is missing, who was late — the questions the page
-                        exists to answer, given the weight to match. Each one
-                        opens the list behind it, because the number on its own
-                        prompts "which of them?" every time. */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <HeroStat
-                            icon={Users}
-                            label="Employees"
-                            value={stats.employees || 0}
-                            accent={themeColors.info}
-                            hint={stats.resigned ? `${stats.resigned} resigned` : 'on the payroll'}
-                            onClick={() => navigate('/employees')}
-                        />
-                        <HeroStat
-                            icon={CheckCircle}
-                            label="Present"
-                            value={stats.present || 0}
-                            accent={themeColors.success}
-                            share={stats.employees ? stats.present / stats.employees : null}
-                            shareLabel={`${stats.present || 0} of ${stats.employees || 0} in today`}
-                            trend={yesterdayStats.present > 0
-                                ? `${stats.present >= yesterdayStats.present ? '↑' : '↓'} ${Math.abs(Math.round(((stats.present - yesterdayStats.present) / yesterdayStats.present) * 100))}% vs yesterday`
-                                : undefined}
-                            onClick={() => navigate('/attendance-register?status=Present')}
-                        />
-                        <HeroStat
-                            icon={XCircle}
-                            label="Absent"
-                            value={stats.absent || 0}
-                            accent={themeColors.error}
-                            share={stats.employees ? stats.absent / stats.employees : null}
-                            shareLabel={stats.onLeave
-                                ? `${stats.onLeave} more on approved leave`
-                                : `${stats.absent || 0} of ${stats.employees || 0}, excluding leave`}
-                            onClick={() => navigate('/attendance-register?status=Absent')}
-                        />
-                        <HeroStat
-                            icon={Timer}
-                            label="Late Comers"
-                            value={stats.late || 0}
-                            accent={themeColors.warning}
-                            share={stats.present ? stats.late / stats.present : null}
-                            shareLabel={`${stats.late || 0} of ${stats.present || 0} who came in`}
-                            onClick={() => navigate('/attendance-register?late=1')}
-                        />
-                    </div>
-
-                    {/* Standing facts — neutral, so they do not compete with the above */}
-                    <div className="grid grid-cols-[repeat(auto-fill,minmax(170px,1fr))] gap-3">
-                        <StatCard
-                            icon={Percent}
-                            label="Attendance"
-                            value={`${stats.attendanceRate || 0}%`}
-                            subtitle={`${stats.present || 0} of ${stats.employees || 0} in`}
-                            tone={rateTone(stats.attendanceRate || 0)}
-                            tooltip="Share of employees with at least one punch today"
-                        />
-                        <StatCard
-                            icon={Target}
-                            label="Punctuality"
-                            value={`${stats.punctualityRate || 0}%`}
-                            subtitle={stats.late ? `${stats.late} late` : 'nobody late'}
-                            tone={rateTone(stats.punctualityRate || 0)}
-                        />
-                        <StatCard
-                            icon={Activity}
-                            label="Punches"
-                            value={stats.totalPunches || 0}
-                            subtitle="today"
-                            tone="activity"
-                        />
-                        <StatCard
-                            icon={Clock}
-                            label="Avg Hours"
-                            value={`${stats.avgHours || 0}h`}
-                            subtitle="per employee"
-                            tone="time"
-                        />
-                        <StatCard
-                            icon={UserPlus}
-                            label="New Joinees"
-                            value={stats.newJoinees}
-                            subtitle="last 7 days"
-                            tone={stats.newJoinees > 0 ? 'good' : 'neutral'}
-                        />
-                        <StatCard
-                            icon={UserMinus}
-                            label="Resigned"
-                            value={stats.resigned}
-                            tone={stats.resigned > 0 ? 'bad' : 'neutral'}
-                        />
-                        <StatCard
-                            icon={Tablet}
-                            label="Devices"
-                            value={stats.devices}
-                            tone={stats.devices > 0 && stats.devicesOnline < stats.devices ? 'bad' : 'device'}
-                            trend={stats.devices > 0
-                                ? (stats.devicesOnline === stats.devices
-                                    ? { text: 'all online', color: '#059669' }
-                                    : { text: `${stats.devices - stats.devicesOnline} offline`, color: '#DC2626' })
-                                : null}
-                        />
-                        <StatCard icon={Fingerprint} label="Enrolled biometrics" value={stats.verificationCount} tone="biometric" />
-                        {/* Moved up from the removed attendance-status row —
-                            the only two figures on it that were not already
-                            stated by the headline cards. */}
-                        <StatCard
-                            icon={LogOutIcon}
-                            label="Early Leave"
-                            value={stats.earlyLeave}
-                            subtitle="left before shift end"
-                            tone={stats.earlyLeave > 0 ? 'warn' : 'neutral'}
-                        />
-                        <StatCard
-                            icon={Calendar}
-                            label="On Leave"
-                            value={stats.onLeave}
-                            subtitle="approved today"
-                            tone="neutral"
-                        />
-                    </div>
-                </div>
-            )}
+            {/* Load problems and first-run setup; collapses when both are empty. */}
+            <div className="px-4 sm:px-6 pt-4 space-y-3 empty:hidden">
+                    {loadWarning && (
+                        <div role="alert" className="flex items-center gap-3 flex-wrap p-3 rounded-lg border border-amber-200 bg-amber-50 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+                            <AlertTriangle size={16} className="shrink-0" />
+                            <span className="flex-1 min-w-0">{loadWarning}</span>
+                            <button type="button" onClick={fetchAllData} className="font-semibold underline underline-offset-2">Retry</button>
+                        </div>
+                    )}
+                    <SetupChecklist />
             </div>
 
-            {/* Insights rail */}
-            <aside className="order-1 xl:order-2 card-base animate-fade-in xl:sticky xl:top-24">
-                <div className="flex items-center gap-2 mb-4">
-                    <Brain size={18} className="text-slate-500" />
-                    <h2 className="font-semibold text-base text-slate-800 dark:text-slate-100">Today's Insights</h2>
-                </div>
-                {loading ? (
-                    <div className="space-y-2">
-                        {Array.from({ length: 3 }).map((_, i) => (
-                            <div key={i} className="h-14 rounded-xl bg-slate-100 dark:bg-slate-700 animate-pulse" />
-                        ))}
+            {/* Band 1: today at a glance + what needs attention */}
+            <section className="grid lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] border-b border-slate-200 dark:border-slate-800">
+                <div className="px-4 sm:px-6 py-5 lg:border-r border-slate-200 dark:border-slate-800">
+                    <h2 className="text-[13px] font-medium text-slate-500 dark:text-slate-400">Present today</h2>
+                    {loading ? (
+                        <div className="mt-3 h-12 w-48 rounded-lg bg-slate-100 dark:bg-slate-800 animate-pulse" />
+                    ) : (
+                        <div className="mt-1 flex items-baseline gap-3 flex-wrap">
+                            <span className="text-5xl font-semibold tracking-tight text-slate-900 dark:text-slate-50">{stats.present}</span>
+                            <span className="text-lg text-slate-400">of {stats.employees}</span>
+                            <span className="text-sm font-medium text-slate-700 dark:text-slate-200">{stats.attendanceRate}% attendance</span>
+                            {yesterdayStats.attendanceRate > 0 && presentDelta !== 0 && (
+                                <span className={`text-xs font-medium ${presentDelta > 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>
+                                    {presentDelta > 0 ? '▲' : '▼'} {Math.abs(presentDelta)} pts vs yesterday
+                                </span>
+                            )}
+                        </div>
+                    )}
+
+                    {/* The day as one bar: every employee lands in exactly one part */}
+                    <div className="mt-5">
+                        <div className="flex h-3 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800 gap-[2px]" role="img"
+                            aria-label={dayParts.map(p => `${p.label} ${p.value}`).join(', ')}>
+                            {dayTotal > 0 && dayParts.filter(p => p.value > 0).map(p => (
+                                <div key={p.key} className={`${p.bar} h-full first:rounded-l-full last:rounded-r-full`}
+                                    style={{ width: `${(p.value / dayTotal) * 100}%` }} title={`${p.label}: ${p.value}`} />
+                            ))}
+                        </div>
+                        <ul className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            {dayParts.map(p => (
+                                <li key={p.key}>
+                                    <button type="button" onClick={() => navigate(p.to)}
+                                        className="w-full text-left rounded-lg px-2.5 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/60">
+                                        <span className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                                            <span aria-hidden="true" className={`w-2 h-2 rounded-full ${p.bar}`} />{p.label}
+                                        </span>
+                                        <span className="mt-0.5 block text-xl font-semibold tabular-nums text-slate-900 dark:text-slate-100">{p.value}</span>
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
                     </div>
-                ) : insights.length === 0 ? (
-                    <p className="text-sm text-slate-500 dark:text-slate-400">No insights for today yet.</p>
-                ) : (
-                    <div className="space-y-2.5">
-                        {insights.map((insight, idx) => {
-                            const Icon = insight.icon;
-                            const tone = {
-                                success: 'bg-emerald-50 dark:bg-emerald-900/25 text-emerald-700 dark:text-emerald-300 border-emerald-100 dark:border-emerald-800',
-                                warning: 'bg-amber-50 dark:bg-amber-900/25 text-amber-700 dark:text-amber-300 border-amber-100 dark:border-amber-800',
-                                error: 'bg-rose-50 dark:bg-rose-900/25 text-rose-700 dark:text-rose-300 border-rose-100 dark:border-rose-800',
-                                info: 'bg-slate-50 dark:bg-slate-900/25 text-slate-700 dark:text-slate-300 border-slate-100 dark:border-slate-800'
-                            }[insight.type] || 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-100 dark:border-slate-700';
+                </div>
+
+                <div className="px-4 sm:px-6 py-5 border-t lg:border-t-0 border-slate-200 dark:border-slate-800">
+                    <h2 className="text-[13px] font-medium text-slate-500 dark:text-slate-400">Needs attention</h2>
+                    {attention.length === 0 ? (
+                        <div className="mt-4 flex items-center gap-3 text-sm text-slate-700 dark:text-slate-200">
+                            <CheckCircle size={18} className="text-emerald-500 shrink-0" />
+                            All clear — devices online, nothing waiting for approval.
+                        </div>
+                    ) : (
+                        <ul className="mt-2 -mx-2 divide-y divide-slate-100 dark:divide-slate-800">
+                            {attention.map(item => (
+                                <li key={item.label}>
+                                    <button type="button" onClick={() => navigate(item.to)}
+                                        className="w-full flex items-center gap-3 px-2 py-2.5 rounded-lg text-left hover:bg-slate-50 dark:hover:bg-slate-800/60">
+                                        <span className={`grid place-items-center w-8 h-8 rounded-lg shrink-0 ${TONE[item.tone]}`}>
+                                            <item.icon size={16} />
+                                        </span>
+                                        <span className="flex-1 min-w-0">
+                                            <span className="block text-sm font-medium text-slate-800 dark:text-slate-100">{item.label}</span>
+                                            {item.hint && <span className="block text-xs text-slate-500 dark:text-slate-400">{item.hint}</span>}
+                                        </span>
+                                        <ChevronRight size={15} className="text-slate-300 dark:text-slate-600 shrink-0" />
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </div>
+            </section>
+
+            {/* Band 2: key figures in one row */}
+            <section aria-label="Key figures" className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 border-b border-slate-200 dark:border-slate-800 divide-x divide-y lg:divide-y-0 divide-slate-200 dark:divide-slate-800">
+                {[
+                    { label: 'Employees', value: stats.employees, hint: stats.newJoinees ? `+${stats.newJoinees} joined this week` : 'on the payroll', to: '/employees' },
+                    { label: 'Punctuality', value: `${stats.punctualityRate}%`, hint: stats.late ? `${stats.late} late` : 'nobody late', to: '/attendance-register?late=1' },
+                    { label: 'Punches today', value: stats.totalPunches, hint: 'from all devices', to: '/logs' },
+                    { label: 'Avg hours', value: `${stats.avgHours}h`, hint: 'per employee today', to: '/attendance-register' },
+                    { label: 'Devices online', value: `${stats.devicesOnline}/${stats.devices}`, hint: offline ? `${offline} offline` : 'all connected', to: '/devices', bad: offline > 0 },
+                    { label: 'Biometric templates', value: stats.verificationCount, hint: 'fingerprint + face', to: '/devices/data' }
+                ].map(k => (
+                    <button key={k.label} type="button" onClick={() => navigate(k.to)}
+                        className="text-left px-4 sm:px-6 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                        <span className="block text-xs text-slate-500 dark:text-slate-400">{k.label}</span>
+                        <span className="mt-1 block text-2xl font-semibold tabular-nums text-slate-900 dark:text-slate-50">{loading ? '–' : k.value}</span>
+                        <span className={`mt-0.5 block text-xs ${k.bad ? 'text-rose-600 dark:text-rose-400 font-medium' : 'text-slate-400 dark:text-slate-500'}`}>{k.hint}</span>
+                    </button>
+                ))}
+            </section>
+
+            {/* Band 3: exceptions trend + live punches */}
+            <section className="grid lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] border-b border-slate-200 dark:border-slate-800">
+                <div className="px-4 sm:px-6 py-5 lg:border-r border-slate-200 dark:border-slate-800">
+                    <div className="flex items-baseline justify-between gap-3">
+                        <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Exceptions, last 7 days</h2>
+                        <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+                            <span className="inline-flex items-center gap-1.5"><span className="w-2 h-2 rounded-sm bg-rose-500" aria-hidden="true" />Absent</span>
+                            <span className="inline-flex items-center gap-1.5"><span className="w-2 h-2 rounded-sm bg-amber-400" aria-hidden="true" />Late</span>
+                        </div>
+                    </div>
+                    <div className={`mt-4 grid grid-cols-7 gap-2 sm:gap-3 items-end ${attendanceTrends.some(d => d.absent || d.late) ? 'h-40' : 'h-10'}`} role="img"
+                        aria-label={attendanceTrends.map(d => `${d.date}: ${d.absent} absent, ${d.late} late`).join('; ')}>
+                        {attendanceTrends.map(d => {
+                            const total = (d.absent || 0) + (d.late || 0);
                             return (
-                                <div key={idx} className={`flex items-start gap-2.5 p-3 rounded-xl border ${tone}`}>
-                                    <Icon size={15} className="mt-0.5 shrink-0" />
-                                    <span className="text-sm font-medium leading-snug">{insight.text}</span>
+                                <div key={d.fullDate} className="flex flex-col items-center justify-end h-full group" title={`${d.date}: ${d.absent} absent, ${d.late} late`}>
+                                    <span className="mb-1 text-[11px] tabular-nums text-slate-500 dark:text-slate-400 opacity-0 group-hover:opacity-100">{total}</span>
+                                    <div className="w-full max-w-[36px] flex flex-col justify-end gap-[2px]" style={{ height: `${(total / trendMax) * 100}%` }}>
+                                        {d.late > 0 && <div className="bg-amber-400 rounded-t-[4px]" style={{ flex: d.late }} />}
+                                        {d.absent > 0 && <div className={`bg-rose-500 ${d.late > 0 ? '' : 'rounded-t-[4px]'}`} style={{ flex: d.absent }} />}
+                                    </div>
+                                    <div className="w-full max-w-[36px] h-px bg-slate-200 dark:bg-slate-700" />
+                                    <span className="mt-1.5 text-[11px] text-slate-500 dark:text-slate-400">{d.date}</span>
                                 </div>
                             );
                         })}
                     </div>
-                )}
-            </aside>
-            </div>
-
-            {/* Breakdown donuts.
-                The headline row says how many were absent or late today; these
-                say whether that is normal. A single day's count is unreadable
-                without it — four absent means nothing until you can see that
-                last Tuesday had eleven. */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                <DonutCard
-                    title="Absentees — last 7 days"
-                    subtitle="Unplanned absences per day"
-                    loading={loading}
-                    data={attendanceTrends.map(d => ({ name: d.date, value: d.absent }))}
-                    colors={donutPalette}
-                    emptyMessage="No absences in the last 7 days"
-                />
-                <DonutCard
-                    title="Workforce by department"
-                    subtitle="Active headcount"
-                    loading={loading}
-                    data={statusMix}
-                    colors={donutPalette}
-                    emptyMessage="No employees on the payroll yet"
-                />
-                <DonutCard
-                    title="Late Comers — last 7 days"
-                    subtitle="Arrivals after shift start"
-                    loading={loading}
-                    data={attendanceTrends.map(d => ({ name: d.date, value: d.late }))}
-                    colors={donutPalette}
-                    emptyMessage="Nobody arrived late in the last 7 days"
-                />
-            </div>
-
-            {/* "Today's Attendance Status" lived here and was removed: Present,
-                Absent and Late Arrival simply restated the headline cards a
-                screen above, in the same colours, so the page said everything
-                twice. Early Leave and On Leave were the only figures unique to
-                it and have moved up into the tile grid; the vs-yesterday
-                comparison moved onto the Present card. */}
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Device Status Widget - Staggered */}
-                <div className="card-tier-2 animate-slide-up stagger-3">
-                    <div className="flex items-center justify-between mb-6">
-                        <h2 className="font-semibold flex items-center gap-2 text-base text-slate-800 dark:text-slate-100">
-                            <Tablet className="text-saffron" size={18} /> Device Status
-                        </h2>
-                        <a
-                            href="/devices"
-                            className="flex items-center gap-1 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
-                            onClick={(e) => {
-                                e.preventDefault();
-                                navigate('/devices');
-                            }}
-                        >
-                            Manage Devices
-                            <ChevronRight size={14} />
-                        </a>
-                    </div>
-                    {/* A donut for a single ratio was 140px of chart to say "4 of 4".
-                        A bar carries the same fact in a fraction of the space, and
-                        the fleet is listed in full under Connected Devices. */}
-                    <div className="mb-5">
-                        <div className="flex items-baseline gap-2">
-                            <span className="text-[34px] leading-none font-bold tabular-nums text-slate-900 dark:text-slate-50">
-                                {stats.devicesOnline}
-                            </span>
-                            <span className="text-sm text-slate-500 dark:text-slate-400">
-                                of {stats.devices} online
-                            </span>
-                        </div>
-                        <div className="mt-3 h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
-                            <div
-                                className={`h-full rounded-full transition-ui ${onlinePercent === 100 ? 'bg-emerald-500' : onlinePercent >= 50 ? 'bg-amber-500' : 'bg-rose-500'}`}
-                                style={{ width: `${onlinePercent}%` }}
-                            />
-                        </div>
-                    </div>
-                    <div className="space-y-2 text-sm">
-                        <button
-                            className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer"
-                            onClick={() => navigate('/devices')}
-                        >
-                            <div className="flex items-center gap-2">
-                                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#2EAD6D' }} />
-                                <span className="text-[13px] font-medium text-slate-500 dark:text-slate-400">Online</span>
-                            </div>
-                            <span className="font-semibold text-sm text-slate-900 dark:text-slate-100">{stats.devicesOnline}</span>
-                        </button>
-                        <button
-                            className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer"
-                            onClick={() => navigate('/devices')}
-                        >
-                            <div className="flex items-center gap-2">
-                                <div className="w-2.5 h-2.5 rounded-full bg-slate-300" />
-                                <span className="text-[13px] font-medium text-slate-500 dark:text-slate-400">Offline</span>
-                            </div>
-                            <span className="font-semibold text-sm text-slate-900 dark:text-slate-100">{stats.devices - stats.devicesOnline}</span>
-                        </button>
-                        <div className="pt-2 mt-2 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between">
-                            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Live sync from {stats.devices} device{stats.devices !== 1 ? 's' : ''}</span>
-                            {lastUpdated && (
-                                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                                    Live · Updated {Math.floor((new Date() - lastUpdated) / 1000 / 60)} min{Math.floor((new Date() - lastUpdated) / 1000 / 60) !== 1 ? 's' : ''} ago
-                                </span>
-                            )}
-                        </div>
-                    </div>
+                    {attendanceTrends.every(d => !d.absent && !d.late) && (
+                        <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">No absences or late arrivals recorded in the last 7 days.</p>
+                    )}
                 </div>
 
-                {/* Attendance Exception Chart - Staggered */}
-                <div className="card-base animate-slide-up stagger-4">
-                    <div className="flex items-center justify-between mb-1">
-                        <h2 className="font-semibold flex items-center gap-2 text-base text-slate-800 dark:text-slate-100">
-                            <TrendingUp className="text-slate-500" size={18} /> Attendance Exceptions
-                        </h2>
-                        <span className="text-[11px] text-slate-500 dark:text-slate-400">last 7 days</span>
+                <div className="px-4 sm:px-6 py-5 border-t lg:border-t-0 border-slate-200 dark:border-slate-800">
+                    <div className="flex items-baseline justify-between gap-3">
+                        <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Latest punches</h2>
+                        <button type="button" onClick={() => navigate('/logs')} className="text-xs font-medium text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100">View all</button>
                     </div>
-                    {(() => {
-                        // One shared scale across every bar. The previous version
-                        // multiplied each series by a different constant and capped
-                        // it at 40px, so bar heights carried no information — and
-                        // all three series were shades of the same orange, which
-                        // made them impossible to tell apart.
-                        const peak = Math.max(
-                            1,
-                            ...attendanceTrends.map(d => (d.late || 0) + (d.earlyLeave || 0) + (d.absent || 0))
-                        );
-                        const H = 150;
-                        const px = (n) => (n > 0 ? Math.max(3, Math.round((n / peak) * H)) : 0);
-                        const anyData = attendanceTrends.some(d => (d.late || 0) + (d.earlyLeave || 0) + (d.absent || 0) > 0);
-
-                        if (!attendanceTrends.length) {
-                            return <div className="h-[190px] rounded-xl bg-slate-100 dark:bg-slate-700/40 animate-pulse" />;
-                        }
-                        if (!anyData) {
-                            return (
-                                <div className="h-[190px] flex flex-col items-center justify-center text-center">
-                                    <CheckCircle size={26} className="text-emerald-500 mb-2" />
-                                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">No exceptions</p>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                                        Nobody was late, left early or absent in the last 7 days.
-                                    </p>
-                                </div>
-                            );
-                        }
-                        return (
-                            <>
-                                <div className="flex items-end justify-between gap-2 mt-3" style={{ height: `${H + 26}px` }}>
-                                    {attendanceTrends.map((day, i) => {
-                                        const total = (day.late || 0) + (day.earlyLeave || 0) + (day.absent || 0);
-                                        return (
-                                            <div key={i} className="flex-1 flex flex-col items-center justify-end gap-1.5 min-w-0">
-                                                <span className="text-[11px] font-semibold tabular-nums text-slate-500 dark:text-slate-400">
-                                                    {total || ''}
-                                                </span>
-                                                <div className="w-full flex flex-col justify-end rounded-md overflow-hidden"
-                                                     style={{ height: `${H}px` }}
-                                                     title={`${day.date} — late ${day.late || 0}, early leave ${day.earlyLeave || 0}, absent ${day.absent || 0}`}>
-                                                    <div style={{ height: `${px(day.late)}px` }} className="w-full bg-amber-400" />
-                                                    <div style={{ height: `${px(day.earlyLeave)}px` }} className="w-full bg-slate-500" />
-                                                    <div style={{ height: `${px(day.absent)}px` }} className="w-full bg-rose-500" />
-                                                </div>
-                                                <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 truncate w-full text-center">
-                                                    {day.date}
-                                                </span>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                                <div className="flex justify-center gap-5 mt-4 text-[11px] text-slate-600 dark:text-slate-300">
-                                    <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-amber-400" /> Late</div>
-                                    <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-slate-500" /> Early leave</div>
-                                    <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-rose-500" /> Absent</div>
-                                </div>
-                            </>
-                        );
-                    })()}
+                    {recentLogs.length === 0 ? (
+                        <p className="mt-6 text-sm text-slate-500 dark:text-slate-400">No punches yet today. They appear here as employees check in.</p>
+                    ) : (
+                        <ul className="mt-2 divide-y divide-slate-100 dark:divide-slate-800">
+                            {recentLogs.slice(0, 7).map((log, i) => {
+                                const isIn = String(log.punch_type).toUpperCase() === 'IN';
+                                return (
+                                    <li key={log.id || i} className="flex items-center gap-3 py-2">
+                                        <span className={`grid place-items-center w-7 h-7 rounded-full shrink-0 ${isIn ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'}`}>
+                                            {isIn ? <LogIn size={13} /> : <LogOutIcon size={13} />}
+                                        </span>
+                                        <span className="flex-1 min-w-0">
+                                            <span className="block text-sm font-medium text-slate-800 dark:text-slate-100 truncate">{log.employee_name}</span>
+                                            <span className="block text-xs text-slate-400 truncate">{isIn ? 'In' : 'Out'} · {log.device_name || '—'}</span>
+                                        </span>
+                                        <span className="text-xs tabular-nums text-slate-500 dark:text-slate-400">{formatTimeShort(log.punch_time || log.timestamp)}</span>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    )}
                 </div>
+            </section>
 
-                {/* Real-Time Monitor - Staggered */}
-                <div className="card-tier-2 animate-slide-up stagger-5">
-                    <div className="flex items-center justify-between mb-4">
-                        <h2 className="font-semibold flex items-center gap-2 text-base text-slate-800 dark:text-slate-100">
-                            <Clock className="text-green-500 animate-pulse" size={18} /> Real-Time Monitor
-                        </h2>
-                        <a
-                            href="/logs"
-                            className="flex items-center gap-1 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
-                            onClick={(e) => {
-                                e.preventDefault();
-                                navigate('/logs');
-                            }}
-                        >
-                            Go to Live Monitor
-                            <ChevronRight size={14} />
-                        </a>
-                    </div>
-                    <div className="space-y-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
-                        {recentLogs.length === 0 ? (
-                            <div className="text-center py-10 rounded-xl text-[13px] text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/50">
-                                <div className="mb-2 font-medium">No attendance data yet</div>
-                                <div className="text-xs text-slate-400">Devices will sync automatically once employees check in</div>
-                            </div>
-                        ) : (() => {
-                            const now = new Date();
-                            const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
-                            const recent = recentLogs.filter(log => new Date(log.punch_time) > fiveMinutesAgo);
-                            const older = recentLogs.filter(log => new Date(log.punch_time) <= fiveMinutesAgo);
-
-                            return (
-                                <>
-                                    {recent.length > 0 && (
-                                        <div className="mb-3">
-                                            <div className="text-xs font-semibold mb-2 uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                                                Last 5 mins
-                                            </div>
-                                            {recent.map((log, i) => (
-                                                <div
-                                                    key={i}
-                                                    className={`flex items-center justify-between py-3 px-4 rounded-lg transition-ui mb-2 ${i === 0 ? 'bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 animate-pulse' : 'bg-app-surface border border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}
-                                                    style={i === 0 ? { animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' } : {}}
-                                                >
-                                                    <div className="flex items-center gap-3">
-                                                        <div className={`p-1.5 rounded-lg ${log.punch_type === 'IN' ? 'bg-green-100 dark:bg-green-900/30' : 'bg-red-100 dark:bg-red-900/30'}`}>
-                                                            {log.punch_type === 'IN' ? <LogIn size={14} style={{ color: '#2EAD6D' }} /> : <LogOutIcon size={14} style={{ color: '#E5533D' }} />}
-                                                        </div>
-                                                        <div>
-                                                            <div className="font-semibold text-sm text-slate-900 dark:text-slate-100">{log.employee_name || log.emp_name || log.employee_code}</div>
-                                                            <div className="text-xs mt-0.5 text-slate-500 dark:text-slate-400">{log.device_name || log.device_serial}</div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="text-right">
-                                                        <div className="text-sm font-bold font-mono text-slate-900 dark:text-slate-100">
-                                                            {formatTimeShort(log.punch_time)}
-                                                        </div>
-                                                        <div className={`text-[11px] font-semibold uppercase tracking-wider mt-0.5 ${log.punch_type === 'IN' ? 'text-green-600 dark:text-green-300' : 'text-red-600 dark:text-red-300'}`}>
-                                                            {log.punch_type || 'PUNCH'}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                    {older.length > 0 && (
-                                        <div>
-                                            <div className="text-xs font-semibold mb-2 uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                                                Earlier
-                                            </div>
-                                            {older.map((log, i) => (
-                                                <div
-                                                    key={i + recent.length}
-                                                    className="flex items-center justify-between py-3 px-4 rounded-lg transition-ui mb-2 bg-app-surface border border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50"
-                                                >
-                                                    <div className="flex items-center gap-3">
-                                                        <div className={`p-1.5 rounded-lg ${log.punch_type === 'IN' ? 'bg-green-100 dark:bg-green-900/30' : 'bg-red-100 dark:bg-red-900/30'}`}>
-                                                            {log.punch_type === 'IN' ? <LogIn size={14} style={{ color: '#2EAD6D' }} /> : <LogOutIcon size={14} style={{ color: '#E5533D' }} />}
-                                                        </div>
-                                                        <div>
-                                                            <div className="font-semibold text-sm text-slate-900 dark:text-slate-100">{log.employee_name || log.emp_name || log.employee_code}</div>
-                                                            <div className="text-xs mt-0.5 text-slate-500 dark:text-slate-400">{log.device_name || log.device_serial}</div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="text-right">
-                                                        <div className="text-sm font-bold font-mono text-slate-900 dark:text-slate-100">
-                                                            {formatTimeShort(log.punch_time)}
-                                                        </div>
-                                                        <div className={`text-[11px] font-semibold uppercase tracking-wider mt-0.5 ${log.punch_type === 'IN' ? 'text-green-600 dark:text-green-300' : 'text-red-600 dark:text-red-300'}`}>
-                                                            {log.punch_type || 'PUNCH'}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </>
-                            );
-                        })()}
-                    </div>
+            {/* Band 4: today by department */}
+            <section className="pb-6">
+                <div className="px-4 sm:px-6 pt-5 pb-3 flex items-baseline justify-between gap-3">
+                    <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Today by department</h2>
+                    <button type="button" onClick={() => navigate('/attendance-register')} className="text-xs font-medium text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100">Open register</button>
                 </div>
-            </div>
-
-            {/* Bottom Row - Device List & Quick Stats */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* "Today's Summary" removed: it repeated Present, Absent, Late
-                    Arrivals and On Leave from Today's Attendance Status above,
-                    with the same values from the same fields. */}
-
-                {/* Device List - Staggered */}
-                <div className="card-tier-2 animate-slide-up stagger-6">
-                    <h2 className="font-semibold mb-6 flex items-center gap-2 text-base text-slate-800 dark:text-slate-100">
-                        <Wifi className="text-slate-500" size={18} /> Connected Devices
-                    </h2>
-                    <div className="overflow-x-auto rounded-xl border border-slate-100 dark:border-slate-700" style={{ maxHeight: '400px', overflowY: 'auto' }}>
-                        <table className="w-full text-sm">
-                            <thead className="sticky top-0 z-10">
+                {byDepartment.length === 0 ? (
+                    <p className="px-4 sm:px-6 text-sm text-slate-500 dark:text-slate-400">No attendance rows for today yet.</p>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left">
+                            <thead className="bg-slate-50 dark:bg-slate-900 border-y border-slate-200 dark:border-slate-800">
                                 <tr>
-                                    <th className="table-header" style={{ textAlign: 'left' }}>Device</th>
-                                    <th className="table-header" style={{ textAlign: 'left' }}>IP Address</th>
-                                    <th className="table-header" style={{ textAlign: 'center' }}>Users</th>
-                                    <th className="table-header" style={{ textAlign: 'center' }}>FP</th>
-                                    <th className="table-header" style={{ textAlign: 'center' }}>Status</th>
+                                    {['Department', 'Staff', 'Present', 'Late', 'Not in', 'Attendance'].map((h, i) => (
+                                        <th key={h} className={`px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400 ${i === 0 ? 'pl-4 sm:pl-6' : 'text-right'} ${i === 5 ? 'pr-4 sm:pr-6 w-56' : ''}`}>{h}</th>
+                                    ))}
                                 </tr>
                             </thead>
-                            <tbody>
-                                {devices.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={5} className="text-center py-12 text-slate-500 dark:text-slate-400">
-                                            <div className="flex flex-col items-center gap-2">
-                                                <WifiOff size={32} className="text-slate-300 mb-2" />
-                                                <div className="font-medium">No devices registered</div>
-                                                <div className="text-xs text-slate-400">Add devices to start tracking attendance</div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ) : devices.slice(0, 5).map(d => (
-                                    <tr key={d.id || d.serial_number} className="table-row">
-                                        <td className="px-6 py-4" style={{ textAlign: 'left', color: '#1E40AF', fontWeight: 600, fontSize: '14px' }}>
-                                            {d.device_name || d.serial_number}
-                                        </td>
-                                        <td className="px-6 py-4" style={{ textAlign: 'left', color: '#7C3AED', fontFamily: 'monospace', fontSize: '12px', fontWeight: 500 }}>
-                                            {d.ip_address}{d.port ? `:${d.port}` : ''}
-                                        </td>
-                                        <td className="px-6 py-4" style={{ textAlign: 'center', color: '#059669', fontWeight: 600, fontSize: '14px' }}>
-                                            {d.user_count || 0}
-                                        </td>
-                                        <td className="px-6 py-4" style={{ textAlign: 'center', color: '#DC2626', fontWeight: 600, fontSize: '14px' }}>
-                                            {d.fingerprint_count || 0}
-                                        </td>
-                                        <td className="px-6 py-4" style={{ textAlign: 'center' }}>
-                                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ${d.status === 'online' ? 'status-active' : 'badge-inactive'}`}>
-                                                {d.status === 'online' ? <Wifi size={9} /> : <WifiOff size={9} />}
-                                                {d.status || 'offline'}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                ))}
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                {byDepartment.map(d => {
+                                    const pct = d.staff ? Math.round((d.present / d.staff) * 100) : 0;
+                                    return (
+                                        <tr key={d.name} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                                            <td className="pl-4 sm:pl-6 px-4 py-2.5 font-medium text-slate-800 dark:text-slate-100">{d.name}</td>
+                                            <td className="px-4 py-2.5 text-right tabular-nums text-slate-600 dark:text-slate-300">{d.staff}</td>
+                                            <td className="px-4 py-2.5 text-right tabular-nums text-slate-600 dark:text-slate-300">{d.present}</td>
+                                            <td className="px-4 py-2.5 text-right tabular-nums text-slate-600 dark:text-slate-300">{d.late || '—'}</td>
+                                            <td className="px-4 py-2.5 text-right tabular-nums text-slate-600 dark:text-slate-300">{d.absent || '—'}</td>
+                                            <td className="px-4 pr-4 sm:pr-6 py-2.5">
+                                                <div className="flex items-center justify-end gap-2">
+                                                    <div className="w-28 h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden" aria-hidden="true">
+                                                        <div className="h-full rounded-full bg-emerald-500" style={{ width: `${pct}%` }} />
+                                                    </div>
+                                                    <span className="w-10 text-right tabular-nums text-xs text-slate-600 dark:text-slate-300">{pct}%</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                     </div>
-                </div>
-            </div>
+                )}
+            </section>
         </div>
     );
 }
+
+// Icon chip tones for the attention list; status colours only where they mean status.
+const TONE = {
+    critical: 'bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400',
+    warning: 'bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400',
+    neutral: 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
+};
