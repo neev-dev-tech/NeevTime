@@ -54,11 +54,6 @@ export default function MainLayout({ children }) {
       setActiveModule('Dashboard');
     } else if (['/devices', '/device-commands', '/device-messages', '/device-sync'].some(p => path.startsWith(p))) {
       setActiveModule('Device');
-    // /geofences and /mobile belong here too. Both appear in attendanceSidebar,
-    // and both were missing from this list — so opening either switched the
-    // active module to Personnel, the sidebar changed under the reader, and the
-    // page they had just clicked was no longer anywhere in the menu. The link
-    // worked; finding it a second time did not.
     } else if (['/logs', '/shifts', '/shift-rotations', '/timetables', '/break-times', '/schedule', '/rules', '/holidays', '/leaves', '/leave-types', '/leave-balance', '/attendance', '/reports', '/export', '/import', '/geofences', '/holiday-locations', '/mobile', '/regularizations'].some(p => path.startsWith(p))) {
       setActiveModule('Attendance');
     } else if (['/settings', '/users', '/database', '/system-logs', '/integrations', '/api-access', '/advanced-reports', '/audit'].some(p => path.startsWith(p))) {
@@ -82,114 +77,132 @@ export default function MainLayout({ children }) {
   }, [location.pathname, location.search, currentSidebar]);
 
   return (
-    <div className="app-shell flex flex-col h-screen font-sans">
+    <div className="app-shell flex h-screen font-sans overflow-hidden">
       <AnimatedBackground />
-      {/* A read-only account should be told so once, rather than discovering it
-          as a failed save on every button it presses. */}
-      {isViewer && (
-        <div className="relative z-50 px-6 py-2 text-center text-xs font-semibold bg-amber-100 text-amber-900 border-b border-amber-200 dark:bg-amber-900/40 dark:text-amber-200 dark:border-amber-800">
-          Read-only access — you can view everything here, but changes are disabled for your account.
-        </div>
-      )}
       <GlobalSearch />
-      {/* Top Navigation */}
-      <motion.header
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        className="sticky top-0 z-50 border-b border-slate-200 dark:border-slate-700 bg-app-surface/80 backdrop-blur-md"
-        style={{
-          boxShadow: '0 2px 8px rgba(249, 115, 22, 0.08)'
-        }}
-      >
-        <div className="px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-10">
-            <div className="flex items-center gap-2.5">
-               {/* Same mark as the browser tab, so the two agree. Swapping
-                   public/logo.png updates both. Already a circle with
-                   transparent corners, so it needs no rounding of its own. */}
-               {hasLogo ? (
-                  /* A customer logo replaces the mark AND the wordmark: most
-                     company logos already contain their own name, and showing
-                     both reads as two brands stapled together. Height-bounded
-                     with width auto so a wide logo is not squashed into a
-                     square. */
-                  <img
-                     src={logo}
-                     alt={name}
-                     className="h-8 w-auto max-w-[190px] object-contain"
-                  />
-               ) : (
-                  <>
-                     <img src="/logo.png" alt="" aria-hidden="true" className="w-8 h-8" />
-                     {/* The wordmark is one word. It needs its own wrapper because the
-                         row's gap would otherwise push "Neev" and "Time" apart. */}
-                     <span className="text-2xl font-bold">
-                        <span className="text-slate-800 dark:text-slate-100">Neev</span><span className="text-slate-900">Time</span>
-                     </span>
-                  </>
-               )}
-            </div>
 
-            <nav className="hidden md:flex items-center gap-1 p-1 rounded-full border border-slate-200 bg-app-hover/40">
-              {modules.map((mod) => {
-                const isActive = activeModule === mod.name;
-                return (
-                  <button
-                    key={mod.name}
-                    onClick={() => {
-                      setActiveModule(mod.name);
-                      if (mod.path !== '#') navigate(mod.path);
-                    }}
-                    className={`px-5 py-1.5 rounded-full transition-ui flex items-center gap-2 text-sm font-semibold relative ${isActive ? 'text-white' : 'text-slate-600 hover:text-slate-900 dark:text-slate-200 dark:hover:text-slate-400'}`}
-                  >
-                    {isActive && (
-                      <motion.div 
-                        layoutId="activeModule"
-                        className="absolute inset-0 bg-slate-900 rounded-full"
-                        style={{ zIndex: -1 }}
-                      />
-                    )}
-                    {/* Each module keeps its own colour when inactive, matching the
-                        page header you land on. The active pill is solid orange,
-                        so its icon goes white for contrast. */}
-                    <mod.icon size={18} style={isActive ? undefined : { color: mod.iconColor }} />
-                    {mod.name}
-                  </button>
-                );
-              })}
-            </nav>
+      {/* ── Persistent left sidebar ─────────────────────────────────────── */}
+      <aside className="w-64 flex-shrink-0 flex flex-col border-r border-slate-200 dark:border-slate-700 bg-app-surface/90 backdrop-blur-xl z-40">
+        {/* Logo */}
+        <div className="h-16 flex items-center gap-2.5 px-5 border-b border-slate-200 dark:border-slate-700 flex-shrink-0">
+          {hasLogo ? (
+            <img src={logo} alt={name} className="h-8 w-auto max-w-[180px] object-contain" />
+          ) : (
+            <>
+              <img src="/logo.png" alt="" aria-hidden="true" className="w-8 h-8" />
+              <span className="text-xl font-bold">
+                <span className="text-slate-800 dark:text-slate-100">Neev</span><span className="text-slate-900 dark:text-slate-100">Time</span>
+              </span>
+            </>
+          )}
+        </div>
+
+        {/* Nav: modules, with the active one expanded to its groups/items */}
+        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+          <p className="px-3 mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">Main</p>
+          {modules.map((mod) => {
+            const isActive = activeModule === mod.name;
+            return (
+              <div key={mod.name}>
+                <button
+                  onClick={() => { setActiveModule(mod.name); if (mod.path !== '#') navigate(mod.path); }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-ui ${isActive
+                    ? 'bg-slate-900 text-white shadow-sm dark:bg-slate-100 dark:text-slate-900'
+                    : 'text-slate-600 dark:text-slate-300 hover:bg-app-hover dark:hover:bg-slate-800'}`}
+                >
+                  <mod.icon size={18} />
+                  <span className="flex-1 text-left">{mod.name}</span>
+                  {currentSidebar.length > 0 && isActive && <ChevronDown size={14} />}
+                </button>
+
+                {isActive && currentSidebar.length > 0 && (
+                  <div className="mt-1 mb-2 ml-4 pl-3 border-l border-slate-200 dark:border-slate-700 space-y-0.5">
+                    {currentSidebar.map((group, i) => (
+                      <div key={i}>
+                        <button
+                          onClick={() => toggleGroup(group.group)}
+                          className="w-full px-2 py-1.5 flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                        >
+                          <span>{group.group}</span>
+                          {expandedGroups[group.group] ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+                        </button>
+                        <AnimatePresence>
+                          {expandedGroups[group.group] && (
+                            <motion.nav
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              className="overflow-hidden space-y-0.5 pb-1"
+                            >
+                              {group.items.map((item, j) => {
+                                const itemActive = item.path.includes('?')
+                                  ? (location.pathname + location.search) === item.path
+                                  : location.pathname === item.path;
+                                return (
+                                  <Link
+                                    key={j}
+                                    to={item.path}
+                                    className={`flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-sm transition-ui ${itemActive
+                                      ? 'bg-app-hover text-slate-900 dark:text-white font-semibold'
+                                      : 'text-slate-500 dark:text-slate-400 hover:bg-app-hover hover:text-slate-800 dark:hover:text-slate-200'}`}
+                                  >
+                                    <item.icon size={16} />
+                                    {item.label}
+                                  </Link>
+                                );
+                              })}
+                            </motion.nav>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </nav>
+
+        <div className="px-5 py-3 border-t border-slate-200 dark:border-slate-700 flex-shrink-0">
+          <VersionDisplay />
+        </div>
+      </aside>
+
+      {/* ── Main column ─────────────────────────────────────────────────── */}
+      <div className="flex-1 min-w-0 flex flex-col">
+        {isViewer && (
+          <div className="px-6 py-2 text-center text-xs font-semibold bg-amber-100 text-amber-900 border-b border-amber-200 dark:bg-amber-900/40 dark:text-amber-200 dark:border-amber-800">
+            Read-only access — you can view everything here, but changes are disabled for your account.
           </div>
+        )}
 
+        {/* Top bar */}
+        <header className="h-16 flex-shrink-0 flex items-center justify-between px-6 border-b border-slate-200 dark:border-slate-700 bg-app-surface/80 backdrop-blur-md">
+          <div className="text-sm font-semibold text-slate-500 dark:text-slate-400">{activeModule}</div>
           <div className="flex items-center gap-3">
-            {/* The palette button lived here and opened a slide-over that
-                duplicated Settings > Appearance. Two places to change the same
-                thing, and the one in the header was the one nobody could find a
-                use for. Removed; Settings is where the working controls are. */}
             <DarkModeToggle />
             <NotificationCenter />
-
             <div className="relative">
               <button
                 ref={profileTriggerRef}
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
-                className="flex items-center gap-2 px-3 py-2 rounded-full hover:bg-app-hover transition-colors"
+                className="flex items-center gap-2 px-2 py-1.5 rounded-full hover:bg-app-hover transition-colors"
               >
-                <div className="w-9 h-9 bg-slate-900 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm ring-2 ring-slate-200">
+                <div className="w-9 h-9 bg-slate-900 dark:bg-slate-100 dark:text-slate-900 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm">
                   {auth?.username?.charAt(0).toUpperCase() || 'U'}
                 </div>
                 <ChevronDown size={14} className={`text-slate-400 transition-transform ${showProfileMenu ? 'rotate-180' : ''}`} />
               </button>
-
               <AnimatePresence>
                 {showProfileMenu && (
-                  <motion.div 
+                  <motion.div
                     ref={profileMenuRef}
                     initial={{ opacity: 0, scale: 0.95, y: 10 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: 10 }}
                     className="absolute right-0 mt-2 w-56 bg-app-surface shadow-xl rounded-2xl overflow-hidden z-40 border border-slate-200 dark:border-slate-700"
                   >
-                    <div className="px-4 py-3 border-b border-slate-50 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/40">
+                    <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700 bg-app-hover/50 dark:bg-slate-900/40">
                       <p className="text-sm font-bold text-slate-800 dark:text-slate-100">{auth?.username}</p>
                       <p className="text-xs text-slate-500 dark:text-slate-400">{auth?.role}</p>
                     </div>
@@ -201,7 +214,7 @@ export default function MainLayout({ children }) {
                         <HelpCircle size={16} /> <span>Help</span>
                       </button>
                     </div>
-                    <div className="border-t border-slate-50 dark:border-slate-700">
+                    <div className="border-t border-slate-100 dark:border-slate-700">
                       <button onClick={logout} className="w-full px-4 py-2.5 text-left text-sm text-red-600 dark:text-rose-400 hover:bg-red-50 dark:hover:bg-rose-500/10 flex items-center gap-3 font-semibold">
                         <LogOut size={16} /> <span>Logout</span>
                       </button>
@@ -211,124 +224,52 @@ export default function MainLayout({ children }) {
               </AnimatePresence>
             </div>
           </div>
-        </div>
-      </motion.header>
+        </header>
 
-      {/* h-screen on the shell, min-h-0 here. min-height:100vh is a minimum,
-          not a definite height, so flex-1 on this row had nothing to resolve
-          against and the row grew to fit its content instead. The root then
-          grew past the viewport and the WINDOW scrolled — which carried the
-          sidebar up with it. overflow-hidden cannot cap a row whose parent
-          height is indefinite. With a definite height the row is capped and
-          <main> does the scrolling on its own, which is what the sidebar
-          staying put depends on. min-h-0 is the companion fix: a flex item's
-          automatic minimum size is its content, so without it a long page
-          pushes the row open again from the inside. */}
-      <div className="flex flex-1 min-h-0 overflow-hidden">
-        {activeModule !== 'Dashboard' && currentSidebar.length > 0 && (
-          <aside className="w-64 border-r border-slate-200 dark:border-slate-700 flex-shrink-0 overflow-y-auto pb-10 bg-app-surface/80 backdrop-blur-xl">
-            {currentSidebar.map((group, i) => (
-              <div key={i} className="mb-2">
-                <button
-                  onClick={() => toggleGroup(group.group)}
-                  className="w-full px-5 py-3 flex items-center justify-between hover:bg-app-hover/50 dark:hover:bg-slate-700/50"
-                >
-                  <div className="flex items-center gap-3 uppercase text-[10px] tracking-widest font-bold text-slate-400">
-                    <group.icon size={16} style={{ color: group.iconColor || '#64748B' }} />
-                    {group.group}
-                  </div>
-                  {expandedGroups[group.group] ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                </button>
-                <AnimatePresence>
-                  {expandedGroups[group.group] && (
-                    <motion.nav 
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      className="px-3 space-y-0.5 overflow-hidden"
-                    >
-                      {group.items.map((item, j) => {
-                        const isActive = (item.path.includes('?') 
-                          ? (location.pathname + location.search) === item.path 
-                          : location.pathname === item.path);
-                        return (
-                          <Link
-                            key={j}
-                            to={item.path}
-                            className={`flex items-center gap-3 px-4 py-2 rounded-xl text-sm transition-ui font-medium ${isActive ? 'bg-slate-900 text-white shadow-md shadow-slate-200 dark:shadow-none' : 'text-slate-600 dark:text-slate-200 hover:bg-app-hover dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-slate-400'}`}
-                          >
-                            <item.icon size={18} />
-                            {item.label}
-                          </Link>
-                        );
-                      })}
-                    </motion.nav>
-                  )}
-                </AnimatePresence>
-              </div>
-            ))}
-          </aside>
-        )}
-        {showAbout && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4" onClick={() => setShowAbout(false)}>
-            <div className="bg-app-surface rounded-2xl shadow-2xl p-6 w-full max-w-sm text-center" onClick={e => e.stopPropagation()}>
-              <div className="text-3xl font-bold mb-2">
-                <span className="text-slate-800 dark:text-slate-100">Neev</span><span className="text-slate-900">Time</span>
-              </div>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Simplicity Attendance — biometric attendance management</p>
-              <div className="flex justify-center mb-4"><VersionDisplay /></div>
-              <button onClick={() => setShowAbout(false)} className="w-full py-2 bg-slate-900 hover:bg-slate-700 text-white text-sm font-semibold rounded-lg">Close</button>
-            </div>
-          </div>
-        )}
-
-        {showHelp && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4" onClick={() => setShowHelp(false)}>
-            <div className="bg-app-surface rounded-2xl shadow-2xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
-              <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4">Quick Help</h3>
-              <div className="space-y-3 text-sm text-slate-600 dark:text-slate-300">
-                <div className="flex items-center justify-between">
-                  <span>Global search (employees, devices, pages)</span>
-                  <kbd className="px-2 py-0.5 bg-slate-100 dark:bg-slate-700 border dark:border-slate-600 rounded text-xs font-mono">Ctrl / ⌘ + K</kbd>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>Close dialogs</span>
-                  <kbd className="px-2 py-0.5 bg-slate-100 dark:bg-slate-700 border dark:border-slate-600 rounded text-xs font-mono">Esc</kbd>
-                </div>
-                <hr className="dark:border-slate-700" />
-                <p><b className="text-slate-800 dark:text-slate-100">Modules:</b> switch with the pills in the top bar; each module has its own sidebar.</p>
-                <p><b className="text-slate-800 dark:text-slate-100">Reports:</b> Attendance → Reports → All Reports. Every report exports CSV / Excel / PDF.</p>
-                <p><b className="text-slate-800 dark:text-slate-100">Employee portal:</b> employees sign in at <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded">/portal/login</code> after HR sets a portal password on their profile.</p>
-                <p><b className="text-slate-800 dark:text-slate-100">Theme:</b> palette icon in the top bar toggles dark mode.</p>
-              </div>
-              <button onClick={() => setShowHelp(false)} className="mt-5 w-full py-2 bg-slate-900 hover:bg-slate-700 text-white text-sm font-semibold rounded-lg">Got it</button>
-            </div>
-          </div>
-        )}
-
-        <main className="flex-1 min-w-0 overflow-auto">
-          {/* Plain div, and deliberately not animated.
-              This was `<AnimatePresence mode="wait">` with an exit of opacity
-              0, which is what made every navigation blink: the old page faded
-              fully out over 200ms, `mode="wait"` held the new one back until
-              that finished, then the new page faded up from zero. Between them
-              sat a frame of nothing — about 400ms of content vanishing and
-              returning.
-
-              Replacing it with a keyed fade-in was worse, not better: the
-              initial opacity landed as an inline style that the animation
-              never cleared, so the whole page sat permanently dimmed.
-
-              Swapping on the key alone is what was actually wanted. React
-              commits the new subtree in a single pass, so the new page paints
-              in the same frame the old one leaves and there is no gap to see
-              at all. Sections still fade in individually via .animate-fade-in;
-              the page container itself has no business animating. */}
+        <main className="flex-1 min-h-0 overflow-auto">
           <div className="p-6">
             {children}
           </div>
         </main>
       </div>
+
+      {/* Modals */}
+      {showAbout && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4" onClick={() => setShowAbout(false)}>
+          <div className="bg-app-surface rounded-2xl shadow-2xl p-6 w-full max-w-sm text-center" onClick={e => e.stopPropagation()}>
+            <div className="text-3xl font-bold mb-2">
+              <span className="text-slate-800 dark:text-slate-100">Neev</span><span className="text-slate-900 dark:text-slate-100">Time</span>
+            </div>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Simplicity Attendance — biometric attendance management</p>
+            <div className="flex justify-center mb-4"><VersionDisplay /></div>
+            <button onClick={() => setShowAbout(false)} className="w-full py-2 bg-slate-900 hover:bg-slate-700 text-white text-sm font-semibold rounded-lg">Close</button>
+          </div>
+        </div>
+      )}
+
+      {showHelp && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4" onClick={() => setShowHelp(false)}>
+          <div className="bg-app-surface rounded-2xl shadow-2xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
+            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4">Quick Help</h3>
+            <div className="space-y-3 text-sm text-slate-600 dark:text-slate-300">
+              <div className="flex items-center justify-between">
+                <span>Global search (employees, devices, pages)</span>
+                <kbd className="px-2 py-0.5 bg-slate-100 dark:bg-slate-700 border dark:border-slate-600 rounded text-xs font-mono">Ctrl / ⌘ + K</kbd>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Close dialogs</span>
+                <kbd className="px-2 py-0.5 bg-slate-100 dark:bg-slate-700 border dark:border-slate-600 rounded text-xs font-mono">Esc</kbd>
+              </div>
+              <hr className="dark:border-slate-700" />
+              <p><b className="text-slate-800 dark:text-slate-100">Modules:</b> switch from the left sidebar; each module expands to its own sub-menu.</p>
+              <p><b className="text-slate-800 dark:text-slate-100">Reports:</b> Attendance → Reports → All Reports. Every report exports CSV / Excel / PDF.</p>
+              <p><b className="text-slate-800 dark:text-slate-100">Employee portal:</b> employees sign in at <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded">/portal/login</code> after HR sets a portal password on their profile.</p>
+              <p><b className="text-slate-800 dark:text-slate-100">Theme:</b> the toggle in the top bar switches light / dark.</p>
+            </div>
+            <button onClick={() => setShowHelp(false)} className="mt-5 w-full py-2 bg-slate-900 hover:bg-slate-700 text-white text-sm font-semibold rounded-lg">Got it</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
