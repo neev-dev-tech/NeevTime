@@ -5,6 +5,7 @@ import { Button, PageHeader, ExportMenu, useToast } from '../components';
 import { TableToolbar, SortableTh, TablePager } from '../components/TableControls';
 import useTableControls from '../hooks/useTableControls';
 import { confirm } from '../components/ConfirmDialog';
+import Modal from '../components/Modal';
 
 export default function LeaveBalances() {
     const toast = useToast();
@@ -135,12 +136,13 @@ export default function LeaveBalances() {
 
             {/* What the accrual would do, before it does it. */}
             {accrualPreview && (
-                <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50" onClick={() => setAccrualPreview(null)}>
-                    <div onClick={e => e.stopPropagation()}
-                         className="w-full max-w-xl bg-app-surface rounded-2xl p-6 space-y-4 max-h-[85vh] overflow-y-auto">
-                        <h3 className="font-bold text-slate-800 dark:text-slate-100">
-                            Monthly accrual — {accrualPreview.year}-{String(accrualPreview.month).padStart(2, '0')}
-                        </h3>
+                <Modal
+                    open
+                    onClose={() => setAccrualPreview(null)}
+                    title={`Monthly accrual — ${accrualPreview.year}-${String(accrualPreview.month).padStart(2, '0')}`}
+                    size="lg"
+                >
+                    <div className="space-y-4">
                         {accrualPreview.changes.length === 0 ? (
                             <p className="text-sm text-slate-500 dark:text-slate-400">
                                 Nothing to accrue. Either every balance is already current, or no leave
@@ -176,7 +178,7 @@ export default function LeaveBalances() {
                             )}
                         </div>
                     </div>
-                </div>
+                </Modal>
             )}
                         <Button variant="secondary" icon={RefreshCw} onClick={fetchData} disabled={loading}>Refresh</Button>
                         <Button variant="primary" onClick={previewAccrual} disabled={accruing}>

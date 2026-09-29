@@ -3,6 +3,7 @@ import api from '../api';
 import io from 'socket.io-client';
 import { RefreshCw, Inbox, Fingerprint, Clock, LogIn, LogOut, AlertCircle } from 'lucide-react';
 import { Button, PageHeader, ExportMenu } from '../components';
+import Modal from '../components/Modal';
 import { formatTimestamp } from '../utils/dateFormat';
 
 const BADGE_BASE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide';
@@ -307,14 +308,11 @@ export default function Logs() {
                     see that a photo exists and not enough to tell who it is, and
                     telling who it is is the reason the photo was taken. */}
                 {photo && (
-                    <div
-                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
-                        onClick={() => setPhoto(null)}
-                    >
-                        <div
-                            className="max-w-lg w-full rounded-2xl bg-app-surface overflow-hidden"
-                            onClick={(e) => e.stopPropagation()}
-                        >
+                    // No title bar: the photo runs edge to edge from the top, and
+                    // the name under it is the heading. The panel keeps its own
+                    // Close button, so Modal's X is hidden rather than doubled.
+                    <Modal open onClose={() => setPhoto(null)} size="md" padded={false} hideClose>
+                        <div className="rounded-xl overflow-hidden">
                             <PunchPhoto
                                 name={photo.photo_path}
                                 alt={`Punch by ${photo.emp_name || photo.employee_code}`}
@@ -341,7 +339,7 @@ export default function Logs() {
                                 </button>
                             </div>
                         </div>
-                    </div>
+                    </Modal>
                 )}
 
                 {!loading && logs.length > 0 && (

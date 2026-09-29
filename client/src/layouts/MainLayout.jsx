@@ -7,6 +7,7 @@ import { modules, personnelSidebar, deviceSidebar, attendanceSidebar, systemSide
 import useBranding from '../hooks/useBranding';
 import useDismissable from '../hooks/useDismissable';
 import GlobalSearch from '../components/GlobalSearch';
+import Modal from '../components/Modal';
 import AnimatedBackground from '../components/AnimatedBackground';
 import NotificationCenter from '../components/NotificationCenter';
 import { DarkModeToggle } from '../components/Theme';
@@ -19,7 +20,10 @@ export default function MainLayout({ children }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { auth, logout } = useStore();
-  const { isViewer } = usePermissions();
+  const { isViewer, canAdminister } = usePermissions();
+  // System holds settings, users, database and integrations — admin-only on
+  // the server, so other roles are not shown a module that only bounces them.
+  const visibleModules = modules.filter(m => m.name !== 'System' || canAdminister);
   const [activeModule, setActiveModule] = useState('Dashboard');
   // Remembered per browser so the groups someone works in stay open.
   const [expandedGroups, setExpandedGroups] = useState(() => {
@@ -138,7 +142,7 @@ export default function MainLayout({ children }) {
         {/* Nav: modules, with the active one expanded to its groups/items */}
         <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
           <p className="px-3 mb-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-400 dark:text-slate-500">Main</p>
-          {modules.map((mod) => {
+          {visibleModules.map((mod) => {
             const isActive = activeModule === mod.name;
             return (
               <div key={mod.name}>
@@ -298,8 +302,9 @@ export default function MainLayout({ children }) {
 
       {/* Modals */}
       {showAbout && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4" onClick={() => setShowAbout(false)}>
-          <div className="bg-app-surface rounded-2xl shadow-2xl p-6 w-full max-w-sm text-center" onClick={e => e.stopPropagation()}>
+        // No title bar: the wordmark is the heading, and the panel has its own Close.
+        <Modal open onClose={() => setShowAbout(false)} size="sm" hideClose>
+          <div className="text-center py-2">
             <div className="text-3xl font-bold mb-2">
               <span className="text-slate-800 dark:text-slate-100">Neev</span><span className="text-slate-900 dark:text-slate-100">Time</span>
             </div>
@@ -307,13 +312,12 @@ export default function MainLayout({ children }) {
             <div className="flex justify-center mb-4"><VersionDisplay /></div>
             <button onClick={() => setShowAbout(false)} className="w-full py-2 bg-slate-900 hover:bg-slate-700 text-white text-sm font-semibold rounded-lg">Close</button>
           </div>
-        </div>
+        </Modal>
       )}
 
       {showHelp && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4" onClick={() => setShowHelp(false)}>
-          <div className="bg-app-surface rounded-2xl shadow-2xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
-            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4">Quick Help</h3>
+        <Modal open onClose={() => setShowHelp(false)} title="Quick Help" size="md">
+          <>
             <div className="space-y-3 text-sm text-slate-600 dark:text-slate-300">
               <div className="flex items-center justify-between">
                 <span>Global search (employees, devices, pages)</span>
@@ -330,8 +334,8 @@ export default function MainLayout({ children }) {
               <p><b className="text-slate-800 dark:text-slate-100">Theme:</b> the toggle in the top bar switches light / dark.</p>
             </div>
             <button onClick={() => setShowHelp(false)} className="mt-5 w-full py-2 bg-slate-900 hover:bg-slate-700 text-white text-sm font-semibold rounded-lg">Got it</button>
-          </div>
-        </div>
+          </>
+        </Modal>
       )}
     </div>
   );

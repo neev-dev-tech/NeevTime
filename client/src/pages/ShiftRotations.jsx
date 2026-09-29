@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { RefreshCw, Plus, Users, Zap } from 'lucide-react';
 import api from '../api';
 import { Button, PageHeader, useToast } from '../components';
+import Modal from '../components/Modal';
 
 /**
  * Rotation patterns: week A days, week B nights, generated into the schedule
@@ -130,9 +131,8 @@ export default function ShiftRotations() {
             </div>
 
             {form && (
-                <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50" onClick={() => setForm(null)}>
-                    <div onClick={e => e.stopPropagation()} className="w-full max-w-md bg-app-surface rounded-2xl p-6 space-y-4">
-                        <h3 className="font-bold text-slate-800 dark:text-slate-100">Add rotation</h3>
+                <Modal open onClose={() => setForm(null)} title="Add rotation" size="md">
+                    <div className="space-y-4">
                         <input className="field w-full" placeholder="Name, e.g. AB Weekly" value={form.name}
                                onChange={e => setForm({ ...form, name: e.target.value })} />
                         <div className="grid grid-cols-2 gap-3">
@@ -167,13 +167,12 @@ export default function ShiftRotations() {
                             <Button variant="primary" onClick={saveRotation} disabled={busy}>{busy ? 'Saving…' : 'Save'}</Button>
                         </div>
                     </div>
-                </div>
+                </Modal>
             )}
 
             {crewOf && (
-                <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50" onClick={() => setCrewOf(null)}>
-                    <div onClick={e => e.stopPropagation()} className="w-full max-w-md bg-app-surface rounded-2xl p-6 space-y-4 max-h-[85vh] overflow-y-auto">
-                        <h3 className="font-bold text-slate-800 dark:text-slate-100">Crew — {crewOf.name}</h3>
+                <Modal open onClose={() => setCrewOf(null)} title={`Crew — ${crewOf.name}`} size="md">
+                    <div className="space-y-4">
                         {crew.length > 0 && (
                             <div className="text-sm divide-y divide-slate-100 dark:divide-slate-700">
                                 {crew.map(m => (
@@ -201,7 +200,7 @@ export default function ShiftRotations() {
                             <Button variant="primary" onClick={addCrew} disabled={busy}>{busy ? 'Adding…' : 'Add to crew'}</Button>
                         </div>
                     </div>
-                </div>
+                </Modal>
             )}
         </div>
     );

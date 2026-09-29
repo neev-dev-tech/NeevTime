@@ -526,12 +526,13 @@ export default function Departments() {
 
             {/* Department approvers */}
             {approverDept && (
-                <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50" onClick={() => setApproverDept(null)}>
-                    <div onClick={e => e.stopPropagation()}
-                         className="w-full max-w-md bg-app-surface rounded-2xl p-6 space-y-4">
-                        <h3 className="font-bold text-slate-800 dark:text-slate-100">
-                            Approvers for {approverDept.name}
-                        </h3>
+                <Modal
+                    open
+                    onClose={() => setApproverDept(null)}
+                    title={`Approvers for ${approverDept.name}`}
+                    size="md"
+                >
+                    <div className="space-y-4">
                         <p className="text-xs text-slate-500 dark:text-slate-400">
                             These people can approve leave and attendance corrections for anyone in
                             this department — alongside reporting managers and HR, per the approval
@@ -554,7 +555,7 @@ export default function Departments() {
                             </Button>
                         </div>
                     </div>
-                </div>
+                </Modal>
             )}
         </div>
     );

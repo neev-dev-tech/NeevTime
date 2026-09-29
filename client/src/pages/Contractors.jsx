@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Building2, Plus, Users, Trash2, Edit2, FileText } from 'lucide-react';
 import api from '../api';
 import { Button, PageHeader } from '../components';
+import Modal from '../components/Modal';
 import { formatDate } from '../utils/dateFormat';
 
 /**
@@ -60,10 +61,10 @@ export default function Contractors() {
     };
 
     const openSummary = async (row) => {
-        setSummary({ loading: true, contractor: row });
+        setSummary({ loading: true, contractor: row, month });
         try {
             const res = await api.get(`/api/contractors/${row.id}/summary?month=${month}`);
-            setSummary(res.data);
+            setSummary({ ...res.data, month });
         } catch (err) {
             setError(err.response?.data?.error || 'Could not load the summary');
             setSummary(null);
@@ -166,12 +167,13 @@ export default function Contractors() {
 
             {/* Add / edit */}
             {editing && (
-                <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50" onClick={() => setEditing(null)}>
-                    <form onSubmit={save} onClick={e => e.stopPropagation()}
-                          className="w-full max-w-lg bg-app-surface rounded-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
-                        <h3 className="font-bold text-slate-800 dark:text-slate-100">
-                            {editing.id ? 'Edit contractor' : 'Add contractor'}
-                        </h3>
+                <Modal
+                    open
+                    onClose={() => setEditing(null)}
+                    title={editing.id ? 'Edit contractor' : 'Add contractor'}
+                    size="md"
+                >
+                    <form onSubmit={save} className="space-y-4">
                         <div className="grid grid-cols-2 gap-3">
                             <div className="col-span-2">{field('Name', 'name', 'text', 'e.g. Sharma Facility Services')}</div>
                             {field('Code', 'code')}
@@ -199,21 +201,26 @@ export default function Contractors() {
                             <Button variant="primary" type="submit">Save</Button>
                         </div>
                     </form>
-                </div>
+                </Modal>
             )}
 
             {/* Hours for a month — the invoice question */}
             {summary && (
-                <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50" onClick={() => setSummary(null)}>
-                    <div onClick={e => e.stopPropagation()}
-                         className="w-full max-w-2xl bg-app-surface rounded-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
-                        <div className="flex items-center justify-between gap-3">
-                            <h3 className="font-bold text-slate-800 dark:text-slate-100">
-                                {summary.contractor?.name}
-                            </h3>
+                <Modal
+                    open
+                    onClose={() => setSummary(null)}
+                    title={summary.contractor?.name}
+                    size="lg"
+                >
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-end gap-3">
+                            {/* Refetch only when the month actually changed. Modal
+                                focuses this input on open, so an unconditional
+                                onBlur fired on every close click — refetching and
+                                re-opening the dialog the user just dismissed. */}
                             <input type="month" className="field w-auto" value={month}
                                    onChange={e => { setMonth(e.target.value); }}
-                                   onBlur={() => openSummary(summary.contractor)} />
+                                   onBlur={() => { if (month !== summary.month) openSummary(summary.contractor); }} />
                         </div>
 
                         {summary.loading ? (
@@ -290,7 +297,7 @@ export default function Contractors() {
                             <Button variant="secondary" onClick={() => setSummary(null)}>Close</Button>
                         </div>
                     </div>
-                </div>
+                </Modal>
             )}
         </div>
     );
