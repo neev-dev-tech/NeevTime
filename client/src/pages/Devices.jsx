@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import api from '../api';
 import io from 'socket.io-client';
 import {
-    RefreshCw, Power, Plus, Edit2, Trash2,
-    Wifi, WifiOff, Clock, Activity,
+    RefreshCw, Plus, Edit2, Trash2,
+    Wifi, WifiOff,
     Upload, FileText,
-    Database, FileSpreadsheet, Inbox, ShieldAlert
+    Database, FileSpreadsheet, Inbox, ShieldAlert, TabletSmartphone, Settings2
 } from 'lucide-react';
 import { TableSkeleton } from '../components/SkeletonLoader';
 import { useToast, Button, ListPage, ListSearch, ListSelection, ListMenu, ListMenuItem, ListIconButton, LIST_THEAD, LIST_TH, LIST_EDGE_FIRST, LIST_EDGE_LAST } from '../components';
@@ -258,6 +258,9 @@ export default function Devices() {
     };
 
     const [selectedDevices, setSelectedDevices] = useState([]);
+    // The device shown in the detail pane.
+    const [activeSerial, setActiveSerial] = useState(null);
+    const navigate = useNavigate();
     const [syncingAll, setSyncingAll] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
     const [confirmation, setConfirmation] = useState({ show: false, action: null, title: '', message: '', target: null });
@@ -465,6 +468,32 @@ export default function Devices() {
     // badge: once require_device_approval is on, punches from an unapproved
     // reader are refused — and because the reader is still ACKed and clears its
     // buffer, they are gone. Approving later does not backfill them.
+    // Online first, then by name, so the list reads as fleet health.
+    const orderedDevices = [...devices].sort((a, b) =>
+        (a.status === 'online' ? 0 : 1) - (b.status === 'online' ? 0 : 1)
+        || String(a.device_name || '').localeCompare(String(b.device_name || '')));
+    const onlineCount = devices.filter(d => d.status === 'online').length;
+    const activeDevice = orderedDevices.find(d => d.serial_number === activeSerial) || orderedDevices[0] || null;
+
+    const testConnection = async (sn) => {
+        try {
+            showToast('Testing connection...', 'info');
+            const res = await api.post(`/api/devices/${sn}/test-connection`);
+            showToast(`${res.data.message}: ${res.data.details}`, res.data.success ? 'success' : 'error');
+        } catch (err) {
+            showToast('Test failed to run', 'error');
+        }
+    };
+    const forceOnline = async (sn) => {
+        try {
+            await api.post(`/api/devices/${sn}/force-online`);
+            showToast('Device marked as online', 'success');
+            fetchDevices();
+        } catch (err) {
+            showToast('Failed to force online', 'error');
+        }
+    };
+
     const awaitingApproval = devices.filter(
         d => d.approval_status === 'pending' && d.status !== 'retired'
     );
@@ -534,191 +563,176 @@ export default function Devices() {
                                 </div>
                             </>
                         }
-                        bodyClassName="p-4 sm:p-6"
+                        bodyClassName="!overflow-hidden"
                     >
-                    <div className="space-y-6">
+                    <div className="flex flex-col h-full min-h-0">
                         {awaitingApproval.length > 0 && (
-                            <div className="card-base !p-4 border-l-4 border-rose-500 flex items-start gap-3">
-                                <ShieldAlert size={20} className="text-rose-500 shrink-0 mt-0.5" />
-                                <div className="flex-1 min-w-0">
-                                    <p className="font-semibold text-slate-800 dark:text-slate-100">
-                                        {awaitingApproval.length} device{awaitingApproval.length === 1 ? '' : 's'} awaiting approval
+                            <div role="alert" className="flex items-start gap-3 px-4 sm:px-6 py-3 border-b border-rose-200 bg-rose-50 dark:border-rose-900 dark:bg-rose-950/40">
+                                <ShieldAlert size={18} className="text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+                                <div className="flex-1 min-w-0 text-sm">
+                                    <p className="font-semibold text-rose-900 dark:text-rose-200">
+                                        {awaitingApproval.length} device{awaitingApproval.length === 1 ? '' : 's'} awaiting approval:{' '}
+                                        <span className="font-mono font-normal">{awaitingApproval.map(d => d.serial_number).join(', ')}</span>
                                     </p>
-                                    <p className="text-sm font-mono text-slate-600 dark:text-slate-300 mt-0.5 break-all">
-                                        {awaitingApproval.map(d => d.serial_number).join(', ')}
-                                    </p>
-                                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-                                        While device approval is enforced, punches from an unapproved reader are
-                                        refused and cannot be recovered afterwards. Approve it below, or retire it
-                                        if you do not recognise the serial.
+                                    <p className="text-[13px] text-rose-800 dark:text-rose-300">
+                                        While device approval is enforced, punches from an unapproved reader are refused and cannot be
+                                        recovered afterwards. Approve it, or retire it if you do not recognise the serial.
                                     </p>
                                 </div>
                             </div>
                         )}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
-                            {devices.map(device => {
+                        {devices.length === 0 ? (
+                            <div className="py-20 text-center px-6">
+                                <TabletSmartphone size={40} className="mx-auto mb-3 text-slate-300 dark:text-slate-500" />
+                                <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-1">No devices yet</h3>
+                                <p className="text-sm text-slate-600 dark:text-slate-400 max-w-md mx-auto">
+                                    Set the device's Cloud Server address to this server and it appears here on its first connection. You can also add it by serial number.
+                                </p>
+                            </div>
+                        ) : (
+                        <div className="grid md:grid-cols-[300px_minmax(0,1fr)] flex-1 min-h-0">
+                            {/* Device list */}
+                            <div className="min-h-0 overflow-y-auto border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-800">
+                                <div className="sticky top-0 z-10 flex items-center gap-3 px-4 py-2 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+                                    <input
+                                        type="checkbox"
+                                        aria-label="Select all devices"
+                                        checked={devices.length > 0 && devices.every(d => selectedDevices.includes(d.serial_number))}
+                                        onChange={e => setSelectedDevices(e.target.checked ? devices.map(d => d.serial_number) : [])}
+                                    />
+                                    <span className="text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-600 dark:text-slate-400">
+                                        {onlineCount} online · {devices.length - onlineCount} offline
+                                    </span>
+                                </div>
+                                <ul>
+                                    {orderedDevices.map(device => {
+                                        const isOnline = device.status === 'online';
+                                        const on = activeDevice?.serial_number === device.serial_number;
+                                        return (
+                                            <li key={device.serial_number} className="relative">
+                                                {on && <span aria-hidden="true" className="absolute left-0 top-0 bottom-0 w-[3px] bg-[rgb(var(--brand))]" />}
+                                                <div className={`flex items-center gap-3 px-4 py-3 border-b border-slate-100 dark:border-slate-800/70 ${on ? 'bg-slate-100 dark:bg-slate-800' : 'hover:bg-slate-50 dark:hover:bg-slate-800/40'}`}>
+                                                    <input
+                                                        type="checkbox"
+                                                        aria-label={`Select ${device.device_name}`}
+                                                        checked={selectedDevices.includes(device.serial_number)}
+                                                        onChange={() => setSelectedDevices(prev => prev.includes(device.serial_number)
+                                                            ? prev.filter(s => s !== device.serial_number)
+                                                            : [...prev, device.serial_number])}
+                                                    />
+                                                    <button type="button" onClick={() => setActiveSerial(device.serial_number)} className="flex-1 min-w-0 text-left">
+                                                        <span className="flex items-center gap-2">
+                                                            <span aria-hidden="true" className={`w-2 h-2 rounded-full shrink-0 ${isOnline ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'}`} />
+                                                            <span className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">{device.device_name || device.serial_number}</span>
+                                                            {device.approval_status === 'pending' && (
+                                                                <span className="px-1.5 rounded text-[11px] font-medium bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">New</span>
+                                                            )}
+                                                        </span>
+                                                        <span className="block pl-4 text-xs text-slate-600 dark:text-slate-400 truncate">
+                                                            <span className="font-mono">{device.serial_number}</span> · {isOnline ? 'Online' : `Seen ${timeSince(device.last_activity)}`}
+                                                        </span>
+                                                    </button>
+                                                </div>
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
+                            </div>
+
+                            {/* Selected device */}
+                            {activeDevice && (() => {
+                                const device = activeDevice;
                                 const isOnline = device.status === 'online';
-                                const isSelected = selectedDevices.includes(device.serial_number);
-                                const direction = getDirectionLabel(device.device_direction);
+                                const sn = device.serial_number;
+                                const yes = (v) => (v ? 'Yes' : 'No');
+                                const details = [
+                                    ['Serial number', <span key="s" className="font-mono">{sn}</span>],
+                                    ['IP address', device.ip_address ? <span key="i" className="font-mono">{device.ip_address}{device.port ? `:${device.port}` : ''}</span> : '—'],
+                                    ['Area', device.area_name || 'Unassigned'],
+                                    ['Direction', getDirectionLabel(device.device_direction)],
+                                    ['Model', device.detected_model || device.device_model || '—'],
+                                    ['Firmware', device.detected_firmware || device.firmware_version || '—'],
+                                    ['Vendor', device.vendor || '—'],
+                                    ['Transfer mode', device.transfer_mode || '—'],
+                                    ['Last activity', device.last_activity ? formatDateTime(device.last_activity) : 'Never'],
+                                    ['Last sync', device.last_sync ? formatDateTime(device.last_sync) : 'Never'],
+                                    ['First seen', device.first_seen_at ? formatDateTime(device.first_seen_at) : '—'],
+                                    ['Supports', [device.finger_supported && 'Fingerprint', device.face_supported && 'Face', device.palm_supported && 'Palm', device.card_supported && 'Card'].filter(Boolean).join(', ') || '—'],
+                                    ['Attendance device', yes(device.is_attendance_device)],
+                                    ['Registration device', yes(device.is_registration_device)],
+                                    ['Access control', yes(device.enable_access_control)]
+                                ];
                                 return (
-                                <div
-                                    key={device.serial_number}
-                                    className={`dv-card group ${isOnline ? 'is-online' : 'is-offline'} ${isSelected ? 'is-selected' : ''}`}
-                                >
-                                    {/* status rail */}
-                                    <span className="dv-rail" />
-
-                                    {/* header */}
-                                    <div className="dv-head">
-                                        <div className="dv-avatar">
-                                            {isOnline ? <Wifi size={20} /> : <WifiOff size={20} />}
-                                            {isOnline && <span className="dv-ping" />}
-                                        </div>
-
-                                        <div className="min-w-0 flex-1">
-                                            <div className="flex items-center gap-2">
-                                                <h3 className="dv-name">{device.device_name}</h3>
-                                                <span className={`dv-dir dv-dir--${direction.toLowerCase()}`}>{direction}</span>
+                                    <div className="min-h-0 overflow-y-auto">
+                                        <div className="flex items-start justify-between gap-4 px-4 sm:px-6 pt-5 pb-4 flex-wrap">
+                                            <div className="flex items-center gap-3 min-w-0">
+                                                <span className={`grid place-items-center w-10 h-10 rounded-xl shrink-0 ${isOnline ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'}`}>
+                                                    {isOnline ? <Wifi size={19} /> : <WifiOff size={19} />}
+                                                </span>
+                                                <div className="min-w-0">
+                                                    <h2 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-50 truncate">{device.device_name || sn}</h2>
+                                                    <p className="text-[13px] text-slate-600 dark:text-slate-400">
+                                                        <span className={`font-medium ${isOnline ? 'text-emerald-700 dark:text-emerald-400' : ''}`}>{isOnline ? 'Online' : 'Offline'}</span>
+                                                        {' · '}{isOnline ? 'connected now' : `last seen ${timeSince(device.last_activity)}`}
+                                                        {' · '}{getDirectionLabel(device.device_direction)}
+                                                    </p>
+                                                </div>
                                             </div>
-                                            <p className="dv-serial">{device.serial_number}</p>
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                                <Button variant="tonal" size="toolbar" icon={RefreshCw}
+                                                    onClick={() => syncDevice(sn, 'INFO')} disabled={Boolean(syncing[sn])}>
+                                                    {syncing[sn] ? 'Syncing…' : 'Sync'}
+                                                </Button>
+                                                <ListMenu label="More" icon={Settings2} width="w-56">
+                                                    <ListMenuItem onClick={() => navigate('/device-commands')}>Send a command…</ListMenuItem>
+                                                    {!isOnline && <ListMenuItem onClick={() => testConnection(sn)}>Test network connection</ListMenuItem>}
+                                                    {!isOnline && <ListMenuItem onClick={() => forceOnline(sn)}>Mark as online</ListMenuItem>}
+                                                </ListMenu>
+                                                <Button variant="tonal" size="toolbar" icon={Edit2}
+                                                    onClick={() => { setEditingDevice(device); setForm({ ...defaultForm, ...device }); setShowModal(true); }}>
+                                                    Edit
+                                                </Button>
+                                                <Button variant="danger" size="toolbar" icon={Trash2} onClick={() => handleDelete(sn)}>Retire</Button>
+                                            </div>
                                         </div>
 
-                                        <label className="dv-check" title={isSelected ? 'Deselect device' : 'Select device'}>
-                                            <input
-                                                type="checkbox"
-                                                checked={isSelected}
-                                                onChange={() => {
-                                                    if (isSelected)
-                                                        setSelectedDevices(selectedDevices.filter(s => s !== device.serial_number));
-                                                    else
-                                                        setSelectedDevices([...selectedDevices, device.serial_number]);
-                                                }}
-                                            />
-                                            <span />
-                                        </label>
-                                    </div>
-
-                                    {/* live status line */}
-                                    <div className="dv-status">
-                                        <span className={`dv-dot ${isOnline ? 'on' : 'off'}`} />
-                                        <span className="dv-status-text">{isOnline ? 'Online' : 'Offline'}</span>
-                                        <span className="dv-sep" />
-                                        <Clock size={12} className="opacity-60" />
-                                        <span>{timeSince(device.last_activity)}</span>
-                                    </div>
-
-                                    {/* A serial seen for the first time registers as pending. Its
-                                        punches are still accepted unless Settings → Security →
-                                        require_device_approval is on, but it is called out here so a
-                                        reader nobody installed does not blend into the fleet. */}
-                                    {device.approval_status === 'pending' && (
-                                        <div className="flex items-center gap-2 flex-wrap px-2.5 py-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
-                                            <ShieldAlert size={14} className="text-amber-700 dark:text-amber-400 shrink-0" />
-                                            <span className="text-xs text-amber-800 dark:text-amber-300 flex-1 min-w-0">
-                                                New device — not yet approved
-                                            </span>
-                                            <Button
-                                                variant="successSolid"
-                                                size="sm"
-                                                onClick={() => approveDevice(device.serial_number)}
-                                                disabled={approving[device.serial_number]}
-                                            >
-                                                {approving[device.serial_number] ? 'Approving…' : 'Approve'}
-                                            </Button>
-                                        </div>
-                                    )}
-
-                                    {/* metrics */}
-                                    <div className="dv-metrics">
-                                        <div>
-                                            <span className="dv-label">IP Address</span>
-                                            <span className="dv-value font-mono">{device.ip_address || '—'}</span>
-                                        </div>
-                                        <div>
-                                            <span className="dv-label">Area</span>
-                                            <span className="dv-value">{device.area_name || 'Unassigned'}</span>
-                                        </div>
-                                    </div>
-
-                                    {/* actions */}
-                                    <div className="dv-actions">
-                                        <Button
-                                            variant="secondary"
-                                            size="sm"
-                                            className="flex-1"
-                                            onClick={() => syncDevice(device.serial_number, 'INFO')}
-                                            disabled={syncing[device.serial_number]}
-                                        >
-                                            <RefreshCw size={15} className={syncing[device.serial_number] ? 'animate-spin' : ''} />
-                                            {syncing[device.serial_number] ? 'Syncing...' : 'Sync'}
-                                        </Button>
-
-                                        {!isOnline && (
-                                            <>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    icon={Activity}
-                                                    title="Test Network Connection"
-                                                    aria-label="Test Network Connection"
-                                                    onClick={async () => {
-                                                        const btn = document.getElementById(`test-${device.serial_number}`);
-                                                        try {
-                                                            if (btn) btn.classList.add('animate-pulse');
-                                                            showToast('Testing connection...', 'info');
-                                                            const res = await api.post(`/api/devices/${device.serial_number}/test-connection`);
-                                                            showToast(`${res.data.message}: ${res.data.details}`, res.data.success ? 'success' : 'error');
-                                                        } catch (err) {
-                                                            showToast('Test failed to run', 'error');
-                                                        } finally {
-                                                            if (btn) btn.classList.remove('animate-pulse');
-                                                        }
-                                                    }}
-                                                    id={`test-${device.serial_number}`}
-                                                />
-
-                                                <Button
-                                                    variant="success"
-                                                    size="sm"
-                                                    icon={Power}
-                                                    title="Force Online"
-                                                    aria-label="Force Online"
-                                                    onClick={async () => {
-                                                        try {
-                                                            await api.post(`/api/devices/${device.serial_number}/force-online`);
-                                                            showToast('Device marked as online', 'success');
-                                                            fetchDevices();
-                                                        } catch (err) {
-                                                            showToast('Failed to force online', 'error');
-                                                        }
-                                                    }}
-                                                />
-                                            </>
+                                        {device.approval_status === 'pending' && (
+                                            <div className="mx-4 sm:mx-6 mb-4 flex items-center gap-3 flex-wrap px-3 py-2.5 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/40">
+                                                <ShieldAlert size={16} className="text-amber-700 dark:text-amber-400 shrink-0" />
+                                                <span className="flex-1 min-w-0 text-sm text-amber-900 dark:text-amber-200">New device — not yet approved.</span>
+                                                <Button mutating variant="primary" size="toolbar" onClick={() => approveDevice(sn)} disabled={approving[sn]}>
+                                                    {approving[sn] ? 'Approving…' : 'Approve'}
+                                                </Button>
+                                            </div>
                                         )}
 
-                                        <div className="dv-quiet">
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                icon={Edit2}
-                                                aria-label="Edit"
-                                                title="Edit device"
-                                                onClick={() => { setEditingDevice(device); setForm({ ...defaultForm, ...device }); setShowModal(true); }}
-                                            />
-                                            <Button
-                                                variant="danger"
-                                                size="sm"
-                                                icon={Trash2}
-                                                aria-label="Delete"
-                                                title="Delete device"
-                                                onClick={() => handleDelete(device.serial_number)}
-                                            />
+                                        <div className="grid grid-cols-2 sm:grid-cols-4 border-y border-slate-200 dark:border-slate-800 divide-x divide-slate-200 dark:divide-slate-800">
+                                            {[
+                                                ['Users', device.user_count],
+                                                ['Fingerprints', device.fingerprint_count],
+                                                ['Faces', device.face_count],
+                                                ['Transactions', device.transaction_count]
+                                            ].map(([label, value]) => (
+                                                <div key={label} className="px-4 sm:px-6 py-3">
+                                                    <span className="block text-xs text-slate-600 dark:text-slate-400">{label}</span>
+                                                    <span className="block mt-0.5 text-2xl font-semibold tabular-nums text-slate-900 dark:text-slate-50">{Number(value || 0).toLocaleString()}</span>
+                                                </div>
+                                            ))}
                                         </div>
+
+                                        <dl className="grid sm:grid-cols-2 xl:grid-cols-3 gap-x-8 px-4 sm:px-6 py-2">
+                                            {details.map(([label, value]) => (
+                                                <div key={label} className="flex items-baseline justify-between gap-4 py-2.5 border-b border-slate-100 dark:border-slate-800">
+                                                    <dt className="text-[13px] text-slate-600 dark:text-slate-400">{label}</dt>
+                                                    <dd className="text-[13px] font-medium text-slate-900 dark:text-slate-100 text-right truncate">{value}</dd>
+                                                </div>
+                                            ))}
+                                        </dl>
                                     </div>
-                                </div>
                                 );
-                            })}
+                            })()}
                         </div>
+                        )}
                     </div>
                     </ListPage>
                 );
