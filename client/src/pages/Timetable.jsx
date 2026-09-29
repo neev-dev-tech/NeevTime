@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
-import { Plus, Edit2, Trash2, Save, CalendarDays, Coffee, Moon, Sun, AlertCircle, RefreshCw } from 'lucide-react';
-import { useToast, Button, ExportMenu, ListPage } from '../components';
+import { Plus, Edit2, Trash2, Save, CalendarDays, Coffee, AlertCircle, RefreshCw } from 'lucide-react';
+import { useToast, Button, ExportMenu, ListPage, LIST_THEAD, LIST_TH, LIST_EDGE_FIRST, LIST_EDGE_LAST } from '../components';
 import Modal from '../components/Modal';
 import { confirm } from '../components/ConfirmDialog';
+import DayTrack, { DayTrackScale } from '../components/DayTrack';
 
 export default function Timetable() {
     const toast = useToast();
@@ -164,7 +165,6 @@ export default function Timetable() {
             <ListPage
                 title="Timetables"
                 count={timetables.length}
-                bodyClassName="p-4 sm:p-6"
                 actions={
                     <>
                         <ExportMenu
@@ -213,105 +213,60 @@ export default function Timetable() {
                         </p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {timetables.map(tt => (
-                            <div
-                                key={tt.id}
-                                className="bg-app-surface/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden hover:-translate-y-0.5 transition-transform"
-                            >
-                                {/* Header with color */}
-                                <div
-                                    className="h-1.5"
-                                    style={{ backgroundColor: tt.color || '#3B82F6' }}
-                                />
-                                <div className="p-4">
-                                    <div className="flex items-start justify-between gap-3 mb-3">
-                                        <div className="min-w-0">
-                                            <h3 className="font-semibold text-slate-800 dark:text-slate-100 truncate">{tt.name || '—'}</h3>
-                                            <span className="font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400 font-semibold">
-                                                {tt.code || '—'}
-                                            </span>
-                                        </div>
-                                        <div className="flex gap-1 shrink-0">
-                                            {tt.is_overnight && (
-                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300" title="Overnight">
-                                                    <Moon size={10} /> Night
-                                                </span>
-                                            )}
-                                            {tt.is_flexible && (
-                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300" title="Flexible">
-                                                    <Sun size={10} /> Flex
-                                                </span>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {/* Time Display */}
-                                    <div className="grid grid-cols-2 gap-2 mb-3">
-                                        <div className="rounded-xl p-2.5 text-center bg-emerald-50 dark:bg-emerald-900/25 border border-emerald-100 dark:border-emerald-900/40">
-                                            <div className="text-[11px] uppercase tracking-[0.06em] font-bold text-emerald-700 dark:text-emerald-400 mb-0.5">Check In</div>
-                                            <div className="text-lg font-bold tabular-nums text-emerald-700 dark:text-emerald-300">{formatTime(tt.check_in)}</div>
-                                            <div className="text-[11px] tabular-nums text-slate-600 dark:text-slate-400">
-                                                {tt.late_in ? `Late after ${formatTime(tt.late_in)}` : '—'}
+                    <table className="w-full text-sm text-left">
+                        <thead className={LIST_THEAD}>
+                            <tr>
+                                <th className={`${LIST_TH} ${LIST_EDGE_FIRST}`}>Timetable</th>
+                                <th className={LIST_TH}>Check in</th>
+                                <th className={LIST_TH}>Check out</th>
+                                <th className={`${LIST_TH} w-[22%] min-w-[150px]`}><span className="sr-only">Hours of the day</span><DayTrackScale /></th>
+                                <th className={`${LIST_TH} !text-right`}>Grace</th>
+                                <th className={`${LIST_TH} !text-right`}>Full day</th>
+                                <th className={`${LIST_TH} !text-right`}>Breaks</th>
+                                <th className={`${LIST_TH} ${LIST_EDGE_LAST}`}><span className="sr-only">Actions</span></th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                            {timetables.map(tt => (
+                                <tr key={tt.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                                    <td className={`${LIST_EDGE_FIRST} pr-4 py-3`}>
+                                        <div className="flex items-center gap-2.5 min-w-0">
+                                            <span aria-hidden="true" className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: tt.color || '#64748B' }} />
+                                            <div className="min-w-0">
+                                                <div className="flex items-center gap-1.5">
+                                                    <span className="font-medium text-slate-900 dark:text-slate-100 truncate">{tt.name || '—'}</span>
+                                                    {tt.is_overnight && <span className="px-1.5 rounded text-[11px] font-medium bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">Overnight</span>}
+                                                    {tt.is_flexible && <span className="px-1.5 rounded text-[11px] font-medium bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">Flexible</span>}
+                                                </div>
+                                                <span className="font-mono text-xs text-slate-600 dark:text-slate-400">{tt.code || '—'}</span>
                                             </div>
                                         </div>
-                                        <div className="rounded-xl p-2.5 text-center bg-rose-50 dark:bg-rose-900/25 border border-rose-100 dark:border-rose-900/40">
-                                            <div className="text-[11px] uppercase tracking-[0.06em] font-bold text-rose-700 dark:text-rose-400 mb-0.5">Check Out</div>
-                                            <div className="text-lg font-bold tabular-nums text-rose-700 dark:text-rose-300">{formatTime(tt.check_out)}</div>
-                                            <div className="text-[11px] tabular-nums text-slate-600 dark:text-slate-400">
-                                                {tt.early_out ? `Early before ${formatTime(tt.early_out)}` : '—'}
-                                            </div>
+                                    </td>
+                                    <td className="px-4 py-3 whitespace-nowrap">
+                                        <span className="block font-semibold tabular-nums text-slate-900 dark:text-slate-100">{formatTime(tt.check_in)}</span>
+                                        <span className="block text-xs text-slate-600 dark:text-slate-400 tabular-nums">{tt.late_in ? `late after ${formatTime(tt.late_in)}` : '—'}</span>
+                                    </td>
+                                    <td className="px-4 py-3 whitespace-nowrap">
+                                        <span className="block font-semibold tabular-nums text-slate-900 dark:text-slate-100">{formatTime(tt.check_out)}</span>
+                                        <span className="block text-xs text-slate-600 dark:text-slate-400 tabular-nums">{tt.early_out ? `early before ${formatTime(tt.early_out)}` : '—'}</span>
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        <DayTrack start={tt.check_in} end={tt.check_out} color={tt.color} lateAfter={tt.late_in} earlyBefore={tt.early_out} />
+                                    </td>
+                                    <td className="px-4 py-3 text-right tabular-nums text-slate-700 dark:text-slate-300">{tt.grace_period_minutes ?? 0}m</td>
+                                    <td className="px-4 py-3 text-right tabular-nums text-slate-700 dark:text-slate-300">{tt.min_hours_for_full_day || 8}h</td>
+                                    <td className="px-4 py-3 text-right tabular-nums text-slate-700 dark:text-slate-300">{tt.break_count || 0}</td>
+                                    <td className={`pl-4 ${LIST_EDGE_LAST} py-3`}>
+                                        <div className="flex items-center justify-end gap-1.5">
+                                            <Button variant="tonal" size="toolbar" icon={Coffee} onClick={() => openBreakModal(tt)}>Breaks</Button>
+                                            <Button variant="tonal" size="toolbar" icon={Edit2} onClick={() => openEdit(tt)}>Edit</Button>
+                                            <Button variant="danger" size="toolbar" icon={Trash2} aria-label={`Delete ${tt.name}`} title="Delete" onClick={() => handleDelete(tt.id)} />
                                         </div>
-                                    </div>
-
-                                    {/* Details */}
-                                    <dl className="grid grid-cols-3 gap-2 text-center mb-3">
-                                        <div>
-                                            <dt className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-600 dark:text-slate-400">Grace</dt>
-                                            <dd className="text-sm font-semibold tabular-nums text-slate-800 dark:text-slate-100">{tt.grace_period_minutes ?? 0}m</dd>
-                                        </div>
-                                        <div>
-                                            <dt className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-600 dark:text-slate-400">Full Day</dt>
-                                            <dd className="text-sm font-semibold tabular-nums text-slate-800 dark:text-slate-100">{tt.min_hours_for_full_day || 8}h</dd>
-                                        </div>
-                                        <div>
-                                            <dt className="text-[11px] uppercase tracking-[0.06em] font-bold text-slate-600 dark:text-slate-400">Breaks</dt>
-                                            <dd className="text-sm font-semibold tabular-nums text-slate-800 dark:text-slate-100">{tt.break_count || 0}</dd>
-                                        </div>
-                                    </dl>
-
-                                    {/* Actions */}
-                                    <div className="flex gap-2 pt-3 border-t border-slate-100 dark:border-slate-700">
-                                        <Button
-                                            variant="secondary"
-                                            size="sm"
-                                            icon={Coffee}
-                                            className="flex-1"
-                                            onClick={() => openBreakModal(tt)}
-                                        >
-                                            Breaks
-                                        </Button>
-                                        <Button
-                                            variant="secondary"
-                                            size="sm"
-                                            icon={Edit2}
-                                            className="flex-1"
-                                            onClick={() => openEdit(tt)}
-                                        >
-                                            Edit
-                                        </Button>
-                                        <Button
-                                            variant="danger"
-                                            size="sm"
-                                            icon={Trash2}
-                                            aria-label="Delete"
-                                            onClick={() => handleDelete(tt.id)}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 )}
             </ListPage>
 

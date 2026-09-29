@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api';
-import { Plus, Edit2, Trash2, Clock, Sun, Moon, AlertCircle, RefreshCw } from 'lucide-react';
-import { useToast, Button, ExportMenu, ListPage } from '../components';
+import { Plus, Edit2, Trash2, Clock, AlertCircle, RefreshCw } from 'lucide-react';
+import { useToast, Button, ExportMenu, ListPage, LIST_THEAD, LIST_TH, LIST_EDGE_FIRST, LIST_EDGE_LAST } from '../components';
 import Modal from '../components/Modal';
 import { confirm } from '../components/ConfirmDialog';
+import DayTrack, { DayTrackScale } from '../components/DayTrack';
 
 export default function ShiftMaster() {
     const toast = useToast();
@@ -102,7 +103,6 @@ export default function ShiftMaster() {
                         <Button mutating variant="primary" size="toolbar" icon={Plus} onClick={() => { setEditingShift(null); setShowModal(true); }}>Add Shift</Button>
                     </>
                 }
-                bodyClassName="p-4 sm:p-6"
             >
                 {loading ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -126,62 +126,48 @@ export default function ShiftMaster() {
                         </p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {shifts.map(shift => (
-                            <div key={shift.id} className="bg-app-surface/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 hover:-translate-y-0.5 transition-transform">
-                                <div className="flex justify-between items-start gap-3 mb-3">
-                                    <div className="min-w-0">
-                                        <h3 className="font-semibold text-slate-800 dark:text-slate-100 truncate">{shift.name || '—'}</h3>
-                                        <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide ${shift.shift_type === 'Night'
-                                                ? 'bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300'
-                                                : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'}`}>
-                                                {shift.shift_type || 'Fixed'}
-                                            </span>
-                                            {shift.is_night_shift && (
-                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300">
-                                                    <Moon size={10} /> Overnight
-                                                </span>
-                                            )}
+                    <table className="w-full text-sm text-left">
+                        <thead className={LIST_THEAD}>
+                            <tr>
+                                <th className={`${LIST_TH} ${LIST_EDGE_FIRST}`}>Shift</th>
+                                <th className={LIST_TH}>Hours</th>
+                                <th className={`${LIST_TH} w-[32%] min-w-[220px]`}><span className="sr-only">Hours of the day</span><DayTrackScale /></th>
+                                <th className={`${LIST_TH} !text-right`}>Grace</th>
+                                <th className={`${LIST_TH} !text-right`}>Late after</th>
+                                <th className={`${LIST_TH} !text-right`}>Break</th>
+                                <th className={`${LIST_TH} ${LIST_EDGE_LAST}`}><span className="sr-only">Actions</span></th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                            {shifts.map(shift => (
+                                <tr key={shift.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                                    <td className={`${LIST_EDGE_FIRST} pr-4 py-3`}>
+                                        <div className="flex items-center gap-1.5 flex-wrap">
+                                            <span className="font-medium text-slate-900 dark:text-slate-100">{shift.name || '—'}</span>
+                                            <span className="px-1.5 rounded text-[11px] font-medium bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">{shift.shift_type || 'Fixed'}</span>
+                                            {shift.is_night_shift && <span className="px-1.5 rounded text-[11px] font-medium bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">Overnight</span>}
                                         </div>
-                                    </div>
-                                    <div className="flex gap-1 shrink-0">
-                                        <button onClick={() => handleEdit(shift)} aria-label="Edit shift" className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg transition-colors"><Edit2 size={16} /></button>
-                                        <button onClick={() => handleDelete(shift.id)} aria-label="Delete shift" className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-lg transition-colors"><Trash2 size={16} /></button>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center gap-2 text-sm mb-3">
-                                    <span className="inline-flex items-center gap-1.5 text-slate-800 dark:text-slate-100 font-semibold tabular-nums">
-                                        <Sun size={14} className="text-amber-500 dark:text-amber-400" />
-                                        {shift.start_time?.substring(0, 5) || '—'}
-                                    </span>
-                                    <span className="text-slate-500 dark:text-slate-400">→</span>
-                                    <span className="inline-flex items-center gap-1.5 text-slate-800 dark:text-slate-100 font-semibold tabular-nums">
-                                        <Moon size={14} className="text-slate-600 dark:text-slate-400" />
-                                        {shift.end_time?.substring(0, 5) || '—'}
-                                    </span>
-                                </div>
-
-                                <dl className="grid grid-cols-3 gap-2 pt-3 border-t border-slate-100 dark:border-slate-700 text-center">
-                                    <div>
-                                        <dt className="text-[11px] uppercase tracking-[0.06em] text-slate-600 dark:text-slate-400 font-bold">Grace</dt>
-                                        <dd className="text-sm font-semibold text-slate-800 dark:text-slate-100 tabular-nums">{shift.grace_in_minutes || 0}m</dd>
-                                    </div>
-                                    <div>
-                                        <dt className="text-[11px] uppercase tracking-[0.06em] text-slate-600 dark:text-slate-400 font-bold">Late After</dt>
-                                        <dd className="text-sm font-semibold text-slate-800 dark:text-slate-100 tabular-nums">{shift.late_threshold_minutes || 15}m</dd>
-                                    </div>
-                                    <div>
-                                        <dt className="text-[11px] uppercase tracking-[0.06em] text-slate-600 dark:text-slate-400 font-bold">Break</dt>
-                                        <dd className="text-sm font-semibold text-slate-800 dark:text-slate-100 tabular-nums">
-                                            {shift.break_duration_minutes > 0 ? `${shift.break_duration_minutes}m` : '—'}
-                                        </dd>
-                                    </div>
-                                </dl>
-                            </div>
-                        ))}
-                    </div>
+                                        {shift.code && <span className="font-mono text-xs text-slate-600 dark:text-slate-400">{shift.code}</span>}
+                                    </td>
+                                    <td className="px-4 py-3 whitespace-nowrap font-semibold tabular-nums text-slate-900 dark:text-slate-100">
+                                        {shift.start_time?.substring(0, 5) || '—'} – {shift.end_time?.substring(0, 5) || '—'}
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        <DayTrack start={shift.start_time} end={shift.end_time} />
+                                    </td>
+                                    <td className="px-4 py-3 text-right tabular-nums text-slate-700 dark:text-slate-300">{shift.grace_in_minutes || 0}m</td>
+                                    <td className="px-4 py-3 text-right tabular-nums text-slate-700 dark:text-slate-300">{shift.late_threshold_minutes || 15}m</td>
+                                    <td className="px-4 py-3 text-right tabular-nums text-slate-700 dark:text-slate-300">{shift.break_duration_minutes > 0 ? `${shift.break_duration_minutes}m` : '—'}</td>
+                                    <td className={`pl-4 ${LIST_EDGE_LAST} py-3`}>
+                                        <div className="flex items-center justify-end gap-1.5">
+                                            <Button variant="tonal" size="toolbar" icon={Edit2} onClick={() => handleEdit(shift)}>Edit</Button>
+                                            <Button variant="danger" size="toolbar" icon={Trash2} aria-label={`Delete ${shift.name}`} title="Delete" onClick={() => handleDelete(shift.id)} />
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 )}
             </ListPage>
 
