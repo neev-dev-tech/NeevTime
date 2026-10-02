@@ -30,7 +30,8 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const FONT_DIR = path.join(HERE, '../src/assets/fonts');
 const CSS_OUT = path.join(HERE, '../src/fonts.css');
 
-const FAMILIES = 'family=Sora:wght@400;500;600;700'
+const FAMILIES = 'family=Inter:wght@400;500;600;700'
+    + '&family=Sora:wght@400;500;600;700'
     + '&family=Public+Sans:wght@300;400;500;600;700'
     + '&family=IBM+Plex+Mono:wght@400;500';
 

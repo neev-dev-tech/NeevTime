@@ -4,11 +4,12 @@
    entry point. IBM Plex Mono is for identifiers — employee codes and device
    serials read as identifiers rather than prose.
 
-   Inter is gone. It is the default every generated interface reaches for, and
-   an app that looks machine-made is the thing being fixed here. */
+   Since the NeevOne retheme (28 Sep 2026) Inter is the platform typeface
+   across the suite; the faces above remain for anything that names them. */
+/* Every face is served from this origin (fonts.css). Inter used to come from
+   fonts.googleapis.com, which told Google the address of everyone who opened
+   the app and broke under the CSP's font-src 'self'. */
 @import './fonts.css';
-/* Neev One platform typeface — Inter, one face across the SaaS suite. */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;

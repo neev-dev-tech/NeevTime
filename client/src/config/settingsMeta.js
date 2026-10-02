@@ -20,7 +20,12 @@ import {
 const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 const csv = (v) => String(v || '').split(',').map(s => s.trim()).filter(Boolean);
 const on = (v) => v === true || v === 'true';
-const ordinal = (n) => `${n}${[, 'st', 'nd', 'rd'][(n % 100 >> 3 ^ 1) && n % 10] || 'th'}`;
+// 1st, 2nd, 3rd, 4th … 11th, 12th, 13th … 21st.
+const ordinal = (n) => {
+    const v = n % 100;
+    const suffix = v >= 11 && v <= 13 ? 'th' : ({ 1: 'st', 2: 'nd', 3: 'rd' }[n % 10] || 'th');
+    return `${n}${suffix}`;
+};
 
 export const SETTINGS_SECTIONS = [
     {
@@ -101,7 +106,7 @@ export const SETTINGS_SECTIONS = [
             holiday_carry_forward: { label: 'Move off-day holidays forward', help: 'A holiday on a weekly off shifts to the next working day.' }
         },
         status: (v) => {
-            const sats = ['first', 'second', 'third', 'fourth', 'fifth'].filter(n => on(v[`${n}_saturday_off`])).map((n, i) => ['1st', '2nd', '3rd', '4th', '5th'][['first', 'second', 'third', 'fourth', 'fifth'].indexOf(n)]);
+            const sats = ['first', 'second', 'third', 'fourth', 'fifth'].filter(n => on(v[`${n}_saturday_off`])).map((n) => ['1st', '2nd', '3rd', '4th', '5th'][['first', 'second', 'third', 'fourth', 'fifth'].indexOf(n)]);
             return [on(v.all_sundays_off) ? 'Sundays' : null, sats.length ? `${sats.join(', ')} Saturday` : null].filter(Boolean).join(' · ') || 'No weekly off';
         }
     },
