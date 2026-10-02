@@ -80,7 +80,12 @@ for (const file of walk('src')) {
         // An outer `guard && (` immediately above means the body never builds
         // while closed, which is exactly the fix.
         const before = src.slice(Math.max(0, open.index - 300), open.index);
-        if (/&&\s*\(\s*$/.test(before.replace(/\{\/\*[\s\S]*?\*\/\}\s*$/, ''))) continue;
+        // Comments between the guard and <Modal> — {/* … */} blocks or
+        // // lines — do not change what is guarded, so look past them.
+        const trimmed = before
+            .replace(/\{\/\*[\s\S]*?\*\/\}\s*$/, '')
+            .replace(/(?:\n[ \t]*\/\/[^\n]*)+\s*$/, '');
+        if (/&&\s*\(\s*$/.test(trimmed)) continue;
 
         const close = src.indexOf('</Modal>', open.index);
         if (close < 0) continue;

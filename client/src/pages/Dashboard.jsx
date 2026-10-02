@@ -4,9 +4,9 @@ import api from '../api';
 import io from 'socket.io-client';
 import {
     AlertTriangle, CheckCircle, WifiOff, RefreshCw, ChevronRight, Circle,
-    Plane, FileCheck, LogIn, LogOut as LogOutIcon, Timer
+    Plane, FileCheck, LogIn, LogOut as LogOutIcon, Timer, TrendingUp, TrendingDown
 } from 'lucide-react';
-import { formatTimeShort, toLocalDateString } from '../utils/dateFormat';
+import { formatTimeShort, toLocalDateString, formatDateWithWeekday } from '../utils/dateFormat';
 import SetupChecklist from '../components/SetupChecklist';
 
 export default function Dashboard() {
@@ -443,7 +443,7 @@ export default function Dashboard() {
             <div className="flex items-center gap-x-4 gap-y-1 px-4 sm:px-6 min-h-14 py-2.5 border-b border-slate-200 dark:border-slate-800 flex-wrap">
                 <h1 className="text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-50">Dashboard</h1>
                 <span className="text-[13px] text-slate-600 dark:text-slate-400">
-                    {new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })}
+                    {formatDateWithWeekday(new Date())}
                 </span>
                 {minsAgo !== null && (
                     <span className="inline-flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
