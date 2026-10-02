@@ -50,9 +50,11 @@ const sidebarPaths = () => {
 /** The prefix lists MainLayout matches on, in the order it tries them. */
 const moduleRules = () => {
     const layout = read('layouts/MainLayout.jsx');
-    const rules = [...layout.matchAll(
-        /\[([^\]]*)\]\.some\(p => path\.startsWith\(p\)\)\)\s*\{\s*setActiveModule\('(\w+)'\)/g
-    )].map(([, list, module]) => ({
+    // MODULE_PREFIXES rows: ['Device', ['/devices', ...]]
+    const table = layout.slice(layout.indexOf('const MODULE_PREFIXES'));
+    const rules = [...table.slice(0, table.indexOf('];') + 2).matchAll(
+        /\['(\w+)',\s*\[([^\]]*)\]\]/g
+    )].map(([, module, list]) => ({
         module,
         prefixes: [...list.matchAll(/'([^']+)'/g)].map((m) => m[1]),
     }));

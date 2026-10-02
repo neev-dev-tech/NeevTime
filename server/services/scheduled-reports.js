@@ -40,7 +40,7 @@ const calculateNextRun = (scheduleType, scheduleTime, scheduleDay = null) => {
             break;
 
         case 'weekly':
-            const targetDay = scheduleDay || 1; // Default Monday
+            const targetDay = scheduleDay ?? 1; // Default Monday; 0 is Sunday, not missing
             const currentDay = nextRun.getDay();
             let daysUntilTarget = (targetDay - currentDay + 7) % 7;
             if (daysUntilTarget === 0 && nextRun <= now) {
@@ -168,7 +168,25 @@ const deleteScheduledReport = async (id) => {
 /**
  * Generate and send a scheduled report
  */
+// The runner records last_run_status, but the table was created without it,
+// so every run — success or failure — ended in "column does not exist" and no
+// run was ever recorded. Added on first use rather than at require time, so
+// loading this module never touches the database.
+let schemaReady = null;
+const ensureSchema = () => {
+    schemaReady = schemaReady || db.query(
+        'ALTER TABLE scheduled_reports ADD COLUMN IF NOT EXISTS last_run_status VARCHAR(20)'
+    ).catch(err => { schemaReady = null; log('ERROR', 'scheduled_reports column ensure failed', { error: err.message }); });
+    return schemaReady;
+};
+
+// Report types are hyphenated here; the schedules created from Settings were
+// written with underscores (daily_attendance), so every one of them failed
+// with "Unknown report type". Accept both.
+const normalizeType = (t) => String(t || '').trim().toLowerCase().replace(/_/g, '-');
+
 const runScheduledReport = async (scheduleId) => {
+    await ensureSchema();
     const schedule = await getScheduledReport(scheduleId);
     if (!schedule) {
         throw new Error('Scheduled report not found');
@@ -181,7 +199,7 @@ const runScheduledReport = async (scheduleId) => {
 
     try {
         // Generate report based on type
-        switch (schedule.report_type) {
+        switch (normalizeType(schedule.report_type)) {
             case 'daily-attendance':
                 reportData = await reports.generateDailyAttendance(
                     filters.date || new Date().toISOString().split('T')[0],
@@ -311,8 +329,30 @@ const MANAGED_NAMES = {
 
 const parseRecipients = (raw) => {
     if (!raw) return [];
-    if (Array.isArray(raw)) return raw;
-    return String(raw).split(/[,;\s]+/).map(s => s.trim()).filter(Boolean);
+    if (Array.isArray(raw)) return raw.map(s => String(s).trim()).filter(Boolean);
+    const text = String(raw).trim();
+    // daily_report_recipients is a json setting and can arrive as the string
+    // '["a@x.com"]'; split as plain text that became one "address" with the
+    // brackets and quotes in it, and the daily report could never be delivered.
+    if (text.startsWith('[')) {
+        try {
+            const list = JSON.parse(text);
+            if (Array.isArray(list)) return parseRecipients(list);
+        } catch { /* fall through to plain text */ }
+    }
+    return text.split(/[,;\s]+/).map(s => s.trim()).filter(Boolean);
+};
+
+// Settings stores the weekly day as a name ("Wednesday"); the schedule wants
+// getDay()'s 0 (Sunday) to 6. Number("Wednesday") is NaN, which fell back to
+// 1, so every weekly report went out on Monday whatever day was chosen.
+const WEEKDAY_NUMBERS = { sunday: 0, monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6 };
+const weekdayNumber = (v) => {
+    const n = WEEKDAY_NUMBERS[String(v ?? '').trim().toLowerCase()];
+    if (n !== undefined) return n;
+    if (v === null || v === undefined || String(v).trim() === '') return 1;
+    const num = Number(v);
+    return Number.isInteger(num) && num >= 0 && num <= 6 ? num : 1;
 };
 
 const syncFromSettings = async () => {
@@ -326,15 +366,15 @@ const syncFromSettings = async () => {
             time: cfg.daily_report_time || '08:00',
             day: null,
             recipients: parseRecipients(cfg.daily_report_recipients),
-            reportType: 'daily_attendance'
+            reportType: 'daily-attendance'
         },
         {
             cadence: 'weekly',
             enabled: cfg.weekly_report_enabled,
             time: cfg.daily_report_time || '08:00',
-            day: Number(cfg.weekly_report_day) || 1,
+            day: weekdayNumber(cfg.weekly_report_day),
             recipients: parseRecipients(cfg.weekly_report_recipients),
-            reportType: 'daily_attendance'
+            reportType: 'daily-attendance'
         },
         {
             cadence: 'monthly',
@@ -342,7 +382,7 @@ const syncFromSettings = async () => {
             time: cfg.daily_report_time || '08:00',
             day: Number(cfg.monthly_report_day) || 1,
             recipients: parseRecipients(cfg.monthly_report_recipients),
-            reportType: 'monthly_summary'
+            reportType: 'monthly-summary'
         }
     ];
 
@@ -410,6 +450,12 @@ const checkDueReports = async () => {
     }
 };
 
+const parseRecipientList = (v) => {
+    if (Array.isArray(v)) return v;
+    if (!v) return [];
+    return String(v).replace(/^\{|\}$/g, '').split(',').map(x => x.replace(/^"|"$/g, '').trim()).filter(Boolean);
+};
+
 /**
  * Get report history
  */
@@ -426,10 +472,13 @@ const getReportHistory = async (scheduleId = null, limit = 50) => {
         params.push(scheduleId);
     }
 
-    query += ' ORDER BY rh.generated_at DESC LIMIT $1';
+    // report_history has sent_at; generated_at never existed, so this query
+    // failed every time and the history was unreadable.
+    query += ' ORDER BY rh.sent_at DESC NULLS LAST, rh.id DESC LIMIT $1';
 
     const result = await db.query(query, params);
-    return result.rows;
+    // recipients is a text column holding a Postgres array literal ({a,b}).
+    return result.rows.map(r => ({ ...r, recipients: parseRecipientList(r.recipients) }));
 };
 
 /**
@@ -454,5 +503,9 @@ module.exports = {
     getReportHistory,
     startScheduler,
     syncFromSettings,
+    weekdayNumber,
+    normalizeType,
+    parseRecipientList,
+    parseRecipients,
     calculateNextRun
 };
