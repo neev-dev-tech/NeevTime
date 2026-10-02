@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
-import { Save, RefreshCw, Send, Loader2, AlertCircle, BellRing, ChevronLeft, ChevronUp, ChevronDown } from 'lucide-react';
+import { Save, RefreshCw, Send, Loader2, AlertCircle, BellRing, ChevronLeft, ChevronRight } from 'lucide-react';
 import api from '../api';
 import { Button, ListPage, useToast } from '../components';
 import LogoUpload from '../components/LogoUpload';
@@ -19,36 +19,93 @@ const TIMEZONES = [
 ];
 const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
-// Title-casing a key mangles initialisms: ldap_base_dn became "Ldap Base Dn"
-// on a screen where the administrator copies values from Azure and Active
-// Directory documentation that write them as LDAP, DN and OIDC.
+// Sentence case, keeping initialisms: ldap_base_dn is "LDAP base DN", not
+// "Ldap Base Dn" — administrators copy these from documentation that writes
+// them that way.
 const INITIALISMS = { ldap: 'LDAP', oidc: 'OIDC', dn: 'DN', url: 'URL', id: 'ID', uri: 'URI', smtp: 'SMTP', gst: 'GST', hr: 'HR', pdf: 'PDF' };
-const defaultLabel = (key) => key.replace(/_/g, ' ').replace(/\b\w+/g, w => INITIALISMS[w.toLowerCase()] || w[0].toUpperCase() + w.slice(1));
+const defaultLabel = (key) => {
+    const s = key.replace(/_/g, ' ').replace(/\b\w+/g, w => INITIALISMS[w.toLowerCase()] || w.toLowerCase());
+    return s[0].toUpperCase() + s.slice(1);
+};
 const csv = (v) => String(v || '').split(',').map(s => s.trim()).filter(Boolean);
 const asList = (v) => Array.isArray(v) ? v : (() => { try { const p = JSON.parse(v); return Array.isArray(p) ? p : csv(v); } catch { return csv(v); } })();
 
-function Switch({ checked, onChange, id }) {
+// One grid for every section: as many ~240px columns as fit, so fields fill
+// the width at any screen size instead of leaving an empty right half.
+const FIELD_GRID = { gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))' };
+const LABEL = 'block text-[13px] font-medium text-slate-800 dark:text-slate-200 mb-1.5';
+const HELP = 'mt-1.5 text-xs text-slate-600 dark:text-slate-400 leading-snug';
+
+function Switch({ checked, onChange, id, label }) {
     return (
-        <button id={id} type="button" role="switch" aria-checked={checked} onClick={() => onChange(!checked)}
-            className={`relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors ${checked ? 'bg-[rgb(var(--brand))]' : 'bg-slate-300 dark:bg-slate-600'}`}>
-            <span className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-[#fff] shadow transition-transform ${checked ? 'translate-x-5' : ''}`} />
+        <button id={id} type="button" role="switch" aria-checked={checked} aria-label={label} onClick={() => onChange(!checked)}
+            className={`relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-slate-400 ${checked ? 'bg-[rgb(var(--brand))]' : 'bg-slate-300 dark:bg-slate-600'}`}>
+            {/* bg-[#fff], not bg-white: a global glass rule repaints .bg-white translucent. */}
+            <span className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-[#fff] shadow transition-transform ${checked ? 'translate-x-5 dark:bg-[#18181b]' : ''}`} />
         </button>
     );
 }
-Switch.propTypes = { checked: PropTypes.bool, onChange: PropTypes.func, id: PropTypes.string };
+Switch.propTypes = { checked: PropTypes.bool, onChange: PropTypes.func, id: PropTypes.string, label: PropTypes.string };
 
 function Group({ title, hint, children }) {
     return (
-        <section className="grid md:grid-cols-[260px_minmax(0,1fr)] gap-x-10 gap-y-4 px-4 sm:px-6 py-6 border-b border-slate-200 dark:border-slate-800">
-            <div>
+        <section className="px-4 sm:px-6 py-5 border-b border-slate-200 dark:border-slate-800">
+            <div className="mb-4">
                 <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">{title}</h2>
-                {hint && <p className="mt-1 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">{hint}</p>}
+                {hint && <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400">{hint}</p>}
             </div>
-            <div className="max-w-2xl">{children}</div>
+            <div className="grid gap-x-5 gap-y-5" style={FIELD_GRID}>{children}</div>
         </section>
     );
 }
 Group.propTypes = { title: PropTypes.node, hint: PropTypes.node, children: PropTypes.node };
+
+/** An on/off setting, or a one-off action, as a bordered row the height of a field. */
+function Tile({ title, help, badge, children }) {
+    return (
+        <div className="flex items-center justify-between gap-4 h-full min-h-[64px] px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-700">
+            <div className="min-w-0">
+                <div className="text-[13px] font-medium text-slate-800 dark:text-slate-200">{title}{badge}</div>
+                {help && <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400 leading-snug">{help}</p>}
+            </div>
+            {children}
+        </div>
+    );
+}
+Tile.propTypes = { title: PropTypes.node, help: PropTypes.node, badge: PropTypes.node, children: PropTypes.node };
+
+/**
+ * An on/off setting laid out like every other field — label, a control box
+ * the height of an input, help below — so switches and inputs line up in the
+ * same row. The whole box toggles.
+ */
+function ToggleField({ id, label, badge, help, checked, onChange, className = '' }) {
+    return (
+        <div className={className}>
+            <span className={LABEL}>{label}{badge}</span>
+            <label htmlFor={id} className="field flex items-center justify-between gap-3 h-[43px] !py-0 cursor-pointer select-none">
+                <span className={`text-[13px] ${checked ? 'font-medium text-slate-900 dark:text-slate-100' : 'text-slate-600 dark:text-slate-400'}`}>{checked ? 'On' : 'Off'}</span>
+                <Switch id={id} label={label} checked={checked} onChange={onChange} />
+            </label>
+            {help && <p className={HELP}>{help}</p>}
+        </div>
+    );
+}
+ToggleField.propTypes = {
+    id: PropTypes.string, label: PropTypes.node, badge: PropTypes.node, help: PropTypes.node,
+    checked: PropTypes.bool, onChange: PropTypes.func, className: PropTypes.string
+};
+
+/** Whether a sign-in method actually works right now, per the server. */
+function LiveBadge({ on, chosen }) {
+    // Nothing to say about a method that is off and not chosen; the box already says Off.
+    if (!on && !chosen) return null;
+    const [text, cls] = on
+        ? ['Working', 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300']
+        : ['Not working', 'bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300'];
+    return <span className={`ml-2 px-1.5 py-px rounded text-[11px] font-medium whitespace-nowrap ${cls}`}>{text}</span>;
+}
+LiveBadge.propTypes = { on: PropTypes.bool, chosen: PropTypes.bool };
 
 export default function Settings() {
     const toast = useToast();
@@ -194,32 +251,30 @@ export default function Settings() {
         const config = settings[activeTab]?.[key] || {};
         const meta = section.fields?.[key] || {};
         const label = meta.label || defaultLabel(key);
-        const help = config.description;
+        // Only curated help is shown. The stored descriptions mostly repeat
+        // the label ("Company email: Contact email"), which is noise.
+        const help = meta.help;
         const value = formData[key];
         const inert = (section.inert || []).includes(key);
         const id = `set-${key}`;
-        const Inert = inert ? <span className="ml-2 px-1.5 rounded text-[11px] font-medium bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400" title="Saved, but not used by the server yet">Not applied yet</span> : null;
-        const Help = help ? <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">{help}</p> : null;
-        const Label = <label htmlFor={id} className="block text-sm font-medium text-slate-800 dark:text-slate-200 mb-1.5">{label}{Inert}</label>;
+        const badge = inert ? <span className="ml-2 px-1.5 py-px rounded text-[11px] font-medium whitespace-nowrap bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300" title="Saved, but the server does not use it yet">Not applied yet</span> : null;
+        const Help = help ? <p className={HELP}>{help}</p> : null;
+        const Label = <label htmlFor={id} className={LABEL}>{label}{badge}</label>;
+        // Long values take two columns (or the full row) so rows stay filled.
+        const span = meta.wide ? 'col-span-full' : meta.span === 2 ? 'sm:col-span-2' : '';
 
-        // Switches: label and help on the left, the switch on the right.
         if (config.data_type === 'boolean') {
             return (
-                <div key={key} className="sm:col-span-2 flex items-start justify-between gap-6 py-1">
-                    <div className="min-w-0">
-                        <label htmlFor={id} className="text-sm font-medium text-slate-800 dark:text-slate-200">{label}{Inert}</label>
-                        {help && <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400">{help}</p>}
-                    </div>
-                    <Switch id={id} checked={isOn(value)} onChange={(v) => handleChange(key, v)} />
-                </div>
+                <ToggleField key={key} id={id} label={label} badge={badge} help={help} className={span}
+                    checked={isOn(value)} onChange={(v) => handleChange(key, v)} />
             );
         }
 
         // The logo is a picture, not a string.
         if (key === 'company_logo') {
             return (
-                <div key={key} className="sm:col-span-2">
-                    <LogoUpload value={value || ''} onChange={(v) => handleChange(key, v)} label={label} description={help} />
+                <div key={key} className="col-span-full">
+                    <LogoUpload value={value || ''} onChange={(v) => handleChange(key, v)} />
                 </div>
             );
         }
@@ -228,11 +283,11 @@ export default function Settings() {
         // and tests the destination before saving.
         if (key === 'backup_external_path') {
             return (
-                <div key={key} className="sm:col-span-2">
+                <div key={key} className={span || 'col-span-full'}>
                     {Label}
-                    <input id={id} type="text" value={value || ''} readOnly disabled placeholder="Not set" className="field opacity-70 cursor-not-allowed" />
-                    <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
-                        Set it in <Link to="/database/backup" className="underline underline-offset-2">System › Backup</Link> under “Second copy” — Windows share, S3, SFTP or SharePoint — which tests the destination before saving.
+                    <input id={id} type="text" value={value || ''} readOnly disabled placeholder="Not set" className="field" />
+                    <p className={HELP}>
+                        Set it in <Link to="/database/backup" className="font-medium underline underline-offset-2">System › Backup</Link> under “Second copy” — Windows share, S3, SFTP or SharePoint — which tests the destination before saving.
                     </p>
                 </div>
             );
@@ -241,7 +296,7 @@ export default function Settings() {
         if (meta.type === 'select' || key === 'system_timezone') {
             const options = key === 'system_timezone' ? TIMEZONES.map(t => [t, t]) : meta.options;
             return (
-                <div key={key}>
+                <div key={key} className={span}>
                     {Label}
                     <select id={id} className="field" value={value ?? ''} onChange={(e) => handleChange(key, e.target.value)}>
                         {options.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
@@ -251,49 +306,41 @@ export default function Settings() {
             );
         }
 
-        // Several choices stored as a comma-separated list.
+        // Several choices stored as a comma-separated list: one tile each.
         if (meta.type === 'multi') {
             const chosen = csv(value);
-            return (
-                <div key={key} className="sm:col-span-2">
-                    <span className="block text-sm font-medium text-slate-800 dark:text-slate-200 mb-1.5">{label}</span>
-                    <div className="flex flex-wrap gap-2">
-                        {meta.options.map(([v, l]) => {
-                            const sel = chosen.includes(v);
-                            return (
-                                <label key={v} className={`inline-flex items-center gap-2 h-9 px-3 rounded-lg border text-sm cursor-pointer ${sel ? 'border-slate-900 bg-slate-50 dark:border-slate-100 dark:bg-slate-800' : 'border-slate-200 dark:border-slate-700'}`}>
-                                    <input type="checkbox" checked={sel}
-                                        onChange={() => handleChange(key, (sel ? chosen.filter(x => x !== v) : [...chosen, v]).join(','))} />
-                                    {l}
-                                </label>
-                            );
-                        })}
-                    </div>
-                    {Help}
-                </div>
-            );
+            // Sign-in methods carry the server's verdict on whether each works.
+            const live = key === 'employee_login_modes' ? authStatus : null;
+            return meta.options.map(([v, l]) => {
+                const sel = chosen.includes(v);
+                return (
+                    <ToggleField key={`${key}-${v}`} id={`${id}-${v}`} label={l} help={meta.optionHelp?.[v]}
+                        badge={live && <LiveBadge on={!!live[v]} chosen={sel} />} checked={sel}
+                        onChange={() => handleChange(key, (sel ? chosen.filter(x => x !== v) : [...chosen, v]).join(','))} />
+                );
+            });
         }
 
-        // An ordered list: move items up and down; stored comma-separated.
+        // An ordered list, drawn as the path a request takes. Stored
+        // comma-separated.
         if (meta.type === 'order') {
             const order = csv(value);
             const names = Object.fromEntries(meta.options);
             const move = (i, d) => { const n = [...order]; [n[i], n[i + d]] = [n[i + d], n[i]]; handleChange(key, n.join(',')); };
             return (
-                <div key={key} className="sm:col-span-2">
-                    <span className="block text-sm font-medium text-slate-800 dark:text-slate-200 mb-1.5">{label}</span>
-                    <ol className="max-w-md divide-y divide-slate-100 dark:divide-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg">
+                <div key={key} className="col-span-full">
+                    <span className={LABEL}>{label}</span>
+                    <ol className="grid gap-3 sm:grid-cols-3">
                         {order.map((v, i) => (
-                            <li key={v} className="flex items-center gap-3 px-3 h-10 text-sm">
-                                <span className="w-5 text-xs font-semibold text-slate-500 tabular-nums">{i + 1}</span>
-                                <span className="flex-1 text-slate-800 dark:text-slate-200">{names[v] || v}</span>
-                                <button type="button" aria-label={`Move ${names[v] || v} up`} disabled={i === 0} onClick={() => move(i, -1)} className="p-1 rounded text-slate-500 hover:bg-slate-100 disabled:opacity-30 dark:hover:bg-slate-800"><ChevronUp size={14} /></button>
-                                <button type="button" aria-label={`Move ${names[v] || v} down`} disabled={i === order.length - 1} onClick={() => move(i, 1)} className="p-1 rounded text-slate-500 hover:bg-slate-100 disabled:opacity-30 dark:hover:bg-slate-800"><ChevronDown size={14} /></button>
+                            <li key={v} className="flex items-center gap-3 h-[52px] px-3.5 rounded-lg border border-slate-200 dark:border-slate-700">
+                                <span className="grid place-items-center w-6 h-6 rounded-full bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 text-xs font-semibold tabular-nums">{i + 1}</span>
+                                <span className="flex-1 min-w-0 truncate text-[13px] font-medium text-slate-800 dark:text-slate-200">{names[v] || v}</span>
+                                <button type="button" aria-label={`Move ${names[v] || v} earlier`} disabled={i === 0} onClick={() => move(i, -1)} className="p-1.5 rounded-md text-slate-600 hover:bg-slate-100 disabled:opacity-30 dark:text-slate-300 dark:hover:bg-slate-800"><ChevronLeft size={15} /></button>
+                                <button type="button" aria-label={`Move ${names[v] || v} later`} disabled={i === order.length - 1} onClick={() => move(i, 1)} className="p-1.5 rounded-md text-slate-600 hover:bg-slate-100 disabled:opacity-30 dark:text-slate-300 dark:hover:bg-slate-800"><ChevronRight size={15} /></button>
                             </li>
                         ))}
                     </ol>
-                    {/* The server's description explains the comma-separated
-                        storage format, which this control makes moot. */}
+                    {Help}
                 </div>
             );
         }
@@ -303,15 +350,15 @@ export default function Settings() {
             const chosen = asList(value).map(d => String(d).toLowerCase());
             const setDays = (next) => handleChange(key, Array.isArray(value) || config.data_type === 'json' ? next : next.join(','));
             return (
-                <div key={key} className="sm:col-span-2">
-                    <span className="block text-sm font-medium text-slate-800 dark:text-slate-200 mb-1.5">{label}</span>
+                <div key={key} className={span || 'col-span-full'}>
+                    <span className={LABEL}>{label}</span>
                     <div className="flex flex-wrap gap-1.5">
                         {WEEKDAYS.map(d => {
                             const sel = chosen.includes(d.toLowerCase());
                             return (
                                 <button key={d} type="button" aria-pressed={sel}
                                     onClick={() => setDays(sel ? asList(value).filter(x => String(x).toLowerCase() !== d.toLowerCase()) : [...asList(value), d])}
-                                    className={`h-9 w-12 rounded-lg text-sm font-medium ${sel ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900' : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200'}`}>
+                                    className={`h-[43px] flex-1 min-w-[44px] max-w-[64px] rounded-lg text-[13px] font-medium border ${sel ? 'bg-slate-900 border-slate-900 text-white dark:bg-slate-100 dark:border-slate-100 dark:text-slate-900' : 'border-slate-200 text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800'}`}>
                                     {d.slice(0, 3)}
                                 </button>
                             );
@@ -326,9 +373,9 @@ export default function Settings() {
         // and a near-miss means a schedule silently never runs.
         if (/(^|_)time$/.test(key) && config.data_type !== 'number') {
             return (
-                <div key={key}>
+                <div key={key} className={span}>
                     {Label}
-                    <input id={id} type="time" className="field !w-auto" value={String(value ?? '').slice(0, 5)} onChange={(e) => handleChange(key, e.target.value)} />
+                    <input id={id} type="time" className="field" value={String(value ?? '').slice(0, 5)} onChange={(e) => handleChange(key, e.target.value)} />
                     {Help}
                 </div>
             );
@@ -336,12 +383,15 @@ export default function Settings() {
 
         if (config.data_type === 'number') {
             return (
-                <div key={key}>
+                <div key={key} className={span}>
                     {Label}
-                    <div className="flex items-center gap-2">
-                        <input id={id} type="number" className="field !w-32 tabular-nums" value={value ?? ''}
+                    <div className="relative">
+                        <input id={id} type="number" className="field tabular-nums" value={value ?? ''}
+                            style={meta.suffix ? { paddingRight: `${meta.suffix.length * 7 + 28}px` } : undefined}
                             onChange={(e) => handleChange(key, e.target.value === '' ? '' : parseFloat(e.target.value))} />
-                        {meta.suffix && <span className="text-sm text-slate-600 dark:text-slate-400">{meta.suffix}</span>}
+                        {meta.suffix && (
+                            <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[13px] text-slate-600 dark:text-slate-400 pointer-events-none">{meta.suffix}</span>
+                        )}
                     </div>
                     {Help}
                 </div>
@@ -349,10 +399,10 @@ export default function Settings() {
         }
 
         const isPassword = /password|api_key/.test(key);
-        const isLong = /address|template|description/.test(key);
+        const isLong = meta.type === 'textarea' || /address|template/.test(key);
         if (config.data_type === 'json' && typeof value !== 'string') {
             return (
-                <div key={key} className="sm:col-span-2">
+                <div key={key} className={span}>
                     {Label}
                     <input id={id} type="text" className="field" value={asList(value).join(', ')} placeholder={meta.placeholder}
                         onChange={(e) => handleChange(key, csv(e.target.value))} />
@@ -361,12 +411,12 @@ export default function Settings() {
             );
         }
         return (
-            <div key={key} className={isLong ? 'sm:col-span-2' : ''}>
+            <div key={key} className={isLong && !span ? 'col-span-full' : span}>
                 {Label}
                 {isLong ? (
-                    <textarea id={id} rows={3} className="field resize-y" value={value ?? ''} onChange={(e) => handleChange(key, e.target.value)} />
+                    <textarea id={id} rows={2} className="field resize-y" value={value ?? ''} placeholder={meta.placeholder} onChange={(e) => handleChange(key, e.target.value)} />
                 ) : (
-                    <input id={id} type={isPassword ? 'password' : 'text'} className="field" value={value ?? ''} placeholder={meta.placeholder}
+                    <input id={id} type={isPassword ? 'password' : meta.inputType || 'text'} className="field" value={value ?? ''} placeholder={meta.placeholder}
                         autoComplete={isPassword ? 'new-password' : 'off'} onChange={(e) => handleChange(key, e.target.value)} />
                 )}
                 {Help}
@@ -386,12 +436,12 @@ export default function Settings() {
         >
             <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
                 {section?.description && (
-                    <p className="px-4 sm:px-6 py-3 border-b border-slate-200 dark:border-slate-800 text-[13px] text-slate-600 dark:text-slate-400">{section.description}</p>
+                    <p className="px-4 sm:px-6 py-3 border-b border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/40 text-[13px] text-slate-700 dark:text-slate-300">{section.description}</p>
                 )}
 
                 {loading ? (
-                    <div className="p-6 space-y-3">
-                        {Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-12 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" />)}
+                    <div className="px-4 sm:px-6 py-5 grid gap-5" style={FIELD_GRID}>
+                        {Array.from({ length: 8 }).map((_, i) => <div key={i} className="h-16 rounded-lg bg-slate-100 dark:bg-slate-800 animate-pulse" />)}
                     </div>
                 ) : error ? (
                     <div className="py-20 text-center px-6">
@@ -403,42 +453,30 @@ export default function Settings() {
                 ) : section?.custom ? (
                     // Appearance lives in this browser and applies immediately, so
                     // it has its own component and no Save.
-                    <div className="px-4 sm:px-6 py-6 max-w-3xl"><ThemeSettings /></div>
+                    <div className="px-4 sm:px-6 py-5"><ThemeSettings /></div>
                 ) : (
                     <>
-                        {activeTab === 'auth' && authStatus && (
-                            <Group title="Live status" hint="The portal login page offers exactly the methods shown as working. Secrets live in .env (OIDC_CLIENT_SECRET, LDAP_BIND_PASSWORD); restart the server after changing them.">
-                                <div className="flex flex-wrap gap-2">
-                                    {[['local', 'Employee code + password'], ['oidc', 'Single sign-on'], ['ldap', 'Active Directory']].map(([mode, label]) => (
-                                        <span key={mode} className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border border-slate-200 dark:border-slate-700 text-[13px] text-slate-800 dark:text-slate-200">
-                                            <span aria-hidden="true" className={`w-2 h-2 rounded-full ${authStatus[mode] ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'}`} />
-                                            {label}: <span className="font-semibold">{authStatus[mode] ? 'working' : 'off'}</span>
-                                        </span>
+                        {activeTab === 'auth' && authStatus?.problems?.length > 0 && (
+                            <div className="px-4 sm:px-6 py-3 border-b border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/30">
+                                <ul className="space-y-1">
+                                    {authStatus.problems.map((prob, i) => (
+                                        <li key={i} className="flex items-start gap-2 text-[13px] text-amber-900 dark:text-amber-200"><AlertCircle size={14} className="mt-0.5 shrink-0" />{prob}</li>
                                     ))}
-                                </div>
-                                {authStatus.problems?.length > 0 && (
-                                    <ul className="mt-3 space-y-1">
-                                        {authStatus.problems.map((prob, i) => (
-                                            <li key={i} className="text-xs text-amber-800 dark:text-amber-300">{prob}</li>
-                                        ))}
-                                    </ul>
-                                )}
-                            </Group>
+                                </ul>
+                            </div>
                         )}
 
                         {groups.map((g, i) => (
                             <Group key={`${g.title}-${i}`} title={g.title} hint={g.hint}>
-                                <div className="grid sm:grid-cols-2 gap-x-6 gap-y-5">
-                                    {g.keys.map(renderField)}
-                                </div>
+                                {g.keys.map(renderField)}
                             </Group>
                         ))}
 
                         {section?.test === 'email' && (
                             <Group title="Test delivery" hint="Save your mail server settings first, then send a test message.">
-                                <div className="flex gap-2 flex-wrap">
+                                <div className="col-span-full flex gap-2 flex-wrap">
                                     <input type="email" value={testEmail} onChange={e => setTestEmail(e.target.value)}
-                                        aria-label="Test recipient" placeholder="recipient@example.com" className="field flex-1 min-w-[220px]" />
+                                        aria-label="Test recipient" placeholder="recipient@example.com" className="field flex-1 min-w-[220px] max-w-md" />
                                     <Button variant="tonal" icon={testingEmail ? Loader2 : Send} onClick={handleTestEmail} disabled={testingEmail}>
                                         {testingEmail ? 'Sending…' : 'Send test email'}
                                     </Button>
@@ -448,22 +486,12 @@ export default function Settings() {
 
                         {section?.test === 'alerts' && (
                             <Group title="Test alerts" hint="Save first. These go to the recipients above through the same path a real alert takes.">
-                                <div className="space-y-4">
-                                    <div className="flex items-start justify-between gap-6">
-                                        <div>
-                                            <p className="text-sm font-medium text-slate-800 dark:text-slate-200">Send a test alert</p>
-                                            <p className="text-xs text-slate-600 dark:text-slate-400">Expect two messages: the alert, then confirmation it cleared.</p>
-                                        </div>
-                                        <Button variant="tonal" icon={BellRing} onClick={handleTestAlert} disabled={testingAlert}>{testingAlert ? 'Sending…' : 'Send test'}</Button>
-                                    </div>
-                                    <div className="flex items-start justify-between gap-6">
-                                        <div>
-                                            <p className="text-sm font-medium text-slate-800 dark:text-slate-200">Fire drill: no-attendance alert</p>
-                                            <p className="text-xs text-slate-600 dark:text-slate-400">Runs the real “no punches recorded today” check with the verdict forced. Subject prefixed [DRILL].</p>
-                                        </div>
-                                        <Button variant="tonal" icon={BellRing} onClick={handleNoPunchDrill} disabled={drilling}>{drilling ? 'Firing…' : 'Run drill'}</Button>
-                                    </div>
-                                </div>
+                                <Tile title="Send a test alert" help="Expect two messages: the alert, then confirmation it cleared.">
+                                    <Button variant="tonal" size="toolbar" icon={BellRing} onClick={handleTestAlert} disabled={testingAlert}>{testingAlert ? 'Sending…' : 'Send test'}</Button>
+                                </Tile>
+                                <Tile title="Fire drill: no-attendance alert" help="Runs the real “no punches today” check with the verdict forced. Subject prefixed [DRILL].">
+                                    <Button variant="tonal" size="toolbar" icon={BellRing} onClick={handleNoPunchDrill} disabled={drilling}>{drilling ? 'Firing…' : 'Run drill'}</Button>
+                                </Tile>
                             </Group>
                         )}
                     </>

@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 // constructor that downscale() relies on, and every upload would fail with a
 // confusing error about a React component not being a constructor.
 import { Upload, Trash2, Image as ImageIcon, AlertCircle } from 'lucide-react';
+import Button from './ui/Button';
 
 /**
  * Company logo picker.
@@ -67,7 +68,7 @@ const downscale = (file) => new Promise((resolve, reject) => {
     reader.readAsDataURL(file);
 });
 
-export default function LogoUpload({ value, onChange, label = 'Company Logo', description }) {
+export default function LogoUpload({ value, onChange, label, description }) {
     const inputRef = useRef(null);
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState(null);
@@ -103,16 +104,16 @@ export default function LogoUpload({ value, onChange, label = 'Company Logo', de
     const hasLogo = typeof value === 'string' && value.trim() !== '';
 
     return (
-        <div className="space-y-2 md:col-span-2">
-            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">{label}</label>
+        <div>
+            {label && <span className="block text-[13px] font-medium text-slate-800 dark:text-slate-200 mb-1.5">{label}</span>}
 
-            <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900/50">
-                <div className="flex items-start gap-4 flex-wrap">
+            <div className="px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-700">
+                <div className="flex items-center gap-4 flex-wrap">
                     {/* Checkerboard shows transparency honestly, so a logo with a
                         white box around it is obvious here rather than a surprise
                         on the dark header. */}
                     <div
-                        className="w-28 h-28 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-center overflow-hidden shrink-0"
+                        className="w-20 h-20 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center overflow-hidden shrink-0"
                         style={{
                             backgroundImage:
                                 'linear-gradient(45deg,#e2e8f0 25%,transparent 25%),linear-gradient(-45deg,#e2e8f0 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#e2e8f0 75%),linear-gradient(-45deg,transparent 75%,#e2e8f0 75%)',
@@ -128,50 +129,34 @@ export default function LogoUpload({ value, onChange, label = 'Company Logo', de
                         )}
                     </div>
 
-                    <div className="flex-1 min-w-[220px] space-y-2">
-                        <p className="text-xs text-slate-600 dark:text-slate-400">
+                    <div className="flex-1 min-w-[220px] space-y-0.5">
+                        <p className="text-[13px] text-slate-800 dark:text-slate-200">
                             {description || 'Appears on the sign-in page, in the app header and on exported PDF reports.'}
                         </p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">
-                            PNG, JPG, WEBP or SVG. Resized to {MAX_EDGE}px automatically — a transparent PNG
-                            or an SVG looks best on both light and dark backgrounds.
+                        <p className="text-xs text-slate-600 dark:text-slate-400">
+                            PNG, JPG, WEBP or SVG, resized to {MAX_EDGE}px. A transparent PNG or an SVG looks best in light and dark.
                         </p>
 
-                        <div className="flex gap-2 flex-wrap pt-1">
-                            <button
-                                type="button"
-                                onClick={() => inputRef.current?.click()}
-                                disabled={busy}
-                                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold bg-slate-500 hover:bg-slate-600 text-white disabled:opacity-60 dark:bg-slate-600 dark:hover:bg-slate-500"
-                            >
-                                <Upload size={15} />
-                                {busy ? 'Processing…' : hasLogo ? 'Replace' : 'Upload logo'}
-                            </button>
-
-                            {hasLogo && (
-                                <button
-                                    type="button"
-                                    onClick={() => { setError(null); onChange(''); }}
-                                    className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 dark:bg-rose-900/30 dark:hover:bg-rose-900/50 dark:text-rose-300 dark:border-rose-800"
-                                >
-                                    <Trash2 size={15} />
-                                    Remove
-                                </button>
-                            )}
-                        </div>
-
                         {error && (
-                            <p className="flex items-start gap-1.5 text-xs text-rose-600 dark:text-rose-400 pt-1">
+                            <p className="flex items-start gap-1.5 text-xs text-rose-700 dark:text-rose-400 pt-1">
                                 <AlertCircle size={13} className="mt-0.5 shrink-0" />
                                 {error}
                             </p>
                         )}
 
                         {hasLogo && !error && (
-                            <p className="text-[11px] text-slate-500 dark:text-slate-400 pt-1">
-                                Stored size ≈ {Math.round(value.length / 1024)} KB.
-                                Remember to press Save Changes.
+                            <p className="text-xs text-slate-600 dark:text-slate-400">
+                                Stored size ≈ {Math.round(value.length / 1024)} KB. Press Save changes to keep it.
                             </p>
+                        )}
+                    </div>
+
+                    <div className="flex gap-2">
+                        <Button variant="tonal" size="toolbar" icon={Upload} onClick={() => inputRef.current?.click()} disabled={busy}>
+                            {busy ? 'Processing…' : hasLogo ? 'Replace' : 'Upload logo'}
+                        </Button>
+                        {hasLogo && (
+                            <Button variant="danger" size="toolbar" icon={Trash2} onClick={() => { setError(null); onChange(''); }}>Remove</Button>
                         )}
                     </div>
                 </div>
