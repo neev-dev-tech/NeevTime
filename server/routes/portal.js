@@ -74,7 +74,7 @@ router.post('/login', portalLoginLimiter, async (req, res) => {
         const result = await db.query(
             `SELECT id, employee_code, name, portal_password_hash, app_login_enabled,
                     portal_must_change
-             FROM employees WHERE employee_code = $1 AND (LOWER(status) IS DISTINCT FROM 'resigned')`,
+             FROM employees WHERE employee_code = $1 AND (LOWER(COALESCE(status, '')) NOT IN ('resigned', 'deleted', 'terminated'))`,
             [employee_code]
         );
         const emp = result.rows[0];
@@ -270,7 +270,7 @@ const linkIdentity = async (identity, method) => {
            FROM employees
           WHERE (directory_subject = $1
                  OR (directory_subject IS NULL AND $2 <> '' AND LOWER(directory_email) = $2))
-            AND (LOWER(status) IS DISTINCT FROM 'resigned')
+            AND (LOWER(COALESCE(status, '')) NOT IN ('resigned', 'deleted', 'terminated'))
           ORDER BY (directory_subject = $1) DESC
           LIMIT 1`,
         [identity.subject, identity.email || '']
@@ -336,7 +336,7 @@ router.post('/activate', portalLoginLimiter, async (req, res) => {
         const found = await db.query(
             `SELECT id, employee_code, name, portal_setup_hash, portal_setup_expires
                FROM employees
-              WHERE employee_code = $1 AND (LOWER(status) IS DISTINCT FROM 'resigned')`,
+              WHERE employee_code = $1 AND (LOWER(COALESCE(status, '')) NOT IN ('resigned', 'deleted', 'terminated'))`,
             [employee_code]
         );
         const emp = found.rows[0];
@@ -395,7 +395,7 @@ router.post('/forgot-password', portalLoginLimiter, async (req, res) => {
             `SELECT id, employee_code, name,
                     COALESCE(NULLIF(directory_email, ''), NULLIF(email, '')) AS address
                FROM employees
-              WHERE employee_code = $1 AND (LOWER(status) IS DISTINCT FROM 'resigned')`,
+              WHERE employee_code = $1 AND (LOWER(COALESCE(status, '')) NOT IN ('resigned', 'deleted', 'terminated'))`,
             [employee_code]
         );
         const emp = found.rows[0];
@@ -477,7 +477,23 @@ const requireEmployee = (req, res, next) => {
                 must_change: true,
             });
         }
-        next();
+
+        // A token outlives the account it was issued to: sign-in refused
+        // resigned staff, but a token taken before deletion, termination or
+        // resignation kept punching for up to its full lifetime. Checked on
+        // every request — the portal is a handful of calls per person per day.
+        db.query(
+            `SELECT 1 FROM employees
+              WHERE employee_code = $1
+                AND LOWER(COALESCE(status, '')) NOT IN ('resigned', 'deleted', 'terminated')
+                AND app_login_enabled IS NOT FALSE`,
+            [payload.employee_code]
+        ).then(r => {
+            if (!r.rows.length) {
+                return res.status(401).json({ error: 'This account can no longer use the portal' });
+            }
+            next();
+        }).catch(next);
     });
 };
 
@@ -985,7 +1001,7 @@ router.post('/swaps', async (req, res) => {
     try {
         const other = await db.query(
             `SELECT 1 FROM employees WHERE employee_code = $1
-              AND LOWER(status) IS DISTINCT FROM 'resigned'`, [counterpart_code]);
+              AND LOWER(COALESCE(status, '')) NOT IN ('resigned', 'deleted', 'terminated')`, [counterpart_code]);
         if (!other.rows.length) return res.status(400).json({ error: 'No such employee' });
 
         const r = await db.query(`

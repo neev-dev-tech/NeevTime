@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FileText, Upload, Download, Trash2, X, RefreshCw, Calendar, AlertCircle } from 'lucide-react';
 import api from '../api';
+import { downloadEmployeeDoc } from '../utils/employeeDocs';
 import { Button, ListPage, ListSearch, ListIconButton, LIST_THEAD, LIST_TH, LIST_EDGE_FIRST, LIST_EDGE_LAST } from '../components';
 import Modal from '../components/Modal';
 import { formatDate as formatDateUtil } from '../utils/dateFormat';
@@ -164,28 +165,12 @@ export default function EmployeeDocs() {
         }
     };
 
-    const handleDownload = (doc) => {
+    const handleDownload = async (doc) => {
         try {
-            // Decode base64 and create download
-            const base64Data = doc.file_path;
-            const byteCharacters = atob(base64Data);
-            const byteNumbers = new Array(byteCharacters.length);
-            for (let i = 0; i < byteCharacters.length; i++) {
-                byteNumbers[i] = byteCharacters.charCodeAt(i);
-            }
-            const byteArray = new Uint8Array(byteNumbers);
-            const blob = new Blob([byteArray], { type: doc.file_type || 'application/pdf' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = doc.doc_name;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
+            await downloadEmployeeDoc(doc);
         } catch (err) {
             console.error('Download error:', err);
-            showToast('Failed to download document', 'error');
+            showToast(err.response?.status === 403 ? 'Only admin and HR can download documents' : 'Failed to download document', 'error');
         }
     };
 

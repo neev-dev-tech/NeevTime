@@ -101,6 +101,8 @@ export default function Logs() {
             : window.location.origin;
 
         socketRef.current = io(socketUrl, {
+            // The live feed needs a staff token, like the API.
+            auth: (cb) => cb({ token: localStorage.getItem('token') }),
             transports: ['polling', 'websocket'],
             reconnection: true,
             reconnectionDelay: 1000,

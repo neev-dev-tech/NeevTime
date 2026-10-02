@@ -111,85 +111,120 @@ router.post('/employees/resign', async (req, res) => {
 });
 
 // Employee Documents Management
+//
+// Documents are contracts and ID proofs, stored base64 in employee_docs.file_path.
+// The lists used to return that content for every document to any signed-in
+// role, viewer included — one request fetched every ID proof on file. Lists
+// now return metadata only; the file comes from /employee-docs/file/:id, one
+// at a time, for admin and HR.
+const { requireRole } = require('../utils/rbac');
+
+const DOC_LIST_COLUMNS = `ed.id, ed.employee_code, ed.doc_name, ed.uploaded_at,
+    COALESCE(ed.file_type, 'application/pdf') AS file_type,
+    (ed.file_path IS NOT NULL AND ed.file_path <> '') AS has_file,
+    e.name AS employee_name`;
+
+// What may be uploaded, and how big. The page already checks both; the server
+// did not, so anything of any size could be stored.
+const DOC_TYPES = new Set([
+    'application/pdf', 'image/jpeg', 'image/png',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+]);
+const DOC_MAX_BYTES = 10 * 1024 * 1024;
+
+// Two pages upload differently: one sends raw base64, the other a data: URL.
+// Stored either way over the years, so both are read back.
+const splitDataUrl = (value) => {
+    const m = /^data:([^;,]+)?(;base64)?,(.*)$/s.exec(String(value || ''));
+    return m ? { type: m[1] || null, data: m[3] } : { type: null, data: String(value || '') };
+};
+
 router.get('/employee-docs', async (req, res) => {
     try {
         const { employee_code } = req.query;
-        let query = 'SELECT ed.*, e.name as employee_name, e.employee_code FROM employee_docs ed JOIN employees e ON ed.employee_code = e.employee_code';
-        let params = [];
-        
+        let query = `SELECT ${DOC_LIST_COLUMNS} FROM employee_docs ed JOIN employees e ON ed.employee_code = e.employee_code`;
+        const params = [];
         if (employee_code) {
             query += ' WHERE ed.employee_code = $1';
             params.push(employee_code);
         }
         query += ' ORDER BY ed.uploaded_at DESC';
-        
         const result = await db.query(query, params);
-        // Ensure file_type exists in response (default to application/pdf if not in DB)
-        const docs = result.rows.map(doc => ({
-            ...doc,
-            file_type: doc.file_type || 'application/pdf'
-        }));
-        res.json(docs);
-    } catch (err) { 
+        res.json(result.rows);
+    } catch (err) {
         console.error('Error fetching documents:', err);
-        res.status(500).json({ error: err.message }); 
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.get('/employee-docs/file/:id', requireRole('admin', 'hr'), async (req, res) => {
+    try {
+        const result = await db.query(
+            'SELECT id, doc_name, file_path, file_type FROM employee_docs WHERE id = $1',
+            [req.params.id]
+        );
+        const doc = result.rows[0];
+        if (!doc || !doc.file_path) return res.status(404).json({ error: 'Document not found' });
+        const { type, data } = splitDataUrl(doc.file_path);
+        res.json({ id: doc.id, doc_name: doc.doc_name, file_type: doc.file_type || type || 'application/pdf', data });
+    } catch (err) {
+        console.error('Error fetching document file:', err);
+        res.status(500).json({ error: err.message });
     }
 });
 
 router.get('/employee-docs/:code', async (req, res) => {
     try {
         const result = await db.query(
-            'SELECT ed.*, e.name as employee_name FROM employee_docs ed JOIN employees e ON ed.employee_code = e.employee_code WHERE ed.employee_code = $1 ORDER BY ed.uploaded_at DESC',
+            `SELECT ${DOC_LIST_COLUMNS} FROM employee_docs ed JOIN employees e ON ed.employee_code = e.employee_code
+              WHERE ed.employee_code = $1 ORDER BY ed.uploaded_at DESC`,
             [req.params.code]
         );
         res.json(result.rows);
-    } catch (err) { 
+    } catch (err) {
         console.error('Error fetching documents:', err);
-        res.status(500).json({ error: err.message }); 
+        res.status(500).json({ error: err.message });
     }
 });
 
 router.post('/employee-docs', async (req, res) => {
     const { employee_code, doc_name, file_data, file_type } = req.body;
-    
+
     if (!employee_code || !doc_name || !file_data) {
         return res.status(400).json({ error: 'employee_code, doc_name, and file_data are required' });
     }
-    
+
+    const parsed = splitDataUrl(file_data);
+    const type = file_type || parsed.type || 'application/pdf';
+    if (!DOC_TYPES.has(type)) {
+        return res.status(400).json({ error: 'Upload a PDF, Word document, JPG or PNG.' });
+    }
+    const base64 = parsed.data.replace(/\s/g, '');
+    if (!/^[A-Za-z0-9+/]*={0,2}$/.test(base64)) {
+        return res.status(400).json({ error: 'The file could not be read. Choose it again.' });
+    }
+    if (Math.floor(base64.length * 3 / 4) > DOC_MAX_BYTES) {
+        return res.status(413).json({ error: 'Documents can be at most 10 MB.' });
+    }
+
     try {
-        // Check if file_type column exists, if not, just use file_path
-        // Store file_data (base64) directly in file_path for now
-        // In production, you'd save to disk/S3 and store the path
-        let result;
-        try {
-            // Try with file_type column first
-            result = await db.query(
-                'INSERT INTO employee_docs (employee_code, doc_name, file_path, file_type) VALUES ($1, $2, $3, $4) RETURNING *',
-                [employee_code, doc_name, file_data, file_type || 'application/pdf']
-            );
-        } catch (colErr) {
-            // If file_type column doesn't exist, insert without it
-            if (colErr.message.includes('column') && colErr.message.includes('file_type')) {
-                result = await db.query(
-                    'INSERT INTO employee_docs (employee_code, doc_name, file_path) VALUES ($1, $2, $3) RETURNING *',
-                    [employee_code, doc_name, file_data]
-                );
-                // Add file_type to response manually
-                result.rows[0].file_type = file_type || 'application/pdf';
-            } else {
-                throw colErr;
-            }
-        }
+        // Stored as plain base64 whichever way the page sent it.
+        const result = await db.query(
+            `INSERT INTO employee_docs (employee_code, doc_name, file_path, file_type) VALUES ($1, $2, $3, $4)
+             RETURNING id, employee_code, doc_name, file_type, uploaded_at`,
+            [employee_code, doc_name, base64, type]
+        );
         res.json(result.rows[0]);
-    } catch (err) { 
+    } catch (err) {
         console.error('Error uploading document:', err);
-        res.status(500).json({ error: err.message }); 
+        res.status(500).json({ error: err.message });
     }
 });
 
 router.delete('/employee-docs/:id', async (req, res) => {
     try {
-        const result = await db.query('DELETE FROM employee_docs WHERE id = $1 RETURNING *', [req.params.id]);
+        const result = await db.query('DELETE FROM employee_docs WHERE id = $1 RETURNING id, employee_code, doc_name', [req.params.id]);
         if (result.rowCount === 0) {
             return res.status(404).json({ error: 'Document not found' });
         }

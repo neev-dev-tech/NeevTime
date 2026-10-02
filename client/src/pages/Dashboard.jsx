@@ -57,6 +57,8 @@ export default function Dashboard() {
         // Use relative URL - Vite proxy handles /socket.io in dev, production uses same origin
         const socketUrl = import.meta.env.VITE_SOCKET_URL || window.location.origin;
         socketRef.current = io(socketUrl, {
+            // The live feed needs a staff token, like the API.
+            auth: (cb) => cb({ token: localStorage.getItem('token') }),
             transports: ['websocket', 'polling'],
             reconnection: true,
             reconnectionDelay: 1000,

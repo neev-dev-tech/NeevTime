@@ -307,6 +307,8 @@ export default function Devices() {
                 : window.location.origin;   // Use proxy in production
 
             socketRef.current = io(socketUrl, {
+                // The live feed needs a staff token, like the API.
+                auth: (cb) => cb({ token: localStorage.getItem('token') }),
                 transports: ['polling', 'websocket'],
                 reconnection: true,
                 reconnectionDelay: 1000,

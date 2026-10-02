@@ -38,7 +38,7 @@ export default function NotificationCenter() {
         const poll = setInterval(fetchSummary, 60 * 1000);
 
         const socketUrl = import.meta.env.VITE_SOCKET_URL || window.location.origin;
-        socketRef.current = io(socketUrl, { transports: ['websocket', 'polling'], path: '/socket.io' });
+        socketRef.current = io(socketUrl, { transports: ['websocket', 'polling'], path: '/socket.io', auth: (cb) => cb({ token: localStorage.getItem('token') }) });
 
         const push = (item) => {
             setFeed(prev => [{ ...item, at: new Date() }, ...prev.slice(0, MAX_FEED - 1)]);

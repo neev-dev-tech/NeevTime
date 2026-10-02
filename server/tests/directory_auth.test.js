@@ -106,7 +106,9 @@ test('the immutable directory id is stored on first sign-in', () => {
 test('a resigned employee cannot sign in through a directory', () => {
     const src = read('routes/portal.js');
     const link = src.slice(src.indexOf('const linkIdentity'));
-    assert.match(link, /status\) IS DISTINCT FROM 'resigned'/,
+    // Resigned, deleted and terminated staff are all refused (deleted ones
+    // could sign in while only 'resigned' was checked).
+    assert.match(link, /NOT IN \('resigned', 'deleted', 'terminated'\)/,
         'someone who has left the company can still sign in with their directory account');
 });
 
@@ -226,7 +228,7 @@ test('a resigned employee cannot activate or reset', () => {
     const portal = read('routes/portal.js');
     const activate = portal.slice(portal.indexOf("router.post('/activate'"),
         portal.indexOf("router.post('/forgot-password'"));
-    assert.match(activate, /IS DISTINCT FROM 'resigned'/,
+    assert.match(activate, /NOT IN \('resigned', 'deleted', 'terminated'\)/,
         'somebody who has left can still claim an account');
 });
 

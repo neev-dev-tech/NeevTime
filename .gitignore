@@ -11,6 +11,9 @@ pnpm-debug.log*
 .env.development.local
 .env.test.local
 .env.production.local
+# Any other .env variant (backups, copies) holds real secrets too.
+.env.*
+!.env.example
 
 # Build outputs
 dist/

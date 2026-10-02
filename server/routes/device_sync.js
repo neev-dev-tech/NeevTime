@@ -821,6 +821,8 @@ router.post('/device-capabilities/probe/:serial', async (req, res) => {
 
 const healthMonitor = require('../services/health-monitor');
 const commandQueue = require('../services/command-queue');
+// PINs and biometric templates never leave in a response (utils/commandRedaction).
+const { redactCommands } = require('../utils/commandRedaction');
 
 // Get system-wide health summary
 router.get('/health/summary', async (req, res) => {
@@ -889,7 +891,7 @@ router.get('/queue/dead-letter', async (req, res) => {
     try {
         const { device, limit } = req.query;
         const items = await commandQueue.getDeadLetterQueue(device, parseInt(limit) || 50);
-        res.json(items);
+        res.json(redactCommands(items));
     } catch (err) {
         console.error('Dead Letter Error:', err);
         res.status(500).json({ error: err.message });
@@ -924,7 +926,7 @@ router.get('/queue/employee/:code', async (req, res) => {
     try {
         const { limit } = req.query;
         const history = await commandQueue.getEmployeeCommandHistory(req.params.code, parseInt(limit) || 20);
-        res.json(history);
+        res.json(redactCommands(history));
     } catch (err) {
         console.error('Employee Command History Error:', err);
         res.status(500).json({ error: err.message });

@@ -65,12 +65,26 @@ const METHOD_ACTION = { POST: 'CREATE', PUT: 'UPDATE', PATCH: 'UPDATE', DELETE: 
 // Bodies that must never reach the audit table
 const SENSITIVE_KEYS = /password|passwd|token|secret|api_key|apikey|hash/i;
 
+// system_logs has no retention and is not where these live. Masking key names
+// alone let whole documents, punch selfies (base64) and identity numbers be
+// copied into it on every upload — outliving the 90-day photo purge and any
+// deletion of the record itself. The log keeps that something was sent, not
+// the thing.
+const CONTENT_KEYS = /file|photo|image|selfie|picture|template|^tmp$|attachment|document|^data$/i;
+const IDENTITY_KEYS = /aadhaar|passport|licen[cs]e|religion|pan_no|^pan$|bank|ifsc|account_no/i;
+const LOCATION_KEYS = /^(lat|latitude|lng|lon|long|longitude|accuracy)$/i;
+const MAX_LOGGED_STRING = 500;
+
 const redact = (body) => {
     if (!body || typeof body !== 'object') return null;
     const out = {};
     for (const [key, value] of Object.entries(body)) {
-        if (SENSITIVE_KEYS.test(key)) out[key] = '[redacted]';
+        if (SENSITIVE_KEYS.test(key) || IDENTITY_KEYS.test(key)) out[key] = '[redacted]';
+        else if (LOCATION_KEYS.test(key)) out[key] = value == null || value === '' ? value : '[location]';
         else if (typeof value === 'object' && value !== null) out[key] = '[object]';
+        else if (typeof value === 'string' && (CONTENT_KEYS.test(key) || value.length > MAX_LOGGED_STRING)) {
+            out[key] = value ? `[${value.length} chars]` : value;
+        }
         else out[key] = value;
     }
     return out;
@@ -263,6 +277,7 @@ const logSync = async (username, entityType, syncType, ipAddress, userId = null)
 };
 
 module.exports = {
+    redact,
     logEvent,
     auditMutations,
     logLogin,

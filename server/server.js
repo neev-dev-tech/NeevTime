@@ -16,6 +16,8 @@ const adms = require('./services/adms');
 const settings = require('./utils/settings');
 
 const logger = require('./utils/logger');
+const { publicEmployee, publicEmployees } = require('./utils/employeeFields');
+const { redactCommands } = require('./utils/commandRedaction');
 
 // Global Crash Logger
 process.on('uncaughtException', (err) => {
@@ -27,6 +29,15 @@ process.on('unhandledRejection', (reason) => {
 });
 
 const app = express();
+// nginx sits in front of Node (over loopback in the single-container image) and
+// passes the caller in X-Forwarded-For / X-Forwarded-Proto. Without trusting it,
+// every request looked like 127.0.0.1: the per-IP login limit was one bucket
+// shared by the whole company, login logs recorded nginx instead of the person,
+// and req.secure was false behind TLS so the SSO cookie lost its Secure flag.
+// Only the loopback hop is trusted, so a caller reaching Node directly cannot
+// claim an address. A split deployment (nginx in another container) can set
+// TRUST_PROXY to that hop, e.g. "uniquelocal".
+app.set('trust proxy', process.env.TRUST_PROXY || 'loopback');
 const server = http.createServer(app);
 const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim()).filter(Boolean) : ['http://localhost:5173', 'http://localhost:3000'];
 const io = new Server(server, {
@@ -1121,7 +1132,7 @@ app.post('/api/employees', async (req, res) => {
             Boolean(exclude_from_hrms)
         ]);
 
-        res.status(201).json(result.rows[0]);
+        res.status(201).json(publicEmployee(result.rows[0]));
 
         // Sync to Devices
         try {
@@ -1178,10 +1189,13 @@ app.put('/api/employees/:id', async (req, res) => {
         const safeInt = (val) => (val === '' || val === null || val === undefined) ? null : parseInt(val);
         const safeDate = (val) => (val === '' || val === null || val === undefined) ? null : val;
 
+        // The device PIN is never sent to the browser (utils/employeeFields),
+        // so the edit form cannot send it back: COALESCE keeps the stored one
+        // rather than writing NULL over it on every save.
         const result = await db.query(`
             UPDATE employees SET
             employee_code = $1, name = $2, department_id = $3, designation = $4, card_number = $5, 
-            password = $6, area_id = $7, gender = $8, dob = $9, joining_date = $10, 
+            password = COALESCE($6, password), area_id = $7, gender = $8, dob = $9, joining_date = $10, 
             mobile = $11, email = $12, address = $13, status = $14, employment_type = $15,
             -- COALESCE, not assignment. This route overwrites every field it
             -- names, and not every caller sends these two — without it, saving
@@ -1219,7 +1233,7 @@ app.put('/api/employees/:id', async (req, res) => {
         ]);
 
         if (result.rows.length === 0) return res.status(404).json({ error: 'Employee not found' });
-        res.json(result.rows[0]);
+        res.json(publicEmployee(result.rows[0]));
 
         // Sync to Devices
         try {
@@ -1279,7 +1293,7 @@ app.patch('/api/employees/:id', async (req, res) => {
         );
 
         if (result.rows.length === 0) return res.status(404).json({ error: 'Employee not found' });
-        res.json(result.rows[0]);
+        res.json(publicEmployee(result.rows[0]));
     } catch (err) {
         console.error('PATCH /api/employees/:id failed:', err.message);
         res.status(500).json({ error: err.message });
@@ -1538,7 +1552,7 @@ app.get('/api/employees', async (req, res) => {
             ${where}
             ORDER BY e.name
         `);
-        res.json(result.rows);
+        res.json(publicEmployees(result.rows));
     } catch (err) {
         console.error('API Employees Error:', err);
         const fs = require('fs');
@@ -1574,7 +1588,7 @@ app.get('/api/employees/:id', async (req, res) => {
             `, [id]);
         }
         if (result.rows.length === 0) return res.status(404).json({ error: 'Employee not found' });
-        res.json(result.rows[0]);
+        res.json(publicEmployee(result.rows[0]));
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -2157,7 +2171,8 @@ app.get('/api/device-commands', async (req, res) => {
         const result = await db.query(
             'SELECT * FROM device_commands ORDER BY created_at DESC LIMIT 100'
         );
-        res.json(result.rows);
+        // PINs and biometric templates are masked; see utils/commandRedaction.
+        res.json(redactCommands(result.rows));
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -2221,6 +2236,22 @@ app.post('/api/device-commands', authenticateToken, requireAdmin, async (req, re
 });
 
 // Socket Connection
+//
+// Every live punch (employee code, time, in/out) and device event is broadcast
+// on this socket, and nothing checked who was listening: any page on an
+// allowed origin, or any client sending no Origin at all, received them. A
+// connection now needs the same staff token the API does. Employee portal
+// tokens are refused — the portal does not use the live feed.
+io.use((socket, next) => {
+    const token = socket.handshake.auth?.token;
+    if (!token) return next(new Error('unauthorized'));
+    require('jsonwebtoken').verify(token, process.env.JWT_SECRET, (err, payload) => {
+        if (err || !payload || payload.role === 'employee') return next(new Error('unauthorized'));
+        socket.user = payload;
+        next();
+    });
+});
+
 io.on('connection', (socket) => {
     console.log('Frontend connected');
 });

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../api';
+import { downloadEmployeeDoc } from '../utils/employeeDocs';
 import { User, Mail, Phone, Building, Briefcase, Calendar, Clock, ArrowLeft, Edit2, Trash2, AlertCircle, FileText, RefreshCw } from 'lucide-react';
 import { useToast, Button } from '../components';
 import Modal from '../components/Modal';
@@ -502,14 +503,15 @@ api.get('/api/contractors').then(r => setContractors(r.data.filter(c => c.is_act
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2 shrink-0">
-                                            {doc.file_path && (
-                                                <a
-                                                    href={doc.file_path}
-                                                    download={doc.doc_name}
+                                            {doc.has_file && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => downloadEmployeeDoc(doc).catch(err => toast.error(err.response?.status === 403 ? 'Only admin and HR can download documents' : 'Failed to download document'))}
                                                     className="text-xs font-semibold text-slate-600 dark:text-slate-400 hover:underline"
+                                                    aria-label={`Download ${doc.doc_name}`}
                                                 >
                                                     Download
-                                                </a>
+                                                </button>
                                             )}
                                             <Button variant="danger" size="sm" icon={Trash2} onClick={() => handleDocDelete(doc.id)} aria-label="Delete document" />
                                         </div>
