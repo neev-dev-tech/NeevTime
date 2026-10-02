@@ -19,6 +19,9 @@ const useStore = create((set) => ({
     }
     localStorage.removeItem('user');
     localStorage.removeItem('token');
+    // Recent searches name the employees someone looked up; on a shared
+    // computer they should leave with the person who searched.
+    localStorage.removeItem('recentSearches');
     set({ auth: null });
   },
 

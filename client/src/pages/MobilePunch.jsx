@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { MapPin, Navigation, CheckCircle, XCircle, RefreshCw, Camera, X } from 'lucide-react';
 import api from '../api';
 import { Button, PageHeader } from '../components';
+import { Link } from 'react-router-dom';
 
 const MobilePunch = () => {
     const [location, setLocation] = useState(null); // { lat, lng }
@@ -385,6 +386,12 @@ const MobilePunch = () => {
                                     </p>
                                     <p className="mt-1 text-slate-600 dark:text-slate-300">
                                         You must be within <span className="tabular-nums font-semibold">{nearestFence?.radius_meters || 100}m</span> of an office location.
+                                    </p>
+                                    {/* Notice at the point of collection. */}
+                                    <p className="mt-2 text-xs text-slate-600 dark:text-slate-400">
+                                        Your location is saved with the punch to show it was made on site. A photo is optional
+                                        and is deleted automatically after the period set in Settings.{' '}
+                                        <Link to="/privacy" className="font-medium underline underline-offset-2">Privacy notice</Link>
                                     </p>
                                 </div>
 

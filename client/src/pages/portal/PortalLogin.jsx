@@ -5,6 +5,7 @@ import api from '../../api';
 import useStore from '../../store/useStore';
 import { Button } from '../../components';
 import useTilt from '../../hooks/useTilt';
+import { LegalLinks } from '../legal/LegalLayout';
 
 /**
  * Employee sign-in.
@@ -15,6 +16,7 @@ import useTilt from '../../hooks/useTilt';
  * teaches people the app is broken.
  */
 export default function PortalLogin() {
+    useEffect(() => { document.title = 'Employee sign-in · NeevTime'; }, []);
     const [modes, setModes] = useState(null);
     const [method, setMethod] = useState(null);   // 'local' | 'ldap'
     // signin | activate | forgot | change
@@ -179,16 +181,16 @@ export default function PortalLogin() {
 
                         {view !== 'change' && (
                             <div>
-                                <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">Employee Code</label>
-                                <input type="text" value={identifier} onChange={e => setIdentifier(e.target.value)}
+                                <label htmlFor="portal-login-1" className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">Employee Code</label>
+                                <input id="portal-login-1" type="text" value={identifier} onChange={e => setIdentifier(e.target.value)}
                                        className="field" placeholder="e.g. INT089" required />
                             </div>
                         )}
 
                         {view === 'activate' && (
                             <div>
-                                <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">Activation code</label>
-                                <input type="text" value={activation} onChange={e => setActivation(e.target.value.toUpperCase())}
+                                <label htmlFor="portal-login-2" className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">Activation code</label>
+                                <input id="portal-login-2" type="text" value={activation} onChange={e => setActivation(e.target.value.toUpperCase())}
                                        className="field tracking-[0.3em] font-mono" placeholder="XXXXXXXX"
                                        autoCapitalize="characters" required />
                                 <p className="text-xs text-slate-500 mt-1">From HR, or the email you were sent. Valid for 24 hours.</p>
@@ -197,18 +199,18 @@ export default function PortalLogin() {
 
                         {view === 'change' && (
                             <div>
-                                <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">Current password</label>
-                                <input type="password" value={password} onChange={e => setPassword(e.target.value)}
+                                <label htmlFor="portal-login-3" className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">Current password</label>
+                                <input id="portal-login-3" type="password" value={password} onChange={e => setPassword(e.target.value)}
                                        className="field" autoComplete="current-password" required />
                             </div>
                         )}
 
                         {view !== 'forgot' && (
                             <div>
-                                <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">
+                                <label htmlFor="portal-login-4" className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">
                                     {view === 'change' ? 'New password' : 'Choose a password'}
                                 </label>
-                                <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)}
+                                <input id="portal-login-4" type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)}
                                        className="field" autoComplete="new-password" required />
                                 {/* Said plainly, because the reason people
                                     accept a password step is understanding what
@@ -218,7 +220,7 @@ export default function PortalLogin() {
                         )}
 
                         {error && (
-                            <div className="text-sm text-rose-600 dark:text-rose-300 bg-rose-50 dark:bg-rose-900/30 border border-rose-100 dark:border-rose-800 rounded-lg px-3 py-2">{error}</div>
+                            <div role="alert" className="text-sm text-rose-600 dark:text-rose-300 bg-rose-50 dark:bg-rose-900/30 border border-rose-100 dark:border-rose-800 rounded-lg px-3 py-2">{error}</div>
                         )}
 
                         <Button type="submit" variant="primary" size="lg" disabled={loading} className="w-full">
@@ -273,10 +275,10 @@ export default function PortalLogin() {
                 {view === 'signin' && (modes?.local || modes?.ldap) && (
                     <form onSubmit={submit} className="space-y-4">
                         <div>
-                            <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">
+                            <label htmlFor="portal-login-5" className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">
                                 {ldap ? 'Company username' : 'Employee Code'}
                             </label>
-                            <input
+                            <input id="portal-login-5"
                                 type="text"
                                 value={identifier}
                                 onChange={e => setIdentifier(e.target.value)}
@@ -287,10 +289,10 @@ export default function PortalLogin() {
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">
+                            <label htmlFor="portal-login-6" className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">
                                 {ldap ? 'Company password' : 'Password'}
                             </label>
-                            <input
+                            <input id="portal-login-6"
                                 type="password"
                                 value={password}
                                 onChange={e => setPassword(e.target.value)}
@@ -301,7 +303,7 @@ export default function PortalLogin() {
                         </div>
 
                         {error && (
-                            <div className="text-sm text-rose-600 dark:text-rose-300 bg-rose-50 dark:bg-rose-900/30 border border-rose-100 dark:border-rose-800 rounded-lg px-3 py-2">{error}</div>
+                            <div role="alert" className="text-sm text-rose-600 dark:text-rose-300 bg-rose-50 dark:bg-rose-900/30 border border-rose-100 dark:border-rose-800 rounded-lg px-3 py-2">{error}</div>
                         )}
 
                         <Button
@@ -327,7 +329,7 @@ export default function PortalLogin() {
                 )}
 
                 {error && !modes?.local && !modes?.ldap && (
-                    <div className="mt-4 text-sm text-rose-600 dark:text-rose-300 bg-rose-50 dark:bg-rose-900/30 rounded-lg px-3 py-2">{error}</div>
+                    <div role="alert" className="mt-4 text-sm text-rose-600 dark:text-rose-300 bg-rose-50 dark:bg-rose-900/30 rounded-lg px-3 py-2">{error}</div>
                 )}
 
                 {view === 'signin' && modes?.local && (
@@ -346,6 +348,7 @@ export default function PortalLogin() {
                 <p className="text-center text-xs text-slate-500 mt-6">
                     Admin or HR? <Link to="/login" className="text-slate-600 font-semibold hover:underline">Sign in here</Link>
                 </p>
+                <LegalLinks className="justify-center mt-3" />
             </div>
         </div>
     );

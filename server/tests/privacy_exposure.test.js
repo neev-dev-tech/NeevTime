@@ -110,3 +110,18 @@ test('the example environment ships no usable secrets', () => {
 test('Node trusts only the loopback proxy by default', () => {
     assert.match(read('server.js'), /app\.set\('trust proxy', process\.env\.TRUST_PROXY \|\| 'loopback'\)/);
 });
+
+test('the privacy notice facts are public, and never invented', () => {
+    const src = read('server.js');
+    const mount = src.indexOf("app.use('/api/privacy-notice'");
+    const gate = src.indexOf("app.use('/api', authenticateToken);");
+    assert.ok(mount > -1 && gate > -1 && mount < gate,
+        'the notice must be readable before sign-in: mount it above the auth layer');
+    // Who answers privacy questions is the employer's decision — seeded empty.
+    const seeds = [...src.matchAll(/\['privacy', '(\w+)', '([^']*)'/g)];
+    assert.ok(seeds.length >= 6, 'privacy settings are not seeded');
+    for (const [, key, value] of seeds) assert.strictEqual(value, '', `${key} is seeded with a value`);
+    const route = read('routes/privacy.js');
+    assert.ok(!/employees|attendance_logs|users/.test(route.replace(/\/\*[\s\S]*?\*\//g, '')),
+        'the public notice route reads personal data');
+});

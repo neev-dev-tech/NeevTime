@@ -148,6 +148,8 @@ function Toast({
                 {/* Close button */}
                 {dismissible && type !== 'loading' && (
                     <button
+                        type="button"
+                        aria-label="Dismiss notification"
                         onClick={handleClose}
                         className="flex-shrink-0 p-1 rounded-lg hover:bg-app-surface/20 transition-colors"
                     >

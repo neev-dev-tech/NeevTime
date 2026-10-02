@@ -167,7 +167,7 @@ export default function ShiftRotations() {
                                         {shifts.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                                     </select>
                                     {form.shift_sequence.length > 1 && (
-                                        <button className="text-rose-500 text-sm" onClick={() => setForm({ ...form, shift_sequence: form.shift_sequence.filter((_, j) => j !== i) })}>✕</button>
+                                        <button type="button" aria-label="Remove this step" className="text-rose-500 text-sm" onClick={() => setForm({ ...form, shift_sequence: form.shift_sequence.filter((_, j) => j !== i) })}>✕</button>
                                     )}
                                 </div>
                             ))}

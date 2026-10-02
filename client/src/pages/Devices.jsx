@@ -877,13 +877,17 @@ export default function Devices() {
                 onClose={() => setConfirmation({ show: false, action: null })}
                 size="sm"
                 hideClose
+                label={confirmation.title}
             >
                 <div className="text-center">
                     <h3 className="font-semibold text-slate-800 dark:text-slate-100">{confirmation.title}</h3>
                     <p className="my-2 text-sm text-slate-600 dark:text-slate-400">{confirmation.message}</p>
                     <div className="flex justify-center gap-2 mt-4">
                         <Button variant="secondary" onClick={() => setConfirmation({ show: false, action: null })}>Cancel</Button>
-                        <Button variant={confirmation.action === 'delete' ? 'dangerSolid' : 'primary'} onClick={processDataTransfer}>Confirm</Button>
+                        {/* Named for the action, not "Confirm": the dialog has no other place that says what happens. */}
+                        <Button variant={confirmation.action === 'delete' ? 'dangerSolid' : 'primary'} onClick={processDataTransfer}>
+                            {confirmation.action ? confirmation.action.replace(/[-_]/g, ' ').replace(/^\w/, c => c.toUpperCase()) : 'Continue'}
+                        </Button>
                     </div>
                 </div>
             </Modal>
@@ -892,7 +896,7 @@ export default function Devices() {
             {toast && (
                 <div className={`fixed bottom-4 right-4 flex items-center px-4 py-3 rounded-lg shadow-xl text-white z-50 animate-in slide-in-from-bottom-5 duration-300 ${toast.type === 'success' ? 'bg-green-500' : toast.type === 'error' ? 'bg-red-500' : 'bg-slate-500'}`}>
                     <span className="flex-1 pr-3">{toast.message}</span>
-                    <button
+                    <button type="button" aria-label="Dismiss"
                         onClick={() => {
                             if (toastTimeoutRef.current) {
                                 clearTimeout(toastTimeoutRef.current);

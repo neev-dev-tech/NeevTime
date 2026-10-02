@@ -28,7 +28,7 @@ const CIRCUMFERENCE = 2 * Math.PI * R;
 function Gauge({ pct, accent }) {
     return (
         <span className="relative shrink-0 grid place-items-center" style={{ width: SIZE, height: SIZE }}>
-            <svg width={SIZE} height={SIZE} className="-rotate-90">
+            <svg width={SIZE} height={SIZE} className="-rotate-90" aria-hidden="true" focusable="false">
                 <circle
                     cx={SIZE / 2} cy={SIZE / 2} r={R}
                     fill="none" strokeWidth={STROKE}

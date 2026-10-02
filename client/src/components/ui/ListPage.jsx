@@ -28,7 +28,8 @@ export default function ListPage({ title, count, tabs, actions, toolbar, toolbar
     return (
         <div className="relative -m-4 sm:-m-6 h-[calc(100%+2rem)] sm:h-[calc(100%+3rem)] flex flex-col bg-app-surface">
             <div className="flex items-center gap-x-4 gap-y-2 px-4 sm:px-6 min-h-14 py-2.5 border-b border-slate-200 dark:border-slate-800 flex-wrap">
-                <h1 className="flex items-baseline gap-2 text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-50">
+                <h1 data-page-title={typeof title === 'string' ? title : undefined}
+                    className="flex items-baseline gap-2 text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-50">
                     {title}
                     {count !== undefined && count !== null && (
                         <span className="text-sm font-medium text-slate-500 dark:text-slate-400 tabular-nums">{count}</span>

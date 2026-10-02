@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ChevronDown, LogOut, Info, HelpCircle, Search, Menu, X } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
 import PropTypes from 'prop-types';
 import { modules, personnelSidebar, deviceSidebar, attendanceSidebar, systemSidebar } from '../config/navigation';
 import useBranding from '../hooks/useBranding';
@@ -14,6 +14,7 @@ import { DarkModeToggle } from '../components/Theme';
 import VersionDisplay from '../components/VersionDisplay';
 import useStore from '../store/useStore';
 import { usePermissions } from '../hooks/usePermissions';
+import { LegalLinks } from '../pages/legal/LegalLayout';
 
 // Which navigation module a route belongs to.
 const MODULE_PREFIXES = [
@@ -72,8 +73,40 @@ export default function MainLayout({ children }) {
     if (!navOpen) setActiveModule(moduleForPath(location.pathname));
   }, [location.pathname, navOpen]);
 
+  // The browser tab and the screen-reader page title follow the page. Read from
+  // the page's own heading, so every page gets one without each setting it; the
+  // static "NeevTime" made every tab look the same. Pages render their heading
+  // after data loads, so the heading is watched rather than read once.
+  useEffect(() => {
+    const main = document.getElementById('main-content');
+    if (!main) return undefined;
+    // A timer, not requestAnimationFrame: rAF does not run in a background
+    // tab, and a tab's title is exactly what is read while it is in the background.
+    let timer = 0;
+    const apply = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        const h1 = main.querySelector('h1');
+        // data-page-title when the heading also carries a count or badge.
+        const heading = (h1?.dataset.pageTitle || h1?.textContent || '').trim();
+        const next = heading ? `${heading} · NeevTime` : 'NeevTime';
+        if (document.title !== next) document.title = next;
+      }, 0);
+    };
+    apply();
+    const observer = new MutationObserver(apply);
+    observer.observe(main, { childList: true, subtree: true, characterData: true });
+    return () => { observer.disconnect(); clearTimeout(timer); };
+  }, [location.pathname]);
+
   return (
+    // reducedMotion="user": framer-motion's JS animations follow the OS
+    // "reduce motion" setting, as the CSS ones already do.
+    <MotionConfig reducedMotion="user">
     <div className="app-shell flex h-screen font-sans overflow-hidden">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[2000] focus:px-3 focus:py-2 focus:rounded-lg focus:bg-slate-900 focus:text-white focus:text-sm">
+        Skip to content
+      </a>
       <AnimatedBackground />
       <GlobalSearch />
 
@@ -264,7 +297,7 @@ export default function MainLayout({ children }) {
           </div>
         </header>
 
-        <main className="flex-1 min-h-0 overflow-auto">
+        <main id="main-content" tabIndex={-1} className="flex-1 min-h-0 overflow-auto focus:outline-none">
           {/* h-full gives full-bleed pages a definite height to fill. */}
           <div className="h-full p-4 sm:p-6">
             {children}
@@ -275,13 +308,14 @@ export default function MainLayout({ children }) {
       {/* Modals */}
       {showAbout && (
         // No title bar: the wordmark is the heading, and the panel has its own Close.
-        <Modal open onClose={() => setShowAbout(false)} size="sm" hideClose>
+        <Modal open onClose={() => setShowAbout(false)} size="sm" hideClose label="About NeevTime">
           <div className="text-center py-2">
             <div className="text-3xl font-bold mb-2">
               <span className="text-slate-800 dark:text-slate-100">Neev</span><span className="text-slate-900 dark:text-slate-100">Time</span>
             </div>
             <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">Simplicity Attendance — biometric attendance management</p>
             <div className="flex justify-center mb-4"><VersionDisplay /></div>
+            <LegalLinks className="justify-center mb-4" />
             <button onClick={() => setShowAbout(false)} className="w-full py-2 bg-slate-900 hover:bg-slate-700 text-white text-sm font-semibold rounded-lg">Close</button>
           </div>
         </Modal>
@@ -310,6 +344,7 @@ export default function MainLayout({ children }) {
         </Modal>
       )}
     </div>
+    </MotionConfig>
   );
 }
 

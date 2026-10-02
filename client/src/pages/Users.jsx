@@ -367,7 +367,7 @@ export default function UsersPage() {
                     toast.type === 'error' ? 'bg-rose-600 dark:bg-rose-500' : 'bg-slate-600 dark:bg-slate-500'
                     }`}>
                     <span className="flex-1 pr-3 text-sm font-medium">{toast.message}</span>
-                    <button
+                    <button type="button" aria-label="Dismiss"
                         onClick={() => {
                             if (toastTimeoutRef.current) {
                                 clearTimeout(toastTimeoutRef.current);

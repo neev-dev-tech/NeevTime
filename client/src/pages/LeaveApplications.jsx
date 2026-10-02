@@ -428,7 +428,7 @@ export default function LeaveApplications() {
                     </div>
                     <div className="flex justify-end gap-3 pt-4 border-t dark:border-slate-700">
                         <Button variant="secondary" onClick={() => setShowApply(false)}>Cancel</Button>
-                        <Button variant="primary" type="submit">Submit</Button>
+                        <Button variant="primary" type="submit">Apply for leave</Button>
                     </div>
                 </form>
             </Modal>

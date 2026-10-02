@@ -373,7 +373,7 @@ export default function EmployeeDocs() {
             {toast && (
                 <div className={`fixed bottom-4 right-4 flex items-center px-4 py-3 rounded-lg shadow-xl text-white z-50 animate-in slide-in-from-bottom-5 duration-300 ${toast.type === 'success' ? 'bg-green-500' : toast.type === 'error' ? 'bg-red-500' : 'bg-slate-500'}`}>
                     <span className="flex-1 pr-3">{toast.message}</span>
-                    <button
+                    <button type="button" aria-label="Dismiss"
                         onClick={() => {
                             setToast(null);
                             if (toastTimeoutRef.current) {

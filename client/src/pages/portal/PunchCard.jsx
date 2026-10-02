@@ -1,4 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import axios from 'axios';
 import { MapPin, Camera, CheckCircle, RefreshCw, X } from 'lucide-react';
 import api from '../../api';
 import { Button } from '../../components';
@@ -21,11 +23,17 @@ import { Button } from '../../components';
  * The photo is optional by design. A camera that will not open is not a reason
  * to refuse someone their attendance record — the punch is the thing that must
  * not be lost, and the response says plainly whether an image was stored.
+ *
+ * Location is asked for only after the card has said what it is for (notice
+ * before collection). If the browser already has permission, it starts at once
+ * as it always did; otherwise the employee taps to share it.
  */
 const PunchCard = () => {
     const [status, setStatus] = useState(null);   // next_state, geofences_configured
     const [position, setPosition] = useState(null);
-    const [locating, setLocating] = useState(true);
+    const [locating, setLocating] = useState(false);
+    const [locationAsked, setLocationAsked] = useState(false);
+    const [photoDays, setPhotoDays] = useState(null);
     const [locationError, setLocationError] = useState('');
     const [photo, setPhoto] = useState(null);
     const [cameraOn, setCameraOn] = useState(false);
@@ -35,10 +43,27 @@ const PunchCard = () => {
 
     const videoRef = useRef(null);
     const streamRef = useRef(null);
+    const watchRef = useRef(null);
 
     useEffect(() => {
         api.get('/api/portal/punch-status').then(r => setStatus(r.data)).catch(() => {});
+        // How long photos are kept, for the notice. Public endpoint.
+        axios.get('/api/privacy-notice').then(r => setPhotoDays(r.data?.photo_retention_days || null)).catch(() => {});
 
+        // Already allowed: no reason to make them tap again.
+        navigator.permissions?.query({ name: 'geolocation' })
+            .then(p => { if (p.state === 'granted') startLocation(); })
+            .catch(() => {});
+
+        return () => {
+            if (watchRef.current !== null) navigator.geolocation?.clearWatch(watchRef.current);
+            closeCamera();
+        };
+    }, []);
+
+    const startLocation = () => {
+        setLocationAsked(true);
+        setLocating(true);
         if (!navigator.geolocation) {
             setLocating(false);
             setLocationError('This browser cannot report a location, so punching is not possible here.');
@@ -56,7 +81,8 @@ const PunchCard = () => {
             { enableHighAccuracy: false, maximumAge: 60000, timeout: 8000 }
         );
 
-        const watchId = navigator.geolocation.watchPosition(
+        if (watchRef.current !== null) navigator.geolocation.clearWatch(watchRef.current);
+        watchRef.current = navigator.geolocation.watchPosition(
             (pos) => { setPosition(pos.coords); setLocating(false); setLocationError(''); },
             (err) => {
                 setLocating(false);
@@ -73,12 +99,7 @@ const PunchCard = () => {
             },
             { enableHighAccuracy: true, maximumAge: 30000, timeout: 20000 }
         );
-
-        return () => {
-            navigator.geolocation.clearWatch(watchId);
-            closeCamera();
-        };
-    }, []);
+    };
 
     const openCamera = async () => {
         setNote('');
@@ -172,6 +193,19 @@ const PunchCard = () => {
                     No work location has been set up yet. Ask your administrator to add one —
                     until then punching from a phone is not possible.
                 </p>
+            )}
+
+            {/* Notice, before anything is collected. */}
+            <p className="text-xs leading-relaxed text-slate-600 dark:text-slate-400">
+                To punch here, your location is used to check you are at a work site and is saved with the punch.
+                A photo is optional{photoDays ? ` and is deleted after ${photoDays} days` : ''}.{' '}
+                <Link to="/privacy" className="font-medium underline underline-offset-2">Privacy notice</Link>
+            </p>
+
+            {!locationAsked && !position && (
+                <Button variant="secondary" icon={MapPin} onClick={startLocation} className="w-full">
+                    Share my location to punch
+                </Button>
             )}
 
             {locating && (

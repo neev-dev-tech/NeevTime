@@ -51,6 +51,27 @@ export const SETTINGS_SECTIONS = [
         status: (v) => v.company_name && v.company_name !== 'My Company' ? v.company_name : { warn: 'Company name not set' }
     },
     {
+        id: 'privacy', label: 'Privacy contact', icon: ShieldCheck, area: 'Organisation',
+        description: 'Who employees contact about their data. Shown in the privacy notice on the sign-in pages.',
+        groups: [
+            { title: 'Responsible organisation', hint: 'Usually the employer. Blank uses the company name.', keys: ['privacy_operator_name', 'privacy_notice_updated'] },
+            { title: 'Privacy contact', hint: 'The person who answers access, correction and erasure requests and grievances. Required for the notice to be complete.', keys: ['privacy_contact_name', 'privacy_contact_email', 'privacy_contact_phone', 'privacy_contact_address'] },
+            { title: 'Retention', hint: 'Stated in the notice exactly as written here. Confirm it against your policy and the law.', keys: ['attendance_record_retention'] }
+        ],
+        fields: {
+            privacy_operator_name: { label: 'Organisation name' },
+            privacy_notice_updated: { label: 'Notice last reviewed', inputType: 'date' },
+            privacy_contact_name: { label: 'Name or role', placeholder: 'e.g. HR Manager' },
+            privacy_contact_email: { label: 'Email', inputType: 'email' },
+            privacy_contact_phone: { label: 'Phone', inputType: 'tel' },
+            privacy_contact_address: { label: 'Postal address', type: 'textarea' },
+            attendance_record_retention: { label: 'Attendance records are kept for', wide: true, placeholder: 'e.g. 8 years after the end of employment' }
+        },
+        status: (v) => v.privacy_contact_name && (v.privacy_contact_email || v.privacy_contact_phone)
+            ? v.privacy_contact_name
+            : { warn: 'No privacy contact — notice incomplete' }
+    },
+    {
         id: 'timezone', label: 'Timezone', icon: Globe, area: 'Organisation',
         description: 'Decides which day a punch belongs to and when shifts start.',
         groups: [{ title: 'Time zone', hint: 'Changing it moves the day boundary for every punch from now on.', keys: ['system_timezone'] }],

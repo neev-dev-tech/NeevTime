@@ -205,6 +205,16 @@ export default function AuditTrail() {
                                         return (
                                             <tr key={e.id}
                                                 className="hover:bg-slate-50 dark:hover:bg-slate-800/40 cursor-pointer"
+                                                // The row is the only way into the detail view, so it must
+                                                // work from the keyboard too.
+                                                tabIndex={0}
+                                                aria-label={`Show details of this change`}
+                                                onKeyDown={(ev) => {
+                                                    if ((ev.key === 'Enter' || ev.key === ' ') && ev.target === ev.currentTarget) {
+                                                        ev.preventDefault();
+                                                        setDetail(e);
+                                                    }
+                                                }}
                                                 onClick={() => setDetail(e)}>
                                                 <td className={`${LIST_EDGE_FIRST} pr-4 py-3 text-slate-600 dark:text-slate-400 whitespace-nowrap tabular-nums`}>
                                                     {when(e.created_at)}

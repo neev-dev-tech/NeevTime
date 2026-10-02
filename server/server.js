@@ -225,6 +225,11 @@ app.use((req, res, next) => {
 // down this would 401 and the sign-in page would silently fall back to the
 // default mark.
 //
+// The facts the privacy notice states (who answers privacy questions, how long
+// photos are kept). Public like branding: the notice must be readable before
+// sign-in. Exposes no personal data. See routes/privacy.js.
+app.use('/api/privacy-notice', require('./routes/privacy'));
+
 // Deliberately narrow: two fields that are meant to be looked at. It exposes
 // nothing an unauthenticated visitor could not already see by loading the page.
 app.get('/api/branding', async (req, res) => {
@@ -2929,6 +2934,21 @@ const ensureSchema = async () => {
         ['auth', 'ldap_bind_dn', '', 'string', 'Read-only service account that looks users up'],
         ['auth', 'ldap_user_filter', '(userPrincipalName={login})', 'string',
             'How a typed login becomes a search; {login} is substituted and escaped'],
+        // ── Privacy notice ──────────────────────────────────────────────
+        //
+        // Who answers privacy questions is the employer's decision, so these
+        // are seeded EMPTY and the notice says "not yet set" until someone
+        // fills them in. Never defaulted to a plausible-looking value.
+        ['privacy', 'privacy_operator_name', '', 'string',
+            'Organisation responsible for this data (the employer). Blank uses the company name.'],
+        ['privacy', 'privacy_contact_name', '', 'string',
+            'Person who answers privacy requests and grievances'],
+        ['privacy', 'privacy_contact_email', '', 'string', 'Email for privacy requests'],
+        ['privacy', 'privacy_contact_phone', '', 'string', 'Phone for privacy requests'],
+        ['privacy', 'privacy_contact_address', '', 'string', 'Postal address for privacy requests'],
+        ['privacy', 'attendance_record_retention', '', 'string',
+            'How long attendance records are kept, as your policy and the law require'],
+        ['privacy', 'privacy_notice_updated', '', 'string', 'Date the notice was last reviewed'],
         ['timezone', 'system_timezone', 'Asia/Kolkata', 'string',
             'Zone used to decide which day a punch belongs to and to measure shift start, lateness and overtime'],
         // Off by default so enabling it is a deliberate decision — turning it on

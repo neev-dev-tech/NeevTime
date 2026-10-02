@@ -59,6 +59,11 @@ export function Card({
                 ${className}
             `}
             onClick={clickable ? onClick : undefined}
+            role={clickable && onClick ? 'button' : undefined}
+            tabIndex={clickable && onClick ? 0 : undefined}
+            onKeyDown={clickable && onClick ? (e) => {
+                if ((e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget) { e.preventDefault(); onClick(e); }
+            } : undefined}
             style={style}
             {...props}
         >
@@ -202,6 +207,11 @@ export function StatCard({
                 ${className}
             `}
             onClick={onClick}
+            role={onClick ? 'button' : undefined}
+            tabIndex={onClick ? 0 : undefined}
+            onKeyDown={onClick ? (e) => {
+                if ((e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget) { e.preventDefault(); onClick(e); }
+            } : undefined}
         >
             <div className="flex items-start justify-between">
                 <div>

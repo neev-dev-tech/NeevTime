@@ -324,8 +324,9 @@ export function ThemePanel({ isOpen, onClose }) {
                         <button
                             onClick={onClose}
                             className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                            aria-label="Close"
                         >
-                            <span className="text-xl text-slate-600">&times;</span>
+                            <span aria-hidden="true" className="text-xl text-slate-600">&times;</span>
                         </button>
                     </div>
                 </div>

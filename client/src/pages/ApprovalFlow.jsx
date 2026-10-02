@@ -195,11 +195,11 @@ export default function ApprovalFlow() {
                             <option value={100}>100</option>
                         </select>
                         <div className="flex items-center bg-app-surface border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
-                            <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="p-1.5 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 transition-colors border-r border-slate-200 dark:border-slate-700">
+                            <button type="button" aria-label="Previous page" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="p-1.5 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 transition-colors border-r border-slate-200 dark:border-slate-700">
                                 <ChevronLeft size={16} />
                             </button>
                             <span className="px-3 py-1 font-bold bg-slate-600 text-white text-xs tabular-nums">{currentPage}</span>
-                            <button onClick={() => setCurrentPage(p => Math.min(totalPages || 1, p + 1))} className="p-1.5 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 transition-colors border-l border-slate-200 dark:border-slate-700">
+                            <button type="button" aria-label="Next page" onClick={() => setCurrentPage(p => Math.min(totalPages || 1, p + 1))} className="p-1.5 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 transition-colors border-l border-slate-200 dark:border-slate-700">
                                 <ChevronRight size={16} />
                             </button>
                         </div>
@@ -297,7 +297,7 @@ export default function ApprovalFlow() {
                 size="xl"
                 footer={<>
                     <Button variant="secondary" onClick={() => { setShowModal(null); setEditItem(null); resetForm(); }}>Cancel</Button>
-                    <Button variant="primary" type="submit" onClick={handleSubmit}>Confirm</Button>
+                    <Button variant="primary" type="submit" onClick={handleSubmit}>Save flow</Button>
                 </>}
             >
                 <form onSubmit={handleSubmit} className="space-y-6">

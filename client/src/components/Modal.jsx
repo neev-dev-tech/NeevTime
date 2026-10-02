@@ -41,6 +41,7 @@ export default function Modal({
     closeOnBackdrop = true,
     hideClose = false,
     footer,
+    label,
     children
 }) {
     const panelRef = useRef(null);
@@ -126,6 +127,8 @@ export default function Modal({
             role="dialog"
             aria-modal="true"
             aria-labelledby={title ? titleId : undefined}
+            // A dialog with no title bar still needs a name for screen readers.
+            aria-label={!title ? label : undefined}
         >
             {/* The backdrop is its own element rather than a background on the
                 container, so a click on the panel cannot bubble to it and close
@@ -203,5 +206,7 @@ Modal.propTypes = {
     closeOnBackdrop: PropTypes.bool,
     hideClose: PropTypes.bool,
     footer: PropTypes.node,
+    /** Spoken name for a dialog without a title. */
+    label: PropTypes.string,
     children: PropTypes.node
 };

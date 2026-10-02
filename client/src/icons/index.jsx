@@ -152,12 +152,25 @@ import {
     XSquare as PXSquare
 } from '@phosphor-icons/react';
 
+// An icon that names itself (Phosphor renders `alt` as <title>) is meaningful
+// content; anything else is decoration beside text that already says it.
+const isNamed = (p) => Boolean(p.alt || p['aria-label'] || p['aria-labelledby']);
+
 /** Wrap a Phosphor icon so it defaults to the solid weight. */
 const solid = (Icon, displayName) => {
     const Wrapped = React.forwardRef(({ weight, strokeWidth, ...props }, ref) => (
         // strokeWidth is swallowed: it is a lucide prop with no Phosphor meaning,
         // and passing it through would land invalid DOM attributes on the <svg>.
-        <Icon ref={ref} weight={weight || 'fill'} {...props} />
+        //
+        // Hidden from screen readers unless given a name. Almost every icon sits
+        // beside text that already says what it means, and an unnamed <svg> is
+        // read as "image" or skipped inconsistently. An icon that carries meaning
+        // on its own takes `alt` (Phosphor renders it as <title>) or aria-label;
+        // an icon-only button takes aria-label on the button.
+        <Icon ref={ref} weight={weight || 'fill'}
+            aria-hidden={isNamed(props) ? undefined : true}
+            focusable="false"
+            {...props} />
     ));
     Wrapped.displayName = displayName;
     return Wrapped;

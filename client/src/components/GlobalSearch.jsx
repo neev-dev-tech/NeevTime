@@ -210,6 +210,7 @@ export default function GlobalSearch() {
             align="top"
             padded={false}
             hideClose
+            label="Search"
         >
             {/* Search Input */}
             <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-200 dark:border-slate-700">

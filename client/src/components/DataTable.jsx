@@ -309,7 +309,7 @@ export default function DataTable({
                 {searchable && (
                     <div className="relative flex-1 max-w-sm">
                         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-                        <input
+                        <input aria-label={searchPlaceholder || "Search"}
                             type="text"
                             placeholder={searchPlaceholder}
                             value={searchTerm}
@@ -321,6 +321,8 @@ export default function DataTable({
                         />
                         {searchTerm && (
                             <button
+                                type="button"
+                                aria-label="Clear search"
                                 onClick={() => setSearchTerm('')}
                                 className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
                             >
@@ -405,7 +407,7 @@ export default function DataTable({
                             {/* Selection checkbox */}
                             {selectable && (
                                 <th className="w-12 px-4 py-3 text-center">
-                                    <input
+                                    <input aria-label="Select all rows on this page"
                                         type="checkbox"
                                         checked={paginatedData.length > 0 && selectedRows.size === paginatedData.length}
                                         onChange={handleSelectAll}
@@ -484,10 +486,18 @@ export default function DataTable({
                                             ${rowClassName}
                                         `}
                                         onClick={() => onRowClick?.(row)}
+                                        // A clickable row must also open from the keyboard.
+                                        tabIndex={onRowClick ? 0 : undefined}
+                                        onKeyDown={onRowClick ? (e) => {
+                                            if ((e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget) {
+                                                e.preventDefault();
+                                                onRowClick(row);
+                                            }
+                                        } : undefined}
                                     >
                                         {selectable && (
                                             <td className="px-4 py-3 text-center" onClick={(e) => e.stopPropagation()}>
-                                                <input
+                                                <input aria-label="Select row"
                                                     type="checkbox"
                                                     checked={isSelected}
                                                     onChange={() => handleSelectRow(rowId)}

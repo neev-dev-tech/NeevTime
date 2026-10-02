@@ -68,6 +68,8 @@ import MobilePunch from './pages/MobilePunch';
 import Regularizations from './pages/Regularizations';
 import PortalLogin from './pages/portal/PortalLogin';
 import EmployeePortal from './pages/portal/EmployeePortal';
+import PrivacyNotice from './pages/legal/PrivacyNotice';
+import AccessibilityStatement from './pages/legal/AccessibilityStatement';
 
 import useStore from './store/useStore';
 import { loadReportSettings } from './utils/reportSettings';
@@ -157,6 +159,10 @@ export default function App() {
                 <Route path="/portal/login" element={<PortalLogin />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
+                {/* Public, like sign-in: an employee must be able to read these
+                    before signing in or sharing location. */}
+                <Route path="/privacy" element={<PrivacyNotice />} />
+                <Route path="/accessibility" element={<AccessibilityStatement />} />
                 <Route path="/portal" element={<EmployeeRoute><EmployeePortal /></EmployeeRoute>} />
                 <Route path="*" element={
                   <PrivateRoute>

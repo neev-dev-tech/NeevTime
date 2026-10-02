@@ -9,6 +9,7 @@ import PunchCard from './PunchCard';
 import useStore from '../../store/useStore';
 import { Button, useToast } from '../../components';
 import { toLocalDateString, formatDate, formatDateWithWeekday, toDateOnly } from '../../utils/dateFormat';
+import { LegalLinks } from '../legal/LegalLayout';
 
 const firstOfMonth = () => {
     const now = new Date();
@@ -62,6 +63,7 @@ const RowCount = ({ n, noun }) => (
 );
 
 export default function EmployeePortal() {
+    useEffect(() => { document.title = 'My attendance · NeevTime'; }, []);
     const toast = useToast();
     const navigate = useNavigate();
     const { auth, logout } = useStore();
@@ -351,9 +353,9 @@ export default function EmployeePortal() {
 
                     <div className="bg-app-surface/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
                         <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700 flex items-center gap-2 flex-wrap">
-                            <input type="date" value={range.start} onChange={e => setRange(r => ({ ...r, start: e.target.value }))} className="field-sm tabular-nums" />
+                            <input aria-label="From date" type="date" value={range.start} onChange={e => setRange(r => ({ ...r, start: e.target.value }))} className="field-sm tabular-nums" />
                             <span className="text-slate-500">→</span>
-                            <input type="date" value={range.end} onChange={e => setRange(r => ({ ...r, end: e.target.value }))} className="field-sm tabular-nums" />
+                            <input aria-label="To date" type="date" value={range.end} onChange={e => setRange(r => ({ ...r, end: e.target.value }))} className="field-sm tabular-nums" />
                         </div>
 
                         {loading.attendance ? (
@@ -439,7 +441,7 @@ export default function EmployeePortal() {
 
                         {showApply && (
                             <form onSubmit={applyLeave} className="bg-app-surface/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 p-4 space-y-3">
-                                <select
+                                <select aria-label="Leave type"
                                     value={form.leave_type_id}
                                     onChange={e => setForm(f => ({ ...f, leave_type_id: e.target.value }))}
                                     className="field"
@@ -449,10 +451,10 @@ export default function EmployeePortal() {
                                     {leave.types.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                                 </select>
                                 <div className="flex gap-2">
-                                    <input type="date" value={form.from_date} onChange={e => setForm(f => ({ ...f, from_date: e.target.value }))} className="field flex-1" required />
-                                    <input type="date" value={form.to_date} onChange={e => setForm(f => ({ ...f, to_date: e.target.value }))} className="field flex-1" required />
+                                    <input aria-label="Leave from" type="date" value={form.from_date} onChange={e => setForm(f => ({ ...f, from_date: e.target.value }))} className="field flex-1" required />
+                                    <input aria-label="Leave to" type="date" value={form.to_date} onChange={e => setForm(f => ({ ...f, to_date: e.target.value }))} className="field flex-1" required />
                                 </div>
-                                <textarea
+                                <textarea aria-label="Reason for leave"
                                     value={form.reason}
                                     onChange={e => setForm(f => ({ ...f, reason: e.target.value }))}
                                     placeholder="Reason (optional)"
@@ -522,20 +524,20 @@ export default function EmployeePortal() {
                         {showRegForm && (
                             <form onSubmit={submitRegularization} className="bg-app-surface/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 p-4 space-y-3">
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">Date</label>
-                                    <input type="date" value={regForm.date} max={today()} onChange={e => setRegForm(f => ({ ...f, date: e.target.value }))} className="field" required />
+                                    <label htmlFor="portal-1" className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">Date</label>
+                                    <input id="portal-1" type="date" value={regForm.date} max={today()} onChange={e => setRegForm(f => ({ ...f, date: e.target.value }))} className="field" required />
                                 </div>
                                 <div className="flex gap-2">
                                     <div className="flex-1">
-                                        <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">Correct In Time</label>
-                                        <input type="time" value={regForm.requested_in_time} onChange={e => setRegForm(f => ({ ...f, requested_in_time: e.target.value }))} className="field" />
+                                        <label htmlFor="portal-2" className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">Correct In Time</label>
+                                        <input id="portal-2" type="time" value={regForm.requested_in_time} onChange={e => setRegForm(f => ({ ...f, requested_in_time: e.target.value }))} className="field" />
                                     </div>
                                     <div className="flex-1">
-                                        <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">Correct Out Time</label>
-                                        <input type="time" value={regForm.requested_out_time} onChange={e => setRegForm(f => ({ ...f, requested_out_time: e.target.value }))} className="field" />
+                                        <label htmlFor="portal-3" className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">Correct Out Time</label>
+                                        <input id="portal-3" type="time" value={regForm.requested_out_time} onChange={e => setRegForm(f => ({ ...f, requested_out_time: e.target.value }))} className="field" />
                                     </div>
                                 </div>
-                                <textarea
+                                <textarea aria-label="Reason for the correction"
                                     value={regForm.reason}
                                     onChange={e => setRegForm(f => ({ ...f, reason: e.target.value }))}
                                     placeholder="Reason (e.g. forgot to punch out)"
@@ -594,16 +596,16 @@ export default function EmployeePortal() {
                         <div className="bg-app-surface/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 p-4 space-y-3">
                             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-slate-400">Shift swap</h3>
                             <div className="grid grid-cols-2 gap-2">
-                                <input className="field col-span-2" placeholder="Colleague's employee code"
+                                <input aria-label="Colleague's employee code" className="field col-span-2" placeholder="Colleague's employee code"
                                        value={swapForm.counterpart_code}
                                        onChange={e => setSwapForm(f => ({ ...f, counterpart_code: e.target.value.trim() }))} />
-                                <label className="text-xs text-slate-600">My date
-                                    <input type="date" className="field mt-1" value={swapForm.requester_date}
+                                <label htmlFor="portal-4" className="text-xs text-slate-600">My date
+                                    <input id="portal-4" type="date" className="field mt-1" value={swapForm.requester_date}
                                            onChange={e => setSwapForm(f => ({ ...f, requester_date: e.target.value }))} /></label>
-                                <label className="text-xs text-slate-600">Their date
-                                    <input type="date" className="field mt-1" value={swapForm.counterpart_date}
+                                <label htmlFor="portal-5" className="text-xs text-slate-600">Their date
+                                    <input id="portal-5" type="date" className="field mt-1" value={swapForm.counterpart_date}
                                            onChange={e => setSwapForm(f => ({ ...f, counterpart_date: e.target.value }))} /></label>
-                                <input className="field col-span-2" placeholder="Reason (optional)"
+                                <input aria-label="Reason for the swap (optional)" className="field col-span-2" placeholder="Reason (optional)"
                                        value={swapForm.reason}
                                        onChange={e => setSwapForm(f => ({ ...f, reason: e.target.value }))} />
                             </div>
@@ -692,7 +694,7 @@ export default function EmployeePortal() {
                                     </div>
                                     {rejecting?.key === item.type + item.id && (
                                         <div className="mt-3 flex gap-2">
-                                            <input autoFocus className="field flex-1" placeholder="Why? The employee sees this."
+                                            <input aria-label="Reason for rejecting" autoFocus className="field flex-1" placeholder="Why? The employee sees this."
                                                    value={rejecting.comment}
                                                    onChange={e => setRejecting({ ...rejecting, comment: e.target.value })} />
                                             <Button variant="danger"
@@ -808,6 +810,9 @@ export default function EmployeePortal() {
                     </div>
                 )}
             </main>
+            <footer className="max-w-2xl mx-auto px-4 pb-8">
+                <LegalLinks className="justify-center" />
+            </footer>
         </div>
     );
 }

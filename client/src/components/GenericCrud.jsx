@@ -117,8 +117,8 @@ export default function GenericCrud({ title, endpoint, columns }) {
                                 ))}
                                 <td className={`pl-4 ${LIST_EDGE_LAST} py-3 text-right`}>
                                     <div className="flex justify-end gap-2">
-                                        <button onClick={() => handleEdit(item)} className="text-saffron hover:bg-slate-50 dark:hover:bg-slate-900/30 p-2 rounded-full transition-colors"><Edit size={18} /></button>
-                                        <button onClick={() => confirmDelete(item.id)} className="text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 p-2 rounded-full transition-colors"><Trash2 size={18} /></button>
+                                        <button type="button" aria-label="Edit" title="Edit" onClick={() => handleEdit(item)} className="text-saffron hover:bg-slate-50 dark:hover:bg-slate-900/30 p-2 rounded-full transition-colors"><Edit size={18} /></button>
+                                        <button type="button" aria-label="Delete" title="Delete" onClick={() => confirmDelete(item.id)} className="text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 p-2 rounded-full transition-colors"><Trash2 size={18} /></button>
                                     </div>
                                 </td>
                             </tr>

@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import useBranding from '../hooks/useBranding';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { Lock, User, Fingerprint, Clock, Shield, Users } from 'lucide-react';
 import loginIllustration from '../assets/login_illustration.png';
 import { loadReportSettings } from '../utils/reportSettings';
+import { LegalLinks } from './legal/LegalLayout';
 
 export default function Login({ setAuth }) {
+    useEffect(() => { document.title = 'Sign in · NeevTime'; }, []);
     const { logo, hasLogo, name } = useBranding();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -98,7 +100,7 @@ export default function Login({ setAuth }) {
                         until a neutral asset lands (theme Phase 4). */}
                     <img
                         src={loginIllustration}
-                        alt="Attendance Management"
+                        alt=""
                         className="w-full max-w-lg mb-8 drop-shadow-2xl dark:hidden"
                     />
 
@@ -140,7 +142,8 @@ export default function Login({ setAuth }) {
             {/* Right Panel - Login Form */}
             <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-app-surface">
                 <div className="w-full max-w-md depth-in">
-                    {/* Logo */}
+                    {/* Logo. The page heading is for screen readers; the logo says it visually. */}
+                    <h1 className="sr-only">Sign in to {name}</h1>
                     <div className="text-center mb-8">
                         <div className="mb-4 flex justify-center">
                             {/* A customer logo replaces the product mark here.
@@ -173,7 +176,7 @@ export default function Login({ setAuth }) {
                     </div>
 
                     {error && (
-                        <div className="mb-6 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm rounded-xl text-center">
+                        <div role="alert" className="mb-6 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm rounded-xl text-center">
                             {error}
                         </div>
                     )}
@@ -282,6 +285,7 @@ export default function Login({ setAuth }) {
                     </form>
                     )}
 
+                    <LegalLinks className="justify-center mt-8" />
                 </div>
             </div>
         </div>
