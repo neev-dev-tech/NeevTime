@@ -35,70 +35,201 @@ const asList = (v) => Array.isArray(v) ? v : (() => { try { const p = JSON.parse
 const FIELD_GRID = { gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))' };
 const LABEL = 'block text-[13px] font-medium text-slate-800 dark:text-slate-200 mb-1.5';
 const HELP = 'mt-1.5 text-xs text-slate-600 dark:text-slate-400 leading-snug';
+// Every single-line control the same height, whatever the browser does with
+// time and select inputs.
+const CONTROL = 'field h-10 !py-0';
 
 function Switch({ checked, onChange, id, label }) {
     return (
         <button id={id} type="button" role="switch" aria-checked={checked} aria-label={label} onClick={() => onChange(!checked)}
-            className={`relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-slate-400 ${checked ? 'bg-[rgb(var(--brand))]' : 'bg-slate-300 dark:bg-slate-600'}`}>
+            className={`relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-slate-400 ${checked ? 'bg-[rgb(var(--brand))]' : 'bg-slate-300 dark:bg-slate-600'}`}>
             {/* bg-[#fff], not bg-white: a global glass rule repaints .bg-white translucent. */}
-            <span className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-[#fff] shadow transition-transform ${checked ? 'translate-x-5 dark:bg-[#18181b]' : ''}`} />
+            <span className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-[#fff] shadow-sm transition-transform ${checked ? 'translate-x-4 dark:bg-[#18181b]' : ''}`} />
         </button>
     );
 }
 Switch.propTypes = { checked: PropTypes.bool, onChange: PropTypes.func, id: PropTypes.string, label: PropTypes.string };
 
-function Group({ title, hint, children }) {
+/**
+ * One band of settings. A group may have a main switch ("Send alerts") in its
+ * header; while it is off the fields below are dimmed but still editable.
+ * Fields sit in the grid; on/off settings follow as a list of rows.
+ */
+function Group({ title, hint, badge, toggle, off = false, children, switches, footer }) {
+    const hasFields = React.Children.toArray(children).length > 0;
     return (
         <section className="px-4 sm:px-6 py-5 border-b border-slate-200 dark:border-slate-800">
-            <div className="mb-4">
-                <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">{title}</h2>
-                {hint && <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400">{hint}</p>}
+            <div className="flex items-start justify-between gap-6 mb-4">
+                <div className="min-w-0">
+                    <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">{title}{badge}</h2>
+                    {hint && <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400">{hint}</p>}
+                </div>
+                {toggle}
             </div>
-            <div className="grid gap-x-5 gap-y-5" style={FIELD_GRID}>{children}</div>
+            <div className={`transition-opacity ${off ? 'opacity-50' : ''}`}>
+                {hasFields && <div className="grid gap-x-5 gap-y-5" style={FIELD_GRID}>{children}</div>}
+                {switches?.length > 0 && (
+                    <div className={`grid sm:grid-cols-2 gap-x-10 ${hasFields ? 'mt-5' : ''}`}>{switches}</div>
+                )}
+            </div>
+            {footer}
         </section>
     );
 }
-Group.propTypes = { title: PropTypes.node, hint: PropTypes.node, children: PropTypes.node };
+Group.propTypes = {
+    title: PropTypes.node, hint: PropTypes.node, badge: PropTypes.node, toggle: PropTypes.node, off: PropTypes.bool,
+    children: PropTypes.node, switches: PropTypes.arrayOf(PropTypes.node), footer: PropTypes.node
+};
 
-/** An on/off setting, or a one-off action, as a bordered row the height of a field. */
-function Tile({ title, help, badge, children }) {
+/** A one-off action laid out like a switch row: what it does, then the button. */
+function ActionRow({ title, help, children }) {
     return (
-        <div className="flex items-center justify-between gap-4 h-full min-h-[64px] px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-700">
+        <div className="flex items-center justify-between gap-4 py-3 border-t border-slate-100 dark:border-slate-800">
             <div className="min-w-0">
-                <div className="text-[13px] font-medium text-slate-800 dark:text-slate-200">{title}{badge}</div>
+                <div className="text-[13px] font-medium text-slate-800 dark:text-slate-200">{title}</div>
                 {help && <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400 leading-snug">{help}</p>}
             </div>
-            {children}
+            <div className="shrink-0 whitespace-nowrap">{children}</div>
         </div>
     );
 }
-Tile.propTypes = { title: PropTypes.node, help: PropTypes.node, badge: PropTypes.node, children: PropTypes.node };
+ActionRow.propTypes = { title: PropTypes.node, help: PropTypes.node, children: PropTypes.node };
+
+const fmtWhen = (v) => {
+    if (!v) return null;
+    const d = new Date(v);
+    return Number.isNaN(d.getTime()) ? null : d.toLocaleString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+};
 
 /**
- * An on/off setting laid out like every other field — label, a control box
- * the height of an input, help below — so switches and inputs line up in the
- * same row. The whole box toggles.
+ * What the scheduler will actually do with one report: when it next goes, how
+ * the last one went, and a way to send it now. The schedule row is created by
+ * the server from these settings on save, so before the first save with the
+ * report on and a recipient there is nothing to show.
  */
-function ToggleField({ id, label, badge, help, checked, onChange, className = '' }) {
+function ReportStatus({ cadence, enabled, recipients, schedule, dirty, onRun, running }) {
+    const count = csv(Array.isArray(recipients) ? recipients.join(',') : recipients).length;
+    const live = schedule?.is_active;
+    // Off is already said by the switch in the header.
+    if (!enabled) return null;
+    let line;
+    if (!count) line = <span className="inline-flex items-center gap-1.5 text-amber-800 dark:text-amber-300"><AlertCircle size={14} />Won’t send until it has at least one recipient.</span>;
+    else if (dirty || !live) line = <span className="text-slate-600 dark:text-slate-400">Save to schedule it.</span>;
+    else line = (
+        <span className="text-slate-700 dark:text-slate-300">
+            Next <span className="font-medium text-slate-900 dark:text-slate-100">{fmtWhen(schedule.next_run_at) || '—'}</span>
+            <span className="mx-2 text-slate-300 dark:text-slate-600">·</span>
+            Last {schedule.last_run_at
+                ? <><span className="font-medium text-slate-900 dark:text-slate-100">{fmtWhen(schedule.last_run_at)}</span>{schedule.last_run_status === 'failed' && <span className="ml-1.5 text-rose-700 dark:text-rose-400 font-medium">failed</span>}</>
+                : <span className="font-medium text-slate-900 dark:text-slate-100">never</span>}
+            <span className="mx-2 text-slate-300 dark:text-slate-600">·</span>
+            {count} recipient{count === 1 ? '' : 's'}
+        </span>
+    );
     return (
-        <div className={className}>
-            <span className={LABEL}>{label}{badge}</span>
-            <label htmlFor={id} className="field flex items-center justify-between gap-3 h-[43px] !py-0 cursor-pointer select-none">
-                <span className={`text-[13px] ${checked ? 'font-medium text-slate-900 dark:text-slate-100' : 'text-slate-600 dark:text-slate-400'}`}>{checked ? 'On' : 'Off'}</span>
-                <Switch id={id} label={label} checked={checked} onChange={onChange} />
-            </label>
-            {help && <p className={HELP}>{help}</p>}
+        <div className="mt-4 flex items-center justify-between gap-4 flex-wrap px-3.5 py-2.5 rounded-lg bg-slate-50 dark:bg-slate-900/50 text-[13px]">
+            {line}
+            {enabled && count > 0 && live && !dirty && (
+                <Button variant="tonal" size="toolbar" icon={running ? Loader2 : Send} onClick={() => onRun(cadence)} disabled={running}>
+                    {running ? 'Sending…' : 'Send now'}
+                </Button>
+            )}
         </div>
     );
 }
-ToggleField.propTypes = {
-    id: PropTypes.string, label: PropTypes.node, badge: PropTypes.node, help: PropTypes.node,
-    checked: PropTypes.bool, onChange: PropTypes.func, className: PropTypes.string
+ReportStatus.propTypes = {
+    cadence: PropTypes.string, enabled: PropTypes.bool, recipients: PropTypes.oneOfType([PropTypes.string, PropTypes.array]),
+    schedule: PropTypes.object, dirty: PropTypes.bool, onRun: PropTypes.func, running: PropTypes.bool
 };
+
+/** The last deliveries of the reports managed here. */
+function ReportHistory({ rows }) {
+    return (
+        <section className="px-4 sm:px-6 py-5 border-b border-slate-200 dark:border-slate-800">
+            <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-3">Recent deliveries</h2>
+            {rows === null ? (
+                <div className="h-10 rounded-lg bg-slate-100 dark:bg-slate-800 animate-pulse" />
+            ) : rows.length === 0 ? (
+                <p className="text-[13px] text-slate-600 dark:text-slate-400">No scheduled report has been sent yet.</p>
+            ) : (
+                <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-700">
+                    <table className="w-full text-[13px]">
+                        <thead className="bg-slate-50 dark:bg-slate-900/60 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">
+                            <tr>
+                                <th className="px-3.5 py-2 font-semibold">Sent</th>
+                                <th className="px-3.5 py-2 font-semibold">Report</th>
+                                <th className="px-3.5 py-2 font-semibold">Recipients</th>
+                                <th className="px-3.5 py-2 font-semibold">Result</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                            {rows.map(r => (
+                                <tr key={r.id}>
+                                    <td className="px-3.5 py-2 whitespace-nowrap tabular-nums text-slate-800 dark:text-slate-200">{fmtWhen(r.sent_at || r.created_at) || '—'}</td>
+                                    <td className="px-3.5 py-2 text-slate-800 dark:text-slate-200">{CADENCE_LABEL[cadenceOf(r.schedule_name)] || r.schedule_name || r.report_type}</td>
+                                    <td className="px-3.5 py-2 text-slate-700 dark:text-slate-300">{(r.recipients || []).join(', ') || '—'}</td>
+                                    <td className="px-3.5 py-2">
+                                        {r.status === 'success'
+                                            ? <span className="font-medium text-emerald-700 dark:text-emerald-400">Sent</span>
+                                            : <span className="font-medium text-rose-700 dark:text-rose-400" title={r.error_message || ''}>Failed{r.error_message ? ` — ${r.error_message}` : ''}</span>}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+        </section>
+    );
+}
+ReportHistory.propTypes = { rows: PropTypes.array };
+
+// The schedule rows the server keeps in step with these settings
+// (services/scheduled-reports.js MANAGED_NAMES).
+const MANAGED = {
+    daily: 'Auto Daily Attendance (Settings)',
+    weekly: 'Auto Weekly Attendance (Settings)',
+    monthly: 'Auto Monthly Summary (Settings)'
+};
+const CADENCE_LABEL = { daily: 'Daily attendance', weekly: 'Weekly attendance', monthly: 'Monthly summary' };
+const cadenceOf = (name) => Object.keys(MANAGED).find(k => MANAGED[k] === name);
+
+/** An on/off setting: label and help on the left, the switch on the right. */
+function SwitchRow({ id, label, badge, help, checked, onChange }) {
+    return (
+        <div className="flex items-start justify-between gap-4 py-3 border-t border-slate-100 dark:border-slate-800">
+            <div className="min-w-0">
+                <label htmlFor={id} className="text-[13px] font-medium text-slate-800 dark:text-slate-200 cursor-pointer">{label}</label>
+                {badge}
+                {help && <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400 leading-snug">{help}</p>}
+            </div>
+            <span className="pt-px"><Switch id={id} label={typeof label === 'string' ? label : undefined} checked={checked} onChange={onChange} /></span>
+        </div>
+    );
+}
+SwitchRow.propTypes = {
+    id: PropTypes.string, label: PropTypes.node, badge: PropTypes.node, help: PropTypes.node,
+    checked: PropTypes.bool, onChange: PropTypes.func
+};
+
+/** A group's main switch, in its header, with the state spelled out. */
+function HeaderSwitch({ id, label, checked, onChange }) {
+    return (
+        <label htmlFor={id} className="flex items-center gap-2.5 shrink-0 cursor-pointer select-none">
+            <span className={`text-[13px] font-medium ${checked ? 'text-slate-900 dark:text-slate-100' : 'text-slate-600 dark:text-slate-400'}`}>{checked ? 'On' : 'Off'}</span>
+            <Switch id={id} label={label} checked={checked} onChange={onChange} />
+        </label>
+    );
+}
+HeaderSwitch.propTypes = { id: PropTypes.string, label: PropTypes.string, checked: PropTypes.bool, onChange: PropTypes.func };
+
+function InertBadge() {
+    return <span className="ml-2 px-1.5 py-px rounded text-[11px] font-medium whitespace-nowrap bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300" title="Saved, but the server does not use it yet">Not applied yet</span>;
+}
 
 /** Whether a sign-in method actually works right now, per the server. */
 function LiveBadge({ on, chosen }) {
-    // Nothing to say about a method that is off and not chosen; the box already says Off.
+    // Nothing to say about a method that is off and not chosen; its switch says so.
     if (!on && !chosen) return null;
     const [text, cls] = on
         ? ['Working', 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300']
@@ -134,6 +265,37 @@ export default function Settings() {
     useEffect(() => { if (activeTab === 'auth') loadAuthStatus(); }, [activeTab]);
 
     const showToast = (message, type = 'info') => (toast[type] || toast.info)(message);
+
+    // Auto reports: what the scheduler made of these settings, and what it sent.
+    const [scheduled, setScheduled] = useState({});
+    const [history, setHistory] = useState(null);
+    const [running, setRunning] = useState(null);
+    const loadSchedule = () => Promise.all([
+        api.get('/api/reports/scheduled').then(r => {
+            const byCadence = {};
+            (r.data || []).forEach(row => { const c = cadenceOf(row.name); if (c) byCadence[c] = row; });
+            setScheduled(byCadence);
+        }).catch(() => setScheduled({})),
+        api.get('/api/reports/history', { params: { limit: 50 } })
+            .then(r => setHistory((r.data || []).filter(h => cadenceOf(h.schedule_name)).slice(0, 10)))
+            .catch(() => setHistory([]))
+    ]);
+    useEffect(() => { if (activeTab === 'reports') loadSchedule(); }, [activeTab]);
+
+    const runReport = async (cadence) => {
+        const row = scheduled[cadence];
+        if (!row) return;
+        setRunning(cadence);
+        try {
+            await api.post(`/api/reports/scheduled/${row.id}/run`);
+            showToast(`${CADENCE_LABEL[cadence]} report sent`, 'success');
+        } catch (err) {
+            showToast(err.response?.data?.error || 'Could not send the report', 'error');
+        } finally {
+            setRunning(null);
+            loadSchedule();
+        }
+    };
 
     const savedValues = (tabId, all = settings) =>
         Object.fromEntries(Object.entries(all[tabId] || {}).map(([k, c]) => [k, c.value]));
@@ -173,6 +335,9 @@ export default function Settings() {
         try {
             await api.put(`/api/settings/${activeTab}`, formData);
             if (activeTab === 'auth') loadAuthStatus();
+            // The server rebuilds the schedule from these settings just after
+            // the save returns.
+            if (activeTab === 'reports') setTimeout(loadSchedule, 800);
             const next = { ...settings, [activeTab]: { ...settings[activeTab] } };
             Object.keys(formData).forEach(key => {
                 if (next[activeTab][key]) next[activeTab][key] = { ...next[activeTab][key], value: formData[key] };
@@ -257,7 +422,7 @@ export default function Settings() {
         const value = formData[key];
         const inert = (section.inert || []).includes(key);
         const id = `set-${key}`;
-        const badge = inert ? <span className="ml-2 px-1.5 py-px rounded text-[11px] font-medium whitespace-nowrap bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300" title="Saved, but the server does not use it yet">Not applied yet</span> : null;
+        const badge = inert ? <InertBadge /> : null;
         const Help = help ? <p className={HELP}>{help}</p> : null;
         const Label = <label htmlFor={id} className={LABEL}>{label}{badge}</label>;
         // Long values take two columns (or the full row) so rows stay filled.
@@ -265,7 +430,7 @@ export default function Settings() {
 
         if (config.data_type === 'boolean') {
             return (
-                <ToggleField key={key} id={id} label={label} badge={badge} help={help} className={span}
+                <SwitchRow key={key} id={id} label={label} badge={badge} help={help}
                     checked={isOn(value)} onChange={(v) => handleChange(key, v)} />
             );
         }
@@ -285,7 +450,7 @@ export default function Settings() {
             return (
                 <div key={key} className={span || 'col-span-full'}>
                     {Label}
-                    <input id={id} type="text" value={value || ''} readOnly disabled placeholder="Not set" className="field" />
+                    <input id={id} type="text" value={value || ''} readOnly disabled placeholder="Not set" className={CONTROL} />
                     <p className={HELP}>
                         Set it in <Link to="/database/backup" className="font-medium underline underline-offset-2">System › Backup</Link> under “Second copy” — Windows share, S3, SFTP or SharePoint — which tests the destination before saving.
                     </p>
@@ -298,7 +463,7 @@ export default function Settings() {
             return (
                 <div key={key} className={span}>
                     {Label}
-                    <select id={id} className="field" value={value ?? ''} onChange={(e) => handleChange(key, e.target.value)}>
+                    <select id={id} className={CONTROL} value={value ?? ''} onChange={(e) => handleChange(key, meta.numeric ? Number(e.target.value) : e.target.value)}>
                         {options.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
                     </select>
                     {Help}
@@ -314,7 +479,7 @@ export default function Settings() {
             return meta.options.map(([v, l]) => {
                 const sel = chosen.includes(v);
                 return (
-                    <ToggleField key={`${key}-${v}`} id={`${id}-${v}`} label={l} help={meta.optionHelp?.[v]}
+                    <SwitchRow key={`${key}-${v}`} id={`${id}-${v}`} label={l} help={meta.optionHelp?.[v]}
                         badge={live && <LiveBadge on={!!live[v]} chosen={sel} />} checked={sel}
                         onChange={() => handleChange(key, (sel ? chosen.filter(x => x !== v) : [...chosen, v]).join(','))} />
                 );
@@ -332,7 +497,7 @@ export default function Settings() {
                     <span className={LABEL}>{label}</span>
                     <ol className="grid gap-3 sm:grid-cols-3">
                         {order.map((v, i) => (
-                            <li key={v} className="flex items-center gap-3 h-[52px] px-3.5 rounded-lg border border-slate-200 dark:border-slate-700">
+                            <li key={v} className="flex items-center gap-3 h-12 px-3.5 rounded-lg border border-slate-200 dark:border-slate-700">
                                 <span className="grid place-items-center w-6 h-6 rounded-full bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 text-xs font-semibold tabular-nums">{i + 1}</span>
                                 <span className="flex-1 min-w-0 truncate text-[13px] font-medium text-slate-800 dark:text-slate-200">{names[v] || v}</span>
                                 <button type="button" aria-label={`Move ${names[v] || v} earlier`} disabled={i === 0} onClick={() => move(i, -1)} className="p-1.5 rounded-md text-slate-600 hover:bg-slate-100 disabled:opacity-30 dark:text-slate-300 dark:hover:bg-slate-800"><ChevronLeft size={15} /></button>
@@ -358,7 +523,7 @@ export default function Settings() {
                             return (
                                 <button key={d} type="button" aria-pressed={sel}
                                     onClick={() => setDays(sel ? asList(value).filter(x => String(x).toLowerCase() !== d.toLowerCase()) : [...asList(value), d])}
-                                    className={`h-[43px] flex-1 min-w-[44px] max-w-[64px] rounded-lg text-[13px] font-medium border ${sel ? 'bg-slate-900 border-slate-900 text-white dark:bg-slate-100 dark:border-slate-100 dark:text-slate-900' : 'border-slate-200 text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800'}`}>
+                                    className={`h-10 flex-1 min-w-[44px] max-w-[64px] rounded-lg text-[13px] font-medium border ${sel ? 'bg-slate-900 border-slate-900 text-white dark:bg-slate-100 dark:border-slate-100 dark:text-slate-900' : 'border-slate-200 text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800'}`}>
                                     {d.slice(0, 3)}
                                 </button>
                             );
@@ -375,7 +540,7 @@ export default function Settings() {
             return (
                 <div key={key} className={span}>
                     {Label}
-                    <input id={id} type="time" className="field" value={String(value ?? '').slice(0, 5)} onChange={(e) => handleChange(key, e.target.value)} />
+                    <input id={id} type="time" className={CONTROL} value={String(value ?? '').slice(0, 5)} onChange={(e) => handleChange(key, e.target.value)} />
                     {Help}
                 </div>
             );
@@ -386,7 +551,7 @@ export default function Settings() {
                 <div key={key} className={span}>
                     {Label}
                     <div className="relative">
-                        <input id={id} type="number" className="field tabular-nums" value={value ?? ''}
+                        <input id={id} type="number" className={`${CONTROL} tabular-nums`} value={value ?? ''}
                             style={meta.suffix ? { paddingRight: `${meta.suffix.length * 7 + 28}px` } : undefined}
                             onChange={(e) => handleChange(key, e.target.value === '' ? '' : parseFloat(e.target.value))} />
                         {meta.suffix && (
@@ -404,7 +569,7 @@ export default function Settings() {
             return (
                 <div key={key} className={span}>
                     {Label}
-                    <input id={id} type="text" className="field" value={asList(value).join(', ')} placeholder={meta.placeholder}
+                    <input id={id} type="text" className={CONTROL} value={asList(value).join(', ')} placeholder={meta.placeholder}
                         onChange={(e) => handleChange(key, csv(e.target.value))} />
                     {Help}
                 </div>
@@ -416,7 +581,7 @@ export default function Settings() {
                 {isLong ? (
                     <textarea id={id} rows={2} className="field resize-y" value={value ?? ''} placeholder={meta.placeholder} onChange={(e) => handleChange(key, e.target.value)} />
                 ) : (
-                    <input id={id} type={isPassword ? 'password' : meta.inputType || 'text'} className="field" value={value ?? ''} placeholder={meta.placeholder}
+                    <input id={id} type={isPassword ? 'password' : meta.inputType || 'text'} className={CONTROL} value={value ?? ''} placeholder={meta.placeholder}
                         autoComplete={isPassword ? 'new-password' : 'off'} onChange={(e) => handleChange(key, e.target.value)} />
                 )}
                 {Help}
@@ -466,17 +631,31 @@ export default function Settings() {
                             </div>
                         )}
 
-                        {groups.map((g, i) => (
-                            <Group key={`${g.title}-${i}`} title={g.title} hint={g.hint}>
-                                {g.keys.map(renderField)}
-                            </Group>
-                        ))}
+                        {groups.map((g, i) => {
+                            const isSwitch = (k) => settings[activeTab]?.[k]?.data_type === 'boolean' || section.fields?.[k]?.type === 'multi';
+                            const keys = g.keys.filter(k => k !== g.toggle);
+                            const master = g.toggle && settings[activeTab]?.[g.toggle] ? g.toggle : null;
+                            const masterOn = master ? isOn(formData[master]) : true;
+                            const masterLabel = master ? (section.fields?.[master]?.label || defaultLabel(master)) : '';
+                            return (
+                                <Group key={`${g.title}-${i}`} title={g.title} hint={g.hint}
+                                    badge={master && (section.inert || []).includes(master) ? <InertBadge /> : null}
+                                    toggle={master && <HeaderSwitch id={`set-${master}`} label={masterLabel} checked={masterOn} onChange={(v) => handleChange(master, v)} />}
+                                    off={!masterOn}
+                                    switches={keys.filter(isSwitch).flatMap(k => [].concat(renderField(k)))}
+                                    footer={g.cadence && <ReportStatus cadence={g.cadence} enabled={masterOn} recipients={formData[g.recipients]} schedule={scheduled[g.cadence]} dirty={dirty} onRun={runReport} running={running === g.cadence} />}>
+                                    {keys.filter(k => !isSwitch(k)).map(renderField)}
+                                </Group>
+                            );
+                        })}
+
+                        {activeTab === 'reports' && <ReportHistory rows={history} />}
 
                         {section?.test === 'email' && (
                             <Group title="Test delivery" hint="Save your mail server settings first, then send a test message.">
                                 <div className="col-span-full flex gap-2 flex-wrap">
                                     <input type="email" value={testEmail} onChange={e => setTestEmail(e.target.value)}
-                                        aria-label="Test recipient" placeholder="recipient@example.com" className="field flex-1 min-w-[220px] max-w-md" />
+                                        aria-label="Test recipient" placeholder="recipient@example.com" className={`${CONTROL} flex-1 min-w-[220px] max-w-md`} />
                                     <Button variant="tonal" icon={testingEmail ? Loader2 : Send} onClick={handleTestEmail} disabled={testingEmail}>
                                         {testingEmail ? 'Sending…' : 'Send test email'}
                                     </Button>
@@ -485,14 +664,15 @@ export default function Settings() {
                         )}
 
                         {section?.test === 'alerts' && (
-                            <Group title="Test alerts" hint="Save first. These go to the recipients above through the same path a real alert takes.">
-                                <Tile title="Send a test alert" help="Expect two messages: the alert, then confirmation it cleared.">
-                                    <Button variant="tonal" size="toolbar" icon={BellRing} onClick={handleTestAlert} disabled={testingAlert}>{testingAlert ? 'Sending…' : 'Send test'}</Button>
-                                </Tile>
-                                <Tile title="Fire drill: no-attendance alert" help="Runs the real “no punches today” check with the verdict forced. Subject prefixed [DRILL].">
-                                    <Button variant="tonal" size="toolbar" icon={BellRing} onClick={handleNoPunchDrill} disabled={drilling}>{drilling ? 'Firing…' : 'Run drill'}</Button>
-                                </Tile>
-                            </Group>
+                            <Group title="Test alerts" hint="Save first. These go to the recipients above through the same path a real alert takes."
+                                switches={[
+                                    <ActionRow key="test" title="Send a test alert" help="Expect two messages: the alert, then confirmation it cleared.">
+                                        <Button variant="tonal" size="toolbar" icon={BellRing} onClick={handleTestAlert} disabled={testingAlert}>{testingAlert ? 'Sending…' : 'Send test'}</Button>
+                                    </ActionRow>,
+                                    <ActionRow key="drill" title="Fire drill: no-attendance alert" help="Runs the real “no punches today” check with the verdict forced. Subject prefixed [DRILL].">
+                                        <Button variant="tonal" size="toolbar" icon={BellRing} onClick={handleNoPunchDrill} disabled={drilling}>{drilling ? 'Firing…' : 'Run drill'}</Button>
+                                    </ActionRow>
+                                ]} />
                         )}
                     </>
                 )}

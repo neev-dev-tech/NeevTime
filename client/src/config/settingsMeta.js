@@ -20,6 +20,7 @@ import {
 const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 const csv = (v) => String(v || '').split(',').map(s => s.trim()).filter(Boolean);
 const on = (v) => v === true || v === 'true';
+const ordinal = (n) => `${n}${[, 'st', 'nd', 'rd'][(n % 100 >> 3 ^ 1) && n % 10] || 'th'}`;
 
 export const SETTINGS_SECTIONS = [
     {
@@ -63,7 +64,8 @@ export const SETTINGS_SECTIONS = [
         groups: [
             { title: 'Lateness & day length', hint: 'A shift’s own values override these.', keys: ['grace_period_minutes', 'late_threshold_minutes', 'full_day_threshold_hours', 'half_day_threshold_hours'] },
             { title: 'Overtime & breaks', keys: ['overtime_threshold_hours', 'overtime_multiplier', 'min_break_duration_minutes', 'consecutive_punches_gap_minutes'] },
-            { title: 'Automation & retention', keys: ['auto_checkout_enabled', 'auto_checkout_time', 'punch_photo_retention_days'] }
+            { title: 'Automatic check-out', hint: 'Closes a day that has an IN but no OUT.', toggle: 'auto_checkout_enabled', keys: ['auto_checkout_enabled', 'auto_checkout_time'] },
+            { title: 'Punch photos', keys: ['punch_photo_retention_days'] }
         ],
         fields: {
             grace_period_minutes: { label: 'Grace period', suffix: 'minutes' },
@@ -117,13 +119,13 @@ export const SETTINGS_SECTIONS = [
         description: 'The mail server used for alerts, reports and password resets.',
         hidden: ['smtp_user'],
         groups: [
-            { title: 'Sending', keys: ['email_enabled', 'smtp_from_name', 'smtp_from_email'] },
+            { title: 'Sending', hint: 'Alerts, reports and password resets go out from this address.', toggle: 'email_enabled', keys: ['email_enabled', 'smtp_from_name', 'smtp_from_email'] },
             { title: 'Mail server', hint: 'From your email provider. Port 587 with TLS is the usual choice.', keys: ['smtp_host', 'smtp_port', 'smtp_secure', 'smtp_username', 'smtp_password'] }
         ],
         fields: {
-            email_enabled: { label: 'Send email', help: 'Alerts, reports and password resets.' },
+            email_enabled: { label: 'Send email' },
             smtp_from_name: { label: 'Sender name' },
-            smtp_from_email: { label: 'Sender address', span: 2, inputType: 'email', placeholder: 'attendance@company.com' },
+            smtp_from_email: { label: 'Sender address', inputType: 'email', placeholder: 'attendance@company.com' },
             smtp_host: { label: 'Server', span: 2, placeholder: 'smtp.office365.com' }, smtp_port: { label: 'Port' }, smtp_secure: { label: 'Use TLS/SSL', help: 'On for port 465 and 587.' },
             smtp_username: { label: 'Username', span: 2 }, smtp_password: { label: 'Password', span: 2, help: 'Stored encrypted.' }
         },
@@ -134,35 +136,47 @@ export const SETTINGS_SECTIONS = [
         id: 'alerts', label: 'Alerts', icon: BellRing, area: 'Notifications',
         description: 'Emails when a device goes quiet, sync fails or settings change.',
         groups: [
-            { title: 'Alerts', keys: ['enabled', 'recipients', 'device_offline_minutes'] },
-            { title: 'Changes & daily digest', keys: ['notify_config_changes', 'digest_enabled', 'digest_time'] }
+            { title: 'Alerts', hint: 'Nothing is sent while “Send to” is empty.', toggle: 'enabled', keys: ['enabled', 'recipients', 'device_offline_minutes', 'notify_config_changes'] },
+            { title: 'Daily digest', hint: 'A once-a-day summary of collection and sync.', toggle: 'digest_enabled', keys: ['digest_enabled', 'digest_time'] }
         ],
         fields: {
-            enabled: { label: 'Send alerts', help: 'Nothing is sent while “Send to” is empty.' },
+            enabled: { label: 'Send alerts' },
             recipients: { label: 'Send to', span: 2, placeholder: 'it@example.com, hr@example.com', help: 'Separate addresses with commas.' },
             device_offline_minutes: { label: 'Device offline after', suffix: 'minutes' },
             notify_config_changes: { label: 'Security & integration changes', help: 'Says what changed and who changed it.' },
-            digest_enabled: { label: 'Send a daily digest', help: 'Summary of collection and sync.' }, digest_time: { label: 'Digest time', help: 'Server time.' }
+            digest_enabled: { label: 'Send a daily digest' }, digest_time: { label: 'Digest time', help: 'Server time.' }
         },
         status: (v) => !on(v.enabled) ? { warn: 'Off' } : !v.recipients ? { warn: 'On, but no recipients' } : `On · ${csv(v.recipients).length} recipient${csv(v.recipients).length === 1 ? '' : 's'}`,
         test: 'alerts'
     },
     {
         id: 'reports', label: 'Auto reports', icon: BarChart3, area: 'Notifications',
-        description: 'Attendance reports emailed on a schedule.',
+        description: 'Attendance reports emailed as CSV on a schedule. Needs Email / SMTP to be set up.',
         groups: [
-            { title: 'Daily', keys: ['daily_report_enabled', 'daily_report_time', 'daily_report_recipients'] },
-            { title: 'Weekly', keys: ['weekly_report_enabled', 'weekly_report_day', 'weekly_report_recipients'] },
-            { title: 'Monthly', keys: ['monthly_report_enabled', 'monthly_report_day', 'monthly_report_recipients'] }
+            { title: 'Send time', hint: 'Daily, weekly and monthly reports all go out at this time (server time).', keys: ['daily_report_time'] },
+            { title: 'Daily attendance', hint: 'Every day.', toggle: 'daily_report_enabled', cadence: 'daily', recipients: 'daily_report_recipients', keys: ['daily_report_enabled', 'daily_report_recipients'] },
+            { title: 'Weekly attendance', hint: 'Once a week.', toggle: 'weekly_report_enabled', cadence: 'weekly', recipients: 'weekly_report_recipients', keys: ['weekly_report_enabled', 'weekly_report_day', 'weekly_report_recipients'] },
+            { title: 'Monthly summary', hint: 'Once a month.', toggle: 'monthly_report_enabled', cadence: 'monthly', recipients: 'monthly_report_recipients', keys: ['monthly_report_enabled', 'monthly_report_day', 'monthly_report_recipients'] }
         ],
         fields: {
-            daily_report_enabled: { label: 'Send daily report' }, daily_report_time: { label: 'Send at' }, daily_report_recipients: { label: 'Send to', span: 2, placeholder: 'Addresses, separated by commas' },
-            weekly_report_enabled: { label: 'Send weekly report' }, weekly_report_day: { label: 'Send on', type: 'select', options: days.map(d => [d, d]) }, weekly_report_recipients: { label: 'Send to', span: 2, placeholder: 'Addresses, separated by commas' },
-            monthly_report_enabled: { label: 'Send monthly report' }, monthly_report_day: { label: 'Day of month' }, monthly_report_recipients: { label: 'Send to', span: 2, placeholder: 'Addresses, separated by commas' }
+            daily_report_time: { label: 'Send at' },
+            daily_report_enabled: { label: 'Daily attendance report' },
+            daily_report_recipients: { label: 'Send to', span: 2, placeholder: 'Addresses, separated by commas' },
+            weekly_report_enabled: { label: 'Weekly attendance report' },
+            weekly_report_day: { label: 'Send on', type: 'select', options: days.map(d => [d, d]) },
+            weekly_report_recipients: { label: 'Send to', span: 2, placeholder: 'Addresses, separated by commas' },
+            monthly_report_enabled: { label: 'Monthly summary report' },
+            monthly_report_day: { label: 'Day of month', type: 'select', numeric: true, options: Array.from({ length: 28 }, (_, i) => [i + 1, ordinal(i + 1)]) },
+            monthly_report_recipients: { label: 'Send to', span: 2, placeholder: 'Addresses, separated by commas' }
         },
         status: (v) => {
-            const onList = [on(v.daily_report_enabled) && 'Daily', on(v.weekly_report_enabled) && 'Weekly', on(v.monthly_report_enabled) && 'Monthly'].filter(Boolean);
-            return onList.length ? onList.join(', ') : 'None scheduled';
+            const list = (x) => (Array.isArray(x) ? x : csv(x)).length;
+            const reports = [['Daily', 'daily'], ['Weekly', 'weekly'], ['Monthly', 'monthly']]
+                .filter(([, k]) => on(v[`${k}_report_enabled`]));
+            // The scheduler skips a report with nobody to send to.
+            const empty = reports.filter(([, k]) => !list(v[`${k}_report_recipients`]));
+            if (empty.length) return { warn: `${empty.map(([l]) => l).join(', ')} on, but no recipients` };
+            return reports.length ? `${reports.map(([l]) => l).join(', ')} at ${v.daily_report_time || '—'}` : 'None scheduled';
         }
     },
     {
@@ -235,7 +249,7 @@ export const SETTINGS_SECTIONS = [
         id: 'database', label: 'Backups', icon: DatabaseIcon, area: 'Data',
         description: 'Automatic database backups and how many to keep.',
         groups: [
-            { title: 'Schedule', keys: ['backup_enabled', 'backup_frequency', 'backup_day', 'backup_time'] },
+            { title: 'Schedule', toggle: 'backup_enabled', keys: ['backup_enabled', 'backup_frequency', 'backup_day', 'backup_time'] },
             { title: 'Retention & second copy', keys: ['backup_retention_count', 'backup_external_path'] }
         ],
         fields: {
