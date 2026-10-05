@@ -72,12 +72,22 @@ const CHECKS = [
 
 const fail = (msg) => { console.error(`  FAIL  ${msg}`); return false; };
 
+// A fresh install's temporary password must be replaced at first sign-in.
+// This script and client/scripts/browser-check.mjs agree on the replacement,
+// so whichever runs first changes it and the other can still sign in.
+const ROTATED = `${PASS}-Rotated1!`;
+
+const signIn = (password) => fetch(`${BASE}/api/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: USER, password }),
+});
+
 const login = async () => {
-    const res = await fetch(`${BASE}/api/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: USER, password: PASS }),
-    });
+    let used = PASS;
+    let res = await signIn(PASS);
+    // A wrong password is answered 400, not 401.
+    if (res.status === 400 || res.status === 401) { used = ROTATED; res = await signIn(ROTATED); }
     if (!res.ok) {
         const body = (await res.text()).slice(0, 200);
         throw new Error(`login returned ${res.status}: ${body}`);
@@ -93,7 +103,7 @@ const login = async () => {
     const changed = await fetch(`${BASE}/api/change-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ current_password: PASS, new_password: `${PASS}-Rotated1!` }),
+        body: JSON.stringify({ current_password: used, new_password: ROTATED }),
     });
     if (!changed.ok) {
         const body = (await changed.text()).slice(0, 200);

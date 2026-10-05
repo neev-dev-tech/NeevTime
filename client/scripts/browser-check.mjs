@@ -37,6 +37,10 @@ import puppeteer from 'puppeteer-core';
 const BASE = (process.env.BASE || 'http://localhost').replace(/\/$/, '');
 const USER = process.env.SMOKE_USER || 'admin';
 const PASS = process.env.SMOKE_PASS || 'admin';
+// scripts/smoke.mjs replaces a fresh install's temporary password with this
+// at first sign-in (it is required before any endpoint answers); whichever
+// script runs first does it, so both try the original and then this one.
+const ROTATED = `${PASS}-Rotated1!`;
 
 const CHROME = process.env.CHROME_PATH
     || ['/usr/bin/google-chrome', '/usr/bin/chromium-browser', '/usr/bin/chromium',
@@ -93,18 +97,30 @@ const main = async () => {
     // make every route failure look like an authentication failure.
     await page.goto(`${BASE}/login`, { waitUntil: 'domcontentloaded' });
 
-    const seeded = await page.evaluate(async (base, u, p) => {
-        const r = await fetch(`${base}/api/login`, {
+    const seeded = await page.evaluate(async (base, u, p, rotated) => {
+        const signIn = (password) => fetch(`${base}/api/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username: u, password: p }),
+            body: JSON.stringify({ username: u, password }),
         });
+        let used = p;
+        let r = await signIn(p);
+        if (r.status === 400 || r.status === 401) { used = rotated; r = await signIn(rotated); }
         if (!r.ok) return false;
-        const { token: t, user } = await r.json();
+        let { token: t, user, must_change: mustChange } = await r.json();
+        if (mustChange) {
+            const c = await fetch(`${base}/api/change-password`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${t}` },
+                body: JSON.stringify({ current_password: used, new_password: rotated }),
+            });
+            if (!c.ok) return false;
+            t = (await c.json()).token;
+        }
         localStorage.setItem('token', t);
         if (user) localStorage.setItem('user', JSON.stringify(user));
         return true;
-    }, BASE, USER, PASS);
+    }, BASE, USER, PASS, ROTATED);
 
     if (!seeded) {
         console.error('  FAIL  could not sign in — every route would fail for the same reason');
