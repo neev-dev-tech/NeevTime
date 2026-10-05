@@ -27,9 +27,11 @@ import useDismissable from '../../hooks/useDismissable';
 export default function ListPage({ title, count, tabs, actions, toolbar, toolbarActive = false, footer, children, bodyClassName = '' }) {
     return (
         <div className="relative -m-4 sm:-m-6 h-[calc(100%+2rem)] sm:h-[calc(100%+3rem)] flex flex-col bg-app-surface">
-            <div className="flex items-center gap-x-4 gap-y-2 px-4 sm:px-6 min-h-14 py-2.5 border-b border-slate-200 dark:border-slate-800 flex-wrap">
+            {/* Header band sits above the rest with a soft edge; the toolbar
+                below it is tinted, so title, filters and data read as layers. */}
+            <div className="relative z-[1] flex items-center gap-x-4 gap-y-2 px-4 sm:px-6 min-h-14 py-2.5 border-b border-slate-200 dark:border-slate-800 flex-wrap bg-app-surface shadow-[0_1px_2px_rgb(15_23_42/0.04)]">
                 <h1 data-page-title={typeof title === 'string' ? title : undefined}
-                    className="flex items-baseline gap-2 text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-50">
+                    className="flex items-baseline gap-2 text-[19px] font-semibold tracking-tight text-slate-900 dark:text-slate-50">
                     {title}
                     {count !== undefined && count !== null && (
                         <span className="text-sm font-medium text-slate-500 dark:text-slate-400 tabular-nums">{count}</span>
@@ -40,7 +42,7 @@ export default function ListPage({ title, count, tabs, actions, toolbar, toolbar
             </div>
 
             {toolbar && (
-                <div className={`flex items-center gap-2 px-4 sm:px-6 py-2 border-b border-slate-200 dark:border-slate-800 flex-wrap ${toolbarActive ? 'bg-slate-50 dark:bg-slate-800/50' : ''}`}>
+                <div className={`flex items-center gap-2 px-4 sm:px-6 py-2 border-b border-slate-200 dark:border-slate-800 flex-wrap ${toolbarActive ? 'bg-slate-100 dark:bg-slate-800/60' : 'bg-[#F8F8F6] dark:bg-[#111111]'}`}>
                     {toolbar}
                 </div>
             )}
@@ -236,8 +238,8 @@ ListIconButton.propTypes = {
 };
 
 /** Table header styling shared by list pages. */
-export const LIST_THEAD = 'sticky top-0 z-10 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700';
-export const LIST_TH = 'px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-600 dark:text-slate-400 whitespace-nowrap text-left';
+export const LIST_THEAD = 'sticky top-0 z-10 bg-[#F1F1EE] dark:bg-[#161616] border-b border-slate-300/80 dark:border-slate-700';
+export const LIST_TH = 'px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-700 dark:text-slate-300 whitespace-nowrap text-left';
 /** First/last cell padding so table content lines up with the bars above. */
 export const LIST_EDGE_FIRST = 'pl-4 sm:pl-6';
 export const LIST_EDGE_LAST = 'pr-4 sm:pr-6';
