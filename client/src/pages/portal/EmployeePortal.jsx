@@ -593,7 +593,7 @@ export default function EmployeePortal() {
                         {/* Shift swaps: agree with a colleague, management
                             countersigns. The counterpart must accept before any
                             approver sees it. */}
-                        <div className="bg-app-surface/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 p-4 space-y-3">
+                        <div data-enter-scope className="bg-app-surface/70 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 p-4 space-y-3">
                             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-slate-400">Shift swap</h3>
                             <div className="grid grid-cols-2 gap-2">
                                 <input aria-label="Colleague's employee code" className="field col-span-2" placeholder="Colleague's employee code"
@@ -609,7 +609,7 @@ export default function EmployeePortal() {
                                        value={swapForm.reason}
                                        onChange={e => setSwapForm(f => ({ ...f, reason: e.target.value }))} />
                             </div>
-                            <Button variant="primary" className="w-full" disabled={swapBusy}
+                            <Button defaultAction variant="primary" className="w-full" disabled={swapBusy}
                                     onClick={submitSwap}>{swapBusy ? 'Sending…' : 'Request swap'}</Button>
 
                             {swaps.map(sw => (
@@ -693,11 +693,11 @@ export default function EmployeePortal() {
                                         </div>
                                     </div>
                                     {rejecting?.key === item.type + item.id && (
-                                        <div className="mt-3 flex gap-2">
+                                        <div data-enter-scope className="mt-3 flex gap-2">
                                             <input aria-label="Reason for rejecting" autoFocus className="field flex-1" placeholder="Why? The employee sees this."
                                                    value={rejecting.comment}
                                                    onChange={e => setRejecting({ ...rejecting, comment: e.target.value })} />
-                                            <Button variant="danger"
+                                            <Button defaultAction variant="danger"
                                                     onClick={() => decide(item, 'rejected', rejecting.comment || null)}
                                                     disabled={deciding === item.type + item.id}>
                                                 Confirm reject

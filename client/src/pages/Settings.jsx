@@ -653,10 +653,10 @@ export default function Settings() {
 
                         {section?.test === 'email' && (
                             <Group title="Test delivery" hint="Save your mail server settings first, then send a test message.">
-                                <div className="col-span-full flex gap-2 flex-wrap">
+                                <div data-enter-scope className="col-span-full flex gap-2 flex-wrap">
                                     <input type="email" value={testEmail} onChange={e => setTestEmail(e.target.value)}
                                         aria-label="Test recipient" placeholder="recipient@example.com" className={`${CONTROL} flex-1 min-w-[220px] max-w-md`} />
-                                    <Button variant="tonal" icon={testingEmail ? Loader2 : Send} onClick={handleTestEmail} disabled={testingEmail}>
+                                    <Button defaultAction variant="tonal" icon={testingEmail ? Loader2 : Send} onClick={handleTestEmail} disabled={testingEmail}>
                                         {testingEmail ? 'Sending…' : 'Send test email'}
                                     </Button>
                                 </div>
@@ -686,7 +686,7 @@ export default function Settings() {
                     </span>
                     <div className="ml-auto flex items-center gap-2">
                         <Button variant="tonal" size="toolbar" onClick={handleDiscard} disabled={saving}>Discard</Button>
-                        <Button mutating variant="primary" size="toolbar" icon={saving ? Loader2 : Save} onClick={handleSave} disabled={saving}>
+                        <Button defaultAction mutating variant="primary" size="toolbar" icon={saving ? Loader2 : Save} onClick={handleSave} disabled={saving}>
                             {saving ? 'Saving…' : 'Save changes'}
                         </Button>
                     </div>

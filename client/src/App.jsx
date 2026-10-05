@@ -73,6 +73,7 @@ import AccessibilityStatement from './pages/legal/AccessibilityStatement';
 
 import useStore from './store/useStore';
 import { loadReportSettings } from './utils/reportSettings';
+import useEnterToSubmit from './hooks/useEnterToSubmit';
 
 // Setup Axios Interceptor for Token
 axios.interceptors.request.use(config => {
@@ -136,6 +137,8 @@ AdminRoute.propTypes = {
 };
 
 export default function App() {
+  // Enter in a field presses the screen's default action, app-wide.
+  useEnterToSubmit();
   const { setAuth } = useStore();
   const [loading, setLoading] = useState(true);
 

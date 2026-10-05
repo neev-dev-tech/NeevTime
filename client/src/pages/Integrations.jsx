@@ -351,7 +351,7 @@ const Integrations = () => {
                 footer={
                     <div className="flex justify-end gap-3">
                         <Button variant="secondary" onClick={handleCloseDialog}>Cancel</Button>
-                        <Button variant="primary" onClick={handleSave}>{selectedIntegration ? 'Update' : 'Create'}</Button>
+                        <Button defaultAction variant="primary" onClick={handleSave}>{selectedIntegration ? 'Update' : 'Create'}</Button>
                     </div>
                 }
             >

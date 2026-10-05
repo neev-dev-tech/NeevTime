@@ -633,7 +633,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                         <ListMenuItem onClick={handleExportExcel}>Excel (.xlsx)</ListMenuItem>
                         <ListMenuItem onClick={handleExportCSV}>CSV</ListMenuItem>
                     </ListMenu>
-                    <Button variant="primary" size="toolbar" onClick={generateReport} disabled={loading}>
+                    <Button defaultAction variant="primary" size="toolbar" onClick={generateReport} disabled={loading}>
                         {loading ? <RefreshCw size={15} className="animate-spin" /> : <Calculator size={15} />}
                         {loading ? 'Processing…' : 'Generate'}
                     </Button>

@@ -177,7 +177,7 @@ export default function ShiftRotations() {
                         </div>
                         <div className="flex justify-end gap-2">
                             <Button variant="secondary" onClick={() => setForm(null)}>Cancel</Button>
-                            <Button variant="primary" onClick={saveRotation} disabled={busy}>{busy ? 'Saving…' : 'Save'}</Button>
+                            <Button defaultAction variant="primary" onClick={saveRotation} disabled={busy}>{busy ? 'Saving…' : 'Save'}</Button>
                         </div>
                     </div>
                 </Modal>
@@ -210,7 +210,7 @@ export default function ShiftRotations() {
                         </div>
                         <div className="flex justify-end gap-2">
                             <Button variant="secondary" onClick={() => setCrewOf(null)}>Close</Button>
-                            <Button variant="primary" onClick={addCrew} disabled={busy}>{busy ? 'Adding…' : 'Add to crew'}</Button>
+                            <Button defaultAction variant="primary" onClick={addCrew} disabled={busy}>{busy ? 'Adding…' : 'Add to crew'}</Button>
                         </div>
                     </div>
                 </Modal>
