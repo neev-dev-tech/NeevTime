@@ -13,6 +13,8 @@
 
 const express = require('express');
 const registry = require('../services/integrations/registry');
+// api_secret and password are encrypted at rest and never returned.
+const { sealSecret, maskIntegration } = require('../utils/integrationSecrets');
 const router = express.Router();
 const db = require('../db');
 const hrmsIntegration = require('../services/hrms-integration');
@@ -45,13 +47,7 @@ router.get('/integrations', async (req, res) => {
             ORDER BY i.created_at DESC
         `);
 
-        // Mask sensitive fields
-        const integrations = result.rows.map(i => ({
-            ...i,
-            api_key: i.api_key ? '***' + i.api_key.slice(-4) : null,
-            api_secret: i.api_secret ? '****' : null,
-            password: i.password ? '****' : null
-        }));
+        const integrations = result.rows.map(maskIntegration);
 
         res.json(integrations);
     } catch (err) {
@@ -67,13 +63,7 @@ router.get('/integrations/:id', async (req, res) => {
             return res.status(404).json({ error: 'Integration not found' });
         }
 
-        const integration = result.rows[0];
-        // Mask sensitive fields
-        integration.api_key = integration.api_key ? '***' + integration.api_key.slice(-4) : null;
-        integration.api_secret = integration.api_secret ? '****' : null;
-        integration.password = integration.password ? '****' : null;
-
-        res.json(integration);
+        res.json(maskIntegration(result.rows[0]));
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -95,12 +85,13 @@ router.post('/integrations', async (req, res) => {
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
             RETURNING *
         `, [
-            name, type, base_url, api_key, api_secret, username, password, database_name,
+            name, type, base_url, api_key, sealSecret(api_secret), username, sealSecret(password), database_name,
             sync_employees ?? true, sync_attendance ?? true, sync_leaves ?? true,
             sync_interval_minutes || 30, toConfigJson(config)
         ]);
 
-        res.status(201).json(result.rows[0]);
+        // RETURNING * would hand the credentials straight back.
+        res.status(201).json(maskIntegration(result.rows[0]));
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -135,7 +126,7 @@ router.put('/integrations/:id', async (req, res) => {
             WHERE id = $1
             RETURNING *
         `, [
-            req.params.id, name, type, base_url, api_key, api_secret, username, password,
+            req.params.id, name, type, base_url, api_key, sealSecret(api_secret), username, sealSecret(password),
             database_name, is_active, sync_employees, sync_attendance, sync_leaves,
             sync_interval_minutes, config != null ? toConfigJson(config) : null
         ]);
@@ -144,7 +135,7 @@ router.put('/integrations/:id', async (req, res) => {
             return res.status(404).json({ error: 'Integration not found' });
         }
 
-        res.json(result.rows[0]);
+        res.json(maskIntegration(result.rows[0]));
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

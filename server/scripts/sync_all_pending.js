@@ -19,7 +19,7 @@ async function syncAllPending() {
         console.error('Integration not found, id=', INTEGRATION_ID);
         process.exit(1);
     }
-    const integration = new ERPNextIntegration(intResult.rows[0]);
+    const integration = new ERPNextIntegration(require('../utils/integrationSecrets').openIntegration(intResult.rows[0]));
 
     // Test connection first
     console.log('\nTesting ERPNext connection...');

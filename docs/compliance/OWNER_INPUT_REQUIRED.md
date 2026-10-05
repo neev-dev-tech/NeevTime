@@ -10,7 +10,7 @@ each item.
 | # | Item | Why | Where |
 |---|---|---|---|
 | A1 | Run migration 021 on every install: `node migrations/runner.js up` from the server directory inside the app container (`verify-deploy.sh` warns while it is pending) | Removes portal hashes, tokens and identity numbers from the audit trail (finding S-6) | Server |
-| A2 | Confirm production `.env` does **not** use the `JWT_SECRET` value that was in `env.example`. If it does, generate a new one (everyone is signed out once) | That value is public in the repository history (S-7) | VM `.env` |
+| A2 | ~~Confirm production `.env` does not use the `JWT_SECRET` from `env.example`~~ — it did; **rotated on 5 Oct 2026** (S-22). Check any other install the same way | That value is public in the repository history | Each install's `.env` |
 | A3 | Check whether any install runs nginx and Node in separate containers; if so set `TRUST_PROXY` to that hop (e.g. `uniquelocal`) | Real client IPs for rate limiting and logs (S-9) | `.env` |
 
 ## B. Per employer (each customer running NeevTime)

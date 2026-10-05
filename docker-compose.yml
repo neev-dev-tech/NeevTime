@@ -77,6 +77,10 @@ services:
       # required. Refusing to start is the correct behaviour; install.sh
       # generates one.
       - JWT_SECRET=${JWT_SECRET:?set JWT_SECRET in .env — run ./install.sh}
+      # Encrypts stored credentials (backup destinations, HRMS secrets). Kept
+      # apart from JWT_SECRET so rotating the login key does not lock them.
+      # Empty falls back to JWT_SECRET (utils/secrets.js).
+      - SECRETS_KEY=${SECRETS_KEY:-}
       # Only read on first boot, and only when no user exists. Leave it unset
       # and the first administrator's password is generated and printed once to
       # this container's log.
