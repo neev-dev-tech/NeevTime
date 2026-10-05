@@ -82,9 +82,27 @@ const login = async () => {
         const body = (await res.text()).slice(0, 200);
         throw new Error(`login returned ${res.status}: ${body}`);
     }
-    const { token } = await res.json();
+    const { token, must_change } = await res.json();
     if (!token) throw new Error('login succeeded but returned no token');
-    return token;
+    if (!must_change) return token;
+
+    // A fresh install's first administrator must replace the temporary
+    // password before anything else answers (403 "Set a new administrator
+    // password"). Do what a person does at first sign-in, and carry on with
+    // the token that comes back.
+    const changed = await fetch(`${BASE}/api/change-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ current_password: PASS, new_password: `${PASS}-Rotated1!` }),
+    });
+    if (!changed.ok) {
+        const body = (await changed.text()).slice(0, 200);
+        throw new Error(`first sign-in password change returned ${changed.status}: ${body}`);
+    }
+    const next = (await changed.json()).token;
+    if (!next) throw new Error('password change succeeded but returned no token');
+    console.log('  ok    first sign-in password change');
+    return next;
 };
 
 const main = async () => {
