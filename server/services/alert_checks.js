@@ -109,7 +109,10 @@ const checkSyncBacklog = async () => {
  * still fixable by whatever is blocking the sync. Past it, only the backfill
  * script can recover them, and someone has to run it deliberately.
  */
-const RETRY_WINDOW_DAYS = 7;
+// Must equal the catch-up window in hrms-integration.js (45 days since the
+// Omniware merge; tests/alerts.test.js keeps them together). Five days
+// unsynced is still worth an alert, so WARN_AFTER_DAYS stays at 5.
+const RETRY_WINDOW_DAYS = 45;
 const WARN_AFTER_DAYS = 5;
 
 const checkSyncAging = async () => {

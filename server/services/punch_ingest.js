@@ -172,6 +172,17 @@ const recordPunch = async (punch, options = {}) => {
         // HRMS push must never hold up or fail the punch
         (async () => {
             try {
+                // Only real HRMS employees are pushed. Door-only, excluded and
+                // deleted staff (gate guards, housekeeping) must never reach
+                // the HRMS — the batch sync already marks theirs 'skipped', but
+                // the live path pushed them on every swipe. Ported from the
+                // Omniware install.
+                const who = (await db.query(
+                    'SELECT exclude_from_hrms, deleted_at FROM employees WHERE employee_code = $1',
+                    [employeeCode]
+                )).rows[0];
+                if (!who || who.exclude_from_hrms || who.deleted_at) return;
+
                 const hrmsIntegration = require('./hrms-integration');
                 const integrations = await hrmsIntegration.getActiveIntegrations();
                 for (const integration of integrations) {

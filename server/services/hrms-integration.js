@@ -592,7 +592,13 @@ const syncAttendanceToHRMS = async (integration) => {
             LEFT JOIN employees e ON al.employee_code = e.employee_code
             WHERE (al.sync_status IS NULL OR al.sync_status NOT IN ('synced', 'skipped'))
             AND COALESCE(e.exclude_from_hrms, false) = false
-            AND al.punch_time > NOW() - INTERVAL '7 days'
+            -- 45 days, not 7. Real-time push sends new punches; this batch is
+            -- the catch-up, and after an outage it must drain everything the
+            -- readers stored — Omniware's 6 Oct IP change left a day's swipes
+            -- waiting, and a longer outage past 7 days would have dropped them
+            -- silently. Not unlimited: an integration switched on later must
+            -- not push years of history into the HRMS.
+            AND al.punch_time > NOW() - INTERVAL '45 days'
             ORDER BY al.punch_time
             LIMIT 500
         `);

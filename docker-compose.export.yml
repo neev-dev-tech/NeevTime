@@ -1,0 +1,54 @@
+# Public edge for the HRMS export API.
+#
+# Kept in its own file rather than added to docker-compose.yml so the running
+# stack is untouched until someone deliberately brings this up, and so taking
+# the integration offline is `down` on one file rather than an edit to the file
+# that also defines the database.
+#
+#   Bring up:  docker compose -f docker-compose.yml -f docker-compose.export.yml up -d export_gateway cloudflared
+#   Take down: docker compose -f docker-compose.yml -f docker-compose.export.yml stop cloudflared
+#
+# Stopping cloudflared alone removes the public route immediately and leaves
+# everything else running — that is the panic switch.
+
+services:
+  # Serves /api/export/* and nothing else. See deploy/export-gateway/nginx.conf
+  # for why this must never publish a host port.
+  export_gateway:
+    image: nginx:alpine
+    container_name: export_gateway
+    restart: always
+    depends_on:
+      - server
+    volumes:
+      - ./deploy/export-gateway/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - app-network
+
+  # Outbound-only connection to Cloudflare. No inbound firewall rule, no NAT,
+  # no static IP.
+  #
+  # With TUNNEL_TOKEN set it runs the named tunnel that token belongs to, giving
+  # a stable hostname. Without it, a quick tunnel: Cloudflare prints a random
+  # trycloudflare.com URL to the log, which changes on every restart and is for
+  # testing only.
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    restart: always
+    depends_on:
+      - export_gateway
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN:-}
+    command: >
+      sh -c 'if [ -n "$$TUNNEL_TOKEN" ];
+             then exec cloudflared tunnel --no-autoupdate run --token "$$TUNNEL_TOKEN";
+             else exec cloudflared tunnel --no-autoupdate --url http://export_gateway:80;
+             fi'
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    external: true
+    name: neevtime_app-network

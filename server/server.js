@@ -225,6 +225,12 @@ app.use((req, res, next) => {
 // down this would 401 and the sign-in page would silently fall back to the
 // default mark.
 //
+// Read-only attendance export for an HRMS vendor that pulls (greytHR, on the
+// Omniware install). Authenticated by a per-integrator API key, not a user
+// session, so it mounts above the authenticateToken gate below — that gate
+// would 401 a caller that never has a user token. Every route inside is a GET.
+app.use('/api/export', require('./routes/hrms_export'));
+
 // The facts the privacy notice states (who answers privacy questions, how long
 // photos are kept). Public like branding: the notice must be readable before
 // sign-in. Exposes no personal data. See routes/privacy.js.
@@ -2873,7 +2879,19 @@ const ensureSchema = async () => {
         `ALTER TABLE attendance_rules ADD COLUMN IF NOT EXISTS minimum_punch_gap_minutes INTEGER DEFAULT 30`,
         `ALTER TABLE attendance_rules ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true`,
         `ALTER TABLE attendance_rules ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
-        `ALTER TABLE attendance_rules ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`
+        `ALTER TABLE attendance_rules ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
+        // Reader PIN aliases (services/adms.js normalizePin): a reader's
+        // numeric ID without the leading zeros, or an ad-hoc ID, mapped to the
+        // employee code. From the Omniware install; empty elsewhere.
+        `CREATE TABLE IF NOT EXISTS device_pin_map (
+            device_pin VARCHAR(50) NOT NULL,
+            employee_code VARCHAR(50) NOT NULL,
+            created_at TIMESTAMP DEFAULT NOW()
+        )`,
+        `CREATE UNIQUE INDEX IF NOT EXISTS device_pin_map_pin_key ON device_pin_map (device_pin)`,
+        // Reader-to-reader template copies are marked trusted so the dispatch
+        // guard (devices.block_app_writes) lets them through.
+        `ALTER TABLE device_commands ADD COLUMN IF NOT EXISTS trusted BOOLEAN DEFAULT FALSE`
     ];
     for (const sql of statements) {
         try {

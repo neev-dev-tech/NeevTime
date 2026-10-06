@@ -16,6 +16,32 @@ const logger = require('../utils/logger');
  */
 
 // Format timestamp for DB
+// ── Reader PIN → employee code ───────────────────────────────────────────
+// From the Omniware install, where it has run in production since Sep 2026.
+// Readers there were enrolled with "OMNT-" prefixed PINs during the ERPNext
+// era; employees are now keyed by the bare code (OMNT-027 → 027). eSSL/ZKTeco
+// readers also store numeric IDs without the leading zeros the employee codes
+// use ("50" vs "050"), and some staff were enrolled under ad-hoc IDs; the
+// device_pin_map table records those exceptions. Both are no-ops where there
+// is no prefix and no alias (e.g. the Innopay install).
+const PIN_ALIASES = new Map();
+const loadPinAliases = async () => {
+    try {
+        const r = await db.query('SELECT device_pin, employee_code FROM device_pin_map');
+        PIN_ALIASES.clear();
+        for (const row of r.rows) PIN_ALIASES.set(String(row.device_pin), String(row.employee_code));
+    } catch {
+        // table not created yet: no aliases
+    }
+};
+loadPinAliases();
+setInterval(loadPinAliases, 5 * 60 * 1000).unref?.();
+
+const normalizePin = (pin) => {
+    const code = String(pin == null ? '' : pin).trim().replace(/^OMNT-/i, '');
+    return PIN_ALIASES.get(code) || code;
+};
+
 const formatTime = (ts) => {
     // If ts is not provided or invalid, return now
     if (!ts) return new Date();
@@ -47,14 +73,17 @@ const logAttendanceLogs = async (SN, pin, time, status, verify, workcode) => {
             INSERT INTO attendance_logs (device_serial, employee_code, punch_time, punch_state, verification_mode, work_code, created_at, sync_status)
             VALUES ($1, $2, $3, $4, $5, $6, NOW(), 'synced')
             ON CONFLICT (employee_code, punch_time) DO NOTHING
-        `, [SN, pin, formatTime(time), status, verify, workcode]);
+        `, [SN, normalizePin(pin), formatTime(time), status, verify, workcode]);
     } catch (e) { console.error('logAttendanceLogs error:', e); }
 };
 
 /**
  * Syncs a biometric template to all other registered devices
  */
-const syncTemplateToOtherDevices = async (SN, PIN, templateType, templateNo, Temp, Valid, isNewTemplate, templateChanged, shouldForceSync) => {
+const syncTemplateToOtherDevices = async (SN, PIN, templateType, templateNo, Temp, Valid, isNewTemplate, templateChanged, shouldForceSync, rawPin = PIN) => {
+    // Commands carry the reader's own PIN (rawPin); lookups use the employee
+    // code (PIN). Inserted trusted=true so the dispatch guard in
+    // handleGetRequest lets them through even where app-made writes are blocked.
     // CRITICAL: Always sync when templates are received from devices to ensure all devices have latest data
     const shouldAutoSync = isNewTemplate || templateChanged || shouldForceSync || true; 
 
@@ -86,17 +115,17 @@ const syncTemplateToOtherDevices = async (SN, PIN, templateType, templateNo, Tem
                 AND status IN ('pending', 'sent')
                 AND created_at > NOW() - INTERVAL '2 minutes'
                 LIMIT 1
-            `, [dev.serial_number, `DATA UPDATE USERINFO PIN=${PIN}%`]);
+            `, [dev.serial_number, `DATA UPDATE USERINFO PIN=${rawPin}%`]);
 
             if (recentUserInfo.rows.length === 0) {
-                const cmdUser = `DATA UPDATE USERINFO PIN=${PIN}\tName=${empName}\tPri=${empPri}\tPasswd=${empPasswd}\tCard=${empCard}\tGrp=1\tTZ=1\tVerify=0\tFace=1\tFPCount=1`;
-                await db.query(`INSERT INTO device_commands (device_serial, command, status, sequence) VALUES ($1, $2, 'pending', 1)`,
+                const cmdUser = `DATA UPDATE USERINFO PIN=${rawPin}\tName=${empName}\tPri=${empPri}\tPasswd=${empPasswd}\tCard=${empCard}\tGrp=1\tTZ=1\tVerify=0\tFace=1\tFPCount=1`;
+                await db.query(`INSERT INTO device_commands (device_serial, command, status, sequence, trusted) VALUES ($1, $2, 'pending', 1, true)`,
                     [dev.serial_number, cmdUser]);
             }
 
             if (templateType === 9) {
-                await db.query(`INSERT INTO device_commands (device_serial, command, status, sequence) VALUES ($1, $2, 'pending', 2)`,
-                    [dev.serial_number, `DATA DELETE FACE PIN=${PIN}`]);
+                await db.query(`INSERT INTO device_commands (device_serial, command, status, sequence, trusted) VALUES ($1, $2, 'pending', 2, true)`,
+                    [dev.serial_number, `DATA DELETE FACE PIN=${rawPin}`]);
             }
 
             const freshTemplate = await db.query(`
@@ -120,13 +149,13 @@ const syncTemplateToOtherDevices = async (SN, PIN, templateType, templateNo, Tem
                 const targetCaps = await deviceCapabilities.getCapabilities(dev.serial_number);
                 const majorVer = targetCaps?.face_major_ver || tmplRow.major_ver || 40;
                 const minorVer = targetCaps?.face_minor_ver || tmplRow.minor_ver || 1;
-                const biodataCmd = `DATA UPDATE BIODATA Pin=${PIN}\tNo=${templateNo || '0'}\tIndex=${tmplRow.index_no || 0}\tValid=${tmplRow.valid || 1}\tDuress=${tmplRow.duress || 0}\tType=9\tMajorVer=${majorVer}\tMinorVer=${minorVer}\tFormat=${tmplRow.format || 0}\tTmp=${normalizedFreshTemp}`;
-                await db.query(`INSERT INTO device_commands (device_serial, command, status, sequence) VALUES ($1, $2, 'pending', 3)`,
+                const biodataCmd = `DATA UPDATE BIODATA Pin=${rawPin}\tNo=${templateNo || '0'}\tIndex=${tmplRow.index_no || 0}\tValid=${tmplRow.valid || 1}\tDuress=${tmplRow.duress || 0}\tType=9\tMajorVer=${majorVer}\tMinorVer=${minorVer}\tFormat=${tmplRow.format || 0}\tTmp=${normalizedFreshTemp}`;
+                await db.query(`INSERT INTO device_commands (device_serial, command, status, sequence, trusted) VALUES ($1, $2, 'pending', 3, true)`,
                     [dev.serial_number, biodataCmd]);
             } else {
                 const fingerFID = templateNo || '0';
-                await db.query(`INSERT INTO device_commands (device_serial, command, status, sequence) VALUES ($1, $2, 'pending', 3)`,
-                    [dev.serial_number, `DATA UPDATE FINGERTMP PIN=${PIN}\tFID=${fingerFID}\tSize=${freshSize}\tValid=${validFlag}\tTMP=${normalizedFreshTemp}`]);
+                await db.query(`INSERT INTO device_commands (device_serial, command, status, sequence, trusted) VALUES ($1, $2, 'pending', 3, true)`,
+                    [dev.serial_number, `DATA UPDATE FINGERTMP PIN=${rawPin}\tFID=${fingerFID}\tSize=${freshSize}\tValid=${validFlag}\tTMP=${normalizedFreshTemp}`]);
             }
         }
     } catch (error) {
@@ -154,7 +183,10 @@ const processAttendanceLogLine = async (line, SN, deviceDirection, io) => {
 
     if (parts.length < 2) return false;
 
-    const [userId, timestamp, state, verifyMode] = parts;
+    const [userIdRaw, timestampRaw, state, verifyMode] = parts;
+    const userId = normalizePin(userIdRaw);
+    const timestamp = String(timestampRaw || '').trim();
+    if (!userId || !timestamp) return false;
     let finalState = state;
     if (deviceDirection === 'in') finalState = '0';
     else if (deviceDirection === 'out') finalState = '1';
@@ -222,7 +254,12 @@ const processBiodataLine = async (line, SN, table) => {
         });
 
         // Handle case-insensitive PIN field (devices may send Pin= or PIN=)
-        const PIN = fields['PIN'] || fields['Pin'] || fields[Object.keys(fields).find(k => k.toLowerCase() === 'pin')];
+        // rawPin is exactly what the reader sent (OMNT-027, 50); PIN is the
+        // employee code (027, 050). Rows key on PIN; commands copied to the
+        // other readers use rawPin so every reader holds the user under the
+        // identical PIN and no duplicate users appear.
+        const rawPin = String(fields['PIN'] || fields['Pin'] || fields[Object.keys(fields).find(k => k.toLowerCase() === 'pin')] || '').trim();
+        const PIN = normalizePin(rawPin);
         if (!PIN) {
             fs.appendFileSync('adms_debug.log', `[ADMS WARNING] No PIN found in line: ${line.substring(0, 100)}\n`);
             return;
@@ -345,7 +382,7 @@ const processBiodataLine = async (line, SN, table) => {
             await db.query('UPDATE employees SET has_face = true WHERE employee_code = $1', [PIN]);
         }
 
-        await syncTemplateToOtherDevices(SN, PIN, templateType, templateNo, Temp, Valid, isNewTemplate, templateChanged, shouldForceSync);
+        await syncTemplateToOtherDevices(SN, PIN, templateType, templateNo, Temp, Valid, isNewTemplate, templateChanged, shouldForceSync, rawPin);
     } catch (e) {
         fs.appendFileSync('adms_debug.log', `[ADMS ERROR] ${e.message}\n`);
     }
@@ -632,6 +669,24 @@ const handleAttendanceLogs = async (req, res, io) => {
 };
 
 // 3. Device asks for commands
+const maybeQueueRecoveryLogPull = async (deviceSerial) => {
+    if (!deviceSerial) return false;
+    const [deviceLogs, recentRecovery] = await Promise.all([
+        db.query('SELECT 1 FROM attendance_logs WHERE device_serial = $1 LIMIT 1', [deviceSerial]),
+        db.query(`
+            SELECT 1 FROM device_commands
+             WHERE device_serial = $1 AND command = 'DATA QUERY ATTLOG'
+               AND created_at > NOW() - INTERVAL '30 minutes' LIMIT 1
+        `, [deviceSerial])
+    ]);
+    if (deviceLogs.rows.length > 0 || recentRecovery.rows.length > 0) return false;
+    await db.query(
+        `INSERT INTO device_commands (device_serial, command, status) VALUES ($1, 'DATA QUERY ATTLOG', 'pending')`,
+        [deviceSerial]
+    );
+    return true;
+};
+
 const handleGetRequest = async (req, res, io) => {
     const { SN, INFO } = req.query;
     console.log(`[ADMS] Heartbeat/Command Request from ${SN}`);
@@ -700,11 +755,33 @@ const handleGetRequest = async (req, res, io) => {
         io.emit('device_status', { serial: SN, status: 'online' });
     }
 
+    // A reader whose punches never reached this server (a fresh install, or a
+    // reader moved here) is asked for its whole log once. From the Omniware
+    // install; harmless elsewhere — it fires only when this reader has no
+    // stored punches at all, at most once per half hour.
+    try {
+        if (await maybeQueueRecoveryLogPull(SN)) {
+            console.log(`[ADMS RECOVERY] Queued DATA QUERY ATTLOG for ${SN}: no punches stored for it`);
+        }
+    } catch (recoveryErr) {
+        console.log(`[ADMS RECOVERY] Skipped for ${SN}: ${recoveryErr.message}`);
+    }
+
     // Check DB for pending commands
     try {
+        // Where readers are the source of truth for users (enrolled at the
+        // reader, as on the Omniware install, whose readers hold "OMNT-" PINs),
+        // app-made user writes would create duplicate users on the reader.
+        // Setting devices.block_app_writes = true refuses to dispatch any
+        // user/template write to a reader, apart from the trusted
+        // reader-to-reader copies.
+        // Off by default: installs that enrol from the app (Innopay) need them.
+        const blockAppWrites = String(await require('../utils/settings')
+            .get('devices', 'block_app_writes', 'false')) === 'true';
         const result = await db.query(`
-            SELECT id, command FROM device_commands 
-            WHERE device_serial = $1 AND status = 'pending' 
+            SELECT id, command FROM device_commands
+            WHERE device_serial = $1 AND status = 'pending'
+              ${blockAppWrites ? `AND (trusted IS TRUE OR (command NOT LIKE 'DATA UPDATE%' AND command NOT LIKE 'DATA DELETE%'))` : ''}
             ORDER BY COALESCE(sequence, 999) ASC, created_at ASC LIMIT 1
         `, [SN]);
 

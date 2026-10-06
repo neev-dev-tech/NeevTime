@@ -109,7 +109,7 @@ router.post('/sync/all/download-logs', async (req, res) => {
         for (const serial of device_serials) {
             await db.query(
                 `INSERT INTO device_commands (device_serial, command, status) VALUES ($1, $2, 'pending')`,
-                [serial, 'INFO ATTLOG']
+                [serial, 'DATA QUERY ATTLOG']
             );
             commandCount++;
         }
@@ -249,7 +249,7 @@ router.post('/sync/download-logs', async (req, res) => {
         let commandCount = 0;
 
         for (const serial of device_serials) {
-            const cmd = `INFO ATTLOG`;
+            const cmd = `DATA QUERY ATTLOG`;
 
             await db.query(
                 `INSERT INTO device_commands (device_serial, command, status) VALUES ($1, $2, 'pending')`,
