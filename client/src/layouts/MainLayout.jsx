@@ -128,7 +128,7 @@ export default function MainLayout({ children }) {
                     ${navOpen ? 'translate-x-0 shadow-xl' : '-translate-x-full'}`}
       >
         {/* Rail: one icon per module */}
-        <nav aria-label="Modules" className="w-[72px] flex-shrink-0 flex flex-col items-center border-r border-slate-200 dark:border-slate-800">
+        <nav aria-label="Modules" className="w-[80px] flex-shrink-0 flex flex-col items-center border-r border-slate-200 dark:border-slate-800">
           <div className="h-16 w-full flex items-center justify-center border-b border-slate-200 dark:border-slate-800">
             <img
               src={hasLogo ? logo : '/logo.png'}
@@ -136,7 +136,7 @@ export default function MainLayout({ children }) {
               className="w-9 h-9 object-contain"
             />
           </div>
-          <div className="flex-1 w-full overflow-y-auto py-3 px-2 space-y-1">
+          <div className="flex-1 w-full overflow-y-auto py-3 px-1.5 space-y-1">
             {visibleModules.map((mod) => {
               const isActive = activeModule === mod.name;
               return (
@@ -153,12 +153,14 @@ export default function MainLayout({ children }) {
                   }}
                   aria-current={isActive ? 'page' : undefined}
                   title={mod.name}
-                  className={`w-full flex flex-col items-center gap-1 py-2 rounded-xl transition-ui focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 ${isActive
+                  className={`w-full flex flex-col items-center gap-1 py-2 px-1 rounded-xl transition-ui focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 ${isActive
                     ? 'bg-slate-900 text-white shadow-sm dark:bg-white dark:text-slate-900'
                     : 'text-slate-600 hover:bg-slate-200/70 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-200'}`}
                 >
                   <mod.icon size={20} />
-                  <span className={`text-[11px] leading-none ${isActive ? 'font-semibold' : 'font-medium'}`}>{mod.name}</span>
+                  {/* The rail is sized so the longest name ("Attendance") fits inside the
+                      active pill in semibold; nowrap keeps it on one line. */}
+                  <span className={`text-[11px] leading-none whitespace-nowrap ${isActive ? 'font-semibold' : 'font-medium'}`}>{mod.name}</span>
                 </button>
               );
             })}
