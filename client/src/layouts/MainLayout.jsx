@@ -123,12 +123,12 @@ export default function MainLayout({ children }) {
           Persistent from lg; below that the pair slides in as one drawer. */}
       <aside
         id="app-sidebar"
-        className={`fixed inset-y-0 left-0 z-50 flex border-r border-slate-200 dark:border-slate-800 bg-app-surface
+        className={`fixed inset-y-0 left-0 z-50 flex border-r border-slate-200 dark:border-slate-800 bg-sidebar
                     transition-transform duration-200 ease-out lg:static lg:z-auto lg:translate-x-0 lg:flex-shrink-0
                     ${navOpen ? 'translate-x-0 shadow-xl' : '-translate-x-full'}`}
       >
         {/* Rail: one icon per module */}
-        <nav aria-label="Modules" className="w-[72px] flex-shrink-0 flex flex-col items-center border-r border-slate-200 dark:border-slate-800">
+        <nav aria-label="Modules" className="w-[80px] flex-shrink-0 flex flex-col items-center border-r border-slate-200 dark:border-slate-800">
           <div className="h-16 w-full flex items-center justify-center border-b border-slate-200 dark:border-slate-800">
             <img
               src={hasLogo ? logo : '/logo.png'}
@@ -136,7 +136,7 @@ export default function MainLayout({ children }) {
               className="w-9 h-9 object-contain"
             />
           </div>
-          <div className="flex-1 w-full overflow-y-auto py-3 px-2 space-y-1">
+          <div className="flex-1 w-full overflow-y-auto py-3 px-1.5 space-y-1">
             {visibleModules.map((mod) => {
               const isActive = activeModule === mod.name;
               return (
@@ -153,12 +153,14 @@ export default function MainLayout({ children }) {
                   }}
                   aria-current={isActive ? 'page' : undefined}
                   title={mod.name}
-                  className={`w-full flex flex-col items-center gap-1 py-2 rounded-xl transition-ui focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 ${isActive
-                    ? 'bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-white'
-                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-200'}`}
+                  className={`w-full flex flex-col items-center gap-1 py-2 px-1 rounded-xl transition-ui focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 ${isActive
+                    ? 'bg-slate-900 text-white shadow-sm dark:bg-white dark:text-slate-900'
+                    : 'text-slate-600 hover:bg-slate-200/70 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-200'}`}
                 >
                   <mod.icon size={20} />
-                  <span className={`text-[11px] leading-none ${isActive ? 'font-semibold' : 'font-medium'}`}>{mod.name}</span>
+                  {/* The rail is sized so the longest name ("Attendance") fits inside the
+                      active pill in semibold; nowrap keeps it on one line. */}
+                  <span className={`text-[11px] leading-none whitespace-nowrap ${isActive ? 'font-semibold' : 'font-medium'}`}>{mod.name}</span>
                 </button>
               );
             })}
@@ -183,7 +185,7 @@ export default function MainLayout({ children }) {
           <nav aria-label={`${activeModule} pages`} className="flex-1 overflow-y-auto px-3 py-3">
             {currentSidebar.map((group, i) => (
               <div key={group.group} className={i === 0 ? '' : 'mt-5'}>
-                <p className="px-3 mb-1 text-xs font-medium text-slate-500 dark:text-slate-400">{group.group}</p>
+                <p className="px-3 mb-1 text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">{group.group}</p>
                 <ul className="space-y-0.5">
                   {group.items.map((item) => {
                     const itemActive = item.path.includes('?')
@@ -196,10 +198,9 @@ export default function MainLayout({ children }) {
                           to={item.path}
                           aria-current={itemActive ? 'page' : undefined}
                           className={`relative flex items-center gap-2.5 px-3 h-8 rounded-lg text-[13px] transition-ui focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 ${itemActive
-                            ? 'bg-slate-100 text-slate-900 font-medium dark:bg-slate-800 dark:text-white'
-                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100'}`}
+                            ? 'bg-slate-900 text-white font-medium shadow-sm dark:bg-white dark:text-slate-900'
+                            : 'text-slate-700 hover:bg-slate-200/70 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800/60 dark:hover:text-slate-100'}`}
                         >
-                          {itemActive && <span aria-hidden="true" className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-[rgb(var(--brand))]" />}
                           <item.icon size={15} className={`shrink-0 ${itemActive ? '' : 'text-slate-500 dark:text-slate-400'}`} />
                           <span className="truncate">{item.label}</span>
                         </Link>

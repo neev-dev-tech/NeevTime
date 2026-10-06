@@ -523,7 +523,7 @@ export default function DatabaseTools() {
                         Rebuilds daily summaries from raw punches for a date range — run after imports, device re-syncs or rule changes. Manual entries and regularizations may be recalculated.
                     </p>
                 </div>
-                <div className="p-6 flex flex-wrap items-end gap-3">
+                <div data-enter-scope className="p-6 flex flex-wrap items-end gap-3">
                     <div>
                         <label className={FIELD_LABEL}>From</label>
                         <input
@@ -542,7 +542,7 @@ export default function DatabaseTools() {
                             className={FIELD}
                         />
                     </div>
-                    <Button variant="primary" icon={RefreshCw} onClick={handleRecompute} disabled={recomputing}>
+                    <Button defaultAction variant="primary" icon={RefreshCw} onClick={handleRecompute} disabled={recomputing}>
                         {recomputing ? 'Processing...' : 'Recompute'}
                     </Button>
                 </div>
@@ -660,7 +660,7 @@ export default function DatabaseTools() {
                             </select>
 
                             {destinations.filter((d) => d.key === destKey).map((d) => (
-                                <div key={d.key} className="space-y-3 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+                                <div key={d.key} data-enter-scope className="space-y-3 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
                                     <p className="text-xs text-slate-600 dark:text-slate-400">{d.description}</p>
 
                                     {d.fields.map((f) => (
@@ -692,7 +692,7 @@ export default function DatabaseTools() {
                                     ))}
 
                                     <div className="flex gap-2 pt-1">
-                                        <Button
+                                        <Button defaultAction
                                             variant="secondary"
                                             onClick={handleTestDestination}
                                             disabled={pathCheck?.checking}

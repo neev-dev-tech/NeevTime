@@ -54,6 +54,10 @@ export default function Button({
     // Marks a create/change action whose variant is not one of MUTATING
     // (e.g. a black primary "Add"), so view-only accounts get it disabled too.
     mutating = false,
+    // The action Enter performs from a field on the same screen or dialog
+    // (hooks/useEnterToSubmit). Opt-in on purpose: guessing would let Enter in
+    // a search box press "Add employee".
+    defaultAction = false,
     ...rest
 }) {
     const { isViewer } = usePermissions();
@@ -63,6 +67,7 @@ export default function Button({
             type={type}
             disabled={disabled || readOnly}
             {...(readOnly ? { title: 'Read-only access' } : {})}
+            {...(defaultAction ? { 'data-default-action': '' } : {})}
             className={`inline-flex items-center justify-center font-semibold rounded-lg transition-colors
                 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-1
                 disabled:opacity-50 disabled:cursor-not-allowed
@@ -84,5 +89,6 @@ Button.propTypes = {
     className: PropTypes.string,
     disabled: PropTypes.bool,
     type: PropTypes.string,
-    mutating: PropTypes.bool
+    mutating: PropTypes.bool,
+    defaultAction: PropTypes.bool
 };

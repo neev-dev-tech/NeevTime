@@ -412,7 +412,7 @@ api.get('/api/contractors').then(r => setContractors(r.data.filter(c => c.is_act
                                 <p className="text-xs text-slate-600 dark:text-slate-400 mb-2">
                                     Or set a temporary password — the employee must change it at first sign-in.
                                 </p>
-                                <div className="flex gap-2">
+                                <div data-enter-scope className="flex gap-2">
                                     <input
                                         type="password"
                                         value={portalPassword}
@@ -420,7 +420,7 @@ api.get('/api/contractors').then(r => setContractors(r.data.filter(c => c.is_act
                                         placeholder="New portal password (min 6 chars)"
                                         className="field flex-1"
                                     />
-                                    <Button
+                                    <Button defaultAction
                                         variant="primary"
                                         onClick={handleSetPortalPassword}
                                         disabled={settingPortalPw}

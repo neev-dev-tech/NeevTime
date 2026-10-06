@@ -31,6 +31,11 @@ export default {
                     DEFAULT: 'rgb(var(--text) / <alpha-value>)', // text-primary
                 },
                 'slate-grey': 'rgb(var(--text-muted) / <alpha-value>)', // secondary text
+                // Secondary text, one notch darker than Tailwind's stock slate.
+                // text-slate-600 / -500 carry most labels and supporting copy
+                // (~1,000 uses); at stock values the UI read pale and flat.
+                slate: { 500: '#556274', 600: '#3D4A5C' },
+                sidebar: 'rgb(var(--sidebar) / <alpha-value>)',
                 border: 'rgb(var(--border) / <alpha-value>)',
                 // Status Colors (from modern design)
                 success: {

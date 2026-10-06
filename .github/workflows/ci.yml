@@ -559,7 +559,7 @@ jobs:
         run: docker compose down -v
 
   destinations:
-    name: Backup destinations (real Samba, MinIO, SSH)
+    name: Backup destinations (real Samba, S3, SSH)
     runs-on: ubuntu-latest
     # Every destination, against a real server of its kind.
     #
@@ -597,18 +597,26 @@ jobs:
           sleep 5
           docker exec samba sh -c 'mkdir -p /shared && chmod 0777 /shared'
 
-      - name: Start MinIO and make a bucket
+      # MinIO no longer publishes images (minio/minio and quay.io/minio are
+      # gone: "pull access denied"), which failed this job on 5 Oct 2026.
+      # RustFS speaks the same S3 API and, unlike a mock, rejects a wrong
+      # secret — which the destination test checks. Pinned by digest so the
+      # job cannot break again because an image moved.
+      - name: Start an S3 object store (RustFS) and make a bucket
         run: |
-          docker run -d --name minio -p 9000:9000 \
-            -e MINIO_ROOT_USER=minioadmin -e MINIO_ROOT_PASSWORD=minioadmin \
-            minio/minio server /data
+          docker run -d --name s3store -p 9000:9000 \
+            -e RUSTFS_ACCESS_KEY=minioadmin -e RUSTFS_SECRET_KEY=minioadmin \
+            rustfs/rustfs@sha256:1803faef57627e2d9c2e7d89d655d712ddded5389040054987163043fecb6a3c
           for i in $(seq 1 30); do
-            curl -sf http://127.0.0.1:9000/minio/health/live && break
+            # An unsigned request is refused (403) once the server is up.
+            code=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:9000/ || true)
+            [ "$code" = 403 ] && break
             sleep 1
           done
-          docker run --rm --network host --entrypoint sh minio/mc -c '
-            mc alias set local http://127.0.0.1:9000 minioadmin minioadmin &&
-            mc mb --ignore-existing local/neevtime-test'
+          docker run --rm --network host \
+            -e AWS_ACCESS_KEY_ID=minioadmin -e AWS_SECRET_ACCESS_KEY=minioadmin -e AWS_DEFAULT_REGION=us-east-1 \
+            amazon/aws-cli@sha256:92de75724b6a746951f0e8b915d86bbccd7cb55aff96cd0cb4f7017272160780 \
+            --endpoint-url http://127.0.0.1:9000 s3 mb s3://neevtime-test
 
       - name: Start an SSH server
         run: |
@@ -636,7 +644,7 @@ jobs:
           if grep -qE '^# skipped [1-9]' /tmp/dest.log; then
             echo "::error::a destination test skipped — its server did not start"
             docker logs samba --tail 20 || true
-            docker logs minio --tail 20 || true
+            docker logs s3store --tail 20 || true
             docker logs sftp  --tail 20 || true
             exit 1
           fi
@@ -644,7 +652,7 @@ jobs:
 
       - name: Stop the servers
         if: always()
-        run: docker rm -f samba minio sftp || true
+        run: docker rm -f samba s3store sftp || true
 
   isolation:
     name: Tenant isolation (real Postgres)

@@ -125,3 +125,36 @@ test('the privacy notice facts are public, and never invented', () => {
     assert.ok(!/employees|attendance_logs|users/.test(route.replace(/\/\*[\s\S]*?\*\//g, '')),
         'the public notice route reads personal data');
 });
+
+test('HRMS credentials are encrypted at rest and never returned', () => {
+    process.env.SECRETS_KEY = process.env.SECRETS_KEY || 'test-secrets-key-for-node-test';
+    const { sealSecret, openIntegration, maskIntegration } = require('../utils/integrationSecrets');
+    const sealed = sealSecret('erp-secret-123');
+    assert.match(sealed, /^enc:v1:/);
+    assert.ok(!sealed.includes('erp-secret-123'));
+    assert.strictEqual(sealSecret('****'), '****', 'the form mask must pass through untouched');
+    const row = { id: 1, name: 'ERP', api_key: 'abcd1234', api_secret: sealed, password: sealSecret('pw') };
+    const open = openIntegration(row);
+    assert.strictEqual(open.api_secret, 'erp-secret-123');
+    assert.strictEqual(open.password, 'pw');
+    // Rows saved before encryption still work.
+    assert.strictEqual(openIntegration({ api_secret: 'plain' }).api_secret, 'plain');
+    const masked = maskIntegration(open);
+    assert.strictEqual(masked.api_secret, '****');
+    assert.strictEqual(masked.password, '****');
+    assert.strictEqual(masked.api_key, '***1234');
+
+    const routes = read('routes/integrations.js');
+    assert.ok(!/res\.(status\(201\)\.)?json\(result\.rows\[0\]\)/.test(routes),
+        'an integration route returns the raw row (credentials) again');
+    assert.match(routes, /sealSecret\(api_secret\)/);
+    assert.match(routes, /sealSecret\(password\)/);
+    assert.match(read('services/hrms-integration.js'), /openIntegration\(result\.rows\[0\]\)/);
+});
+
+test('compose passes SECRETS_KEY so the login key can rotate on its own', () => {
+    const root = (p) => fs.readFileSync(path.join(__dirname, '../..', p), 'utf8');
+    assert.match(root('docker-compose.yml'), /SECRETS_KEY=\$\{SECRETS_KEY:-\}/);
+    assert.match(root('docker-compose.production.yml'), /SECRETS_KEY: \$\{SECRETS_KEY:-\}/);
+    assert.match(root('install.sh'), /echo "SECRETS_KEY=\$\(openssl rand/);
+});

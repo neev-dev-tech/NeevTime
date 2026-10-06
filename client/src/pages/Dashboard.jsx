@@ -438,12 +438,13 @@ export default function Dashboard() {
     const minsAgo = lastUpdated ? Math.floor((new Date() - lastUpdated) / 60000) : null;
 
     return (
-        // Full-bleed, like the list pages: bands separated by hairlines rather
-        // than a grid of floating cards.
-        <div className="-m-4 sm:-m-6 min-h-[calc(100%+2rem)] sm:min-h-[calc(100%+3rem)] bg-app-surface">
+        // Full-bleed title bar like the list pages; below it the sections are
+        // white panels on the grey canvas, a narrow gap apart, so the page
+        // has depth instead of reading as one flat sheet.
+        <div className="-m-4 sm:-m-6 min-h-[calc(100%+2rem)] sm:min-h-[calc(100%+3rem)] bg-app-bg pb-4">
             {/* Title bar */}
-            <div className="flex items-center gap-x-4 gap-y-1 px-4 sm:px-6 min-h-14 py-2.5 border-b border-slate-200 dark:border-slate-800 flex-wrap">
-                <h1 className="text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-50">Dashboard</h1>
+            <div className="relative z-[1] flex items-center gap-x-4 gap-y-1 px-4 sm:px-6 min-h-14 py-2.5 border-b border-slate-200 dark:border-slate-800 flex-wrap bg-app-surface shadow-[0_1px_2px_rgb(15_23_42/0.04)]">
+                <h1 className="text-[19px] font-semibold tracking-tight text-slate-900 dark:text-slate-50">Dashboard</h1>
                 <span className="text-[13px] text-slate-600 dark:text-slate-400">
                     {formatDateWithWeekday(new Date())}
                 </span>
@@ -477,7 +478,7 @@ export default function Dashboard() {
             </div>
 
             {/* Band 1: today at a glance + what needs attention */}
-            <section className="grid lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] border-b border-slate-200 dark:border-slate-800">
+            <section className="grid lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] mx-3 sm:mx-4 mt-3 sm:mt-4 bg-app-surface rounded-xl border border-slate-200 dark:border-slate-800 shadow-[0_1px_2px_rgb(15_23_42/0.05),0_1px_3px_rgb(15_23_42/0.04)] overflow-hidden">
                 <div className="px-4 sm:px-6 py-5 lg:border-r border-slate-200 dark:border-slate-800">
                     <h2 className="text-[13px] font-medium text-slate-600 dark:text-slate-400">Present today</h2>
                     {loading ? (
@@ -550,7 +551,7 @@ export default function Dashboard() {
             </section>
 
             {/* Band 2: key figures in one row */}
-            <section aria-label="Key figures" className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 border-b border-slate-200 dark:border-slate-800 divide-x divide-y lg:divide-y-0 divide-slate-200 dark:divide-slate-800">
+            <section aria-label="Key figures" className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 mx-3 sm:mx-4 mt-3 sm:mt-4 bg-app-surface rounded-xl border border-slate-200 dark:border-slate-800 shadow-[0_1px_2px_rgb(15_23_42/0.05),0_1px_3px_rgb(15_23_42/0.04)] overflow-hidden divide-x divide-y lg:divide-y-0 divide-slate-200 dark:divide-slate-800">
                 {[
                     { label: 'Employees', value: stats.employees, hint: stats.newJoinees ? `+${stats.newJoinees} joined this week` : 'on the payroll', to: '/employees' },
                     { label: 'Punctuality', value: `${stats.punctualityRate}%`, hint: stats.late ? `${stats.late} late` : 'nobody late', to: '/attendance-register?late=1' },
@@ -569,7 +570,7 @@ export default function Dashboard() {
             </section>
 
             {/* Band 3: exceptions trend + live punches */}
-            <section className="grid lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] border-b border-slate-200 dark:border-slate-800">
+            <section className="grid lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] mx-3 sm:mx-4 mt-3 sm:mt-4 bg-app-surface rounded-xl border border-slate-200 dark:border-slate-800 shadow-[0_1px_2px_rgb(15_23_42/0.05),0_1px_3px_rgb(15_23_42/0.04)] overflow-hidden">
                 <div className="px-4 sm:px-6 py-5 lg:border-r border-slate-200 dark:border-slate-800">
                     <div className="flex items-baseline justify-between gap-3">
                         <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Exceptions, last 7 days</h2>
@@ -630,7 +631,7 @@ export default function Dashboard() {
             </section>
 
             {/* Band 4: today by department */}
-            <section className="pb-6">
+            <section className="mx-3 sm:mx-4 mt-3 sm:mt-4 bg-app-surface rounded-xl border border-slate-200 dark:border-slate-800 shadow-[0_1px_2px_rgb(15_23_42/0.05),0_1px_3px_rgb(15_23_42/0.04)] overflow-hidden pb-4">
                 <div className="px-4 sm:px-6 pt-5 pb-3 flex items-baseline justify-between gap-3">
                     <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Today by department</h2>
                     <button type="button" onClick={() => navigate('/attendance-register')} className="text-xs font-medium text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100">Open register</button>

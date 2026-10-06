@@ -479,7 +479,7 @@ export default function Departments() {
                         <p className="text-xs text-slate-500">Hold Ctrl/Cmd to pick several. Empty means requests fall through to HR.</p>
                         <div className="flex justify-end gap-2">
                             <Button variant="secondary" onClick={() => setApproverDept(null)}>Cancel</Button>
-                            <Button variant="primary" onClick={saveApprovers} disabled={savingApprovers}>
+                            <Button defaultAction variant="primary" onClick={saveApprovers} disabled={savingApprovers}>
                                 {savingApprovers ? 'Saving…' : 'Save'}
                             </Button>
                         </div>

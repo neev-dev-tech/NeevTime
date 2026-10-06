@@ -155,7 +155,7 @@ function FirstLastReport() {
                             <ListMenuItem onClick={exportToExcel}>Excel (.xlsx)</ListMenuItem>
                         </ListMenu>
                     )}
-                    <Button variant="primary" size="toolbar" onClick={calculate} disabled={loading}>
+                    <Button defaultAction variant="primary" size="toolbar" onClick={calculate} disabled={loading}>
                         {loading ? <RefreshCw size={15} className="animate-spin" /> : <Calculator size={15} />}
                         {loading ? 'Calculating…' : 'Calculate'}
                     </Button>

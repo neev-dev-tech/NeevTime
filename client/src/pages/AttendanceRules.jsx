@@ -283,7 +283,7 @@ export default function AttendanceRules() {
                 footer={
                     <>
                         <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-                        <Button icon={Save} onClick={handleSubmit}>
+                        <Button defaultAction icon={Save} onClick={handleSubmit}>
                             {editingId ? 'Update Rule' : 'Create Rule'}
                         </Button>
                     </>

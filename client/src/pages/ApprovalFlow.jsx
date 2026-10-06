@@ -297,7 +297,7 @@ export default function ApprovalFlow() {
                 size="xl"
                 footer={<>
                     <Button variant="secondary" onClick={() => { setShowModal(null); setEditItem(null); resetForm(); }}>Cancel</Button>
-                    <Button variant="primary" type="submit" onClick={handleSubmit}>Save flow</Button>
+                    <Button defaultAction variant="primary" type="submit" onClick={handleSubmit}>Save flow</Button>
                 </>}
             >
                 <form onSubmit={handleSubmit} className="space-y-6">

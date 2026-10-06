@@ -281,7 +281,7 @@ export default function ExportCenter() {
                                 </div>
                             ))}
                         </dl>
-                        <Button variant="primary" className="w-full mt-5 h-10" onClick={handleExport} disabled={exporting}>
+                        <Button defaultAction variant="primary" className="w-full mt-5 h-10" onClick={handleExport} disabled={exporting}>
                             {exporting ? <Loader className="animate-spin" size={16} /> : <Download size={16} />}
                             {exporting ? 'Exporting…' : 'Export'}
                         </Button>

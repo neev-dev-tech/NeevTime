@@ -19,6 +19,7 @@
 const db = require('../db');
 const registry = require('./integrations/registry');
 const fs = require('fs');
+const { openIntegration } = require('../utils/integrationSecrets');
 
 // Logger
 const log = (level, msg, data = {}) => {
@@ -316,7 +317,8 @@ const getIntegrationInstance = async (integrationId) => {
             throw new Error(`Integration with ID ${integrationId} not found`);
         }
 
-        const config = result.rows[0];
+        // Credentials are stored encrypted (utils/integrationSecrets).
+        const config = openIntegration(result.rows[0]);
 
         // Parse config if it's a string
         if (config.config && typeof config.config === 'string') {
@@ -445,7 +447,16 @@ const syncDailyAttendanceToHRMS = async (integration, options = {}) => {
  */
 const getActiveIntegrations = async () => {
     const result = await db.query('SELECT * FROM hrms_integrations WHERE is_active = true');
-    return result.rows;
+    // One integration whose secret cannot be decrypted must not stop the
+    // others syncing: it is left out, with the reason logged.
+    return result.rows.flatMap((row) => {
+        try {
+            return [openIntegration(row)];
+        } catch (err) {
+            console.error(`[HRMS] ${err.message}`);
+            return [];
+        }
+    });
 };
 
 /**
