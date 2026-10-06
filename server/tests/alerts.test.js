@@ -19,6 +19,19 @@ const path = require('node:path');
 
 const read = (rel) => fs.readFileSync(path.join(__dirname, '..', rel), 'utf8');
 
+test('an issue closes even when its alert was never sent', () => {
+    // With email unconfigured notified_at stays NULL. Requiring it to close
+    // left Omniware's fixed sync alerts open for good.
+    const src = read('services/alerts.js');
+    const body = src.slice(src.indexOf('const resolve = async'), src.indexOf('const track ='));
+    const update = /UPDATE alert_state SET resolved_at = NOW\(\)[\s\S]*?RETURNING/.exec(body);
+    assert.ok(update, 'resolve no longer closes the row');
+    assert.ok(!/notified_at IS NOT NULL/.test(update[0]),
+        'resolve only closes alerts that were emailed; with email down nothing ever closes');
+    assert.ok(/if \(!original\.notified_at\) return/.test(body),
+        'a recovery mail would go out for an issue nobody was told about');
+});
+
 test('a re-opened issue clears notified_at, so it alerts again', () => {
     // The regression. Without this the second outage of the same reader is
     // silent — and silence is indistinguishable from "everything is fine".

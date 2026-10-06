@@ -145,14 +145,20 @@ const raise = async (key, { subject, body, severity = 'medium', details = {}, tr
 /** Report that a previously raised issue has cleared. Silent if it was never open. */
 const resolve = async (key, { subject, body } = {}) => {
     try {
+        // Close it whether or not the opening mail went out. This used to
+        // require notified_at, so with email unconfigured nothing was ever
+        // notified and nothing could close: Omniware's sync alerts stayed open
+        // after the cause was fixed, and verify-deploy warned about them
+        // forever. Only the recovery mail depends on the opening one.
         const res = await db.query(`
             UPDATE alert_state SET resolved_at = NOW()
-            WHERE alert_key = $1 AND resolved_at IS NULL AND notified_at IS NOT NULL
-            RETURNING subject, opened_at
+            WHERE alert_key = $1 AND resolved_at IS NULL
+            RETURNING subject, opened_at, notified_at
         `, [key]);
         if (res.rowCount === 0) return { sent: false, reason: 'not open' };
 
         const original = res.rows[0];
+        if (!original.notified_at) return { sent: false, reason: 'closed; it was never announced' };
         const minutes = Math.round((Date.now() - new Date(original.opened_at)) / 60000);
         return await deliver(
             key,
