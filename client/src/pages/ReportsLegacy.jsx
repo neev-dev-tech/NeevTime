@@ -9,7 +9,8 @@ import {
     Fingerprint, LogIn, LogOut, MapPin, Hash, User
 } from 'lucide-react';
 import { exportToPDF } from '../utils/pdfExport';
-import { exportToExcel as exportToExcelUtil } from '../utils/excelExport';
+import { exportToExcel as exportToExcelUtil, exportToCSV as exportToCSVUtil } from '../utils/excelExport';
+import { formatTimestamp } from '../utils/dateFormat';
 
 export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
     const [searchParams] = useSearchParams();
@@ -35,7 +36,9 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
     const [employees, setEmployees] = useState([]);
     const [reportData, setReportData] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [exporting, setExporting] = useState('');
     const [generated, setGenerated] = useState(false);
+    const transactionReportTypes = ['transaction_log', 'mobile_trans', 'transaction', 'total_punches'];
 
     useEffect(() => {
         fetchFilters();
@@ -65,6 +68,9 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
 
     const getDirection = (log) => {
         if (!log) return 'IN';
+        if (typeof log.punch_type === 'string' && log.punch_type.trim()) {
+            return log.punch_type.toUpperCase() === 'OUT' ? 'OUT' : 'IN';
+        }
         const state = parseInt(log.punch_state);
         if ([0, 3, 4, 8].includes(state)) return 'IN';
         if ([1, 2, 5, 9].includes(state)) return 'OUT';
@@ -75,14 +81,17 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
     const getStats = () => {
         const total = reportData.length;
         // Transaction & Log Reports
-        if (['transaction_log', 'mobile_trans', 'transaction', 'total_punches'].includes(reportType)) {
+        if (transactionReportTypes.includes(reportType)) {
             const uniqueUsers = new Set(reportData.map(r => r.employee_code)).size;
             const locations = new Set(reportData.map(r => r.device_serial)).size;
+            const latestPunchTime = reportData[0]?.punch_time
+                ? formatTimestamp(reportData[0].punch_time).time.replace(/:\d{2}\s/, ' ')
+                : '-';
             return [
                 { label: 'Total Punches', value: total, icon: Hash, color: 'blue' },
                 { label: 'Unique Users', value: uniqueUsers, icon: Users, color: 'emerald' },
                 { label: 'Locations', value: locations, icon: MapPin, color: 'rose' },
-                { label: 'Latest', value: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), icon: Clock, color: 'amber' }
+                { label: 'Latest', value: latestPunchTime, icon: Clock, color: 'amber' }
             ];
         }
 
@@ -136,12 +145,15 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                     },
                     {
                         label: 'Time',
-                        render: (row) => (
-                            <div className="flex flex-col">
-                                <span className="text-sm font-medium text-slate-800">{new Date(row.punch_time).toLocaleTimeString()}</span>
-                                <span className="text-xs text-slate-500">{new Date(row.punch_time).toLocaleDateString()}</span>
-                            </div>
-                        )
+                        render: (row) => {
+                            const ts = formatTimestamp(row.punch_time);
+                            return (
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-medium text-slate-800">{ts.time}</span>
+                                    <span className="text-xs text-slate-500">{ts.date}</span>
+                                </div>
+                            );
+                        }
                     },
                     {
                         label: 'Type',
@@ -279,12 +291,15 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
         try {
             let data = [];
 
-            if (['transaction_log', 'mobile_trans', 'total_punches'].includes(reportType)) {
-                const logsRes = await api.get('/api/logs', { params: { limit: 500 } });
-                data = (logsRes.data || []).filter(log => {
-                    const punchDate = new Date(log.punch_time).toISOString().split('T')[0];
-                    return punchDate >= dateFrom && punchDate <= dateTo;
+            if (transactionReportTypes.includes(reportType)) {
+                const logsRes = await api.get('/api/logs', {
+                    params: {
+                        start_date: dateFrom,
+                        end_date: dateTo,
+                        ...(department ? { department_id: department } : {})
+                    }
                 });
+                data = logsRes.data || [];
             } else if (['daily_attendance', 'scheduled_log', 'daily_details', 'daily_summary'].includes(reportType)) {
                 const summaryRes = await api.get('/api/attendance/summary', { params: { date: dateFrom } });
                 data = summaryRes.data || [];
@@ -313,21 +328,10 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                 }));
             }
 
-            if (department) {
-                // Filter by department for ALL reports
-                // For logs, we need to lookup employee department if not present
+            if (department && !transactionReportTypes.includes(reportType)) {
+                // Filter by department for non-transaction reports
                 const deptName = departments.find(d => d.id === parseInt(department))?.name;
-
-                if (['transaction_log', 'mobile_trans', 'total_punches'].includes(reportType)) {
-                    // Need to map employee code to department
-                    const empMap = employees.reduce((acc, emp) => {
-                        acc[emp.employee_code] = emp.department_name;
-                        return acc;
-                    }, {});
-                    data = data.filter(log => empMap[log.employee_code] === deptName);
-                } else {
-                    data = data.filter(item => item.department === deptName);
-                }
+                data = data.filter(item => item.department === deptName);
             }
 
             setReportData(data);
@@ -353,6 +357,97 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
         { id: 'absent_report', name: 'Absent Report', icon: UserX },
         { id: 'mobile_trans', name: 'Mobile Transaction', icon: Smartphone }
     ];
+
+    const getExportData = () => {
+        if (!reportData.length) return [];
+
+        if (transactionReportTypes.includes(reportType)) {
+            return reportData.map(row => ({
+                Employee: row.emp_name || 'Unknown',
+                'Employee Code': row.employee_code || '-',
+                Department: row.department_name || '-',
+                Date: row.punch_time ? formatTimestamp(row.punch_time).date : '-',
+                Time: row.punch_time ? formatTimestamp(row.punch_time).time : '-',
+                Type: getDirection(row),
+                Device: row.device_serial || '-',
+                Mode: row.verification_mode || '15'
+            }));
+        }
+
+        if (!columns || !columns.length) return reportData;
+
+        return reportData.map((row) => {
+            const mappedRow = {};
+
+            columns.forEach((col) => {
+                if (col.key) {
+                    mappedRow[col.label || col.key] = row[col.key] ?? '-';
+                } else if (col.label === 'Employee') {
+                    mappedRow.Employee = row.employee_name || row.emp_name || 'Unknown';
+                    mappedRow['Employee Code'] = row.employee_code || '-';
+                }
+            });
+
+            if (!mappedRow.Employee && (row.employee_name || row.emp_name)) {
+                mappedRow.Employee = row.employee_name || row.emp_name;
+            }
+            if (!mappedRow['Employee Code'] && row.employee_code) {
+                mappedRow['Employee Code'] = row.employee_code;
+            }
+
+            return mappedRow;
+        });
+    };
+
+    const getExportFilename = () => `${reportType}_${dateFrom}_to_${dateTo}`;
+
+    const handleExportCSV = async () => {
+        if (!reportData.length) return;
+        setExporting('csv');
+        try {
+            await exportToCSVUtil({
+                data: getExportData(),
+                filename: getExportFilename()
+            });
+        } finally {
+            setExporting('');
+        }
+    };
+
+    const handleExportXLS = async () => {
+        if (!reportData.length) return;
+        setExporting('xls');
+        try {
+            await exportToExcelUtil({
+                data: getExportData(),
+                filename: getExportFilename(),
+                sheetName: 'Report'
+            });
+        } finally {
+            setExporting('');
+        }
+    };
+
+    const handleExportPDF = () => {
+        if (!reportData.length) return;
+        setExporting('pdf');
+        try {
+            const selectedDepartment = department
+                ? departments.find(d => d.id === parseInt(department))?.name || department
+                : 'All Departments';
+            exportToPDF({
+                data: getExportData(),
+                filename: `${getExportFilename()}.pdf`,
+                title: getReportTitle(),
+                subtitle: 'Comprehensive data view and analysis',
+                dateRange: `${dateFrom} to ${dateTo}`,
+                filters: { Department: selectedDepartment },
+                orientation: 'landscape'
+            });
+        } finally {
+            setExporting('');
+        }
+    };
 
     const renderCell = (row, col) => {
         if (col.render) return col.render(row);
@@ -385,6 +480,7 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
     };
 
     const columns = getColumnDefs(reportType);
+    const canExport = generated && reportData.length > 0;
 
     return (
         <div className="flex flex-col h-full bg-[#FAFBFC]">
@@ -406,6 +502,30 @@ export default function ReportsLegacy({ type: propType, hideSidebar = false }) {
                         </div>
                     </div>
                     <div className="flex gap-3">
+                        <button
+                            onClick={handleExportCSV}
+                            disabled={!canExport || loading || !!exporting}
+                            className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 text-blue-700 rounded-lg hover:bg-blue-50 font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {exporting === 'csv' ? <RefreshCw size={16} className="animate-spin" /> : <FileText size={16} />}
+                            CSV
+                        </button>
+                        <button
+                            onClick={handleExportXLS}
+                            disabled={!canExport || loading || !!exporting}
+                            className="flex items-center gap-2 px-4 py-2 bg-white border border-emerald-200 text-emerald-700 rounded-lg hover:bg-emerald-50 font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {exporting === 'xls' ? <RefreshCw size={16} className="animate-spin" /> : <FileSpreadsheet size={16} />}
+                            XLS
+                        </button>
+                        <button
+                            onClick={handleExportPDF}
+                            disabled={!canExport || loading || !!exporting}
+                            className="flex items-center gap-2 px-4 py-2 bg-white border border-rose-200 text-rose-700 rounded-lg hover:bg-rose-50 font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {exporting === 'pdf' ? <RefreshCw size={16} className="animate-spin" /> : <Printer size={16} />}
+                            PDF
+                        </button>
                         <button onClick={generateReport} disabled={loading} className="btn-primary shadow-lg shadow-blue-200/50">
                             {loading ? <RefreshCw size={18} className="animate-spin" /> : <Calculator size={18} />}
                             {loading ? 'Processing...' : 'Generate Report'}

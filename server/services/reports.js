@@ -57,8 +57,8 @@ const generateDailyAttendance = async (date, departmentId = null, areaId = null)
                 e.name as employee_name,
                 d.name as department_name,
                 DATE(al.punch_time) as attendance_date,
-                MIN(CASE WHEN al.punch_state::int <= 1 THEN al.punch_time END) as first_in,
-                MAX(CASE WHEN al.punch_state::int > 1 THEN al.punch_time END) as last_out,
+                MIN(CASE WHEN al.punch_state::int IN (0, 3, 4) THEN al.punch_time END) as first_in,
+                MAX(CASE WHEN al.punch_state::int IN (1, 2, 5) THEN al.punch_time END) as last_out,
                 COUNT(*) as punch_count,
                 dev.device_name as in_device,
                 al.verification_mode
@@ -130,17 +130,17 @@ const generateMonthlySummary = async (year, month, departmentId = null) => {
             e.name as employee_name,
             d.name as department_name,
             COUNT(DISTINCT DATE(al.punch_time)) as days_present,
-            SUM(CASE WHEN al.punch_state::int <= 1 THEN 1 ELSE 0 END) as total_check_ins,
-            SUM(CASE WHEN al.punch_state::int > 1 THEN 1 ELSE 0 END) as total_check_outs,
+            SUM(CASE WHEN al.punch_state::int IN (0, 3, 4) THEN 1 ELSE 0 END) as total_check_ins,
+            SUM(CASE WHEN al.punch_state::int IN (1, 2, 5) THEN 1 ELSE 0 END) as total_check_outs,
             AVG(
                 CASE 
-                    WHEN al.punch_state::int <= 1 
+                    WHEN al.punch_state::int IN (0, 3, 4) 
                     THEN EXTRACT(HOUR FROM al.punch_time) + EXTRACT(MINUTE FROM al.punch_time)/60 
                 END
             ) as avg_check_in_time,
             AVG(
                 CASE 
-                    WHEN al.punch_state::int > 1 
+                    WHEN al.punch_state::int IN (1, 2, 5) 
                     THEN EXTRACT(HOUR FROM al.punch_time) + EXTRACT(MINUTE FROM al.punch_time)/60 
                 END
             ) as avg_check_out_time
@@ -193,8 +193,8 @@ const generateLateEarlyReport = async (startDate, endDate, shiftStartTime = '09:
                 e.name as employee_name,
                 d.name as department_name,
                 DATE(al.punch_time) as attendance_date,
-                MIN(CASE WHEN al.punch_state::int <= 1 THEN al.punch_time::time END) as first_in,
-                MAX(CASE WHEN al.punch_state::int > 1 THEN al.punch_time::time END) as last_out
+                MIN(CASE WHEN al.punch_state::int IN (0, 3, 4) THEN al.punch_time::time END) as first_in,
+                MAX(CASE WHEN al.punch_state::int IN (1, 2, 5) THEN al.punch_time::time END) as last_out
             FROM attendance_logs al
             JOIN employees e ON al.employee_code = e.employee_code
             LEFT JOIN departments d ON e.department_id = d.id
@@ -346,8 +346,8 @@ const generateOvertimeReport = async (startDate, endDate, regularHours = 8) => {
                 e.name as employee_name,
                 d.name as department_name,
                 DATE(al.punch_time) as work_date,
-                MIN(CASE WHEN al.punch_state::int <= 1 THEN al.punch_time END) as first_in,
-                MAX(CASE WHEN al.punch_state::int > 1 THEN al.punch_time END) as last_out
+                MIN(CASE WHEN al.punch_state::int IN (0, 3, 4) THEN al.punch_time END) as first_in,
+                MAX(CASE WHEN al.punch_state::int IN (1, 2, 5) THEN al.punch_time END) as last_out
             FROM attendance_logs al
             JOIN employees e ON al.employee_code = e.employee_code
             LEFT JOIN departments d ON e.department_id = d.id

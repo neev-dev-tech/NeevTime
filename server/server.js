@@ -243,6 +243,27 @@ app.use(bodyParser.json());
 app.use(bodyParser.text({ type: 'text/*' }));
 app.use(bodyParser.urlencoded({ extended: true }));
 
+// Health Check Endpoint
+app.get('/api/health', async (req, res) => {
+    try {
+        // Test database connection
+        await db.query('SELECT 1');
+        res.json({
+            status: 'healthy',
+            timestamp: new Date().toISOString(),
+            database: 'connected',
+            uptime: process.uptime()
+        });
+    } catch (err) {
+        res.status(503).json({
+            status: 'unhealthy',
+            timestamp: new Date().toISOString(),
+            database: 'disconnected',
+            error: err.message
+        });
+    }
+});
+
 // Auth Routes
 const { router: authRouter, authenticateToken } = require('./routes/auth');
 const orgRouter = require('./routes/organization');
@@ -254,6 +275,13 @@ const settingsRouter = require('./routes/settings');
 const schedulingExtRouter = require('./routes/scheduling_extended');
 
 app.use('/api', authRouter);
+
+// Read-only attendance export for an HRMS vendor that pulls (greytHR).
+// Authenticated by a per-integrator API key rather than a user session, so it
+// must mount ABOVE the `app.use('/api', authenticateToken, ...)` lines below —
+// those apply their middleware to every /api request that reaches them, which
+// would 401 a caller that never has a user token. Every route inside is a GET.
+app.use('/api/export', require('./routes/hrms_export'));
 app.use('/api', authenticateToken, orgRouter);
 app.use('/api', authenticateToken, personnelRouter);
 app.use('/api', authenticateToken, schedulingRouter);
@@ -357,27 +385,6 @@ app.post(['/iclock/devicecmd', '/iclock/devicecmd.aspx'], (req, res) => res.send
 
 // ================= API Routes ==================
 
-// Health Check Endpoint
-app.get('/api/health', async (req, res) => {
-    try {
-        // Test database connection
-        await db.query('SELECT 1');
-        res.json({
-            status: 'healthy',
-            timestamp: new Date().toISOString(),
-            database: 'connected',
-            uptime: process.uptime()
-        });
-    } catch (err) {
-        res.status(503).json({
-            status: 'unhealthy',
-            timestamp: new Date().toISOString(),
-            database: 'disconnected',
-            error: err.message
-        });
-    }
-});
-
 // Get Dashboard Stats
 app.get('/api/stats', async (req, res) => {
     try {
@@ -414,6 +421,39 @@ app.get('/api/stats', async (req, res) => {
     }
 });
 
+// Get Attendance Trends for last 7 days
+app.get('/api/attendance/trends', async (req, res) => {
+    try {
+        const result = await db.query(`
+            WITH date_series AS (
+                SELECT generate_series(CURRENT_DATE - INTERVAL '6 days', CURRENT_DATE, '1 day'::interval)::date as full_date
+            ),
+            stats AS (
+                SELECT 
+                    ds.full_date,
+                    COUNT(ads.id) FILTER (WHERE ads.late_minutes > 0) as late,
+                    COUNT(ads.id) FILTER (WHERE ads.early_minutes > 0) as early_leave,
+                    COUNT(ads.id) FILTER (WHERE ads.status = 'Present') as present
+                FROM date_series ds
+                LEFT JOIN attendance_daily_summary ads ON ds.full_date = ads.date
+                GROUP BY ds.full_date
+            )
+            SELECT 
+                full_date as "fullDate",
+                TO_CHAR(full_date, 'Dy') as date,
+                late::int,
+                early_leave::int as "earlyLeave",
+                ((SELECT COUNT(*) FROM employees WHERE status = 'active') - present)::int as absent
+            FROM stats
+            ORDER BY full_date ASC
+        `);
+        res.json(result.rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Get Database Stats for Database Tools page
 app.get('/api/stats/database', async (req, res) => {
     try {
@@ -441,16 +481,82 @@ app.get('/api/stats/database', async (req, res) => {
 });
 
 // Get Logs
+const resolvePunchType = (punchState, deviceDirection) => {
+    const direction = String(deviceDirection || 'both').toLowerCase();
+    if (direction === 'in') return 'IN';
+    if (direction === 'out') return 'OUT';
+
+    const state = Number.parseInt(punchState, 10);
+    if ([0, 3, 4, 8].includes(state)) return 'IN';
+    if ([1, 2, 5, 9].includes(state)) return 'OUT';
+    return 'IN';
+};
+
 app.get('/api/logs', async (req, res) => {
     try {
-        const { limit = 50 } = req.query;
-        const result = await db.query(`
-            SELECT al.*, e.name as emp_name 
+        const { limit, start_date, end_date, department_id, employee_code } = req.query;
+        const params = [];
+        const whereClauses = [];
+
+        if (start_date) {
+            params.push(start_date);
+            whereClauses.push(`DATE(al.punch_time) >= $${params.length}`);
+        }
+
+        if (end_date) {
+            params.push(end_date);
+            whereClauses.push(`DATE(al.punch_time) <= $${params.length}`);
+        }
+
+        if (department_id) {
+            const parsedDepartmentId = parseInt(department_id, 10);
+            if (Number.isInteger(parsedDepartmentId)) {
+                params.push(parsedDepartmentId);
+                whereClauses.push(`e.department_id = $${params.length}`);
+            }
+        }
+
+        if (employee_code) {
+            params.push(employee_code);
+            whereClauses.push(`al.employee_code = $${params.length}`);
+        }
+
+        let query = `
+            SELECT 
+                al.*,
+                TO_CHAR(al.punch_time, 'YYYY-MM-DD"T"HH24:MI:SS') AS punch_time_local,
+                e.name as emp_name,
+                e.department_id,
+                d.device_direction
             FROM attendance_logs al
             LEFT JOIN employees e ON al.employee_code = e.employee_code
-            ORDER BY al.punch_time DESC LIMIT $1
-        `, [limit]);
-        res.json(result.rows);
+            LEFT JOIN devices d ON al.device_serial = d.serial_number
+        `;
+
+        if (whereClauses.length > 0) {
+            query += ` WHERE ${whereClauses.join(' AND ')}`;
+        }
+
+        query += ` ORDER BY al.punch_time DESC`;
+
+        const parsedLimit = Number.parseInt(limit, 10);
+        const shouldApplyDefaultLimit = whereClauses.length === 0;
+
+        if (Number.isInteger(parsedLimit) && parsedLimit > 0) {
+            params.push(parsedLimit);
+            query += ` LIMIT $${params.length}`;
+        } else if (shouldApplyDefaultLimit) {
+            query += ` LIMIT 50`;
+        }
+
+        const result = await db.query(query, params);
+        const normalizedRows = result.rows.map((row) => ({
+            ...row,
+            punch_time: row.punch_time_local || row.punch_time,
+            punch_type: resolvePunchType(row.punch_state, row.device_direction)
+        }));
+
+        res.json(normalizedRows);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
