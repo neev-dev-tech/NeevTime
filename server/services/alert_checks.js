@@ -118,13 +118,19 @@ const WARN_AFTER_DAYS = 5;
 const checkSyncAging = async () => {
     const res = await db.query(`
         SELECT
-            count(*) FILTER (WHERE punch_time < NOW() - INTERVAL '${WARN_AFTER_DAYS} days'
-                               AND punch_time >= NOW() - INTERVAL '${RETRY_WINDOW_DAYS} days')::int AS expiring,
-            count(*) FILTER (WHERE punch_time < NOW() - INTERVAL '${RETRY_WINDOW_DAYS} days')::int AS stranded,
-            min(punch_time) FILTER (WHERE punch_time < NOW() - INTERVAL '${RETRY_WINDOW_DAYS} days') AS oldest_stranded
-        FROM attendance_logs
-        WHERE sync_status IS DISTINCT FROM 'synced'
-          AND sync_status IS DISTINCT FROM 'skipped'
+            count(*) FILTER (WHERE l.punch_time < NOW() - INTERVAL '${WARN_AFTER_DAYS} days'
+                               AND l.punch_time >= NOW() - INTERVAL '${RETRY_WINDOW_DAYS} days')::int AS expiring,
+            count(*) FILTER (WHERE l.punch_time < NOW() - INTERVAL '${RETRY_WINDOW_DAYS} days')::int AS stranded,
+            min(l.punch_time) FILTER (WHERE l.punch_time < NOW() - INTERVAL '${RETRY_WINDOW_DAYS} days') AS oldest_stranded
+        FROM attendance_logs l
+        JOIN employees e ON e.employee_code = l.employee_code
+        WHERE l.sync_status IS DISTINCT FROM 'synced'
+          AND l.sync_status IS DISTINCT FROM 'skipped'
+          -- Only punches the sync would send: the live push drops unknown,
+          -- excluded and deleted staff. Omniware's excluded staff left 4,869
+          -- old 'unmapped' rows that raised both alerts for nothing.
+          AND e.exclude_from_hrms IS NOT TRUE
+          AND e.deleted_at IS NULL
     `);
     const { expiring, stranded, oldest_stranded } = res.rows[0];
 

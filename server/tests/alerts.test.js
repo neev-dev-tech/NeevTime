@@ -194,6 +194,17 @@ test('the aging window matches the retry window it is warning about', () => {
         `the alert warns about a ${alertWindow[1]}-day window but the sync retries for ${syncWindow[1]} days`);
 });
 
+test('the aging check ignores punches the sync would never send', () => {
+    // Excluded and deleted staff are dropped by the push, so their unsynced
+    // punches are expected. Counting them raised both alerts on Omniware for
+    // 4,869 rows belonging only to excluded staff.
+    const src = read('services/alert_checks.js');
+    const body = src.slice(src.indexOf('const checkSyncAging'), src.indexOf("alerts.track('sync_expiring'"));
+    assert.ok(/JOIN employees/.test(body), 'the aging check no longer looks at the employee');
+    assert.ok(/exclude_from_hrms IS NOT TRUE/.test(body), 'excluded staff count as stuck punches');
+    assert.ok(/deleted_at IS NULL/.test(body), 'deleted staff count as stuck punches');
+});
+
 test('repeated failed sign-ins raise an alert', () => {
     const src = read('services/alert_checks.js');
     assert.ok(/accounts_locked/.test(src), 'account lockouts are not alerted');

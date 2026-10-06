@@ -1026,6 +1026,12 @@ const syncLeavesFromHRMS = async (integration) => {
 };
 
 const syncEmployeesFromHRMS = async (integration) => {
+    // Push-only adapters (greytHR) have no employee pull. The scheduler already
+    // checks this; the full-sync button did not, so it called the base class,
+    // threw "must be implemented by subclass" and marked the card Failed.
+    if (!await requireCapability(integration, CAPABILITY.EMPLOYEES, 'employees')) {
+        return { processed: 0, success: 0, failed: 0, skipped: true };
+    }
     // Declared out here so the catch can report it. It used to be created after
     // pullEmployees() returned, which is the one place it was needed least: when
     // the pull throws — a rejected API key, a dead HRMS, a network timeout —

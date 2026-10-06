@@ -98,6 +98,19 @@ test('the sync checks capability before running a pull', () => {
     }
 });
 
+test('a full sync on a push-only adapter skips the employee pull', () => {
+    // The full-sync route calls syncEmployeesFromHRMS directly, so the check
+    // has to live there, ahead of the pull — not only in the scheduler.
+    const src = fs.readFileSync(path.join(__dirname, '..', 'services', 'hrms-integration.js'), 'utf8');
+    const start = src.indexOf('const syncEmployeesFromHRMS');
+    const body = src.slice(start, src.indexOf('integration.pullEmployees()', start));
+    assert.ok(
+        /requireCapability\(integration, CAPABILITY\.EMPLOYEES/.test(body),
+        'syncEmployeesFromHRMS pulls employees without checking the adapter can — ' +
+        'greytHR then throws "must be implemented by subclass" and shows Failed'
+    );
+});
+
 test('adapters for closed vendors are gone, and say why', () => {
     for (const gone of ['sap-successfactors.js', 'workday.js', 'bamboohr.js', 'zoho-people.js']) {
         assert.ok(
