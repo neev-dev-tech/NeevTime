@@ -197,8 +197,14 @@ volumes:
   #
   # A genuinely new install therefore needs this once, deliberately:
   #     docker volume create neevtime_postgres_data
+  #
+  # DB_VOLUME names a different live volume for an install whose database has
+  # always lived elsewhere — the Omniware server's is `neevtime_pgdata`, and
+  # there `neevtime_postgres_data` is the stale one. Set it in that install's
+  # .env; never change it on a running install without checking which volume
+  # holds the current data (count rows and the latest punch in each).
   pgdata:
-    name: neevtime_postgres_data
+    name: ${DB_VOLUME:-neevtime_postgres_data}
     external: true
   nginx_certs:
   backups:
