@@ -31,8 +31,14 @@ services:
       - ./database/000_schema.sql:/docker-entrypoint-initdb.d/000_schema.sql:ro
     networks:
       - app-network
+    # Loopback only. The application reaches Postgres over the compose network
+    # (DB_SERVER=db) and never needs this port. Published on every interface it
+    # let anyone on the office network log in as the superuser — with a
+    # password that was, for a while, in this public repository. For pgAdmin
+    # or DBeaver, tunnel: ssh -L 5433:localhost:5432 <server>, then use
+    # localhost:5433.
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     healthcheck:
       # -h 127.0.0.1 forces TCP, and that is the whole point.
       #
